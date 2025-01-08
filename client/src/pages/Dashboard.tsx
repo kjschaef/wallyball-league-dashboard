@@ -26,7 +26,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
 import { PlayerSelector } from "@/components/PlayerSelector";
-import { GameHistory } from "@/components/GameHistory";
 
 const playerFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -165,7 +164,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">League Dashboard</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Wallyball Standings</h1>
 
       <div className="grid gap-4 md:grid-cols-2">
         <StatCard
@@ -194,11 +193,6 @@ export default function Dashboard() {
           />
         ))}
       </div>
-
-      <GameHistory 
-        games={allGames}
-        players={players || []}
-      />
 
       <FloatingActionButton
         onAddPlayer={() => {
