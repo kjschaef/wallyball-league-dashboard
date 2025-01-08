@@ -16,12 +16,12 @@ import {
 
 interface FloatingActionButtonProps {
   onAddPlayer: () => void;
-  onRecordMatch: () => void;
+  onRecordGame: () => void;
 }
 
 export function FloatingActionButton({
   onAddPlayer,
-  onRecordMatch,
+  onRecordGame,
 }: FloatingActionButtonProps) {
   return (
     <div className="fixed bottom-6 right-6">
@@ -35,8 +35,8 @@ export function FloatingActionButton({
           <DropdownMenuItem onClick={onAddPlayer}>
             Add Player
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onRecordMatch}>
-            Record Match
+          <DropdownMenuItem onClick={onRecordGame}>
+            Record Game
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
