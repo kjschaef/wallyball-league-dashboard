@@ -6,12 +6,6 @@ export default function GameHistory() {
     queryKey: ["/api/players"],
   });
 
-  // Extract all games from players data
-  const allGames = players?.reduce<Array<any>>((acc, player) => {
-    const playerGames = player.games || [];
-    return [...acc, ...playerGames];
-  }, []) || [];
-
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Game History</h1>
@@ -19,7 +13,16 @@ export default function GameHistory() {
       {/* Game History Section */}
       <div>
         <GameHistoryComponent 
-          games={allGames}
+          games={players?.reduce<Array<any>>((acc, player) => {
+            if (player.games) {
+              // Get unique games based on ID to avoid duplicates
+              const uniqueGames = player.games.filter(
+                game => !acc.some(existingGame => existingGame.id === game.id)
+              );
+              return [...acc, ...uniqueGames];
+            }
+            return acc;
+          }, []) || []}
           players={players || []}
         />
       </div>

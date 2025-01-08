@@ -44,7 +44,12 @@ interface GameHistoryProps {
 export function GameHistory({ games, players }: GameHistoryProps) {
   const [date, setDate] = useState<DateRange | undefined>();
 
-  const filteredGames = games.filter((game) => {
+  // Sort games by date, most recent first
+  const sortedGames = [...games].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  const filteredGames = sortedGames.filter((game) => {
     if (!date?.from) return true;
     const gameDate = new Date(game.date);
     if (date.to) {
@@ -56,13 +61,13 @@ export function GameHistory({ games, players }: GameHistoryProps) {
   const getPlayerName = (id: number | null) => {
     if (!id) return null;
     const player = players.find(p => p.id === id);
-    return player ? player.name : null;
+    return player ? player.name : "Unknown Player";
   };
 
   const formatTeam = (playerIds: (number | null)[]) => {
     const names = playerIds
       .map(id => getPlayerName(id))
-      .filter(Boolean);
+      .filter(name => name !== null);
 
     if (names.length === 0) return "No players";
     if (names.length === 1) return names[0];
@@ -113,7 +118,7 @@ export function GameHistory({ games, players }: GameHistoryProps) {
 
       <div className="grid gap-4">
         {filteredGames.map((game) => (
-          <Card key={`game-${game.id}`}>
+          <Card key={game.id}>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">
                 {format(new Date(game.date), "PPP")}
