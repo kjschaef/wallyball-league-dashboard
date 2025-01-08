@@ -5,8 +5,6 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 export const players = pgTable("players", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  number: integer("number"),
-  position: text("position"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

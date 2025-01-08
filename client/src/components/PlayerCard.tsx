@@ -20,7 +20,6 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-lg font-bold">
           {player.name}
-          {player.number && <span className="ml-2 text-sm">#{player.number}</span>}
         </CardTitle>
         <div className="flex space-x-2">
           <Button

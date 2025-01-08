@@ -67,8 +67,6 @@ export default function Players() {
     const formData = new FormData(e.currentTarget);
     const playerData = {
       name: formData.get("name") as string,
-      number: parseInt(formData.get("number") as string) || null,
-      position: formData.get("position") as string,
     };
 
     if (editingPlayer) {
@@ -100,23 +98,6 @@ export default function Players() {
                   name="name"
                   required
                   defaultValue={editingPlayer?.name}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="number">Number</Label>
-                <Input
-                  id="number"
-                  name="number"
-                  type="number"
-                  defaultValue={editingPlayer?.number}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
-                <Input
-                  id="position"
-                  name="position"
-                  defaultValue={editingPlayer?.position}
                 />
               </div>
               <Button type="submit" className="w-full">

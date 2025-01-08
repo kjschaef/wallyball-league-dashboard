@@ -24,29 +24,31 @@ import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   playerId: z.string(),
-  won: z.string().transform(Number),
-  lost: z.string().transform(Number),
+  won: z.coerce.number().min(0),
+  lost: z.coerce.number().min(0),
 });
+
+type FormData = z.infer<typeof formSchema>;
 
 export default function RecordMatch() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       playerId: "",
-      won: "0",
-      lost: "0",
+      won: 0,
+      lost: 0,
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) =>
+    mutationFn: (values: FormData) =>
       fetch("/api/matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,14 +65,14 @@ export default function RecordMatch() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: FormData) => {
     mutation.mutate(values);
   };
 
   return (
     <div className="max-w-md mx-auto space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Record Match</h1>
-      
+
       <Card className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
