@@ -1,5 +1,5 @@
 import { Switch, Route } from "wouter";
-import Dashboard from "@/pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
