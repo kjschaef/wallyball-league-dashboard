@@ -59,10 +59,14 @@ export function GameHistory({ games, players }: GameHistoryProps) {
   };
 
   const formatTeam = (playerIds: (number | null)[]) => {
-    return playerIds
+    const names = playerIds
       .map(id => getPlayerName(id))
-      .filter(Boolean)
-      .join(", ");
+      .filter(Boolean);
+
+    if (names.length === 0) return "No players";
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} and ${names[1]}`;
+    return `${names[0]}, ${names[1]} and ${names[2]}`;
   };
 
   return (
@@ -128,8 +132,8 @@ export function GameHistory({ games, players }: GameHistoryProps) {
                       game.teamOnePlayerThreeId,
                     ])}
                   </p>
-                  <p className="text-lg font-bold mt-2">
-                    {game.teamOneGamesWon} games
+                  <p className="text-lg font-bold mt-2 text-green-600">
+                    {game.teamOneGamesWon} games won
                   </p>
                 </div>
                 <div>
@@ -141,8 +145,8 @@ export function GameHistory({ games, players }: GameHistoryProps) {
                       game.teamTwoPlayerThreeId,
                     ])}
                   </p>
-                  <p className="text-lg font-bold mt-2">
-                    {game.teamTwoGamesWon} games
+                  <p className="text-lg font-bold mt-2 text-blue-600">
+                    {game.teamTwoGamesWon} games won
                   </p>
                 </div>
               </div>
