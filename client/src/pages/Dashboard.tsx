@@ -33,12 +33,17 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
 
+const playerFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
+
 const matchFormSchema = z.object({
-  playerId: z.string(),
+  playerId: z.string().min(1, "Player is required"),
   won: z.coerce.number().min(0),
   lost: z.coerce.number().min(0),
 });
 
+type PlayerFormData = z.infer<typeof playerFormSchema>;
 type MatchFormData = z.infer<typeof matchFormSchema>;
 
 export default function Dashboard() {
@@ -68,6 +73,13 @@ export default function Dashboard() {
     ? ((totalWins / totalMatches) * 100).toFixed(1)
     : "0.0";
 
+  const playerForm = useForm<PlayerFormData>({
+    resolver: zodResolver(playerFormSchema),
+    defaultValues: {
+      name: "",
+    },
+  });
+
   const matchForm = useForm<MatchFormData>({
     resolver: zodResolver(matchFormSchema),
     defaultValues: {
@@ -78,15 +90,16 @@ export default function Dashboard() {
   });
 
   const createPlayerMutation = useMutation({
-    mutationFn: (newPlayer: { name: string }) =>
+    mutationFn: (data: PlayerFormData) =>
       fetch("/api/players", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPlayer),
+        body: JSON.stringify(data),
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       setIsPlayerDialogOpen(false);
+      playerForm.reset();
       toast({ title: "Player created successfully" });
     },
   });
@@ -102,6 +115,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       setIsPlayerDialogOpen(false);
       setEditingPlayer(null);
+      playerForm.reset();
       toast({ title: "Player updated successfully" });
     },
   });
@@ -134,22 +148,16 @@ export default function Dashboard() {
     },
   });
 
-  const handlePlayerSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const playerData = {
-      name: formData.get("name") as string,
-    };
-
+  const onPlayerSubmit = (data: PlayerFormData) => {
     if (editingPlayer) {
-      updatePlayerMutation.mutate({ ...editingPlayer, ...playerData });
+      updatePlayerMutation.mutate({ ...editingPlayer, ...data });
     } else {
-      createPlayerMutation.mutate(playerData);
+      createPlayerMutation.mutate(data);
     }
   };
 
-  const handleMatchSubmit = (values: MatchFormData) => {
-    recordMatchMutation.mutate(values);
+  const onMatchSubmit = (data: MatchFormData) => {
+    recordMatchMutation.mutate(data);
   };
 
   return (
@@ -186,6 +194,7 @@ export default function Dashboard() {
             player={player}
             onEdit={(player) => {
               setEditingPlayer(player);
+              playerForm.reset({ name: player.name });
               setIsPlayerDialogOpen(true);
             }}
             onDelete={(id) => deletePlayerMutation.mutate(id)}
@@ -196,9 +205,13 @@ export default function Dashboard() {
       <FloatingActionButton
         onAddPlayer={() => {
           setEditingPlayer(null);
+          playerForm.reset();
           setIsPlayerDialogOpen(true);
         }}
-        onRecordMatch={() => setIsMatchDialogOpen(true)}
+        onRecordMatch={() => {
+          matchForm.reset();
+          setIsMatchDialogOpen(true);
+        }}
       />
 
       {/* Add/Edit Player Dialog */}
@@ -209,20 +222,26 @@ export default function Dashboard() {
               {editingPlayer ? "Edit Player" : "Add New Player"}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handlePlayerSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <FormLabel htmlFor="name">Name</FormLabel>
-              <Input
-                id="name"
+          <Form {...playerForm}>
+            <form onSubmit={playerForm.handleSubmit(onPlayerSubmit)} className="space-y-4">
+              <FormField
+                control={playerForm.control}
                 name="name"
-                required
-                defaultValue={editingPlayer?.name}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <Button type="submit" className="w-full">
-              {editingPlayer ? "Update" : "Create"}
-            </Button>
-          </form>
+              <Button type="submit" className="w-full">
+                {editingPlayer ? "Update" : "Create"}
+              </Button>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
@@ -233,7 +252,7 @@ export default function Dashboard() {
             <DialogTitle>Record Match</DialogTitle>
           </DialogHeader>
           <Form {...matchForm}>
-            <form onSubmit={matchForm.handleSubmit(handleMatchSubmit)} className="space-y-4">
+            <form onSubmit={matchForm.handleSubmit(onMatchSubmit)} className="space-y-4">
               <FormField
                 control={matchForm.control}
                 name="playerId"
