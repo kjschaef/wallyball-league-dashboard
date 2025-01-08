@@ -6,7 +6,7 @@ import { z } from "zod";
 import { StatCard } from "@/components/StatCard";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { PlayerCard } from "@/components/PlayerCard";
-import { Users, Trophy, Percent, Calendar } from "lucide-react";
+import { Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,13 +22,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
@@ -64,16 +57,6 @@ export default function Dashboard() {
     (acc, player) => acc + player.games.length,
     0
   ) || 0;
-
-  const totalWins = players?.reduce(
-    (acc, player) =>
-      acc + player.games.reduce((sum: number, game: any) => sum + (game.won ? 1 : 0), 0),
-    0
-  ) || 0;
-
-  const winRate = totalGames
-    ? ((totalWins / totalGames) * 100).toFixed(1)
-    : "0.0";
 
   const playerForm = useForm<PlayerFormData>({
     resolver: zodResolver(playerFormSchema),
@@ -146,7 +129,7 @@ export default function Dashboard() {
           teamOnePlayerThreeId: values.teamOnePlayers[2] || null,
           teamTwoPlayerOneId: values.teamTwoPlayers[0] || null,
           teamTwoPlayerTwoId: values.teamTwoPlayers[1] || null,
-          teamTwoPlayerThreeId: values.teamTwoPlayers[2] || null,
+          teamTwoPlayerThreeId: values.teamTwoPlayerThreeId || null,
           teamOneGamesWon: values.teamOneGamesWon,
           teamTwoGamesWon: values.teamTwoGamesWon,
         }),
@@ -177,7 +160,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">League Dashboard</h1>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <StatCard
           title="Total Players"
           value={totalPlayers}
@@ -187,16 +170,6 @@ export default function Dashboard() {
           title="Total Games"
           value={totalGames}
           icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatCard
-          title="Total Wins"
-          value={totalWins}
-          icon={<Trophy className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatCard
-          title="Average Win Rate"
-          value={`${winRate}%`}
-          icon={<Percent className="h-4 w-4 text-muted-foreground" />}
         />
       </div>
 
@@ -228,8 +201,12 @@ export default function Dashboard() {
       />
 
       {/* Add/Edit Player Dialog */}
-      <Dialog open={isPlayerDialogOpen} onOpenChange={setIsPlayerDialogOpen}>
-        <DialogContent>
+      <Dialog 
+        open={isPlayerDialogOpen} 
+        onOpenChange={setIsPlayerDialogOpen}
+        modal={true}
+      >
+        <DialogContent className="fixed left-[50%] top-[40%]">
           <DialogHeader>
             <DialogTitle>
               {editingPlayer ? "Edit Player" : "Add New Player"}
@@ -268,8 +245,9 @@ export default function Dashboard() {
             setTeamTwoPlayers([]);
           }
         }}
+        modal={true}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="fixed left-[50%] top-[40%] max-w-2xl">
           <DialogHeader>
             <DialogTitle>Record Game</DialogTitle>
           </DialogHeader>
