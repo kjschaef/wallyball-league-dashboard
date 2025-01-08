@@ -16,6 +16,7 @@ export function registerRoutes(app: Express): Server {
       console.log("Successfully fetched games:", allGames);
 
       const playersWithStats = allPlayers.map(player => {
+        // Filter games where the player participated
         const playerGames = allGames.filter(game => 
           game.teamOnePlayerOneId === player.id ||
           game.teamOnePlayerTwoId === player.id ||
@@ -25,12 +26,15 @@ export function registerRoutes(app: Express): Server {
           game.teamTwoPlayerThreeId === player.id
         );
 
+        // Calculate player statistics
         const stats = playerGames.reduce((acc, game) => {
+          // Determine which team the player was on
           const isTeamOne = 
             game.teamOnePlayerOneId === player.id ||
             game.teamOnePlayerTwoId === player.id ||
             game.teamOnePlayerThreeId === player.id;
 
+          // Determine if player's team won
           const won = isTeamOne 
             ? game.teamOneGamesWon > game.teamTwoGamesWon
             : game.teamTwoGamesWon > game.teamOneGamesWon;
@@ -41,23 +45,32 @@ export function registerRoutes(app: Express): Server {
           };
         }, { won: 0, lost: 0 });
 
-        return {
-          ...player,
-          games: playerGames.map(game => ({
-            ...game,
-            won: (
-              game.teamOnePlayerOneId === player.id ||
-              game.teamOnePlayerTwoId === player.id ||
-              game.teamOnePlayerThreeId === player.id
-            )
+        // Add games with win/loss info to player data
+        const processedGames = playerGames.map(game => {
+          const isTeamOne = 
+            game.teamOnePlayerOneId === player.id ||
+            game.teamOnePlayerTwoId === player.id ||
+            game.teamOnePlayerThreeId === player.id;
+
+          return {
+            id: game.id,
+            date: game.date,
+            teamOneGamesWon: game.teamOneGamesWon,
+            teamTwoGamesWon: game.teamTwoGamesWon,
+            won: isTeamOne 
               ? game.teamOneGamesWon > game.teamTwoGamesWon
               : game.teamTwoGamesWon > game.teamOneGamesWon,
-          })),
+          };
+        });
+
+        return {
+          ...player,
+          games: processedGames,
           stats,
         };
       });
 
-      console.log(`Found ${playersWithStats.length} players with their stats`);
+      console.log("Processed player statistics:", playersWithStats);
       res.json(playersWithStats);
     } catch (error) {
       console.error("Error fetching players:", error);
