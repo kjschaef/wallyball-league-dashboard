@@ -4,16 +4,15 @@ import { Trash2, Edit } from "lucide-react";
 import type { Player } from "@db/schema";
 
 interface PlayerCardProps {
-  player: Player & { matches: any[] };
+  player: Player & { games: Array<{ won: boolean }>, stats: { won: number, lost: number } };
   onEdit: (player: Player) => void;
   onDelete: (id: number) => void;
 }
 
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
-  const wins = player.matches?.reduce((acc, match) => acc + match.won, 0) || 0;
-  const losses = player.matches?.reduce((acc, match) => acc + match.lost, 0) || 0;
-  const total = wins + losses;
-  const winRate = total > 0 ? ((wins / total) * 100).toFixed(1) : "0.0";
+  const { stats } = player;
+  const total = stats.won + stats.lost;
+  const winRate = total > 0 ? ((stats.won / total) * 100).toFixed(1) : "0.0";
 
   return (
     <Card>
@@ -46,11 +45,11 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           </div>
           <div>
             <p className="text-muted-foreground">Wins</p>
-            <p className="text-2xl font-bold text-green-600">{wins}</p>
+            <p className="text-2xl font-bold text-green-600">{stats.won}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Losses</p>
-            <p className="text-2xl font-bold text-red-600">{losses}</p>
+            <p className="text-2xl font-bold text-red-600">{stats.lost}</p>
           </div>
         </div>
       </CardContent>
