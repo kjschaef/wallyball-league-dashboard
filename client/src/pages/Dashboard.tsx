@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
 import { PlayerSelector } from "@/components/PlayerSelector";
+import { GameHistory } from "@/components/GameHistory";
 
 const playerFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -129,7 +130,7 @@ export default function Dashboard() {
           teamOnePlayerThreeId: values.teamOnePlayers[2] || null,
           teamTwoPlayerOneId: values.teamTwoPlayers[0] || null,
           teamTwoPlayerTwoId: values.teamTwoPlayers[1] || null,
-          teamTwoPlayerThreeId: values.teamTwoPlayerThreeId || null,
+          teamTwoPlayerThreeId: values.teamTwoPlayers[2] || null,
           teamOneGamesWon: values.teamOneGamesWon,
           teamTwoGamesWon: values.teamTwoGamesWon,
         }),
@@ -155,6 +156,12 @@ export default function Dashboard() {
   const onGameSubmit = (data: GameFormData) => {
     recordGameMutation.mutate(data);
   };
+
+  // Extract all games from players data
+  const allGames = players?.reduce<Array<any>>((acc, player) => {
+    const playerGames = player.games || [];
+    return [...acc, ...playerGames];
+  }, []) || [];
 
   return (
     <div className="space-y-6">
@@ -187,6 +194,11 @@ export default function Dashboard() {
           />
         ))}
       </div>
+
+      <GameHistory 
+        games={allGames}
+        players={players || []}
+      />
 
       <FloatingActionButton
         onAddPlayer={() => {
