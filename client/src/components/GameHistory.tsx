@@ -21,14 +21,14 @@ import {
 interface Game {
   id: number;
   date: string;
-  teamOneGamesWon: number;
-  teamTwoGamesWon: number;
-  teamOnePlayerOneId: number;
+  teamOnePlayerOneId: number | null;
   teamOnePlayerTwoId: number | null;
   teamOnePlayerThreeId: number | null;
-  teamTwoPlayerOneId: number;
+  teamTwoPlayerOneId: number | null;
   teamTwoPlayerTwoId: number | null;
   teamTwoPlayerThreeId: number | null;
+  teamOneGamesWon: number;
+  teamTwoGamesWon: number;
 }
 
 interface Player {
@@ -55,7 +55,8 @@ export function GameHistory({ games, players }: GameHistoryProps) {
 
   const getPlayerName = (id: number | null) => {
     if (!id) return null;
-    return players.find(p => p.id === id)?.name || 'Unknown Player';
+    const player = players.find(p => p.id === id);
+    return player ? player.name : null;
   };
 
   const formatTeam = (playerIds: (number | null)[]) => {
@@ -112,7 +113,7 @@ export function GameHistory({ games, players }: GameHistoryProps) {
 
       <div className="grid gap-4">
         {filteredGames.map((game) => (
-          <Card key={game.id}>
+          <Card key={`game-${game.id}`}>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">
                 {format(new Date(game.date), "PPP")}
