@@ -29,6 +29,7 @@ export function PlayerSelector({
             return (
               <Button
                 key={player.id}
+                type="button" // Prevent form submission
                 variant={isSelected ? "default" : "outline"}
                 className={cn(
                   "h-auto min-h-[4rem] w-full flex-col items-center justify-center gap-2 p-4",
