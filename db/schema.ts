@@ -10,21 +10,39 @@ export const players = pgTable("players", {
 
 export const matches = pgTable("matches", {
   id: serial("id").primaryKey(),
-  playerId: integer("player_id").references(() => players.id),
-  won: integer("won").notNull(),
-  lost: integer("lost").notNull(),
+  team1Player1Id: integer("team1_player1_id").references(() => players.id),
+  team1Player2Id: integer("team1_player2_id").references(() => players.id),
+  team2Player1Id: integer("team2_player1_id").references(() => players.id),
+  team2Player2Id: integer("team2_player2_id").references(() => players.id),
+  team1Score: integer("team1_score").notNull(),
+  team2Score: integer("team2_score").notNull(),
   date: timestamp("date").defaultNow(),
 });
 
-export const playerRelations = relations(players, ({ many }) => ({
-  matches: many(matches),
-}));
-
 export const matchRelations = relations(matches, ({ one }) => ({
-  player: one(players, {
-    fields: [matches.playerId],
+  team1Player1: one(players, {
+    fields: [matches.team1Player1Id],
     references: [players.id],
   }),
+  team1Player2: one(players, {
+    fields: [matches.team1Player2Id],
+    references: [players.id],
+  }),
+  team2Player1: one(players, {
+    fields: [matches.team2Player1Id],
+    references: [players.id],
+  }),
+  team2Player2: one(players, {
+    fields: [matches.team2Player2Id],
+    references: [players.id],
+  }),
+}));
+
+export const playerRelations = relations(players, ({ many }) => ({
+  team1Player1Matches: many(matches, { relationName: "team1Player1" }),
+  team1Player2Matches: many(matches, { relationName: "team1Player2" }),
+  team2Player1Matches: many(matches, { relationName: "team2Player1" }),
+  team2Player2Matches: many(matches, { relationName: "team2Player2" }),
 }));
 
 export const insertPlayerSchema = createInsertSchema(players);

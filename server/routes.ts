@@ -64,7 +64,12 @@ export function registerRoutes(app: Express): Server {
     try {
       console.log("Fetching all matches with player details");
       const allMatches = await db.query.matches.findMany({
-        with: { player: true },
+        with: {
+          team1Player1: true,
+          team1Player2: true,
+          team2Player1: true,
+          team2Player2: true,
+        },
       });
       console.log(`Found ${allMatches.length} matches`);
       res.json(allMatches);
@@ -77,7 +82,14 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/matches", async (req, res) => {
     try {
       console.log("Recording new match:", req.body);
-      const newMatch = await db.insert(matches).values(req.body).returning();
+      const newMatch = await db.insert(matches).values({
+        team1Player1Id: req.body.team1Player1Id,
+        team1Player2Id: req.body.team1Player2Id,
+        team2Player1Id: req.body.team2Player1Id,
+        team2Player2Id: req.body.team2Player2Id,
+        team1Score: req.body.team1Score,
+        team2Score: req.body.team2Score,
+      }).returning();
       console.log("Match recorded:", newMatch[0]);
       res.json(newMatch[0]);
     } catch (error) {
