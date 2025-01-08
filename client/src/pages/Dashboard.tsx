@@ -86,7 +86,10 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       setIsPlayerDialogOpen(false);
       playerForm.reset();
-      toast({ title: "Player created successfully" });
+      toast({ 
+        title: "Player created successfully",
+        variant: "success",
+      });
     },
   });
 
@@ -102,7 +105,10 @@ export default function Dashboard() {
       setIsPlayerDialogOpen(false);
       setEditingPlayer(null);
       playerForm.reset();
-      toast({ title: "Player updated successfully" });
+      toast({ 
+        title: "Player updated successfully",
+        variant: "success",
+      });
     },
   });
 
@@ -111,7 +117,10 @@ export default function Dashboard() {
       fetch(`/api/players/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      toast({ title: "Player deleted successfully" });
+      toast({ 
+        title: "Player deleted successfully",
+        variant: "success",
+      });
     },
   });
 
@@ -140,7 +149,10 @@ export default function Dashboard() {
       gameForm.reset();
       setTeamOnePlayers([]);
       setTeamTwoPlayers([]);
-      toast({ title: "Game recorded successfully" });
+      toast({ 
+        title: "Game recorded successfully",
+        variant: "success",
+      });
     },
   });
 
