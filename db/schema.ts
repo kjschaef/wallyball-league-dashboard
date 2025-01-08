@@ -7,28 +7,24 @@ export const players = pgTable("players", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const matches = pgTable("matches", {
+export const games = pgTable("games", {
   id: serial("id").primaryKey(),
-  team1Player1Id: integer("team1_player1_id").notNull().references(() => players.id),
-  team1Player2Id: integer("team1_player2_id").notNull().references(() => players.id),
-  team2Player1Id: integer("team2_player1_id").notNull().references(() => players.id),
-  team2Player2Id: integer("team2_player2_id").notNull().references(() => players.id),
-  team1Score: integer("team1_score").notNull(),
-  team2Score: integer("team2_score").notNull(),
+  playerOneId: integer("player_one_id").notNull().references(() => players.id),
+  playerTwoId: integer("player_two_id").notNull().references(() => players.id),
+  playerOneScore: integer("player_one_score").notNull(),
+  playerTwoScore: integer("player_two_score").notNull(),
   date: timestamp("date").defaultNow(),
 }, (table) => ({
-  team1Player1Idx: index("team1_player1_idx").on(table.team1Player1Id),
-  team1Player2Idx: index("team1_player2_idx").on(table.team1Player2Id),
-  team2Player1Idx: index("team2_player1_idx").on(table.team2Player1Id),
-  team2Player2Idx: index("team2_player2_idx").on(table.team2Player2Id),
+  playerOneIdx: index("player_one_idx").on(table.playerOneId),
+  playerTwoIdx: index("player_two_idx").on(table.playerTwoId),
 }));
 
 export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
-export const insertMatchSchema = createInsertSchema(matches);
-export const selectMatchSchema = createSelectSchema(matches);
+export const insertGameSchema = createInsertSchema(games);
+export const selectGameSchema = createSelectSchema(games);
 
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
-export type Match = typeof matches.$inferSelect;
-export type NewMatch = typeof matches.$inferInsert;
+export type Game = typeof games.$inferSelect;
+export type NewGame = typeof games.$inferInsert;

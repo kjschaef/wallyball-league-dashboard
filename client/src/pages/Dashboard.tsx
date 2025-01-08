@@ -37,21 +37,19 @@ const playerFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
 });
 
-const matchFormSchema = z.object({
-  team1Player1Id: z.string().min(1, "Player is required"),
-  team1Player2Id: z.string().min(1, "Player is required"),
-  team2Player1Id: z.string().min(1, "Player is required"),
-  team2Player2Id: z.string().min(1, "Player is required"),
-  team1Score: z.coerce.number().min(0),
-  team2Score: z.coerce.number().min(0),
+const gameFormSchema = z.object({
+  playerOneId: z.string().min(1, "Player is required"),
+  playerTwoId: z.string().min(1, "Player is required"),
+  playerOneScore: z.coerce.number().min(0),
+  playerTwoScore: z.coerce.number().min(0),
 });
 
 type PlayerFormData = z.infer<typeof playerFormSchema>;
-type MatchFormData = z.infer<typeof matchFormSchema>;
+type GameFormData = z.infer<typeof gameFormSchema>;
 
 export default function Dashboard() {
   const [isPlayerDialogOpen, setIsPlayerDialogOpen] = useState(false);
-  const [isMatchDialogOpen, setIsMatchDialogOpen] = useState(false);
+  const [isGameDialogOpen, setIsGameDialogOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -61,19 +59,19 @@ export default function Dashboard() {
   });
 
   const totalPlayers = players?.length || 0;
-  const totalMatches = players?.reduce(
-    (acc, player) => acc + player.matches.length,
+  const totalGames = players?.reduce(
+    (acc, player) => acc + player.games.length,
     0
   ) || 0;
 
   const totalWins = players?.reduce(
     (acc, player) =>
-      acc + player.matches.reduce((sum: number, match: any) => sum + match.won, 0),
+      acc + player.games.reduce((sum: number, game: any) => sum + (game.won ? 1 : 0), 0),
     0
   ) || 0;
 
-  const winRate = totalMatches
-    ? ((totalWins / totalMatches) * 100).toFixed(1)
+  const winRate = totalGames
+    ? ((totalWins / totalGames) * 100).toFixed(1)
     : "0.0";
 
   const playerForm = useForm<PlayerFormData>({
@@ -83,15 +81,13 @@ export default function Dashboard() {
     },
   });
 
-  const matchForm = useForm<MatchFormData>({
-    resolver: zodResolver(matchFormSchema),
+  const gameForm = useForm<GameFormData>({
+    resolver: zodResolver(gameFormSchema),
     defaultValues: {
-      team1Player1Id: "",
-      team1Player2Id: "",
-      team2Player1Id: "",
-      team2Player2Id: "",
-      team1Score: 0,
-      team2Score: 0,
+      playerOneId: "",
+      playerTwoId: "",
+      playerOneScore: 0,
+      playerTwoScore: 0,
     },
   });
 
@@ -135,25 +131,23 @@ export default function Dashboard() {
     },
   });
 
-  const recordMatchMutation = useMutation({
-    mutationFn: (values: MatchFormData) =>
-      fetch("/api/matches", {
+  const recordGameMutation = useMutation({
+    mutationFn: (values: GameFormData) =>
+      fetch("/api/games", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          team1Player1Id: parseInt(values.team1Player1Id),
-          team1Player2Id: parseInt(values.team1Player2Id),
-          team2Player1Id: parseInt(values.team2Player1Id),
-          team2Player2Id: parseInt(values.team2Player2Id),
-          team1Score: values.team1Score,
-          team2Score: values.team2Score,
+          playerOneId: parseInt(values.playerOneId),
+          playerTwoId: parseInt(values.playerTwoId),
+          playerOneScore: values.playerOneScore,
+          playerTwoScore: values.playerTwoScore,
         }),
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      setIsMatchDialogOpen(false);
-      matchForm.reset();
-      toast({ title: "Match recorded successfully" });
+      setIsGameDialogOpen(false);
+      gameForm.reset();
+      toast({ title: "Game recorded successfully" });
     },
   });
 
@@ -165,8 +159,8 @@ export default function Dashboard() {
     }
   };
 
-  const onMatchSubmit = (data: MatchFormData) => {
-    recordMatchMutation.mutate(data);
+  const onGameSubmit = (data: GameFormData) => {
+    recordGameMutation.mutate(data);
   };
 
   return (
@@ -180,8 +174,8 @@ export default function Dashboard() {
           icon={<Users className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
-          title="Total Matches"
-          value={totalMatches}
+          title="Total Games"
+          value={totalGames}
           icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
@@ -217,9 +211,9 @@ export default function Dashboard() {
           playerForm.reset();
           setIsPlayerDialogOpen(true);
         }}
-        onRecordMatch={() => {
-          matchForm.reset();
-          setIsMatchDialogOpen(true);
+        onRecordGame={() => {
+          gameForm.reset();
+          setIsGameDialogOpen(true);
         }}
       />
 
@@ -254,174 +248,106 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Record Match Dialog */}
-      <Dialog open={isMatchDialogOpen} onOpenChange={setIsMatchDialogOpen}>
-        <DialogContent className="max-w-2xl">
+      {/* Record Game Dialog */}
+      <Dialog open={isGameDialogOpen} onOpenChange={setIsGameDialogOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Record Match</DialogTitle>
+            <DialogTitle>Record Game</DialogTitle>
           </DialogHeader>
-          <Form {...matchForm}>
-            <form onSubmit={matchForm.handleSubmit(onMatchSubmit)} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                {/* Team 1 */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Team 1</h3>
-                  <FormField
-                    control={matchForm.control}
-                    name="team1Player1Id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Player 1</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select player" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {players?.map((player) => (
-                              <SelectItem
-                                key={player.id}
-                                value={player.id.toString()}
-                              >
-                                {player.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={matchForm.control}
-                    name="team1Player2Id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Player 2</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select player" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {players?.map((player) => (
-                              <SelectItem
-                                key={player.id}
-                                value={player.id.toString()}
-                              >
-                                {player.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={matchForm.control}
-                    name="team1Score"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Games Won</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+          <Form {...gameForm}>
+            <form onSubmit={gameForm.handleSubmit(onGameSubmit)} className="space-y-4">
+              <FormField
+                control={gameForm.control}
+                name="playerOneId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Player 1</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select player" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {players?.map((player) => (
+                          <SelectItem
+                            key={player.id}
+                            value={player.id.toString()}
+                          >
+                            {player.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                {/* Team 2 */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Team 2</h3>
-                  <FormField
-                    control={matchForm.control}
-                    name="team2Player1Id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Player 1</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select player" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {players?.map((player) => (
-                              <SelectItem
-                                key={player.id}
-                                value={player.id.toString()}
-                              >
-                                {player.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={matchForm.control}
-                    name="team2Player2Id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Player 2</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select player" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {players?.map((player) => (
-                              <SelectItem
-                                key={player.id}
-                                value={player.id.toString()}
-                              >
-                                {player.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={matchForm.control}
-                    name="team2Score"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Games Won</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
+              <FormField
+                control={gameForm.control}
+                name="playerTwoId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Player 2</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select player" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {players?.map((player) => (
+                          <SelectItem
+                            key={player.id}
+                            value={player.id.toString()}
+                          >
+                            {player.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={gameForm.control}
+                name="playerOneScore"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Player 1 Score</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={gameForm.control}
+                name="playerTwoScore"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Player 2 Score</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <Button type="submit" className="w-full">
-                Record Match
+                Record Game
               </Button>
             </form>
           </Form>

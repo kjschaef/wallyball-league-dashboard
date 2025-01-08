@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { eq } from "drizzle-orm";
 import { db } from "@db";
-import { players, matches } from "@db/schema";
+import { players, games } from "@db/schema";
 
 export function registerRoutes(app: Express): Server {
   // Players endpoints
@@ -12,22 +12,21 @@ export function registerRoutes(app: Express): Server {
       const allPlayers = await db.select().from(players);
       console.log("Successfully fetched players:", allPlayers);
 
-      // Get all matches for calculation
-      const allMatches = await db.select().from(matches);
-      console.log("Successfully fetched matches:", allMatches);
+      // Get all games for calculation
+      const allGames = await db.select().from(games);
+      console.log("Successfully fetched games:", allGames);
 
       // Calculate stats for each player
       const playersWithStats = allPlayers.map(player => {
-        const playerMatches = allMatches.filter(match => 
-          match.team1Player1Id === player.id ||
-          match.team1Player2Id === player.id ||
-          match.team2Player1Id === player.id ||
-          match.team2Player2Id === player.id
+        const playerGames = allGames.filter(game => 
+          game.playerOneId === player.id || game.playerTwoId === player.id
         );
 
-        const stats = playerMatches.reduce((acc, match) => {
-          const isTeam1 = match.team1Player1Id === player.id || match.team1Player2Id === player.id;
-          const won = isTeam1 ? match.team1Score > match.team2Score : match.team2Score > match.team1Score;
+        const stats = playerGames.reduce((acc, game) => {
+          const isPlayerOne = game.playerOneId === player.id;
+          const won = isPlayerOne 
+            ? game.playerOneScore > game.playerTwoScore 
+            : game.playerTwoScore > game.playerOneScore;
           return {
             won: acc.won + (won ? 1 : 0),
             lost: acc.lost + (won ? 0 : 1),
@@ -36,11 +35,11 @@ export function registerRoutes(app: Express): Server {
 
         return {
           ...player,
-          matches: playerMatches.map(match => ({
-            ...match,
-            won: (match.team1Player1Id === player.id || match.team1Player2Id === player.id) 
-              ? match.team1Score > match.team2Score 
-              : match.team2Score > match.team1Score,
+          games: playerGames.map(game => ({
+            ...game,
+            won: (game.playerOneId === player.id) 
+              ? game.playerOneScore > game.playerTwoScore 
+              : game.playerTwoScore > game.playerOneScore,
           })),
           stats,
         };
@@ -93,23 +92,21 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Matches endpoints
-  app.post("/api/matches", async (req, res) => {
+  // Games endpoints
+  app.post("/api/games", async (req, res) => {
     try {
-      console.log("Recording new match:", req.body);
-      const newMatch = await db.insert(matches).values({
-        team1Player1Id: req.body.team1Player1Id,
-        team1Player2Id: req.body.team1Player2Id,
-        team2Player1Id: req.body.team2Player1Id,
-        team2Player2Id: req.body.team2Player2Id,
-        team1Score: req.body.team1Score,
-        team2Score: req.body.team2Score,
+      console.log("Recording new game:", req.body);
+      const newGame = await db.insert(games).values({
+        playerOneId: req.body.playerOneId,
+        playerTwoId: req.body.playerTwoId,
+        playerOneScore: req.body.playerOneScore,
+        playerTwoScore: req.body.playerTwoScore,
       }).returning();
-      console.log("Match recorded:", newMatch[0]);
-      res.json(newMatch[0]);
+      console.log("Game recorded:", newGame[0]);
+      res.json(newGame[0]);
     } catch (error) {
-      console.error("Error recording match:", error);
-      res.status(500).json({ error: "Failed to record match" });
+      console.error("Error recording game:", error);
+      res.status(500).json({ error: "Failed to record game" });
     }
   });
 
