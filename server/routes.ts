@@ -12,21 +12,29 @@ export function registerRoutes(app: Express): Server {
       const allPlayers = await db.select().from(players);
       console.log("Successfully fetched players:", allPlayers);
 
-      // Get all games for calculation
       const allGames = await db.select().from(games);
       console.log("Successfully fetched games:", allGames);
 
-      // Calculate stats for each player
       const playersWithStats = allPlayers.map(player => {
         const playerGames = allGames.filter(game => 
-          game.playerOneId === player.id || game.playerTwoId === player.id
+          game.teamOnePlayerOneId === player.id ||
+          game.teamOnePlayerTwoId === player.id ||
+          game.teamOnePlayerThreeId === player.id ||
+          game.teamTwoPlayerOneId === player.id ||
+          game.teamTwoPlayerTwoId === player.id ||
+          game.teamTwoPlayerThreeId === player.id
         );
 
         const stats = playerGames.reduce((acc, game) => {
-          const isPlayerOne = game.playerOneId === player.id;
-          const won = isPlayerOne 
-            ? game.playerOneScore > game.playerTwoScore 
-            : game.playerTwoScore > game.playerOneScore;
+          const isTeamOne = 
+            game.teamOnePlayerOneId === player.id ||
+            game.teamOnePlayerTwoId === player.id ||
+            game.teamOnePlayerThreeId === player.id;
+
+          const won = isTeamOne 
+            ? game.teamOneGamesWon > game.teamTwoGamesWon
+            : game.teamTwoGamesWon > game.teamOneGamesWon;
+
           return {
             won: acc.won + (won ? 1 : 0),
             lost: acc.lost + (won ? 0 : 1),
@@ -37,9 +45,13 @@ export function registerRoutes(app: Express): Server {
           ...player,
           games: playerGames.map(game => ({
             ...game,
-            won: (game.playerOneId === player.id) 
-              ? game.playerOneScore > game.playerTwoScore 
-              : game.playerTwoScore > game.playerOneScore,
+            won: (
+              game.teamOnePlayerOneId === player.id ||
+              game.teamOnePlayerTwoId === player.id ||
+              game.teamOnePlayerThreeId === player.id
+            )
+              ? game.teamOneGamesWon > game.teamTwoGamesWon
+              : game.teamTwoGamesWon > game.teamOneGamesWon,
           })),
           stats,
         };
@@ -97,10 +109,14 @@ export function registerRoutes(app: Express): Server {
     try {
       console.log("Recording new game:", req.body);
       const newGame = await db.insert(games).values({
-        playerOneId: req.body.playerOneId,
-        playerTwoId: req.body.playerTwoId,
-        playerOneScore: req.body.playerOneScore,
-        playerTwoScore: req.body.playerTwoScore,
+        teamOnePlayerOneId: req.body.teamOnePlayerOneId,
+        teamOnePlayerTwoId: req.body.teamOnePlayerTwoId,
+        teamOnePlayerThreeId: req.body.teamOnePlayerThreeId,
+        teamTwoPlayerOneId: req.body.teamTwoPlayerOneId,
+        teamTwoPlayerTwoId: req.body.teamTwoPlayerTwoId,
+        teamTwoPlayerThreeId: req.body.teamTwoPlayerThreeId,
+        teamOneGamesWon: req.body.teamOneGamesWon,
+        teamTwoGamesWon: req.body.teamTwoGamesWon,
       }).returning();
       console.log("Game recorded:", newGame[0]);
       res.json(newGame[0]);

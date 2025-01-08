@@ -9,14 +9,25 @@ export const players = pgTable("players", {
 
 export const games = pgTable("games", {
   id: serial("id").primaryKey(),
-  playerOneId: integer("player_one_id").notNull().references(() => players.id),
-  playerTwoId: integer("player_two_id").notNull().references(() => players.id),
-  playerOneScore: integer("player_one_score").notNull(),
-  playerTwoScore: integer("player_two_score").notNull(),
+  // Team One Players
+  teamOnePlayerOneId: integer("team_one_player_one_id").references(() => players.id),
+  teamOnePlayerTwoId: integer("team_one_player_two_id").references(() => players.id),
+  teamOnePlayerThreeId: integer("team_one_player_three_id").references(() => players.id),
+  // Team Two Players
+  teamTwoPlayerOneId: integer("team_two_player_one_id").references(() => players.id),
+  teamTwoPlayerTwoId: integer("team_two_player_two_id").references(() => players.id),
+  teamTwoPlayerThreeId: integer("team_two_player_three_id").references(() => players.id),
+  // Scores
+  teamOneGamesWon: integer("team_one_games_won").notNull(),
+  teamTwoGamesWon: integer("team_two_games_won").notNull(),
   date: timestamp("date").defaultNow(),
 }, (table) => ({
-  playerOneIdx: index("player_one_idx").on(table.playerOneId),
-  playerTwoIdx: index("player_two_idx").on(table.playerTwoId),
+  teamOnePlayerOneIdx: index("team_one_player_one_idx").on(table.teamOnePlayerOneId),
+  teamOnePlayerTwoIdx: index("team_one_player_two_idx").on(table.teamOnePlayerTwoId),
+  teamOnePlayerThreeIdx: index("team_one_player_three_idx").on(table.teamOnePlayerThreeId),
+  teamTwoPlayerOneIdx: index("team_two_player_one_idx").on(table.teamTwoPlayerOneId),
+  teamTwoPlayerTwoIdx: index("team_two_player_two_idx").on(table.teamTwoPlayerTwoId),
+  teamTwoPlayerThreeIdx: index("team_two_player_three_idx").on(table.teamTwoPlayerThreeId),
 }));
 
 export const insertPlayerSchema = createInsertSchema(players);

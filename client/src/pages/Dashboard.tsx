@@ -32,16 +32,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
+import { PlayerSelector } from "@/components/PlayerSelector";
 
 const playerFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
 });
 
 const gameFormSchema = z.object({
-  playerOneId: z.string().min(1, "Player is required"),
-  playerTwoId: z.string().min(1, "Player is required"),
-  playerOneScore: z.coerce.number().min(0),
-  playerTwoScore: z.coerce.number().min(0),
+  teamOnePlayers: z.array(z.number()).min(1, "At least one player is required").max(3),
+  teamTwoPlayers: z.array(z.number()).min(1, "At least one player is required").max(3),
+  teamOneGamesWon: z.coerce.number().min(0),
+  teamTwoGamesWon: z.coerce.number().min(0),
 });
 
 type PlayerFormData = z.infer<typeof playerFormSchema>;
@@ -84,10 +85,10 @@ export default function Dashboard() {
   const gameForm = useForm<GameFormData>({
     resolver: zodResolver(gameFormSchema),
     defaultValues: {
-      playerOneId: "",
-      playerTwoId: "",
-      playerOneScore: 0,
-      playerTwoScore: 0,
+      teamOnePlayers: [],
+      teamTwoPlayers: [],
+      teamOneGamesWon: 0,
+      teamTwoGamesWon: 0,
     },
   });
 
@@ -131,22 +132,31 @@ export default function Dashboard() {
     },
   });
 
+  const [teamOnePlayers, setTeamOnePlayers] = useState<number[]>([]);
+  const [teamTwoPlayers, setTeamTwoPlayers] = useState<number[]>([]);
+
   const recordGameMutation = useMutation({
     mutationFn: (values: GameFormData) =>
       fetch("/api/games", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          playerOneId: parseInt(values.playerOneId),
-          playerTwoId: parseInt(values.playerTwoId),
-          playerOneScore: values.playerOneScore,
-          playerTwoScore: values.playerTwoScore,
+          teamOnePlayerOneId: values.teamOnePlayers[0] || null,
+          teamOnePlayerTwoId: values.teamOnePlayers[1] || null,
+          teamOnePlayerThreeId: values.teamOnePlayers[2] || null,
+          teamTwoPlayerOneId: values.teamTwoPlayers[0] || null,
+          teamTwoPlayerTwoId: values.teamTwoPlayers[1] || null,
+          teamTwoPlayerThreeId: values.teamTwoPlayers[2] || null,
+          teamOneGamesWon: values.teamOneGamesWon,
+          teamTwoGamesWon: values.teamTwoGamesWon,
         }),
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       setIsGameDialogOpen(false);
       gameForm.reset();
+      setTeamOnePlayers([]);
+      setTeamTwoPlayers([]);
       toast({ title: "Game recorded successfully" });
     },
   });
@@ -249,102 +259,105 @@ export default function Dashboard() {
       </Dialog>
 
       {/* Record Game Dialog */}
-      <Dialog open={isGameDialogOpen} onOpenChange={setIsGameDialogOpen}>
-        <DialogContent>
+      <Dialog 
+        open={isGameDialogOpen} 
+        onOpenChange={(open) => {
+          setIsGameDialogOpen(open);
+          if (!open) {
+            setTeamOnePlayers([]);
+            setTeamTwoPlayers([]);
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Record Game</DialogTitle>
           </DialogHeader>
           <Form {...gameForm}>
-            <form onSubmit={gameForm.handleSubmit(onGameSubmit)} className="space-y-4">
-              <FormField
-                control={gameForm.control}
-                name="playerOneId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Player 1</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select player" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {players?.map((player) => (
-                          <SelectItem
-                            key={player.id}
-                            value={player.id.toString()}
-                          >
-                            {player.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <form onSubmit={gameForm.handleSubmit(onGameSubmit)} className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Team One */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Team One</h3>
+                  <FormField
+                    control={gameForm.control}
+                    name="teamOnePlayers"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Players (up to 3)</FormLabel>
+                        <FormControl>
+                          <PlayerSelector
+                            players={players || []}
+                            selectedPlayers={teamOnePlayers}
+                            onSelect={(playerId) => {
+                              const newSelection = teamOnePlayers.includes(playerId)
+                                ? teamOnePlayers.filter(id => id !== playerId)
+                                : [...teamOnePlayers, playerId];
+                              setTeamOnePlayers(newSelection);
+                              field.onChange(newSelection);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={gameForm.control}
+                    name="teamOneGamesWon"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Games Won</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <FormField
-                control={gameForm.control}
-                name="playerTwoId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Player 2</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select player" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {players?.map((player) => (
-                          <SelectItem
-                            key={player.id}
-                            value={player.id.toString()}
-                          >
-                            {player.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={gameForm.control}
-                name="playerOneScore"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Player 1 Score</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={gameForm.control}
-                name="playerTwoScore"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Player 2 Score</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                {/* Team Two */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Team Two</h3>
+                  <FormField
+                    control={gameForm.control}
+                    name="teamTwoPlayers"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Players (up to 3)</FormLabel>
+                        <FormControl>
+                          <PlayerSelector
+                            players={players || []}
+                            selectedPlayers={teamTwoPlayers}
+                            onSelect={(playerId) => {
+                              const newSelection = teamTwoPlayers.includes(playerId)
+                                ? teamTwoPlayers.filter(id => id !== playerId)
+                                : [...teamTwoPlayers, playerId];
+                              setTeamTwoPlayers(newSelection);
+                              field.onChange(newSelection);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={gameForm.control}
+                    name="teamTwoGamesWon"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Games Won</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
               <Button type="submit" className="w-full">
                 Record Game
