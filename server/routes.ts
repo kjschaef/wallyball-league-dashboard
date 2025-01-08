@@ -8,12 +8,46 @@ export function registerRoutes(app: Express): Server {
   // Players endpoints
   app.get("/api/players", async (_req, res) => {
     try {
-      console.log("Fetching all players with their matches");
-      const allPlayers = await db.query.players.findMany({
-        with: { matches: true },
+      console.log("Fetching all players");
+      const allPlayers = await db.select().from(players);
+      console.log("Successfully fetched players:", allPlayers);
+
+      // Get all matches for calculation
+      const allMatches = await db.select().from(matches);
+      console.log("Successfully fetched matches:", allMatches);
+
+      // Calculate stats for each player
+      const playersWithStats = allPlayers.map(player => {
+        const playerMatches = allMatches.filter(match => 
+          match.team1Player1Id === player.id ||
+          match.team1Player2Id === player.id ||
+          match.team2Player1Id === player.id ||
+          match.team2Player2Id === player.id
+        );
+
+        const stats = playerMatches.reduce((acc, match) => {
+          const isTeam1 = match.team1Player1Id === player.id || match.team1Player2Id === player.id;
+          const won = isTeam1 ? match.team1Score > match.team2Score : match.team2Score > match.team1Score;
+          return {
+            won: acc.won + (won ? 1 : 0),
+            lost: acc.lost + (won ? 0 : 1),
+          };
+        }, { won: 0, lost: 0 });
+
+        return {
+          ...player,
+          matches: playerMatches.map(match => ({
+            ...match,
+            won: (match.team1Player1Id === player.id || match.team1Player2Id === player.id) 
+              ? match.team1Score > match.team2Score 
+              : match.team2Score > match.team1Score,
+          })),
+          stats,
+        };
       });
-      console.log(`Found ${allPlayers.length} players`);
-      res.json(allPlayers);
+
+      console.log(`Found ${playersWithStats.length} players with their stats`);
+      res.json(playersWithStats);
     } catch (error) {
       console.error("Error fetching players:", error);
       res.status(500).json({ error: "Failed to fetch players" });
@@ -60,25 +94,6 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Matches endpoints
-  app.get("/api/matches", async (_req, res) => {
-    try {
-      console.log("Fetching all matches with player details");
-      const allMatches = await db.query.matches.findMany({
-        with: {
-          team1Player1: true,
-          team1Player2: true,
-          team2Player1: true,
-          team2Player2: true,
-        },
-      });
-      console.log(`Found ${allMatches.length} matches`);
-      res.json(allMatches);
-    } catch (error) {
-      console.error("Error fetching matches:", error);
-      res.status(500).json({ error: "Failed to fetch matches" });
-    }
-  });
-
   app.post("/api/matches", async (req, res) => {
     try {
       console.log("Recording new match:", req.body);
