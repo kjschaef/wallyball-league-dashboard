@@ -13,13 +13,21 @@ export default function GameHistory() {
       {/* Game History Section */}
       <div>
         <GameHistoryComponent 
-          games={players?.reduce<Array<any>>((acc, player) => {
-            const allGames = players?.map(p => p.games || []).flat();
-            const uniqueGames = allGames.filter((game, index, self) =>
-              index === self.findIndex((g) => g.id === game.id)
-            );
-            return uniqueGames;
-          }, []) || []}
+          games={(() => {
+            console.log("Players data:", players);
+            const games = players?.reduce<Array<any>>((acc, player) => {
+              const allGames = players?.map(p => {
+                console.log("Processing player:", p.name, "games:", p.games);
+                return p.games || [];
+              }).flat();
+              const uniqueGames = allGames.filter((game, index, self) =>
+                index === self.findIndex((g) => g.id === game.id)
+              );
+              console.log("Unique games:", uniqueGames);
+              return uniqueGames;
+            }, []) || [];
+            return games;
+          })()}
           players={players || []}
         />
       </div>
