@@ -34,14 +34,13 @@ export function registerRoutes(app: Express): Server {
             game.teamOnePlayerTwoId === player.id ||
             game.teamOnePlayerThreeId === player.id;
 
-          // Determine if player's team won
-          const won = isTeamOne 
-            ? game.teamOneGamesWon > game.teamTwoGamesWon
-            : game.teamTwoGamesWon > game.teamOneGamesWon;
+          // Sum up individual games won and lost
+          const gamesWon = isTeamOne ? game.teamOneGamesWon : game.teamTwoGamesWon;
+          const gamesLost = isTeamOne ? game.teamTwoGamesWon : game.teamOneGamesWon;
 
           return {
-            won: acc.won + (won ? 1 : 0),
-            lost: acc.lost + (won ? 0 : 1),
+            won: acc.won + gamesWon,
+            lost: acc.lost + gamesLost,
           };
         }, { won: 0, lost: 0 });
 
