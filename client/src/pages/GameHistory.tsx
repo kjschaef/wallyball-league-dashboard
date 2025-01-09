@@ -13,16 +13,18 @@ export default function GameHistory() {
       {/* Game History Section */}
       <div>
         <GameHistoryComponent 
-          games={players?.reduce<Array<any>>((acc, player) => {
-            if (player.games) {
-              // Get unique games based on ID to avoid duplicates
-              const uniqueGames = player.games.filter(
-                game => !acc.some(existingGame => existingGame.id === game.id)
-              );
-              return [...acc, ...uniqueGames];
-            }
-            return acc;
-          }, []) || []}
+          games={allGames?.map(game => ({
+            ...game,
+            teamOnePlayerOneId: game.teamOnePlayerOneId,
+            teamOnePlayerTwoId: game.teamOnePlayerTwoId,
+            teamOnePlayerThreeId: game.teamOnePlayerThreeId,
+            teamTwoPlayerOneId: game.teamTwoPlayerOneId,
+            teamTwoPlayerTwoId: game.teamTwoPlayerTwoId,
+            teamTwoPlayerThreeId: game.teamTwoPlayerThreeId,
+            teamOneGamesWon: game.teamOneGamesWon,
+            teamTwoGamesWon: game.teamTwoGamesWon,
+            date: game.date
+          })) || []}
           players={players || []}
         />
       </div>
