@@ -58,12 +58,6 @@ export function GameHistory({ games, players }: GameHistoryProps) {
     return gameDate >= date.from;
   });
 
-  const getPlayerName = (id: number | null) => {
-    if (!id) return null;
-    const player = players.find(p => p.id === id);
-    return player ? player.name : "Unknown Player";
-  };
-
   const formatTeam = (playerIds: (number | null)[]) => {
     const teamPlayers = playerIds
       .map(id => players.find(p => p.id === id))
