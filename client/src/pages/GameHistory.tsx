@@ -14,13 +14,11 @@ export default function GameHistory() {
       <div>
         <GameHistoryComponent 
           games={players?.reduce<Array<any>>((acc, player) => {
-            if (player.games) {
-              const uniqueGames = player.games.filter(
-                game => !acc.some(existingGame => existingGame.id === game.id)
-              );
-              return [...acc, ...uniqueGames];
-            }
-            return acc;
+            const allGames = players?.map(p => p.games || []).flat();
+            const uniqueGames = allGames.filter((game, index, self) =>
+              index === self.findIndex((g) => g.id === game.id)
+            );
+            return uniqueGames;
           }, []) || []}
           players={players || []}
         />
