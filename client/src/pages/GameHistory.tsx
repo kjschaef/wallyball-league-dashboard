@@ -2,10 +2,13 @@ import { GameHistory as GameHistoryComponent } from "@/components/GameHistory";
 import { useQuery } from "@tanstack/react-query";
 
 export default function GameHistory() {
-  const { data: games } = useQuery<any[]>({
+  const { data: games, refetch } = useQuery<any[]>({
     queryKey: ["/api/games"],
-    refetchOnMount: true,
   });
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   return (
     <div className="space-y-6">
