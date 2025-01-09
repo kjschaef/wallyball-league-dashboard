@@ -65,14 +65,15 @@ export function GameHistory({ games, players }: GameHistoryProps) {
   };
 
   const formatTeam = (playerIds: (number | null)[]) => {
-    const names = playerIds
-      .map(id => getPlayerName(id))
-      .filter(name => name !== null);
+    const teamPlayers = playerIds
+      .map(id => players.find(p => p.id === id))
+      .filter(player => player !== undefined)
+      .map(player => player?.name);
 
-    if (names.length === 0) return "No players";
-    if (names.length === 1) return names[0];
-    if (names.length === 2) return `${names[0]} and ${names[1]}`;
-    return `${names[0]}, ${names[1]} and ${names[2]}`;
+    if (teamPlayers.length === 0) return "No players";
+    if (teamPlayers.length === 1) return teamPlayers[0];
+    if (teamPlayers.length === 2) return `${teamPlayers[0]} and ${teamPlayers[1]}`;
+    return `${teamPlayers[0]}, ${teamPlayers[1]} and ${teamPlayers[2]}`;
   };
 
   return (
