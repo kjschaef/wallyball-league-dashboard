@@ -36,12 +36,20 @@ interface Player {
   name: string;
 }
 
-interface GameHistoryProps {
-  games: Game[];
-  players: Player[];
+interface Game {
+  id: number;
+  date: string;
+  teamOnePlayers: string[];
+  teamTwoPlayers: string[];
+  teamOneGamesWon: number;
+  teamTwoGamesWon: number;
 }
 
-export function GameHistory({ games, players }: GameHistoryProps) {
+interface GameHistoryProps {
+  games: Game[];
+}
+
+export function GameHistory({ games }: GameHistoryProps) {
   const [date, setDate] = useState<DateRange | undefined>();
 
   // Sort games by date, most recent first
@@ -58,16 +66,11 @@ export function GameHistory({ games, players }: GameHistoryProps) {
     return gameDate >= date.from;
   });
 
-  const formatTeam = (playerIds: (number | null)[]) => {
-    const teamPlayers = playerIds
-      .map(id => players.find(p => p.id === id))
-      .filter(player => player !== undefined)
-      .map(player => player?.name);
-
-    if (teamPlayers.length === 0) return "No players";
-    if (teamPlayers.length === 1) return teamPlayers[0];
-    if (teamPlayers.length === 2) return `${teamPlayers[0]} and ${teamPlayers[1]}`;
-    return `${teamPlayers[0]}, ${teamPlayers[1]} and ${teamPlayers[2]}`;
+  const formatTeam = (players: string[]) => {
+    if (players.length === 0) return "No players";
+    if (players.length === 1) return players[0];
+    if (players.length === 2) return `${players[0]} and ${players[1]}`;
+    return `${players[0]}, ${players[1]} and ${players[2]}`;
   };
 
   return (
@@ -127,11 +130,7 @@ export function GameHistory({ games, players }: GameHistoryProps) {
                 <div>
                   <p className="font-semibold mb-1">Team One</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatTeam([
-                      game.teamOnePlayerOneId,
-                      game.teamOnePlayerTwoId,
-                      game.teamOnePlayerThreeId,
-                    ])}
+                    {formatTeam(game.teamOnePlayers)}
                   </p>
                   <p className="text-lg font-bold mt-2 text-green-600">
                     {game.teamOneGamesWon} games won
@@ -140,11 +139,7 @@ export function GameHistory({ games, players }: GameHistoryProps) {
                 <div>
                   <p className="font-semibold mb-1">Team Two</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatTeam([
-                      game.teamTwoPlayerOneId,
-                      game.teamTwoPlayerTwoId,
-                      game.teamTwoPlayerThreeId,
-                    ])}
+                    {formatTeam(game.teamTwoPlayers)}
                   </p>
                   <p className="text-lg font-bold mt-2 text-blue-600">
                     {game.teamTwoGamesWon} games won

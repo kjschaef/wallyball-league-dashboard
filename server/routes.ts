@@ -117,6 +117,32 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Games endpoints
+  app.get("/api/games", async (_req, res) => {
+    try {
+      const allGames = await db.select().from(games);
+      const allPlayers = await db.select().from(players);
+      
+      const gamesWithPlayerNames = allGames.map(game => ({
+        ...game,
+        teamOnePlayers: [
+          game.teamOnePlayerOneId && allPlayers.find(p => p.id === game.teamOnePlayerOneId)?.name,
+          game.teamOnePlayerTwoId && allPlayers.find(p => p.id === game.teamOnePlayerTwoId)?.name,
+          game.teamOnePlayerThreeId && allPlayers.find(p => p.id === game.teamOnePlayerThreeId)?.name,
+        ].filter(Boolean),
+        teamTwoPlayers: [
+          game.teamTwoPlayerOneId && allPlayers.find(p => p.id === game.teamTwoPlayerOneId)?.name,
+          game.teamTwoPlayerTwoId && allPlayers.find(p => p.id === game.teamTwoPlayerTwoId)?.name,
+          game.teamTwoPlayerThreeId && allPlayers.find(p => p.id === game.teamTwoPlayerThreeId)?.name,
+        ].filter(Boolean),
+      }));
+
+      res.json(gamesWithPlayerNames);
+    } catch (error) {
+      console.error("Error fetching games:", error);
+      res.status(500).json({ error: "Failed to fetch games" });
+    }
+  });
+
   app.post("/api/games", async (req, res) => {
     try {
       console.log("Recording new game:", req.body);
