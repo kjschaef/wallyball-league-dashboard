@@ -13,7 +13,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -81,8 +80,7 @@ export function GameHistory({ games }: GameHistoryProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Game History</h2>
+      <div className="flex items-center justify-end">
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -128,9 +126,6 @@ export function GameHistory({ games }: GameHistoryProps) {
                 <CardTitle className="text-lg">
                   {format(new Date(game.date), "PPP")}
                 </CardTitle>
-                <CardDescription>
-                  Game #{game.id}
-                </CardDescription>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
