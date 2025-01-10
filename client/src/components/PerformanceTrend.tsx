@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   LineChart,
@@ -11,104 +10,122 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { format, parseISO } from "date-fns";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 
-interface PerformanceTrendProps {
-  playerId?: number;
-}
+const COLORS = [
+  "#10b981", // emerald-500
+  "#3b82f6", // blue-500
+  "#f59e0b", // amber-500
+  "#ef4444", // red-500
+  "#8b5cf6", // violet-500
+  "#ec4899", // pink-500
+];
 
-export function PerformanceTrend({ playerId }: PerformanceTrendProps) {
-  const [period, setPeriod] = useState<"weekly" | "monthly">("weekly");
-
-  const { data: trendsData, isLoading } = useQuery({
-    queryKey: ["/api/trends", { period, playerId }],
+export function PerformanceTrend() {
+  const { data: players } = useQuery<any[]>({
+    queryKey: ["/api/players"],
   });
 
-  const formatDate = (dateStr: string) => {
-    const date = parseISO(dateStr);
-    return period === "weekly" 
-      ? `Week of ${format(date, "MMM d")}`
-      : format(date, "MMMM");
-  };
-
-  if (isLoading) {
+  if (!players) {
     return (
       <Card>
         <CardContent className="pt-6">
           <div className="h-[300px] flex items-center justify-center">
-            Loading trends data...
+            Loading player data...
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  // Process player data to calculate daily win rates
+  const playerStats = players.map((player) => {
+    const dailyStats = new Map();
+
+    player.games.forEach((game: any) => {
+      const date = format(new Date(game.date), "yyyy-MM-dd");
+      const current = dailyStats.get(date) || { wins: 0, total: 0 };
+
+      if (game.won) {
+        current.wins += 1;
+      }
+      current.total += 1;
+      dailyStats.set(date, current);
+    });
+
+    return {
+      id: player.id,
+      name: player.name,
+      dailyStats,
+    };
+  });
+
+  // Combine all dates from all players
+  const allDates = new Set<string>();
+  playerStats.forEach((player) => {
+    player.dailyStats.forEach((_, date) => allDates.add(date));
+  });
+
+  // Create chart data
+  const chartData = Array.from(allDates)
+    .sort()
+    .map((date) => {
+      const dataPoint: any = { date };
+
+      playerStats.forEach((player) => {
+        const stats = player.dailyStats.get(date);
+        if (stats) {
+          dataPoint[player.name] = (stats.wins / stats.total) * 100;
+        }
+      });
+
+      return dataPoint;
+    });
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Performance Trends</CardTitle>
+        <CardTitle>Player Win Rates</CardTitle>
         <CardDescription>
-          Track your performance over time
+          Daily win rates for each player
         </CardDescription>
-        <div className="flex gap-2">
-          <Button
-            variant={period === "weekly" ? "default" : "outline"}
-            onClick={() => setPeriod("weekly")}
-          >
-            Weekly
-          </Button>
-          <Button
-            variant={period === "monthly" ? "default" : "outline"}
-            onClick={() => setPeriod("monthly")}
-          >
-            Monthly
-          </Button>
-        </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
+        <div className="h-[400px] w-full">
           <ResponsiveContainer>
-            <LineChart data={trendsData}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
-                dataKey="period" 
-                tickFormatter={formatDate}
-                interval={0}
+                dataKey="date" 
+                tickFormatter={(date) => format(parseISO(date), "MMM d")}
               />
-              <YAxis />
+              <YAxis 
+                domain={[0, 100]}
+                tickFormatter={(value) => `${value}%`}
+              />
               <Tooltip
-                labelFormatter={formatDate}
-                formatter={(value: number) => [
-                  value.toFixed(2),
-                  value.toString().includes("Rate") ? "Win Rate %" : "Games",
-                ]}
+                labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
+                formatter={(value: number) => [`${value.toFixed(1)}%`, "Win Rate"]}
               />
               <Legend />
-              <Line
-                type="monotone"
-                dataKey="winRate"
-                stroke="#10b981"
-                name="Win Rate %"
-              />
-              <Line
-                type="monotone"
-                dataKey="gamesWon"
-                stroke="#3b82f6"
-                name="Games Won"
-              />
-              <Line
-                type="monotone"
-                dataKey="gamesLost"
-                stroke="#ef4444"
-                name="Games Lost"
-              />
+              {playerStats.map((player, index) => (
+                <Line
+                  key={player.id}
+                  type="monotone"
+                  dataKey={player.name}
+                  stroke={COLORS[index % COLORS.length]}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name={`${player.name}'s Win Rate`}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         </div>
