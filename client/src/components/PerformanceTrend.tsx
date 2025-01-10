@@ -123,7 +123,7 @@ export function PerformanceTrend() {
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   activeDot={{ r: 6 }}
-                  name={`${player.name}'s Win Rate`}
+                  name={player.name}
                 />
               ))}
             </LineChart>
