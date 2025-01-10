@@ -85,6 +85,69 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.post("/api/players", async (req, res) => {
+    try {
+      console.log("Creating new player:", req.body);
+      const newPlayer = await db.insert(players).values(req.body).returning();
+      console.log("Player created:", newPlayer[0]);
+      res.json(newPlayer[0]);
+    } catch (error) {
+      console.error("Error creating player:", error);
+      res.status(500).json({ error: "Failed to create player" });
+    }
+  });
+
+  // Add PUT endpoint for updating players
+  app.put("/api/players/:id", async (req, res) => {
+    try {
+      const playerId = parseInt(req.params.id);
+      console.log("Updating player:", playerId, req.body);
+
+      const updatedPlayer = await db
+        .update(players)
+        .set(req.body)
+        .where(eq(players.id, playerId))
+        .returning();
+
+      if (updatedPlayer.length === 0) {
+        return res.status(404).json({ error: "Player not found" });
+      }
+
+      console.log("Player updated:", updatedPlayer[0]);
+      res.json(updatedPlayer[0]);
+    } catch (error) {
+      console.error("Error updating player:", error);
+      res.status(500).json({ error: "Failed to update player" });
+    }
+  });
+
+  // Add DELETE endpoint for removing players
+  app.delete("/api/players/:id", async (req, res) => {
+    try {
+      const playerId = parseInt(req.params.id);
+      console.log("Deleting player:", playerId);
+
+      // First, delete all games associated with this player
+      await db.delete(games).where(
+        eq(games.teamOnePlayerOneId, playerId)
+        .or(eq(games.teamOnePlayerTwoId, playerId))
+        .or(eq(games.teamOnePlayerThreeId, playerId))
+        .or(eq(games.teamTwoPlayerOneId, playerId))
+        .or(eq(games.teamTwoPlayerTwoId, playerId))
+        .or(eq(games.teamTwoPlayerThreeId, playerId))
+      );
+
+      // Then delete the player
+      await db.delete(players).where(eq(players.id, playerId));
+
+      console.log("Player and associated games deleted successfully");
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting player:", error);
+      res.status(500).json({ error: "Failed to delete player" });
+    }
+  });
+
   // Games endpoints
   app.get("/api/games", async (_req, res) => {
     try {
@@ -115,18 +178,6 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching games:", error);
       res.status(500).json({ error: "Failed to fetch games" });
-    }
-  });
-
-  app.post("/api/players", async (req, res) => {
-    try {
-      console.log("Creating new player:", req.body);
-      const newPlayer = await db.insert(players).values(req.body).returning();
-      console.log("Player created:", newPlayer[0]);
-      res.json(newPlayer[0]);
-    } catch (error) {
-      console.error("Error creating player:", error);
-      res.status(500).json({ error: "Failed to create player" });
     }
   });
 
