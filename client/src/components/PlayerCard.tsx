@@ -15,15 +15,33 @@ import {
 import type { Player } from "@db/schema";
 
 interface PlayerCardProps {
-  player: Player & { games: Array<{ won: boolean }>, stats: { won: number, lost: number } };
+  player: Player & { 
+    games: Array<{ won: boolean, date: string }>, 
+    stats: { won: number, lost: number } 
+  };
   onEdit: (player: Player) => void;
   onDelete: (id: number) => void;
 }
 
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
-  const { stats } = player;
+  const { stats, games } = player;
   const total = stats.won + stats.lost;
   const winRate = total > 0 ? ((stats.won / total) * 100).toFixed(1) : "0.0";
+
+  // Calculate wins per day
+  const winsPerDay = games.reduce((acc, game) => {
+    const date = new Date(game.date).toLocaleDateString();
+    if (game.won) {
+      acc[date] = (acc[date] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Calculate average wins per day
+  const uniqueDays = Object.keys(winsPerDay).length;
+  const averageWinsPerDay = uniqueDays > 0 
+    ? (Object.values(winsPerDay).reduce((a, b) => a + b, 0) / uniqueDays).toFixed(1)
+    : "0.0";
 
   return (
     <Card>
@@ -66,7 +84,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-4 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Win Rate</p>
             <p className="text-2xl font-bold">{winRate}%</p>
@@ -78,6 +96,10 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           <div>
             <p className="text-muted-foreground">Losses</p>
             <p className="text-2xl font-bold text-red-600">{stats.lost}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Wins/Day</p>
+            <p className="text-2xl font-bold text-blue-600">{averageWinsPerDay}</p>
           </div>
         </div>
       </CardContent>

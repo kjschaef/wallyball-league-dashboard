@@ -6,7 +6,7 @@ import { z } from "zod";
 import { StatCard } from "@/components/StatCard";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { PlayerCard } from "@/components/PlayerCard";
-import { Users, Calendar } from "lucide-react";
+import { Users, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,6 +26,11 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
 import { PlayerSelector } from "@/components/PlayerSelector";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
+
 
 const playerFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -36,6 +41,7 @@ const gameFormSchema = z.object({
   teamTwoPlayers: z.array(z.number()).min(1, "At least one player is required").max(3),
   teamOneGamesWon: z.coerce.number().min(0),
   teamTwoGamesWon: z.coerce.number().min(0),
+  date: z.date(),
 });
 
 type PlayerFormData = z.infer<typeof playerFormSchema>;
@@ -72,6 +78,7 @@ export default function Dashboard() {
       teamTwoPlayers: [],
       teamOneGamesWon: 0,
       teamTwoGamesWon: 0,
+      date: new Date(),
     },
   });
 
@@ -141,6 +148,7 @@ export default function Dashboard() {
           teamTwoPlayerThreeId: values.teamTwoPlayers[2] || null,
           teamOneGamesWon: values.teamOneGamesWon,
           teamTwoGamesWon: values.teamTwoGamesWon,
+          date: values.date,
         }),
       }).then((res) => res.json()),
     onSuccess: () => {
@@ -187,7 +195,7 @@ export default function Dashboard() {
         <StatCard
           title="Total Games"
           value={totalGames}
-          icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
+          icon={<CalendarIcon className="h-4 w-4 text-muted-foreground" />}
         />
       </div>
 
@@ -272,6 +280,42 @@ export default function Dashboard() {
           <Form {...gameForm}>
             <form onSubmit={gameForm.handleSubmit(onGameSubmit)} className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
+                <div className="col-span-2">
+                  <FormField
+                    control={gameForm.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 {/* Team One */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg">Team One</h3>
