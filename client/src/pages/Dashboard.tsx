@@ -31,6 +31,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
+import { PerformanceTrend } from "@/components/PerformanceTrend";
 
 
 const playerFormSchema = z.object({
@@ -201,6 +202,9 @@ export default function Dashboard() {
           className="p-4"
         />
       </div>
+
+      {/* Add Performance Trend */}
+      <PerformanceTrend />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players?.map((player) => (

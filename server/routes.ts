@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and, gte, lte } from "drizzle-orm";
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
 import { db } from "@db";
 import { players, games } from "@db/schema";
 
@@ -221,6 +222,97 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error deleting game:", error);
       res.status(500).json({ error: "Failed to delete game" });
+    }
+  });
+
+  // New endpoint for performance trends
+  app.get("/api/trends", async (req, res) => {
+    try {
+      const { period = "weekly", playerId } = req.query;
+      const currentDate = new Date();
+
+      // Calculate date ranges based on period
+      let periods = [];
+      if (period === "weekly") {
+        // Get last 4 weeks
+        for (let i = 0; i < 4; i++) {
+          const weekStart = startOfWeek(subWeeks(currentDate, i));
+          const weekEnd = endOfWeek(subWeeks(currentDate, i));
+          periods.push({ start: weekStart, end: weekEnd });
+        }
+      } else {
+        // Get last 3 months
+        for (let i = 0; i < 3; i++) {
+          const monthStart = startOfMonth(subMonths(currentDate, i));
+          const monthEnd = endOfMonth(subMonths(currentDate, i));
+          periods.push({ start: monthStart, end: monthEnd });
+        }
+      }
+
+      // Get performance data for each period
+      const trendsData = await Promise.all(
+        periods.map(async ({ start, end }) => {
+          const periodGames = await db
+            .select()
+            .from(games)
+            .where(
+              and(
+                gte(games.date, start),
+                lte(games.date, end),
+                playerId ? 
+                  or(
+                    eq(games.teamOnePlayerOneId, Number(playerId)),
+                    eq(games.teamOnePlayerTwoId, Number(playerId)),
+                    eq(games.teamOnePlayerThreeId, Number(playerId)),
+                    eq(games.teamTwoPlayerOneId, Number(playerId)),
+                    eq(games.teamTwoPlayerTwoId, Number(playerId)),
+                    eq(games.teamTwoPlayerThreeId, Number(playerId))
+                  )
+                : undefined
+              )
+            );
+
+          // Calculate performance metrics
+          const stats = periodGames.reduce(
+            (acc, game) => {
+              if (playerId) {
+                const isTeamOne =
+                  game.teamOnePlayerOneId === Number(playerId) ||
+                  game.teamOnePlayerTwoId === Number(playerId) ||
+                  game.teamOnePlayerThreeId === Number(playerId);
+
+                const gamesWon = isTeamOne ? game.teamOneGamesWon : game.teamTwoGamesWon;
+                const gamesLost = isTeamOne ? game.teamTwoGamesWon : game.teamOneGamesWon;
+
+                return {
+                  gamesWon: acc.gamesWon + gamesWon,
+                  gamesLost: acc.gamesLost + gamesLost,
+                  totalGames: acc.totalGames + 1,
+                };
+              }
+
+              // Team-wide stats if no player specified
+              return {
+                gamesWon: acc.gamesWon + game.teamOneGamesWon + game.teamTwoGamesWon,
+                gamesLost: acc.gamesLost + game.teamTwoGamesWon + game.teamOneGamesWon,
+                totalGames: acc.totalGames + 1,
+              };
+            },
+            { gamesWon: 0, gamesLost: 0, totalGames: 0 }
+          );
+
+          return {
+            period: start.toISOString(),
+            ...stats,
+            winRate: stats.totalGames > 0 ? (stats.gamesWon / (stats.gamesWon + stats.gamesLost)) * 100 : 0,
+          };
+        })
+      );
+
+      res.json(trendsData.reverse()); // Most recent first
+    } catch (error) {
+      console.error("Error fetching performance trends:", error);
+      res.status(500).json({ error: "Failed to fetch performance trends" });
     }
   });
 
