@@ -28,19 +28,14 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const total = stats.won + stats.lost;
   const winRate = total > 0 ? ((stats.won / total) * 100).toFixed(1) : "0.0";
 
-  // Calculate wins per day
-  const winsPerDay = games.reduce((acc, game) => {
-    const date = new Date(game.date).toLocaleDateString();
-    if (game.won) {
-      acc[date] = (acc[date] || 0) + 1;
-    }
-    return acc;
-  }, {} as Record<string, number>);
+  // Count unique days on which games were played
+  const uniqueDays = new Set(
+    games.map(game => new Date(game.date).toLocaleDateString())
+  ).size;
 
-  // Calculate average wins per day
-  const uniqueDays = Object.keys(winsPerDay).length;
-  const averageWinsPerDay = uniqueDays > 0 
-    ? (Object.values(winsPerDay).reduce((a, b) => a + b, 0) / uniqueDays).toFixed(1)
+  // Calculate average wins per day (total wins / number of unique days)
+  const winsPerDay = uniqueDays > 0 
+    ? (stats.won / uniqueDays).toFixed(1)
     : "0.0";
 
   return (
@@ -99,7 +94,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           </div>
           <div>
             <p className="text-muted-foreground">Wins/Day</p>
-            <p className="text-2xl font-bold text-blue-600">{averageWinsPerDay}</p>
+            <p className="text-2xl font-bold text-blue-600">{winsPerDay}</p>
           </div>
         </div>
       </CardContent>
