@@ -187,16 +187,18 @@ export default function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Wallyball Standings</h1>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3">
         <StatCard
           title="Total Players"
           value={totalPlayers}
           icon={<Users className="h-4 w-4 text-muted-foreground" />}
+          className="p-4"
         />
         <StatCard
           title="Total Games"
           value={totalGames}
           icon={<CalendarIcon className="h-4 w-4 text-muted-foreground" />}
+          className="p-4"
         />
       </div>
 

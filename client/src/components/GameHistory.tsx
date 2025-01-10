@@ -113,23 +113,29 @@ export function GameHistory({ games }: GameHistoryProps) {
                     <p className="text-lg font-semibold mb-2">
                       {formatTeam(game.teamOnePlayers)}
                     </p>
-                    <p className={cn(
-                      "text-2xl font-bold",
-                      game.teamOneGamesWon > game.teamTwoGamesWon ? "text-green-600" : "text-muted-foreground"
-                    )}>
-                      {game.teamOneGamesWon}
-                    </p>
+                    <div className="flex items-baseline gap-1">
+                      <p className={cn(
+                        "text-2xl font-bold",
+                        game.teamOneGamesWon > game.teamTwoGamesWon ? "text-green-600" : "text-muted-foreground"
+                      )}>
+                        {game.teamOneGamesWon}
+                      </p>
+                      <span className="text-sm text-muted-foreground">wins</span>
+                    </div>
                   </div>
                   <div>
                     <p className="text-lg font-semibold mb-2">
                       {formatTeam(game.teamTwoPlayers)}
                     </p>
-                    <p className={cn(
-                      "text-2xl font-bold",
-                      game.teamTwoGamesWon > game.teamOneGamesWon ? "text-green-600" : "text-muted-foreground"
-                    )}>
-                      {game.teamTwoGamesWon}
-                    </p>
+                    <div className="flex items-baseline gap-1">
+                      <p className={cn(
+                        "text-2xl font-bold",
+                        game.teamTwoGamesWon > game.teamOneGamesWon ? "text-green-600" : "text-muted-foreground"
+                      )}>
+                        {game.teamTwoGamesWon}
+                      </p>
+                      <span className="text-sm text-muted-foreground">wins</span>
+                    </div>
                   </div>
                 </div>
               </div>
