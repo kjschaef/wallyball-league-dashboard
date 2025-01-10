@@ -107,24 +107,30 @@ export function GameHistory({ games }: GameHistoryProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="font-semibold mb-1">Team One</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatTeam(game.teamOnePlayers)}
-                  </p>
-                  <p className="text-lg font-bold mt-2 text-green-600">
-                    {game.teamOneGamesWon} games won
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold mb-1">Team Two</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatTeam(game.teamTwoPlayers)}
-                  </p>
-                  <p className="text-lg font-bold mt-2 text-blue-600">
-                    {game.teamTwoGamesWon} games won
-                  </p>
+              <div className="flex flex-col space-y-4">
+                <div className="grid grid-cols-2 gap-4 items-center">
+                  <div>
+                    <p className="text-lg font-semibold mb-2">
+                      {formatTeam(game.teamOnePlayers)}
+                    </p>
+                    <p className={cn(
+                      "text-2xl font-bold",
+                      game.teamOneGamesWon > game.teamTwoGamesWon ? "text-green-600" : "text-muted-foreground"
+                    )}>
+                      {game.teamOneGamesWon}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold mb-2">
+                      {formatTeam(game.teamTwoPlayers)}
+                    </p>
+                    <p className={cn(
+                      "text-2xl font-bold",
+                      game.teamTwoGamesWon > game.teamOneGamesWon ? "text-green-600" : "text-muted-foreground"
+                    )}>
+                      {game.teamTwoGamesWon}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
