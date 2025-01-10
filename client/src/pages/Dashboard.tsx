@@ -149,7 +149,7 @@ export default function Dashboard() {
           teamTwoPlayerThreeId: values.teamTwoPlayers[2] || null,
           teamOneGamesWon: values.teamOneGamesWon,
           teamTwoGamesWon: values.teamTwoGamesWon,
-          date: values.date,
+          date: values.date.toISOString(),
         }),
       }).then((res) => res.json()),
     onSuccess: () => {

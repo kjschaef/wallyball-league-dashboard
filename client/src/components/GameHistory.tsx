@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -17,18 +17,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-interface Game {
-  id: number;
-  date: string;
-  teamOnePlayers: string[];
-  teamTwoPlayers: string[];
-  teamOneGamesWon: number;
-  teamTwoGamesWon: number;
-}
+import type { Game } from "@db/schema";
 
 interface GameHistoryProps {
-  games: Game[];
+  games: Array<{
+    id: number;
+    date: string;
+    teamOnePlayers: string[];
+    teamTwoPlayers: string[];
+    teamOneGamesWon: number;
+    teamTwoGamesWon: number;
+  }>;
 }
 
 export function GameHistory({ games }: GameHistoryProps) {

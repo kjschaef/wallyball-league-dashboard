@@ -77,51 +77,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.post("/api/players", async (req, res) => {
-    try {
-      console.log("Creating new player:", req.body);
-      const newPlayer = await db.insert(players).values(req.body).returning();
-      console.log("Player created:", newPlayer[0]);
-      res.json(newPlayer[0]);
-    } catch (error) {
-      console.error("Error creating player:", error);
-      res.status(500).json({ error: "Failed to create player" });
-    }
-  });
-
-  app.put("/api/players/:id", async (req, res) => {
-    try {
-      console.log(`Updating player ${req.params.id}:`, req.body);
-      const updatedPlayer = await db
-        .update(players)
-        .set(req.body)
-        .where(eq(players.id, parseInt(req.params.id)))
-        .returning();
-      console.log("Player updated:", updatedPlayer[0]);
-      res.json(updatedPlayer[0]);
-    } catch (error) {
-      console.error("Error updating player:", error);
-      res.status(500).json({ error: "Failed to update player" });
-    }
-  });
-
-  app.delete("/api/players/:id", async (req, res) => {
-    try {
-      console.log(`Deleting player ${req.params.id}`);
-      await db.delete(players).where(eq(players.id, parseInt(req.params.id)));
-      res.status(204).end();
-    } catch (error) {
-      console.error("Error deleting player:", error);
-      res.status(500).json({ error: "Failed to delete player" });
-    }
-  });
-
   // Games endpoints
   app.get("/api/games", async (_req, res) => {
     try {
       const allGames = await db.select().from(games);
       const allPlayers = await db.select().from(players);
-      
+
       const gamesWithPlayerNames = allGames.map(game => ({
         ...game,
         teamOnePlayers: [
@@ -155,6 +116,7 @@ export function registerRoutes(app: Express): Server {
         teamTwoPlayerThreeId: req.body.teamTwoPlayerThreeId,
         teamOneGamesWon: req.body.teamOneGamesWon,
         teamTwoGamesWon: req.body.teamTwoGamesWon,
+        date: req.body.date ? new Date(req.body.date) : new Date(),
       }).returning();
       console.log("Game recorded:", newGame[0]);
       res.json(newGame[0]);
