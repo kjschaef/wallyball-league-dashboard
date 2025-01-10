@@ -155,6 +155,21 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/games/:id", async (req, res) => {
+    try {
+      const gameId = parseInt(req.params.id);
+      console.log("Deleting game:", gameId);
+
+      await db.delete(games).where(eq(games.id, gameId));
+
+      console.log("Game deleted successfully");
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting game:", error);
+      res.status(500).json({ error: "Failed to delete game" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

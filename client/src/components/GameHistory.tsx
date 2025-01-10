@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Game } from "@db/schema";
 
 interface GameHistoryProps {
@@ -32,6 +45,18 @@ interface GameHistoryProps {
 
 export function GameHistory({ games }: GameHistoryProps) {
   const [date, setDate] = useState<DateRange | undefined>();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) =>
+      fetch(`/api/games/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/games"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/players"] });
+      toast({ title: "Game deleted successfully" });
+    },
+  });
 
   // Sort games by date, most recent first
   const sortedGames = [...games].sort((a, b) => 
@@ -98,13 +123,42 @@ export function GameHistory({ games }: GameHistoryProps) {
       <div className="grid gap-4">
         {filteredGames.map((game) => (
           <Card key={game.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">
-                {format(new Date(game.date), "PPP")}
-              </CardTitle>
-              <CardDescription>
-                Game #{game.id}
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between pb-2">
+              <div>
+                <CardTitle className="text-lg">
+                  {format(new Date(game.date), "PPP")}
+                </CardTitle>
+                <CardDescription>
+                  Game #{game.id}
+                </CardDescription>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Game</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this game? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteMutation.mutate(game.id)}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col space-y-4">
