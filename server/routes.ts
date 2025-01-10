@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "@db";
 import { players, games } from "@db/schema";
 
@@ -129,12 +129,14 @@ export function registerRoutes(app: Express): Server {
 
       // First, delete all games associated with this player
       await db.delete(games).where(
-        eq(games.teamOnePlayerOneId, playerId)
-        .or(eq(games.teamOnePlayerTwoId, playerId))
-        .or(eq(games.teamOnePlayerThreeId, playerId))
-        .or(eq(games.teamTwoPlayerOneId, playerId))
-        .or(eq(games.teamTwoPlayerTwoId, playerId))
-        .or(eq(games.teamTwoPlayerThreeId, playerId))
+        or(
+          eq(games.teamOnePlayerOneId, playerId),
+          eq(games.teamOnePlayerTwoId, playerId),
+          eq(games.teamOnePlayerThreeId, playerId),
+          eq(games.teamTwoPlayerOneId, playerId),
+          eq(games.teamTwoPlayerTwoId, playerId),
+          eq(games.teamTwoPlayerThreeId, playerId)
+        )
       );
 
       // Then delete the player
