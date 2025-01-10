@@ -21,24 +21,6 @@ import {
 interface Game {
   id: number;
   date: string;
-  teamOnePlayerOneId: number | null;
-  teamOnePlayerTwoId: number | null;
-  teamOnePlayerThreeId: number | null;
-  teamTwoPlayerOneId: number | null;
-  teamTwoPlayerTwoId: number | null;
-  teamTwoPlayerThreeId: number | null;
-  teamOneGamesWon: number;
-  teamTwoGamesWon: number;
-}
-
-interface Player {
-  id: number;
-  name: string;
-}
-
-interface Game {
-  id: number;
-  date: string;
   teamOnePlayers: string[];
   teamTwoPlayers: string[];
   teamOneGamesWon: number;

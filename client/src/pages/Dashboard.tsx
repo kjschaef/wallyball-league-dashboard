@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -237,6 +238,9 @@ export default function Dashboard() {
             <DialogTitle>
               {editingPlayer ? "Edit Player" : "Add New Player"}
             </DialogTitle>
+            <DialogDescription>
+              {editingPlayer ? "Update the player's information below." : "Enter the new player's information below."}
+            </DialogDescription>
           </DialogHeader>
           <Form {...playerForm}>
             <form onSubmit={playerForm.handleSubmit(onPlayerSubmit)} className="space-y-4">
@@ -276,6 +280,9 @@ export default function Dashboard() {
         <DialogContent className="fixed left-[50%] top-[40%] max-w-2xl">
           <DialogHeader>
             <DialogTitle>Record Game</DialogTitle>
+            <DialogDescription>
+              Enter the game details including teams, scores, and date.
+            </DialogDescription>
           </DialogHeader>
           <Form {...gameForm}>
             <form onSubmit={gameForm.handleSubmit(onGameSubmit)} className="space-y-6">
