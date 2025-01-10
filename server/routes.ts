@@ -101,11 +101,12 @@ export function registerRoutes(app: Express): Server {
   app.put("/api/players/:id", async (req, res) => {
     try {
       const playerId = parseInt(req.params.id);
-      console.log("Updating player:", playerId, req.body);
+      console.log("Updating player:", playerId);
 
+      // Only update the name field, excluding computed fields and timestamps
       const updatedPlayer = await db
         .update(players)
-        .set(req.body)
+        .set({ name: req.body.name })
         .where(eq(players.id, playerId))
         .returning();
 
