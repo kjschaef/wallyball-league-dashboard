@@ -16,7 +16,7 @@ import type { Player } from "@db/schema";
 
 interface PlayerCardProps {
   player: Player & { 
-    games: Array<{ won: boolean, date: string }>, 
+    matches: Array<{ won: boolean, date: string }>, 
     stats: { won: number, lost: number } 
   };
   onEdit: (player: Player) => void;
@@ -24,13 +24,13 @@ interface PlayerCardProps {
 }
 
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
-  const { stats, games } = player;
+  const { stats, matches } = player;
   const total = stats.won + stats.lost;
   const winRate = total > 0 ? ((stats.won / total) * 100).toFixed(1) : "0.0";
 
-  // Count unique days on which games were played
+  // Count unique days on which matches were played
   const uniqueDays = new Set(
-    games.map(game => new Date(game.date).toLocaleDateString())
+    matches.map(match => new Date(match.date).toLocaleDateString())
   ).size;
 
   // Calculate average wins per day (total wins / number of unique days)
