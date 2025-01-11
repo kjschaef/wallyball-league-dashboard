@@ -55,9 +55,10 @@ export function PerformanceTrend() {
         match.teamOnePlayerThreeId === player.id;
       const date = format(new Date(match.date), "yyyy-MM-dd");
       const current = dailyStats.get(date) || { wins: 0, total: 0 };
-      const gamesWon = isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
-      current.wins += gamesWon;
-      current.total += 1;
+      const playerTeamGamesWon = isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
+      const opponentTeamGamesWon = isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon;
+      current.wins += playerTeamGamesWon || 0;
+      current.total += (playerTeamGamesWon || 0) + (opponentTeamGamesWon || 0);
       dailyStats.set(date, current);
     });
 
