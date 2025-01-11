@@ -288,16 +288,16 @@ export default function Dashboard() {
         }}
         modal={true}
       >
-        <DialogContent className="fixed left-[50%] top-[40%] max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Record Game</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="fixed left-[50%] top-[50%] w-[95vw] max-w-2xl translate-x-[-50%] translate-y-[-50%] overflow-y-auto max-h-[90vh] p-4 md:p-6">
+          <DialogHeader className="space-y-2 mb-4">
+            <DialogTitle className="text-xl">Record Game</DialogTitle>
+            <DialogDescription className="text-sm">
               Enter the game details including teams, scores, and date.
             </DialogDescription>
           </DialogHeader>
           <Form {...gameForm}>
             <form onSubmit={gameForm.handleSubmit(onGameSubmit)} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="col-span-2">
                   <FormField
                     control={gameForm.control}
