@@ -51,10 +51,8 @@ export function PerformanceTrend() {
     player.games.forEach((game: any) => {
       const date = format(new Date(game.date), "yyyy-MM-dd");
       const current = dailyStats.get(date) || { wins: 0, total: 0 };
-
-      if (game.won) {
-        current.wins += 1;
-      }
+      const gamesWon = game.won ? (game.teamOneGamesWon || game.teamTwoGamesWon) : 0;
+      current.wins += gamesWon;
       current.total += 1;
       dailyStats.set(date, current);
     });
