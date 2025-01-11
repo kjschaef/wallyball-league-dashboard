@@ -51,7 +51,7 @@ export function PerformanceTrend() {
     player.matches?.forEach((match: any) => {
       const date = format(new Date(match.date), "yyyy-MM-dd");
       const current = dailyStats.get(date) || { wins: 0, total: 0 };
-      const gamesWon = match.won ? (match.teamOneGamesWon || match.teamTwoGamesWon) : 0;
+      const gamesWon = isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
       current.wins += gamesWon;
       current.total += 1;
       dailyStats.set(date, current);
