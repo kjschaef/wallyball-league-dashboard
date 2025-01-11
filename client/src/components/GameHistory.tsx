@@ -120,29 +120,29 @@ export function GameHistory({ games }: GameHistoryProps) {
 
       <div className="grid gap-4">
         {filteredGames.map((game) => (
-          <div key={game.id} className="flex items-center justify-between py-3 border-b">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
+          <div key={game.id} className="group flex items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm">
+            <div className="flex items-center gap-4 min-w-0">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
                 {format(new Date(game.date), "MMM d")}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <span className={cn(
-                  "font-medium",
-                  game.teamOneGamesWon > game.teamTwoGamesWon ? "text-green-600" : ""
+                  "font-medium truncate",
+                  game.teamOneGamesWon > game.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
                 )}>
                   {formatTeam(game.teamOnePlayers)}
                 </span>
-                <span className="text-sm text-muted-foreground px-1">vs</span>
+                <span className="text-sm text-muted-foreground px-1 whitespace-nowrap">vs</span>
                 <span className={cn(
-                  "font-medium",
-                  game.teamTwoGamesWon > game.teamOneGamesWon ? "text-green-600" : ""
+                  "font-medium truncate",
+                  game.teamTwoGamesWon > game.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
                 )}>
                   {formatTeam(game.teamTwoPlayers)}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm">
+              <span className="text-sm font-medium tabular-nums">
                 {game.teamOneGamesWon} - {game.teamTwoGamesWon}
               </span>
               <AlertDialog>
