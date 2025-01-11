@@ -49,6 +49,10 @@ export function PerformanceTrend() {
     const dailyStats = new Map();
 
     player.matches?.forEach((match: any) => {
+      const isTeamOne =
+        match.teamOnePlayerOneId === player.id ||
+        match.teamOnePlayerTwoId === player.id ||
+        match.teamOnePlayerThreeId === player.id;
       const date = format(new Date(match.date), "yyyy-MM-dd");
       const current = dailyStats.get(date) || { wins: 0, total: 0 };
       const gamesWon = isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
