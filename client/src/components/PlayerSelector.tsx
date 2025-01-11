@@ -21,9 +21,9 @@ export function PlayerSelector({
   const canSelectMore = selectedPlayers.length < maxPlayers;
 
   return (
-    <ScrollArea className={cn("h-[200px] rounded-md border", className)}>
+    <div className={cn("rounded-md border", className)}>
       <div className="p-4">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {players?.map((player) => {
             const isSelected = selectedPlayers.includes(player.id);
             return (
