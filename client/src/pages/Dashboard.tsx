@@ -61,10 +61,10 @@ export default function Dashboard() {
   });
 
   const totalPlayers = players?.length || 0;
-  const totalGames = players?.reduce(
-    (acc, player) => acc + (player.games?.length || 0),
-    0
-  ) || 0;
+  const totalGames = players?.reduce((acc, player) => {
+    const uniqueDates = new Set(player.matches?.map((m: any) => m.id));
+    return Math.max(acc, uniqueDates.size);
+  }, 0) || 0;
 
   const playerForm = useForm<PlayerFormData>({
     resolver: zodResolver(playerFormSchema),
