@@ -120,28 +120,46 @@ export function GameHistory({ games }: GameHistoryProps) {
 
       <div className="grid gap-4">
         {filteredGames.map((game) => (
-          <Card key={game.id}>
-            <CardHeader className="flex flex-row items-start justify-between pb-2">
-              <div>
-                <CardTitle className="text-lg">
-                  {format(new Date(game.date), "PPP")}
-                </CardTitle>
+          <div key={game.id} className="flex items-center justify-between py-3 border-b">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">
+                {format(new Date(game.date), "MMM d")}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  "font-medium",
+                  game.teamOneGamesWon > game.teamTwoGamesWon ? "text-green-600" : ""
+                )}>
+                  {formatTeam(game.teamOnePlayers)}
+                </span>
+                <span className="text-sm text-muted-foreground px-1">vs</span>
+                <span className={cn(
+                  "font-medium",
+                  game.teamTwoGamesWon > game.teamOneGamesWon ? "text-green-600" : ""
+                )}>
+                  {formatTeam(game.teamTwoPlayers)}
+                </span>
               </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm">
+                {game.teamOneGamesWon} - {game.teamTwoGamesWon}
+              </span>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-6 w-6 p-0"
                   >
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <Trash2 className="h-3 w-3 text-destructive" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Game</AlertDialogTitle>
+                    <AlertDialogTitle>Delete Match</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete this game? This action cannot be undone.
+                      Are you sure you want to delete this match? This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -154,42 +172,8 @@ export function GameHistory({ games }: GameHistoryProps) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col space-y-4">
-                <div className="grid grid-cols-2 gap-4 items-center">
-                  <div>
-                    <p className="text-lg font-semibold mb-2">
-                      {formatTeam(game.teamOnePlayers)}
-                    </p>
-                    <div className="flex items-baseline gap-1">
-                      <p className={cn(
-                        "text-2xl font-bold",
-                        game.teamOneGamesWon > game.teamTwoGamesWon ? "text-green-600" : "text-muted-foreground"
-                      )}>
-                        {game.teamOneGamesWon}
-                      </p>
-                      <span className="text-sm text-muted-foreground">wins</span>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold mb-2">
-                      {formatTeam(game.teamTwoPlayers)}
-                    </p>
-                    <div className="flex items-baseline gap-1">
-                      <p className={cn(
-                        "text-2xl font-bold",
-                        game.teamTwoGamesWon > game.teamOneGamesWon ? "text-green-600" : "text-muted-foreground"
-                      )}>
-                        {game.teamTwoGamesWon}
-                      </p>
-                      <span className="text-sm text-muted-foreground">wins</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     </div>

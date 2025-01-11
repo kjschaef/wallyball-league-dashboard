@@ -8,7 +8,7 @@ export default function GameHistory() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Game History</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Match History</h1>
       <div>
         <GameHistoryComponent 
           games={games || []}
