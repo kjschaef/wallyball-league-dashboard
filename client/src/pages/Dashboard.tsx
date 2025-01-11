@@ -207,7 +207,11 @@ export default function Dashboard() {
       <PerformanceTrend />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {players?.map((player) => (
+        {players?.sort((a, b) => {
+          const aWinsPerDay = a.stats.won / (new Set(a.matches.map((m: any) => new Date(m.date).toLocaleDateString())).size || 1);
+          const bWinsPerDay = b.stats.won / (new Set(b.matches.map((m: any) => new Date(m.date).toLocaleDateString())).size || 1);
+          return bWinsPerDay - aWinsPerDay;
+        }).map((player) => (
           <PlayerCard
             key={player.id}
             player={player}

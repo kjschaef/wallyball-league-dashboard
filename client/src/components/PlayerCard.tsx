@@ -81,8 +81,8 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
       <CardContent>
         <div className="grid grid-cols-4 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Win Rate</p>
-            <p className="text-2xl font-bold">{winRate}%</p>
+            <p className="text-muted-foreground">Wins/Day</p>
+            <p className="text-2xl font-bold text-blue-600">{winsPerDay}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Wins</p>
@@ -93,8 +93,8 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             <p className="text-2xl font-bold text-red-600">{stats.lost}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Wins/Day</p>
-            <p className="text-2xl font-bold text-blue-600">{winsPerDay}</p>
+            <p className="text-muted-foreground">Win Rate</p>
+            <p className="text-2xl font-bold">{winRate}%</p>
           </div>
         </div>
       </CardContent>
