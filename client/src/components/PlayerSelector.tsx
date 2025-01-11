@@ -1,4 +1,3 @@
-
 interface PlayerSelectorProps {
   players: Player[];
   selectedPlayers: number[];
