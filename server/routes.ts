@@ -13,37 +13,37 @@ export function registerRoutes(app: Express): Server {
       const allPlayers = await db.select().from(players);
       console.log("Successfully fetched players:", allPlayers);
 
-      const allGames = await db.select().from(games);
-      console.log("Successfully fetched games:", allGames);
+      const allMatches = await db.select().from(matches);
+      console.log("Successfully fetched matches:", allMatches);
 
       const playersWithStats = allPlayers.map((player) => {
-        // Filter games where the player participated
-        const playerGames = allGames.filter(
-          (game) =>
-            game.teamOnePlayerOneId === player.id ||
-            game.teamOnePlayerTwoId === player.id ||
-            game.teamOnePlayerThreeId === player.id ||
-            game.teamTwoPlayerOneId === player.id ||
-            game.teamTwoPlayerTwoId === player.id ||
-            game.teamTwoPlayerThreeId === player.id,
+        // Filter matches where the player participated
+        const playerMatches = allMatches.filter(
+          (match) =>
+            match.teamOnePlayerOneId === player.id ||
+            match.teamOnePlayerTwoId === player.id ||
+            match.teamOnePlayerThreeId === player.id ||
+            match.teamTwoPlayerOneId === player.id ||
+            match.teamTwoPlayerTwoId === player.id ||
+            match.teamTwoPlayerThreeId === player.id,
         );
 
         // Calculate player statistics
-        const stats = playerGames.reduce(
-          (acc, game) => {
+        const stats = playerMatches.reduce(
+          (acc, match) => {
             // Determine which team the player was on
             const isTeamOne =
-              game.teamOnePlayerOneId === player.id ||
-              game.teamOnePlayerTwoId === player.id ||
-              game.teamOnePlayerThreeId === player.id;
+              match.teamOnePlayerOneId === player.id ||
+              match.teamOnePlayerTwoId === player.id ||
+              match.teamOnePlayerThreeId === player.id;
 
             // Sum up individual games won and lost
             const gamesWon = isTeamOne
-              ? game.teamOneGamesWon
-              : game.teamTwoGamesWon;
+              ? match.teamOneGamesWon
+              : match.teamTwoGamesWon;
             const gamesLost = isTeamOne
-              ? game.teamTwoGamesWon
-              : game.teamOneGamesWon;
+              ? match.teamTwoGamesWon
+              : match.teamOneGamesWon;
 
             return {
               won: acc.won + gamesWon,
@@ -53,27 +53,27 @@ export function registerRoutes(app: Express): Server {
           { won: 0, lost: 0 },
         );
 
-        // Add games with win/loss info to player data
-        const processedGames = playerGames.map((game) => {
+        // Add matches with win/loss info to player data
+        const processedMatches = playerMatches.map((match) => {
           const isTeamOne =
-            game.teamOnePlayerOneId === player.id ||
-            game.teamOnePlayerTwoId === player.id ||
-            game.teamOnePlayerThreeId === player.id;
+            match.teamOnePlayerOneId === player.id ||
+            match.teamOnePlayerTwoId === player.id ||
+            match.teamOnePlayerThreeId === player.id;
 
           return {
-            id: game.id,
-            date: game.date,
-            teamOneGamesWon: game.teamOneGamesWon,
-            teamTwoGamesWon: game.teamTwoGamesWon,
+            id: match.id,
+            date: match.date,
+            teamOneGamesWon: match.teamOneGamesWon,
+            teamTwoGamesWon: match.teamTwoGamesWon,
             won: isTeamOne
-              ? game.teamOneGamesWon > game.teamTwoGamesWon
-              : game.teamTwoGamesWon > game.teamOneGamesWon,
+              ? match.teamOneGamesWon > match.teamTwoGamesWon
+              : match.teamTwoGamesWon > match.teamOneGamesWon,
           };
         });
 
         return {
           ...player,
-          games: processedGames,
+          matches: processedMatches,
           stats,
         };
       });
