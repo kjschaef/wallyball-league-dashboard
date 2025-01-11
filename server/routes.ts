@@ -65,6 +65,7 @@ export function registerRoutes(app: Express): Server {
             date: match.date,
             teamOneGamesWon: match.teamOneGamesWon,
             teamTwoGamesWon: match.teamTwoGamesWon,
+            isTeamOne,
             won: isTeamOne
               ? match.teamOneGamesWon > match.teamTwoGamesWon
               : match.teamTwoGamesWon > match.teamOneGamesWon,

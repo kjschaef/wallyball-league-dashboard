@@ -50,14 +50,9 @@ export function PerformanceTrend() {
     const dailyStats = new Map();
 
     player.matches?.forEach((match: any) => {
-      const isTeamOne =
-        match.teamOnePlayerOneId === player.id ||
-        match.teamOnePlayerTwoId === player.id ||
-        match.teamOnePlayerThreeId === player.id;
-      
       const date = format(new Date(match.date), "yyyy-MM-dd");
       const current = dailyStats.get(date) || { gamesWon: 0 };
-      const gamesWon = isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
+      const gamesWon = match.isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
       current.gamesWon += gamesWon;
       dailyStats.set(date, current);
     });
