@@ -347,6 +347,7 @@ export default function Dashboard() {
                           <PlayerSelector
                             players={players || []}
                             selectedPlayers={teamOnePlayers}
+                            excludedPlayers={teamTwoPlayers}
                             onSelect={(playerId) => {
                               const newSelection = teamOnePlayers.includes(playerId)
                                 ? teamOnePlayers.filter(id => id !== playerId)
@@ -388,6 +389,7 @@ export default function Dashboard() {
                           <PlayerSelector
                             players={players || []}
                             selectedPlayers={teamTwoPlayers}
+                            excludedPlayers={teamOnePlayers}
                             onSelect={(playerId) => {
                               const newSelection = teamTwoPlayers.includes(playerId)
                                 ? teamTwoPlayers.filter(id => id !== playerId)
