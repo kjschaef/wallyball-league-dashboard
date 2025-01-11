@@ -80,9 +80,9 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-4 gap-4 text-sm">
-          <div>
-            <p className="text-muted-foreground">Wins/Day</p>
-            <p className="text-2xl font-bold text-blue-600">{winsPerDay}</p>
+          <div className="col-span-2 bg-blue-50 rounded-lg p-3">
+            <p className="text-blue-600 font-medium">Wins/Day</p>
+            <p className="text-3xl font-bold text-blue-600">{winsPerDay}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Wins</p>
