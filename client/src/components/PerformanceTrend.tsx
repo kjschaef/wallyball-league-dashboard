@@ -81,7 +81,7 @@ export function PerformanceTrend() {
       playerStats.forEach((player) => {
         const stats = player.dailyStats.get(date);
         if (stats) {
-          dataPoint[player.name] = (stats.wins / stats.total) * 100;
+          dataPoint[player.name] = stats.wins;
         }
       });
 
@@ -91,9 +91,9 @@ export function PerformanceTrend() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Player Win Rates</CardTitle>
+        <CardTitle>Player Wins Per Day</CardTitle>
         <CardDescription>
-          Daily win rates for each player
+          Daily wins for each player
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -106,12 +106,12 @@ export function PerformanceTrend() {
                 tickFormatter={(date) => format(parseISO(date), "MMM d")}
               />
               <YAxis 
-                domain={[0, 100]}
-                tickFormatter={(value) => `${value}%`}
+                domain={[0, 'auto']}
+                tickFormatter={(value) => Math.round(value)}
               />
               <Tooltip
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
-                formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name]}
+                formatter={(value: number, name: string) => [value, name]}
               />
               <Legend />
               {playerStats.map((player, index) => (
