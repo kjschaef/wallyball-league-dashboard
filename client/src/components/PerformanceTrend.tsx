@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import {
   LineChart,
@@ -44,7 +45,7 @@ export function PerformanceTrend() {
     );
   }
 
-  // Process player data to calculate daily win rates
+  // Process player data to calculate daily cumulative wins
   const playerStats = players.map((player) => {
     const dailyStats = new Map();
 
@@ -53,12 +54,11 @@ export function PerformanceTrend() {
         match.teamOnePlayerOneId === player.id ||
         match.teamOnePlayerTwoId === player.id ||
         match.teamOnePlayerThreeId === player.id;
+      
       const date = format(new Date(match.date), "yyyy-MM-dd");
-      const current = dailyStats.get(date) || { wins: 0, total: 0 };
-      const playerTeamGamesWon = isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
-      const opponentTeamGamesWon = isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon;
-      current.wins += playerTeamGamesWon || 0;
-      current.total += (playerTeamGamesWon || 0) + (opponentTeamGamesWon || 0);
+      const current = dailyStats.get(date) || { gamesWon: 0 };
+      const gamesWon = isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
+      current.gamesWon += gamesWon;
       dailyStats.set(date, current);
     });
 
@@ -69,45 +69,41 @@ export function PerformanceTrend() {
     };
   });
 
-  // Combine all dates from all players
+  // Get all unique dates
   const allDates = new Set<string>();
   playerStats.forEach((player) => {
     player.dailyStats.forEach((_, date) => allDates.add(date));
   });
 
-  // Create chart data
+  // Create chart data with cumulative wins
   const chartData = Array.from(allDates)
     .sort()
     .map((date) => {
       const dataPoint: any = { date };
-
       playerStats.forEach((player) => {
         const stats = player.dailyStats.get(date);
-        dataPoint[player.name] = stats ? stats.wins : 0;
+        dataPoint[player.name] = stats ? stats.gamesWon : 0;
       });
-
       return dataPoint;
     });
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Player Wins Per Day</CardTitle>
-        <CardDescription>
-          Daily wins for each player
-        </CardDescription>
+        <CardTitle>Games Won Per Day</CardTitle>
+        <CardDescription>Daily games won by each player</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full">
           <ResponsiveContainer>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tickFormatter={(date) => format(parseISO(date), "MMM d")}
               />
-              <YAxis 
-                domain={[0, 'auto']}
+              <YAxis
+                domain={[0, "auto"]}
                 tickFormatter={(value) => Math.round(value)}
               />
               <Tooltip
