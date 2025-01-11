@@ -190,7 +190,7 @@ export function registerRoutes(app: Express): Server {
     try {
       console.log("Recording new game:", req.body);
       const newGame = await db
-        .insert(games)
+        .insert(matches)
         .values({
           teamOnePlayerOneId: req.body.teamOnePlayerOneId,
           teamOnePlayerTwoId: req.body.teamOnePlayerTwoId,
