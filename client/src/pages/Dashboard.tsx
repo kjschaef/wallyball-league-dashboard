@@ -282,8 +282,8 @@ export default function Dashboard() {
           </DialogHeader>
           <Form {...gameForm}>
             <form onSubmit={gameForm.handleSubmit(onGameSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="col-span-2">
+              <div className="flex flex-col gap-6">
+                <div>
                   <FormField
                     control={gameForm.control}
                     name="date"
@@ -319,9 +319,10 @@ export default function Dashboard() {
                     )}
                   />
                 </div>
-                {/* Team One */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Team One</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Team One */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Team One</h3>
                   <FormField
                     control={gameForm.control}
                     name="teamOnePlayers"
@@ -399,6 +400,7 @@ export default function Dashboard() {
                       </FormItem>
                     )}
                   />
+                </div>
                 </div>
               </div>
 
