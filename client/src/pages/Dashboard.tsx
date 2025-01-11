@@ -61,8 +61,8 @@ export default function Dashboard() {
   });
 
   const totalPlayers = players?.length || 0;
-  const totalMatches = players?.reduce(
-    (acc, player) => acc + player.matches.length,
+  const totalGames = players?.reduce(
+    (acc, player) => acc + (player.games?.length || 0),
     0
   ) || 0;
 
