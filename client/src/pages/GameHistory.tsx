@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function GameHistory() {
   const { data: games } = useQuery<any[]>({
-    queryKey: ["/api/games"],
+    queryKey: ["/api/matches"],
   });
 
   return (

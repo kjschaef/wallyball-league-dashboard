@@ -1,3 +1,4 @@
+
 import { pgTable, text, serial, integer, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
@@ -7,7 +8,7 @@ export const players = pgTable("players", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const games = pgTable("games", {
+export const matches = pgTable("matches", {
   id: serial("id").primaryKey(),
   // Team One Players
   teamOnePlayerOneId: integer("team_one_player_one_id").references(() => players.id),
@@ -32,10 +33,10 @@ export const games = pgTable("games", {
 
 export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
-export const insertGameSchema = createInsertSchema(games);
-export const selectGameSchema = createSelectSchema(games);
+export const insertMatchSchema = createInsertSchema(matches);
+export const selectMatchSchema = createSelectSchema(matches);
 
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
-export type Game = typeof games.$inferSelect;
-export type NewGame = typeof games.$inferInsert;
+export type Match = typeof matches.$inferSelect;
+export type NewMatch = typeof matches.$inferInsert;

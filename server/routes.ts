@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { eq, or, and, gte, lte } from "drizzle-orm";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
 import { db } from "@db";
-import { players, games } from "@db/schema";
+import { players, matches } from "@db/schema";
 
 export function registerRoutes(app: Express): Server {
   // Players endpoints
@@ -130,14 +130,14 @@ export function registerRoutes(app: Express): Server {
       console.log("Deleting player:", playerId);
 
       // First, delete all games associated with this player
-      await db.delete(games).where(
+      await db.delete(matches).where(
         or(
-          eq(games.teamOnePlayerOneId, playerId),
-          eq(games.teamOnePlayerTwoId, playerId),
-          eq(games.teamOnePlayerThreeId, playerId),
-          eq(games.teamTwoPlayerOneId, playerId),
-          eq(games.teamTwoPlayerTwoId, playerId),
-          eq(games.teamTwoPlayerThreeId, playerId)
+          eq(matches.teamOnePlayerOneId, playerId),
+          eq(matches.teamOnePlayerTwoId, playerId),
+          eq(matches.teamOnePlayerThreeId, playerId),
+          eq(matches.teamTwoPlayerOneId, playerId),
+          eq(matches.teamTwoPlayerTwoId, playerId),
+          eq(matches.teamTwoPlayerThreeId, playerId)
         )
       );
 
@@ -153,9 +153,9 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Games endpoints
-  app.get("/api/games", async (_req, res) => {
+  app.get("/api/matches", async (_req, res) => {
     try {
-      const allGames = await db.select().from(games);
+      const allMatches = await db.select().from(matches);
       const allPlayers = await db.select().from(players);
 
       const gamesWithPlayerNames = allGames.map((game) => ({
