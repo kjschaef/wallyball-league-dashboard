@@ -82,9 +82,7 @@ export function PerformanceTrend() {
 
       playerStats.forEach((player) => {
         const stats = player.dailyStats.get(date);
-        if (stats) {
-          dataPoint[player.name] = stats.wins;
-        }
+        dataPoint[player.name] = stats ? stats.wins : 0;
       });
 
       return dataPoint;
