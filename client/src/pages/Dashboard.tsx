@@ -273,7 +273,7 @@ export default function Dashboard() {
         }}
         modal={true}
       >
-        <DialogContent className="fixed left-[50%] top-[50%] w-[95vw] max-w-3xl translate-x-[-50%] translate-y-[-50%] p-4 md:p-6">
+        <DialogContent className="fixed left-[50%] top-[50%] w-[95vw] max-w-3xl translate-x-[-50%] translate-y-[-50%] max-h-[90vh] overflow-y-auto p-4 md:p-6">
           <DialogHeader className="space-y-2 mb-4">
             <DialogTitle className="text-xl">Record Game</DialogTitle>
             <DialogDescription className="text-sm">
