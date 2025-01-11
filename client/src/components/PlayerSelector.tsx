@@ -52,6 +52,6 @@ export function PlayerSelector({
           })}
         </div>
       </div>
-    </ScrollArea>
+    </div>
   );
 }
