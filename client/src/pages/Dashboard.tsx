@@ -62,8 +62,9 @@ export default function Dashboard() {
 
   const totalPlayers = players?.length || 0;
   const totalGames = players?.reduce((acc, player) => {
-    const uniqueDates = new Set(player.matches?.map((m: any) => m.id));
-    return Math.max(acc, uniqueDates.size);
+    return acc + player.matches?.reduce((matchAcc, match) => 
+      matchAcc + (match.teamOneGamesWon + match.teamTwoGamesWon)
+    , 0) / players.length;
   }, 0) || 0;
 
   const playerForm = useForm<PlayerFormData>({
