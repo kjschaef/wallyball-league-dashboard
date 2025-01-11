@@ -48,10 +48,10 @@ export function PerformanceTrend() {
   const playerStats = players.map((player) => {
     const dailyStats = new Map();
 
-    player.games.forEach((game: any) => {
-      const date = format(new Date(game.date), "yyyy-MM-dd");
+    player.matches?.forEach((match: any) => {
+      const date = format(new Date(match.date), "yyyy-MM-dd");
       const current = dailyStats.get(date) || { wins: 0, total: 0 };
-      const gamesWon = game.won ? (game.teamOneGamesWon || game.teamTwoGamesWon) : 0;
+      const gamesWon = match.won ? (match.teamOneGamesWon || match.teamTwoGamesWon) : 0;
       current.wins += gamesWon;
       current.total += 1;
       dailyStats.set(date, current);
