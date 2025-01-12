@@ -80,11 +80,18 @@ export function PerformanceTrend() {
   // Create chart data with cumulative wins
   const chartData = Array.from(allDates)
     .sort()
-    .map((date) => {
+    .map((date, index, dates) => {
       const dataPoint: any = { date };
       playerStats.forEach((player) => {
         const stats = player.dailyStats.get(date);
-        dataPoint[player.name] = stats ? stats.gamesWon : 0;
+        if (stats) {
+          dataPoint[player.name] = stats.gamesWon;
+        } else if (index > 0) {
+          // Use the last known value
+          dataPoint[player.name] = chartData[index - 1]?.[player.name] ?? 0;
+        } else {
+          dataPoint[player.name] = 0;
+        }
       });
       return dataPoint;
     });
