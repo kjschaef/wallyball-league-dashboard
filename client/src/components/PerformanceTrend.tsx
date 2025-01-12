@@ -45,16 +45,23 @@ export function PerformanceTrend() {
     );
   }
 
-  // Process player data to calculate daily cumulative wins
+  // Process player data to calculate cumulative wins per days played
   const playerStats = players.map((player) => {
     const dailyStats = new Map();
+    let cumulativeWins = 0;
+    let daysPlayed = new Set();
 
-    player.matches?.forEach((match: any) => {
+    // Sort matches by date
+    const sortedMatches = [...(player.matches || [])].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    sortedMatches.forEach((match: any) => {
       const date = format(new Date(match.date), "yyyy-MM-dd");
-      const current = dailyStats.get(date) || { gamesWon: 0 };
       const gamesWon = match.isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
-      current.gamesWon += gamesWon;
-      dailyStats.set(date, current);
+      cumulativeWins += gamesWon;
+      daysPlayed.add(date);
+      dailyStats.set(date, { gamesWon: cumulativeWins / daysPlayed.size });
     });
 
     return {
@@ -85,8 +92,8 @@ export function PerformanceTrend() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Games Won Per Day</CardTitle>
-        <CardDescription>Daily games won by each player</CardDescription>
+        <CardTitle>Average Wins Per Day Played</CardTitle>
+        <CardDescription>Total wins divided by number of days played for each player</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full">
