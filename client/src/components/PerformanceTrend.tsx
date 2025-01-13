@@ -100,8 +100,7 @@ export function PerformanceTrend() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Average Wins Per Day Played</CardTitle>
-        <CardDescription>Total wins divided by number of days played for each player</CardDescription>
+        <CardTitle>Wins Per Day Played</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full">
