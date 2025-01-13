@@ -216,7 +216,7 @@ export function registerRoutes(app: Express): Server {
       const gameId = parseInt(req.params.id);
       console.log("Deleting game:", gameId);
 
-      await db.delete(games).where(eq(games.id, gameId));
+      await db.delete(matches).where(eq(matches.id, gameId));
 
       console.log("Game deleted successfully");
       res.status(204).send();
