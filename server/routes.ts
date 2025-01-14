@@ -255,19 +255,19 @@ export function registerRoutes(app: Express): Server {
         periods.map(async ({ start, end }) => {
           const periodGames = await db
             .select()
-            .from(games)
+            .from(matches)
             .where(
               and(
-                gte(games.date, start),
-                lte(games.date, end),
+                gte(matches.date, start),
+                lte(matches.date, end),
                 playerId ? 
                   or(
-                    eq(games.teamOnePlayerOneId, Number(playerId)),
-                    eq(games.teamOnePlayerTwoId, Number(playerId)),
-                    eq(games.teamOnePlayerThreeId, Number(playerId)),
-                    eq(games.teamTwoPlayerOneId, Number(playerId)),
-                    eq(games.teamTwoPlayerTwoId, Number(playerId)),
-                    eq(games.teamTwoPlayerThreeId, Number(playerId))
+                    eq(matches.teamOnePlayerOneId, Number(playerId)),
+                    eq(matches.teamOnePlayerTwoId, Number(playerId)),
+                    eq(matches.teamOnePlayerThreeId, Number(playerId)),
+                    eq(matches.teamTwoPlayerOneId, Number(playerId)),
+                    eq(matches.teamTwoPlayerTwoId, Number(playerId)),
+                    eq(matches.teamTwoPlayerThreeId, Number(playerId))
                   )
                 : undefined
               )
