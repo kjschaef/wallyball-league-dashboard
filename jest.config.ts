@@ -9,6 +9,7 @@ const config: Config.InitialOptions = {
     '^@db(.*)$': '<rootDir>/db$1',
   },
   testMatch: ['**/__tests__/**/*.test.ts'],
+  setupFiles: ['<rootDir>/server/__tests__/setup.ts'],
 };
 
 export default config;
