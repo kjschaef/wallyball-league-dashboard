@@ -1,3 +1,4 @@
+
 {
   "name": "rest-express",
   "version": "1.0.0",
@@ -87,9 +88,9 @@
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.27.1",
     "esbuild": "^0.24.0",
-    "jest": "^29.7.0", // Added Jest
+    "jest": "^29.7.0",
     "postcss": "^8.4.47",
-    "supertest": "^6.3.3", // Added Supertest
+    "supertest": "^6.3.3",
     "tailwindcss": "^3.4.14",
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
