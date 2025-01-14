@@ -2,8 +2,10 @@
 import request from 'supertest';
 import express from 'express';
 import { registerRoutes } from '../routes';
-import { db } from '@db';
+import { getDatabase } from '@db/config';
 import { players, matches } from '@db/schema';
+
+const testDb = getDatabase(process.env.TEST_DATABASE_URL);
 
 describe('API Routes', () => {
   let app: express.Express;
@@ -20,9 +22,9 @@ describe('API Routes', () => {
   });
 
   beforeEach(async () => {
-    // Clear database before each test
-    await db.delete(matches);
-    await db.delete(players);
+    // Clear test database before each test
+    await testDb.delete(matches);
+    await testDb.delete(players);
   });
 
   describe('Players Endpoints', () => {
