@@ -15,7 +15,7 @@ describe('API Routes', () => {
     app = express();
     app.use(express.json());
     server = registerRoutes(app);
-    server.listen(0); // Use any available port
+    server.listen(5000, '0.0.0.0');
   });
 
   afterAll(() => {
