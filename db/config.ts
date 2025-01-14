@@ -4,17 +4,17 @@ import ws from "ws";
 import * as schema from "./schema";
 
 export const getEnvironment = () => {
-  if (process.env.NODE_ENV === 'test') return 'test';
-  if (process.env.NODE_ENV === 'production') return 'production';
-  return 'development';
+  return process.env.NODE_ENV || 'development';
 }
 
-export function getDatabase(url?: string) {
+export function getDatabase() {
   const env = getEnvironment();
-  const dbUrl = url || process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+  const dbUrl = env === 'test' 
+    ? process.env.TEST_DATABASE_URL 
+    : process.env.DATABASE_URL;
   
   if (!dbUrl) {
-    throw new Error(`DATABASE_URL must be set for ${env} environment`);
+    throw new Error(`Database URL must be set for ${env} environment`);
   }
 
   return drizzle({
