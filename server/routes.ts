@@ -2,7 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { eq, or, and, gte, lte } from "drizzle-orm";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
-import { db } from "@db";
+import { getDatabase } from "@db/config";
+
+const db = getDatabase(process.env.NODE_ENV === 'test' ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL);
 import { players, matches } from "@db/schema";
 
 export function registerRoutes(app: Express): Server {
