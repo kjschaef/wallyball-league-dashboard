@@ -6,4 +6,5 @@ import ws from 'ws';
 neonConfig.webSocketConstructor = ws;
 
 // Setup test database URL for testing
-process.env.TEST_DATABASE_URL = 'postgres://test:test@localhost:5432/test_db';
+process.env.TEST_DATABASE_URL = 'postgres://test:test@0.0.0.0:5432/test_db';
+process.env.NODE_ENV = 'test';
