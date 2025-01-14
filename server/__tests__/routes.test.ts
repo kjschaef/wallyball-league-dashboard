@@ -15,11 +15,11 @@ describe('API Routes', () => {
     app = express();
     app.use(express.json());
     server = registerRoutes(app);
-    server.listen(5000, '0.0.0.0');
   });
 
-  afterAll(() => {
-    server.close();
+  afterAll(async () => {
+    await testDb.delete(matches);
+    await testDb.delete(players);
   });
 
   beforeEach(async () => {
