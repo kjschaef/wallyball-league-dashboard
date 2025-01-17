@@ -50,9 +50,9 @@ type PlayerFormData = z.infer<typeof playerFormSchema>;
 type GameFormData = z.infer<typeof gameFormSchema>;
 
 export default function Dashboard() {
-  const [isPlayerDialogOpen, setIsPlayerDialogOpen] = useState(false);
-  const [isGameDialogOpen, setIsGameDialogOpen] = useState(false);
-  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [showRecordGame, setShowRecordGame] = useState(false);
+  const [showDailyWins, setShowDailyWins] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -94,7 +94,7 @@ export default function Dashboard() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      setIsPlayerDialogOpen(false);
+      setShowAddPlayer(false);
       playerForm.reset();
       toast({ 
         title: "Player created successfully",
@@ -112,7 +112,7 @@ export default function Dashboard() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      setIsPlayerDialogOpen(false);
+      setShowAddPlayer(false);
       setEditingPlayer(null);
       playerForm.reset();
       toast({ 
@@ -136,6 +136,7 @@ export default function Dashboard() {
 
   const [teamOnePlayers, setTeamOnePlayers] = useState<number[]>([]);
   const [teamTwoPlayers, setTeamTwoPlayers] = useState<number[]>([]);
+  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
 
   const recordGameMutation = useMutation({
     mutationFn: (values: GameFormData) =>
@@ -156,7 +157,7 @@ export default function Dashboard() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      setIsGameDialogOpen(false);
+      setShowRecordGame(false);
       gameForm.reset();
       setTeamOnePlayers([]);
       setTeamTwoPlayers([]);
@@ -204,29 +205,33 @@ export default function Dashboard() {
             onEdit={(player) => {
               setEditingPlayer(player);
               playerForm.reset({ name: player.name });
-              setIsPlayerDialogOpen(true);
+              setShowAddPlayer(true);
             }}
             onDelete={(id) => deletePlayerMutation.mutate(id)}
           />
         ))}
       </div>
 
+      <Dialog open={showDailyWins} onOpenChange={setShowDailyWins}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Record Daily Wins</DialogTitle>
+          </DialogHeader>
+          {/* Placeholder for DailyWins component */}
+          <div>Daily Wins Component would go here</div>
+        </DialogContent>
+      </Dialog>
+
       <FloatingActionButton
-        onAddPlayer={() => {
-          setEditingPlayer(null);
-          playerForm.reset();
-          setIsPlayerDialogOpen(true);
-        }}
-        onRecordGame={() => {
-          gameForm.reset();
-          setIsGameDialogOpen(true);
-        }}
+        onAddPlayer={() => setShowAddPlayer(true)}
+        onRecordGame={() => setShowRecordGame(true)}
+        onDailyWins={() => setShowDailyWins(true)}
       />
 
       {/* Add/Edit Player Dialog */}
       <Dialog 
-        open={isPlayerDialogOpen} 
-        onOpenChange={setIsPlayerDialogOpen}
+        open={showAddPlayer} 
+        onOpenChange={setShowAddPlayer}
         modal={true}
       >
         <DialogContent className="fixed left-[50%] top-[40%]">
@@ -263,9 +268,9 @@ export default function Dashboard() {
 
       {/* Record Game Dialog */}
       <Dialog 
-        open={isGameDialogOpen} 
+        open={showRecordGame} 
         onOpenChange={(open) => {
-          setIsGameDialogOpen(open);
+          setShowRecordGame(open);
           if (!open) {
             setTeamOnePlayers([]);
             setTeamTwoPlayers([]);
