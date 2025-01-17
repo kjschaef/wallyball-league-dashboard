@@ -46,11 +46,12 @@ export function DailyWins() {
   const calculateLosses = () => {
     const totalWins = Object.values(wins).reduce((sum, w) => sum + (parseInt(w) || 0), 0);
     const activePlayers = Object.values(wins).filter(w => w !== "").length;
-    const avgLosses = activePlayers > 0 ? (totalWins / activePlayers) / 2 : 0;
+    const avgShare = activePlayers > 0 ? (totalWins / activePlayers / 2) : 0;
 
     const newLosses = Object.entries(wins).reduce((acc, [playerId, wonStr]) => {
       if (wonStr === "") return acc;
-      acc[playerId] = Math.max(0, Math.round(avgLosses));
+      const playerWins = parseInt(wonStr) || 0;
+      acc[playerId] = Math.max(0, Math.round(playerWins - avgShare));
       return acc;
     }, {} as { [key: number]: number });
 
