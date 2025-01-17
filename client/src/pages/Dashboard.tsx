@@ -32,6 +32,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { PerformanceTrend } from "@/components/PerformanceTrend";
+import { DailyWins } from "@/components/DailyWins";
 
 
 const playerFormSchema = z.object({
@@ -217,8 +218,7 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle>Record Daily Wins</DialogTitle>
           </DialogHeader>
-          {/* Placeholder for DailyWins component */}
-          <div>Daily Wins Component would go here</div>
+          <DailyWins />
         </DialogContent>
       </Dialog>
 
