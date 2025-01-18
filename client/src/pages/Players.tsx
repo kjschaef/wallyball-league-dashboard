@@ -122,9 +122,7 @@ export default function Players() {
                 {editingPlayer && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive">
-                        Delete
-                      </Button>
+                      <Button variant="destructive">Delete</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
