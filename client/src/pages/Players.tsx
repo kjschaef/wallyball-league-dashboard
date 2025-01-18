@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlayerCard } from "@/components/PlayerCard";
@@ -7,8 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,8 +15,14 @@ import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
 
 export default function Players() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    player: Player | null;
+  }>({
+    isOpen: false,
+    player: null,
+  });
+  
   const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -35,7 +40,7 @@ export default function Players() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      handleCloseDialog();
+      closeDialog();
       toast({ title: "Player created successfully" });
     },
   });
@@ -49,7 +54,7 @@ export default function Players() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      handleCloseDialog();
+      closeDialog();
       toast({ title: "Player updated successfully" });
     },
   });
@@ -63,12 +68,18 @@ export default function Players() {
     },
   });
 
-  const handleCloseDialog = () => {
-    setIsOpen(false);
-    setEditingPlayer(null);
+  const closeDialog = () => {
+    setDialogState({ isOpen: false, player: null });
     if (formRef.current) {
       formRef.current.reset();
     }
+  };
+
+  const openDialog = (player?: Player) => {
+    setDialogState({ 
+      isOpen: true, 
+      player: player || null 
+    });
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -78,8 +89,8 @@ export default function Players() {
       name: formData.get("name") as string,
     };
 
-    if (editingPlayer) {
-      updateMutation.mutate({ ...editingPlayer, ...playerData });
+    if (dialogState.player) {
+      updateMutation.mutate({ ...dialogState.player, ...playerData });
     } else {
       createMutation.mutate(playerData);
     }
@@ -89,50 +100,44 @@ export default function Players() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Players</h1>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setIsOpen(true)}>Add Player</Button>
-          </DialogTrigger>
-          <DialogContent onInteractOutside={handleCloseDialog}>
-            <DialogHeader>
-              <DialogTitle>
-                {editingPlayer ? "Edit Player" : "Add New Player"}
-              </DialogTitle>
-            </DialogHeader>
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  required
-                  defaultValue={editingPlayer?.name}
-                />
-              </div>
-              <div className="flex gap-2">
-                <DialogClose asChild>
-                  <Button type="button" variant="outline" className="w-full" onClick={handleCloseDialog}>
-                    Cancel
-                  </Button>
-                </DialogClose>
-                <Button type="submit" className="w-full">
-                  {editingPlayer ? "Update" : "Create"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => openDialog()}>Add Player</Button>
       </div>
+
+      <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {dialogState.player ? "Edit Player" : "Add New Player"}
+            </DialogTitle>
+          </DialogHeader>
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                required
+                defaultValue={dialogState.player?.name}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" className="w-full" onClick={closeDialog}>
+                Cancel
+              </Button>
+              <Button type="submit" className="w-full">
+                {dialogState.player ? "Update" : "Create"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players?.map((player) => (
           <PlayerCard
             key={player.id}
             player={player}
-            onEdit={(player) => {
-              setEditingPlayer(player);
-              setIsOpen(true);
-            }}
+            onEdit={(player) => openDialog(player)}
             onDelete={(id) => deleteMutation.mutate(id)}
           />
         ))}
