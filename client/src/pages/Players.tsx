@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -21,7 +22,7 @@ export default function Players() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: players } = useQuery<any[]>({
+  const { data: players } = useQuery<Player[]>({
     queryKey: ["/api/players"],
   });
 
@@ -34,11 +35,7 @@ export default function Players() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      if (formRef.current) {
-        formRef.current.reset();
-      }
-      setEditingPlayer(null);
-      setIsOpen(false);
+      handleCloseDialog();
       toast({ title: "Player created successfully" });
     },
   });
@@ -52,8 +49,7 @@ export default function Players() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      setIsOpen(false);
-      setEditingPlayer(null);
+      handleCloseDialog();
       toast({ title: "Player updated successfully" });
     },
   });
@@ -66,6 +62,14 @@ export default function Players() {
       toast({ title: "Player deleted successfully" });
     },
   });
+
+  const handleCloseDialog = () => {
+    setIsOpen(false);
+    setEditingPlayer(null);
+    if (formRef.current) {
+      formRef.current.reset();
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -85,28 +89,11 @@ export default function Players() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Players</h1>
-        <Dialog 
-          open={isOpen} 
-          onOpenChange={(open) => {
-            if (!open) {
-              setEditingPlayer(null);
-              if (formRef.current) {
-                formRef.current.reset();
-              }
-            }
-            setIsOpen(open);
-          }}
-        >
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => {
-              if (formRef.current) {
-                formRef.current.reset();
-              }
-              setEditingPlayer(null);
-              setIsOpen(true);
-            }}>Add Player</Button>
+            <Button onClick={() => setIsOpen(true)}>Add Player</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent onInteractOutside={handleCloseDialog}>
             <DialogHeader>
               <DialogTitle>
                 {editingPlayer ? "Edit Player" : "Add New Player"}
@@ -124,12 +111,7 @@ export default function Players() {
               </div>
               <div className="flex gap-2">
                 <DialogClose asChild>
-                  <Button type="button" variant="outline" className="w-full" onClick={() => {
-                    setEditingPlayer(null);
-                    if (formRef.current) {
-                      formRef.current.reset();
-                    }
-                  }}>
+                  <Button type="button" variant="outline" className="w-full" onClick={handleCloseDialog}>
                     Cancel
                   </Button>
                 </DialogClose>
