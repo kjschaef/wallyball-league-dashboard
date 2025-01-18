@@ -1,26 +1,21 @@
-import { useState, useMemo } from "react";
+
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function DailyWins() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [wins, setWins] = useState<{ [key: number]: string }>({});
-  const [calculatedLosses, setCalculatedLosses] = useState<{
-    [key: number]: number;
-  }>({});
+  const [calculatedLosses, setCalculatedLosses] = useState<{ [key: number]: number }>({});
   const [date, setDate] = useState<Date>(new Date());
 
   const { data: players } = useQuery<any[]>({
@@ -49,24 +44,41 @@ export function DailyWins() {
   });
 
   const calculateLosses = () => {
+    // Calculate total wins across all players
     const totalWins = Object.values(wins).reduce(
       (sum, w) => sum + (parseInt(w) || 0),
-      0,
+      0
     );
-    const activePlayers = Object.values(wins).filter((w) => w !== "").length;
-    const totalGames = activePlayers > 0 ? totalWins / activePlayers / 2 : 0;
 
-    const newLosses = Object.entries(wins).reduce(
-      (acc, [playerId, wonStr]) => {
-        if (wonStr === "") return acc;
-        const playerWins = parseInt(wonStr) || 0;
-        acc[playerId] = Math.max(0, Math.round(totalGames - playerWins));
-        return acc;
-      },
-      {} as { [key: number]: number },
-    );
+    // Count number of active players (players with wins entered)
+    const activePlayers = Object.values(wins).filter(w => w !== "").length;
+
+    // Calculate average wins per player divided by 2
+    // This represents the baseline number of games each player should have played
+    const avgShare = activePlayers > 0 ? (totalWins / activePlayers / 2) : 0;
+
+    // For each player, calculate their losses as:
+    // max(0, their wins - average share)
+    // This means if they won more than their fair share, the excess becomes losses
+    const newLosses = Object.entries(wins).reduce((acc, [playerId, wonStr]) => {
+      if (wonStr === "") return acc;
+      const playerWins = parseInt(wonStr) || 0;
+      acc[playerId] = Math.max(0, Math.round(playerWins - avgShare));
+      return acc;
+    }, {} as { [key: number]: number });
 
     setCalculatedLosses(newLosses);
+  };
+
+  const handleWinsChange = (playerId: number, delta: number) => {
+    setWins(prev => {
+      const currentWins = parseInt(prev[playerId] || "0") || 0;
+      const newWins = Math.max(0, currentWins + delta);
+      return {
+        ...prev,
+        [playerId]: newWins.toString()
+      };
+    });
   };
 
   const handleSubmit = async () => {
@@ -101,7 +113,7 @@ export function DailyWins() {
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground",
+                    !date && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -122,19 +134,27 @@ export function DailyWins() {
             {players.map((player) => (
               <div key={player.id} className="flex items-center gap-4">
                 <span className="w-32 font-medium">{player.name}</span>
-                <div className="flex-1 grid grid-cols-2 gap-2">
+                <div className="flex-1 grid grid-cols-4 gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleWinsChange(player.id, -1)}
+                    size="icon"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
                   <Input
-                    type="number"
-                    min="0"
-                    placeholder="Wins"
-                    value={wins[player.id] || ""}
-                    onChange={(e) =>
-                      setWins((prev) => ({
-                        ...prev,
-                        [player.id]: e.target.value,
-                      }))
-                    }
+                    type="text"
+                    className="text-center"
+                    value={wins[player.id] || "0"}
+                    readOnly
                   />
+                  <Button 
+                    variant="outline"
+                    onClick={() => handleWinsChange(player.id, 1)}
+                    size="icon"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                   <div className="flex items-center text-sm text-muted-foreground">
                     {calculatedLosses[player.id] !== undefined &&
                       `Losses: ${calculatedLosses[player.id]}`}
