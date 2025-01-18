@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -96,19 +97,13 @@ export default function Players() {
       </div>
 
       {/* Add Player Dialog */}
-      <Dialog 
-        open={showAddDialog} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setShowAddDialog(false);
-            if (addFormRef.current) {
-              addFormRef.current.reset();
-            }
-          }
-        }}>
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Player</DialogTitle>
+            <DialogDescription>
+              Enter the new player's information below.
+            </DialogDescription>
           </DialogHeader>
           <form ref={addFormRef} onSubmit={handleCreateSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -137,19 +132,13 @@ export default function Players() {
       </Dialog>
 
       {/* Edit Player Dialog */}
-      <Dialog 
-        open={!!editingPlayer} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setEditingPlayer(null);
-            if (editFormRef.current) {
-              editFormRef.current.reset();
-            }
-          }
-        }}>
+      <Dialog open={!!editingPlayer} onOpenChange={(open) => !open && setEditingPlayer(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Player</DialogTitle>
+            <DialogDescription>
+              Update the player's information below.
+            </DialogDescription>
           </DialogHeader>
           <form ref={editFormRef} onSubmit={handleUpdateSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -158,7 +147,7 @@ export default function Players() {
                 id="edit-name"
                 name="name"
                 required
-                defaultValue={editingPlayer?.name || ""}
+                defaultValue={editingPlayer?.name}
               />
             </div>
             <div className="flex gap-2">
@@ -183,7 +172,7 @@ export default function Players() {
           <PlayerCard
             key={player.id}
             player={player}
-            onEdit={(player) => setEditingPlayer(player)}
+            onEdit={setEditingPlayer}
             onDelete={(id) => deleteMutation.mutate(id)}
           />
         ))}
