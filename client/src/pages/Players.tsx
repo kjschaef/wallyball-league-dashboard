@@ -122,10 +122,12 @@ export default function Players() {
                 <Button type="submit" className="flex-1">
                   {editingPlayer ? "Update" : "Create"}
                 </Button>
-                {editingPlayer && (
+              </div>
+              {editingPlayer && (
+                <div className="mt-4 flex justify-end">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive">Delete</Button>
+                      <Button variant="destructive">Delete Player</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
@@ -146,8 +148,8 @@ export default function Players() {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                )}
-              </div>
+                </div>
+              )}
             </form>
           </DialogContent>
         </Dialog>
