@@ -117,7 +117,7 @@ export function PerformanceTrend() {
               />
               <Tooltip
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
-                formatter={(value: number, name: string) => [value, name]}
+                formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
               />
               <Legend />
               {playerStats.map((player, index) => (
