@@ -17,6 +17,7 @@ import type { Player } from "@db/schema";
 export default function Players() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -33,6 +34,10 @@ export default function Players() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
+      if (formRef.current) {
+        formRef.current.reset();
+      }
+      setEditingPlayer(null);
       setIsOpen(false);
       toast({ title: "Player created successfully" });
     },
@@ -85,12 +90,18 @@ export default function Players() {
           onOpenChange={(open) => {
             if (!open) {
               setEditingPlayer(null);
+              if (formRef.current) {
+                formRef.current.reset();
+              }
             }
             setIsOpen(open);
           }}
         >
           <DialogTrigger asChild>
             <Button onClick={() => {
+              if (formRef.current) {
+                formRef.current.reset();
+              }
               setEditingPlayer(null);
               setIsOpen(true);
             }}>Add Player</Button>
@@ -101,7 +112,7 @@ export default function Players() {
                 {editingPlayer ? "Edit Player" : "Add New Player"}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
