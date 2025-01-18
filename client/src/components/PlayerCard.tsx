@@ -26,7 +26,7 @@ interface PlayerCardProps {
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
-  const winRate = total > 0 ? ((stats.won / total) * 100).toFixed(1) : "0.0";
+  const winRate = total > 0 ? Math.round((stats.won / total) * 100) : 0;
 
   // Count unique days on which matches were played
   const uniqueDays = new Set(
