@@ -94,7 +94,7 @@ export default function Players() {
         <h1 className="text-3xl font-bold tracking-tight">Players</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button>Add Player</Button>
+            <Button onClick={() => setEditingPlayer(null)}>Add Player</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
