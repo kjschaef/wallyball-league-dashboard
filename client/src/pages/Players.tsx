@@ -9,18 +9,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -92,21 +80,15 @@ export default function Players() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Players</h1>
-        <Dialog open={isOpen} onOpenChange={(open) => {
-          setIsOpen(open);
-          if (!open) setEditingPlayer(null);
-        }}>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingPlayer(null)}>Add Player</Button>
+            <Button>Add Player</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
                 {editingPlayer ? "Edit Player" : "Add New Player"}
               </DialogTitle>
-              <DialogDescription>
-                {editingPlayer ? "Edit player details or delete the player." : "Add a new player to the system."}
-              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -118,38 +100,9 @@ export default function Players() {
                   defaultValue={editingPlayer?.name}
                 />
               </div>
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">
-                  {editingPlayer ? "Update" : "Create"}
-                </Button>
-              </div>
-              {editingPlayer && (
-                <div className="mt-4 flex justify-end">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive">Delete Player</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Player</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete {editingPlayer.name}? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => {
-                          deleteMutation.mutate(editingPlayer.id);
-                          setIsOpen(false);
-                          setEditingPlayer(null);
-                        }}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              )}
+              <Button type="submit" className="w-full">
+                {editingPlayer ? "Update" : "Create"}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
