@@ -84,7 +84,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             <p className="text-blue-600 font-medium">Wins/Day</p>
             <p className="text-3xl font-bold text-blue-600">{winsPerDay}</p>
           </div>
-          <div>
+          <div className="text-center">
             <p className="text-muted-foreground text-xs">Record</p>
             <p className="text-xl font-medium">
               <span className="text-green-600">{stats.won}</span>
@@ -93,7 +93,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             </p>
             <p className="text-xs text-muted-foreground">Total: {total}</p>
           </div>
-          <div>
+          <div className="text-center">
             <p className="text-muted-foreground">Win Rate</p>
             <p className="text-2xl font-bold">{winRate}%</p>
           </div>
