@@ -87,7 +87,7 @@ export default function Players() {
           }
         }}>
           <DialogTrigger asChild>
-            <Button>Add Player</Button>
+            <Button onClick={() => setEditingPlayer(null)}>Add Player</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
