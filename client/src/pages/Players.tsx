@@ -100,9 +100,38 @@ export default function Players() {
                   defaultValue={editingPlayer?.name}
                 />
               </div>
-              <Button type="submit" className="w-full">
-                {editingPlayer ? "Update" : "Create"}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1">
+                  {editingPlayer ? "Update" : "Create"}
+                </Button>
+                {editingPlayer && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Player</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete {editingPlayer.name}? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                          deleteMutation.mutate(editingPlayer.id);
+                          setIsOpen(false);
+                          setEditingPlayer(null);
+                        }}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
             </form>
           </DialogContent>
         </Dialog>
