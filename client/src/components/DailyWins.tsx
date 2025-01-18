@@ -1,11 +1,14 @@
-
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -15,7 +18,9 @@ export function DailyWins() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [wins, setWins] = useState<{ [key: number]: string }>({});
-  const [calculatedLosses, setCalculatedLosses] = useState<{ [key: number]: number }>({});
+  const [calculatedLosses, setCalculatedLosses] = useState<{
+    [key: number]: number;
+  }>({});
   const [date, setDate] = useState<Date>(new Date());
 
   const { data: players } = useQuery<any[]>({
@@ -44,16 +49,22 @@ export function DailyWins() {
   });
 
   const calculateLosses = () => {
-    const totalWins = Object.values(wins).reduce((sum, w) => sum + (parseInt(w) || 0), 0);
-    const activePlayers = Object.values(wins).filter(w => w !== "").length;
-    const avgShare = activePlayers > 0 ? (totalWins / activePlayers / 2) : 0;
+    const totalWins = Object.values(wins).reduce(
+      (sum, w) => sum + (parseInt(w) || 0),
+      0,
+    );
+    const activePlayers = Object.values(wins).filter((w) => w !== "").length;
+    const totalGames = activePlayers > 0 ? totalWins / activePlayers / 2 : 0;
 
-    const newLosses = Object.entries(wins).reduce((acc, [playerId, wonStr]) => {
-      if (wonStr === "") return acc;
-      const playerWins = parseInt(wonStr) || 0;
-      acc[playerId] = Math.max(0, Math.round(playerWins - avgShare));
-      return acc;
-    }, {} as { [key: number]: number });
+    const newLosses = Object.entries(wins).reduce(
+      (acc, [playerId, wonStr]) => {
+        if (wonStr === "") return acc;
+        const playerWins = parseInt(wonStr) || 0;
+        acc[playerId] = Math.max(0, Math.round(totalGames - playerWins));
+        return acc;
+      },
+      {} as { [key: number]: number },
+    );
 
     setCalculatedLosses(newLosses);
   };
@@ -63,13 +74,13 @@ export function DailyWins() {
       toast({ title: "Please calculate losses first", variant: "destructive" });
       return;
     }
-    
+
     for (const [playerId, won] of Object.entries(wins)) {
       if (won === "") continue;
       await mutation.mutateAsync({
         playerId: parseInt(playerId),
         won: parseInt(won),
-        lost: calculatedLosses[playerId] || 0
+        lost: calculatedLosses[playerId] || 0,
       });
     }
   };
@@ -90,7 +101,7 @@ export function DailyWins() {
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
+                    !date && "text-muted-foreground",
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -125,23 +136,22 @@ export function DailyWins() {
                     }
                   />
                   <div className="flex items-center text-sm text-muted-foreground">
-                    {calculatedLosses[player.id] !== undefined && 
-                      `Losses: ${calculatedLosses[player.id]}`
-                    }
+                    {calculatedLosses[player.id] !== undefined &&
+                      `Losses: ${calculatedLosses[player.id]}`}
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          <Button 
-            className="w-full mb-2" 
+          <Button
+            className="w-full mb-2"
             onClick={calculateLosses}
             variant="secondary"
           >
             Calculate Losses
           </Button>
-          <Button 
-            className="w-full" 
+          <Button
+            className="w-full"
             onClick={handleSubmit}
             disabled={Object.keys(wins).length === 0}
           >
