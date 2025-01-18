@@ -14,15 +14,11 @@ import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
 
 export default function Players() {
-  const [dialogState, setDialogState] = useState<{
-    isOpen: boolean;
-    player: Player | null;
-  }>({
-    isOpen: false,
-    player: null,
-  });
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
 
-  const formRef = useRef<HTMLFormElement>(null);
+  const addFormRef = useRef<HTMLFormElement>(null);
+  const editFormRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -39,7 +35,10 @@ export default function Players() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      closeDialog();
+      setShowAddDialog(false);
+      if (addFormRef.current) {
+        addFormRef.current.reset();
+      }
       toast({ title: "Player created successfully" });
     },
   });
@@ -53,7 +52,10 @@ export default function Players() {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      closeDialog();
+      setEditingPlayer(null);
+      if (editFormRef.current) {
+        editFormRef.current.reset();
+      }
       toast({ title: "Player updated successfully" });
     },
   });
@@ -67,74 +69,109 @@ export default function Players() {
     },
   });
 
-  const closeDialog = () => {
-    if (formRef.current) {
-      formRef.current.reset();
-    }
-    setDialogState({ isOpen: false, player: null });
-  };
-
-  const openDialog = (player?: Player) => {
-    if (formRef.current) {
-      formRef.current.reset();
-    }
-    setDialogState({ 
-      isOpen: true, 
-      player: player || null 
+  const handleCreateSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    createMutation.mutate({
+      name: formData.get("name") as string,
     });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleUpdateSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const playerData = {
-      name: formData.get("name") as string,
-    };
+    if (!editingPlayer) return;
 
-    if (dialogState.player) {
-      updateMutation.mutate({ ...dialogState.player, ...playerData });
-    } else {
-      createMutation.mutate(playerData);
-    }
+    const formData = new FormData(e.currentTarget);
+    updateMutation.mutate({
+      ...editingPlayer,
+      name: formData.get("name") as string,
+    });
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Players</h1>
-        <Button onClick={() => openDialog()}>Add Player</Button>
+        <Button onClick={() => setShowAddDialog(true)}>Add Player</Button>
       </div>
 
+      {/* Add Player Dialog */}
       <Dialog 
-        open={dialogState.isOpen} 
+        open={showAddDialog} 
         onOpenChange={(open) => {
           if (!open) {
-            closeDialog();
+            setShowAddDialog(false);
+            if (addFormRef.current) {
+              addFormRef.current.reset();
+            }
           }
         }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {dialogState.player ? "Edit Player" : "Add New Player"}
-            </DialogTitle>
+            <DialogTitle>Add New Player</DialogTitle>
           </DialogHeader>
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+          <form ref={addFormRef} onSubmit={handleCreateSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="add-name">Name</Label>
               <Input
-                id="name"
+                id="add-name"
                 name="name"
                 required
-                key={dialogState.player?.id || 'new'}
-                defaultValue={dialogState.player?.name || ""}
               />
             </div>
             <div className="flex gap-2">
-              <Button type="button" variant="outline" className="w-full" onClick={closeDialog}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => setShowAddDialog(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" className="w-full">
-                {dialogState.player ? "Update" : "Create"}
+                Create
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Player Dialog */}
+      <Dialog 
+        open={!!editingPlayer} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingPlayer(null);
+            if (editFormRef.current) {
+              editFormRef.current.reset();
+            }
+          }
+        }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Player</DialogTitle>
+          </DialogHeader>
+          <form ref={editFormRef} onSubmit={handleUpdateSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                name="name"
+                required
+                defaultValue={editingPlayer?.name || ""}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => setEditingPlayer(null)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="w-full">
+                Update
               </Button>
             </div>
           </form>
@@ -146,7 +183,7 @@ export default function Players() {
           <PlayerCard
             key={player.id}
             player={player}
-            onEdit={(player) => openDialog(player)}
+            onEdit={(player) => setEditingPlayer(player)}
             onDelete={(id) => deleteMutation.mutate(id)}
           />
         ))}
