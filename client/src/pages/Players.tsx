@@ -68,28 +68,20 @@ export default function Players() {
   });
 
   const closeDialog = () => {
-    setDialogState({ isOpen: false, player: null });
     if (formRef.current) {
       formRef.current.reset();
     }
+    setDialogState({ isOpen: false, player: null });
   };
 
   const openDialog = (player?: Player) => {
+    if (formRef.current) {
+      formRef.current.reset();
+    }
     setDialogState({ 
       isOpen: true, 
       player: player || null 
     });
-    // Reset form when opening dialog
-    if (formRef.current) {
-      formRef.current.reset();
-      if (player) {
-        // Set the name input value if editing
-        const nameInput = formRef.current.querySelector('input[name="name"]') as HTMLInputElement;
-        if (nameInput) {
-          nameInput.value = player.name;
-        }
-      }
-    }
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -133,6 +125,7 @@ export default function Players() {
                 id="name"
                 name="name"
                 required
+                key={dialogState.player?.id || 'new'}
                 defaultValue={dialogState.player?.name || ""}
               />
             </div>
