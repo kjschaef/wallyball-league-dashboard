@@ -53,17 +53,17 @@ export function DailyWins() {
     // Count number of active players (players with wins entered)
     const activePlayers = Object.values(wins).filter(w => w !== "").length;
 
-    // Calculate average wins per player divided by 2
+    // Calculate total games per player (total wins divided by number of players divided by 2)
     // This represents the baseline number of games each player should have played
-    const avgShare = activePlayers > 0 ? (totalWins / activePlayers / 2) : 0;
+    const totalGames = activePlayers > 0 ? (totalWins / activePlayers / 2) : 0;
 
     // For each player, calculate their losses as:
-    // max(0, their wins - average share)
+    // max(0, their wins - total games)
     // This means if they won more than their fair share, the excess becomes losses
     const newLosses = Object.entries(wins).reduce((acc, [playerId, wonStr]) => {
       if (wonStr === "") return acc;
       const playerWins = parseInt(wonStr) || 0;
-      acc[playerId] = Math.max(0, Math.round(playerWins - avgShare));
+      acc[playerId] = Math.max(0, Math.round(playerWins - totalGames));
       return acc;
     }, {} as { [key: number]: number });
 
