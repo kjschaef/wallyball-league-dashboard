@@ -91,6 +91,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               {" / "}
               <span className="text-red-600">{stats.lost}</span>
             </p>
+            <p className="text-xs text-muted-foreground">Total: {total}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Win Rate</p>
