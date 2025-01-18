@@ -88,13 +88,13 @@ export default function Players() {
         <Dialog 
           open={isOpen} 
           onOpenChange={(open) => {
+            setIsOpen(open);
             if (!open) {
               setEditingPlayer(null);
               if (formRef.current) {
                 formRef.current.reset();
               }
             }
-            setIsOpen(open);
           }}
         >
           <DialogTrigger asChild>
