@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -100,6 +101,9 @@ export default function Players() {
               <DialogTitle>
                 {editingPlayer ? "Edit Player" : "Add New Player"}
               </DialogTitle>
+              <DialogDescription>
+                {editingPlayer ? "Edit player details or delete the player." : "Add a new player to the system."}
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
