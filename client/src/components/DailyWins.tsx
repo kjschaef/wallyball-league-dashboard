@@ -17,6 +17,7 @@ export function DailyWins() {
   const [wins, setWins] = useState<{ [key: number]: string }>({});
   const [calculatedLosses, setCalculatedLosses] = useState<{ [key: number]: number }>({});
   const [date, setDate] = useState<Date>(new Date());
+  const [activePlayers, setActivePlayers] = useState<{ [key: number]: boolean }>({});
 
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
@@ -129,13 +130,20 @@ export function DailyWins() {
           </div>
           <div className="grid gap-4">
             {players.map((player) => (
-              <div key={player.id} className="flex items-center gap-4">
+              <div key={player.id} className={cn("flex items-center gap-4", !activePlayers[player.id] && "opacity-50")}>
+                <input 
+                  type="checkbox"
+                  checked={activePlayers[player.id] || false}
+                  onChange={(e) => setActivePlayers(prev => ({...prev, [player.id]: e.target.checked}))}
+                  className="mr-2"
+                />
                 <span className="w-32 font-medium">{player.name}</span>
                 <div className="flex-1 grid grid-cols-4 gap-2">
                   <Button 
                     variant="outline" 
                     onClick={() => handleWinsChange(player.id, -1)}
                     size="icon"
+                    disabled={!activePlayers[player.id]}
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
@@ -149,6 +157,7 @@ export function DailyWins() {
                     variant="outline"
                     onClick={() => handleWinsChange(player.id, 1)}
                     size="icon"
+                    disabled={!activePlayers[player.id]}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
