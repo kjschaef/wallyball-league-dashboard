@@ -88,13 +88,13 @@ export default function Players() {
         <Dialog 
           open={isOpen} 
           onOpenChange={(open) => {
-            setIsOpen(open);
             if (!open) {
               setEditingPlayer(null);
               if (formRef.current) {
                 formRef.current.reset();
               }
             }
+            setIsOpen(open);
           }}
         >
           <DialogTrigger asChild>
@@ -122,9 +122,21 @@ export default function Players() {
                   defaultValue={editingPlayer?.name}
                 />
               </div>
-              <Button type="submit" className="w-full">
-                {editingPlayer ? "Update" : "Create"}
-              </Button>
+              <div className="flex gap-2">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" className="w-full" onClick={() => {
+                    setEditingPlayer(null);
+                    if (formRef.current) {
+                      formRef.current.reset();
+                    }
+                  }}>
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button type="submit" className="w-full">
+                  {editingPlayer ? "Update" : "Create"}
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>
