@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlayerCard } from "@/components/PlayerCard";
@@ -22,7 +21,7 @@ export default function Players() {
     isOpen: false,
     player: null,
   });
-  
+
   const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -80,6 +79,17 @@ export default function Players() {
       isOpen: true, 
       player: player || null 
     });
+    // Reset form when opening dialog
+    if (formRef.current) {
+      formRef.current.reset();
+      if (player) {
+        // Set the name input value if editing
+        const nameInput = formRef.current.querySelector('input[name="name"]') as HTMLInputElement;
+        if (nameInput) {
+          nameInput.value = player.name;
+        }
+      }
+    }
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -103,7 +113,13 @@ export default function Players() {
         <Button onClick={() => openDialog()}>Add Player</Button>
       </div>
 
-      <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
+      <Dialog 
+        open={dialogState.isOpen} 
+        onOpenChange={(open) => {
+          if (!open) {
+            closeDialog();
+          }
+        }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -117,7 +133,7 @@ export default function Players() {
                 id="name"
                 name="name"
                 required
-                defaultValue={dialogState.player?.name}
+                defaultValue={dialogState.player?.name || ""}
               />
             </div>
             <div className="flex gap-2">
