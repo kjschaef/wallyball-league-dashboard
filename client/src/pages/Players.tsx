@@ -92,7 +92,10 @@ export default function Players() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Players</h1>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+          setIsOpen(open);
+          if (!open) setEditingPlayer(null);
+        }}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditingPlayer(null)}>Add Player</Button>
           </DialogTrigger>
