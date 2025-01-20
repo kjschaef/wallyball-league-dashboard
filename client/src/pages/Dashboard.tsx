@@ -131,6 +131,10 @@ export default function Dashboard() {
         <CardContent>
           <div className="grid gap-4">
             {(() => {
+              if (matches.length === 0) {
+                return <div className="text-sm text-muted-foreground">No matches found</div>;
+              }
+
               // Find the most recent date that has matches
               const mostRecentDate = matches
                 .map(match => new Date(match.date))
