@@ -185,13 +185,13 @@ export default function Dashboard() {
                 .filter(match => new Date(match.date).toDateString() === mostRecentDate)
                 .map((match) => (
                   <div key={match.id} className="group flex items-center justify-between py-4 px-3 border-b hover:bg-muted/50 rounded-sm min-h-[4rem]">
-                    <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex items-center gap-4 flex-1">
                       <span className="text-sm text-muted-foreground whitespace-nowrap">
                         {format(new Date(match.date), "MMM d")}
                       </span>
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className={cn(
-                          "font-medium truncate",
+                          "font-medium whitespace-nowrap",
                           match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
                           {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
