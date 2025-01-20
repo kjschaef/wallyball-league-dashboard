@@ -1,6 +1,7 @@
 import { Switch, Route } from "wouter";
 import Dashboard from "./pages/Dashboard";
 import GameHistory from "./pages/GameHistory";
+import Results from "./pages/Results";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
@@ -20,6 +21,11 @@ function App() {
                 <Button variant="ghost">Game History</Button>
               </Link>
             </li>
+            <li>
+              <Link href="/results">
+                <Button variant="ghost">Results & Stats</Button>
+              </Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -27,6 +33,7 @@ function App() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/history" component={GameHistory} />
+          <Route path="/results" component={Results} />
         </Switch>
       </main>
     </div>
