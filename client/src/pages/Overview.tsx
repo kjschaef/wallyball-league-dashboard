@@ -4,19 +4,25 @@ import { GameHistory } from "@/components/GameHistory";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DailyWins } from "@/components/DailyWins";
 
 export default function Overview() {
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showRecordGame, setShowRecordGame] = useState(false);
   const [showDailyWins, setShowDailyWins] = useState(false);
 
-  const { data: matches, isLoading } = useQuery<any[]>({
+  const { data: matches, isLoading, error } = useQuery({
     queryKey: ["/api/matches"],
+    queryFn: async () => {
+      const res = await fetch("http://0.0.0.0:5000/api/matches");
+      if (!res.ok) throw new Error("Network response was not ok");
+      return res.json();
+    },
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading matches</div>;
 
   return (
     <div className="space-y-6">
@@ -29,6 +35,16 @@ export default function Overview() {
           showViewAll={true}
         />
       </div>
+
+      <Dialog open={showDailyWins} onOpenChange={setShowDailyWins}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Record Daily Wins</DialogTitle>
+          </DialogHeader>
+          <DailyWins />
+        </DialogContent>
+      </Dialog>
+
       <FloatingActionButton
         onAddPlayer={() => setShowAddPlayer(true)}
         onRecordGame={() => setShowRecordGame(true)}
