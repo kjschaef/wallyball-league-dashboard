@@ -1,7 +1,7 @@
 import { Switch, Route } from "wouter";
-import Dashboard from "./pages/Dashboard";
+import Overview from "./pages/Overview";
 import GameHistory from "./pages/GameHistory";
-import Results from "./pages/Results";
+import Statistics from "./pages/Statistics";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
@@ -22,8 +22,8 @@ function App() {
               </Link>
             </li>
             <li>
-              <Link href="/results">
-                <Button variant="ghost">Results & Stats</Button>
+              <Link href="/statistics">
+                <Button variant="ghost">Statistics</Button>
               </Link>
             </li>
           </ul>
@@ -31,9 +31,9 @@ function App() {
       </header>
       <main className="container mx-auto px-4 py-8">
         <Switch>
-          <Route path="/" component={Dashboard} />
+          <Route path="/" component={Overview} />
           <Route path="/history" component={GameHistory} />
-          <Route path="/results" component={Results} />
+          <Route path="/statistics" component={Statistics} />
         </Switch>
       </main>
     </div>
