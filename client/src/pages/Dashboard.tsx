@@ -133,9 +133,9 @@ export default function Dashboard() {
             {(() => {
               // Find the most recent date that has matches
               const mostRecentDate = matches
-                .map(match => new Date(match.date).toDateString())
-                .sort()
-                .reverse()[0];
+                .map(match => new Date(match.date))
+                .sort((a, b) => b.getTime() - a.getTime())[0]
+                .toDateString();
 
               return matches
                 .filter(match => new Date(match.date).toDateString() === mostRecentDate)
