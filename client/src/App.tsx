@@ -5,9 +5,9 @@ import { Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 
 // Lazy load route components
-const Overview = lazy(() => import("./pages/Overview"));
-const GameHistory = lazy(() => import("./pages/GameHistory"));
-const Statistics = lazy(() => import("./pages/Statistics"));
+const Overview = lazy(() => import("@/pages/Overview"));
+const GameHistory = lazy(() => import("@/pages/GameHistory"));
+const Statistics = lazy(() => import("@/pages/Statistics"));
 
 // Loading fallback component
 function LoadingSpinner() {
