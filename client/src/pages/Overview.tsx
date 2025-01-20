@@ -2,12 +2,21 @@
 import { PerformanceTrend } from "@/components/PerformanceTrend";
 import { GameHistory } from "@/components/GameHistory";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 
 export default function Overview() {
-  const { data: matches } = useQuery<any[]>({
+  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [showRecordGame, setShowRecordGame] = useState(false);
+  const [showDailyWins, setShowDailyWins] = useState(false);
+
+  const { data: matches, isLoading } = useQuery<any[]>({
     queryKey: ["/api/matches"],
   });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
