@@ -3,10 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { StatCard } from "@/components/StatCard";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
-import { PlayerCard } from "@/components/PlayerCard";
-import { Users, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,6 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Player } from "@db/schema";
 import { PlayerSelector } from "@/components/PlayerSelector";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -34,11 +33,6 @@ import { cn } from "@/lib/utils";
 import { PerformanceTrend } from "@/components/PerformanceTrend";
 import { DailyWins } from "@/components/DailyWins";
 
-
-const playerFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-});
-
 const gameFormSchema = z.object({
   teamOnePlayers: z.array(z.number()).min(1, "At least one player is required").max(3),
   teamTwoPlayers: z.array(z.number()).min(1, "At least one player is required").max(3),
@@ -47,32 +41,20 @@ const gameFormSchema = z.object({
   date: z.date(),
 });
 
-type PlayerFormData = z.infer<typeof playerFormSchema>;
 type GameFormData = z.infer<typeof gameFormSchema>;
 
 export default function Dashboard() {
-  const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showRecordGame, setShowRecordGame] = useState(false);
   const [showDailyWins, setShowDailyWins] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: players } = useQuery<any[]>({
-    queryKey: ["/api/players"],
+  const { data: matches = [] } = useQuery({
+    queryKey: ["/api/matches"],
   });
 
-  const totalPlayers = players?.length || 0;
-  const totalGames = players?.reduce((acc, player) => {
-    return acc + player.matches?.reduce((matchAcc, match) => 
-      matchAcc + (match.teamOneGamesWon + match.teamTwoGamesWon)
-    , 0) / players.length;
-  }, 0) || 0;
-
-  const playerForm = useForm<PlayerFormData>({
-    resolver: zodResolver(playerFormSchema),
-    defaultValues: {
-      name: "",
-    },
+  const { data: players = [] } = useQuery({
+    queryKey: ["/api/players"],
   });
 
   const gameForm = useForm<GameFormData>({
@@ -86,58 +68,8 @@ export default function Dashboard() {
     },
   });
 
-  const createPlayerMutation = useMutation({
-    mutationFn: (data: PlayerFormData) =>
-      fetch("/api/players", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      }).then((res) => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      setShowAddPlayer(false);
-      playerForm.reset();
-      toast({ 
-        title: "Player created successfully",
-        variant: "success",
-      });
-    },
-  });
-
-  const updatePlayerMutation = useMutation({
-    mutationFn: (player: Player) =>
-      fetch(`/api/players/${player.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(player),
-      }).then((res) => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      setShowAddPlayer(false);
-      setEditingPlayer(null);
-      playerForm.reset();
-      toast({ 
-        title: "Player updated successfully",
-        variant: "success",
-      });
-    },
-  });
-
-  const deletePlayerMutation = useMutation({
-    mutationFn: (id: number) =>
-      fetch(`/api/players/${id}`, { method: "DELETE" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/players"] });
-      toast({ 
-        title: "Player deleted successfully",
-        variant: "success",
-      });
-    },
-  });
-
   const [teamOnePlayers, setTeamOnePlayers] = useState<number[]>([]);
   const [teamTwoPlayers, setTeamTwoPlayers] = useState<number[]>([]);
-  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
 
   const recordGameMutation = useMutation({
     mutationFn: (values: GameFormData) =>
@@ -169,49 +101,50 @@ export default function Dashboard() {
     },
   });
 
-  const onPlayerSubmit = (data: PlayerFormData) => {
-    if (editingPlayer) {
-      updatePlayerMutation.mutate({ ...editingPlayer, ...data });
-    } else {
-      createPlayerMutation.mutate(data);
-    }
-  };
-
   const onGameSubmit = (data: GameFormData) => {
     recordGameMutation.mutate(data);
   };
 
-  // Extract all games from players data
-  const allGames = players?.reduce<Array<any>>((acc, player) => {
-    const playerGames = player.games || [];
-    return [...acc, ...playerGames];
-  }, []) || [];
+  const formatTeam = (playerIds: (number | null)[]) => {
+    return playerIds
+      .filter((id): id is number => id !== null)
+      .map(id => players.find(p => p.id === id)?.name)
+      .filter(Boolean)
+      .join(", ");
+  };
+
+  // Get last 5 matches
+  const recentMatches = [...matches]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Wallyball Standings</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Wallyball Dashboard</h1>
 
-      {/* Add Performance Trend */}
       <PerformanceTrend />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {players?.sort((a, b) => {
-          const aWinsPerDay = a.stats.won / (new Set(a.matches.map((m: any) => new Date(m.date).toLocaleDateString())).size || 1);
-          const bWinsPerDay = b.stats.won / (new Set(b.matches.map((m: any) => new Date(m.date).toLocaleDateString())).size || 1);
-          return bWinsPerDay - aWinsPerDay;
-        }).map((player) => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            onEdit={(player) => {
-              setEditingPlayer(player);
-              playerForm.reset({ name: player.name });
-              setShowAddPlayer(true);
-            }}
-            onDelete={(id) => deletePlayerMutation.mutate(id)}
-          />
-        ))}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Matches</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentMatches.map((match) => (
+              <div key={match.id} className="flex justify-between items-center p-2 hover:bg-muted/50 rounded">
+                <div className="flex-1">
+                  <div className="text-sm text-muted-foreground">{format(new Date(match.date), "PPP")}</div>
+                  <div className="font-medium">{formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}</div>
+                  <div className="font-medium">{formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}</div>
+                </div>
+                <div className="text-lg font-bold tabular-nums">
+                  {match.teamOneGamesWon} - {match.teamTwoGamesWon}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <Dialog open={showDailyWins} onOpenChange={setShowDailyWins}>
         <DialogContent>
@@ -223,48 +156,9 @@ export default function Dashboard() {
       </Dialog>
 
       <FloatingActionButton
-        onAddPlayer={() => setShowAddPlayer(true)}
         onRecordGame={() => setShowRecordGame(true)}
         onDailyWins={() => setShowDailyWins(true)}
       />
-
-      {/* Add/Edit Player Dialog */}
-      <Dialog 
-        open={showAddPlayer} 
-        onOpenChange={setShowAddPlayer}
-        modal={true}
-      >
-        <DialogContent className="fixed left-[50%] top-[40%]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingPlayer ? "Edit Player" : "Add New Player"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingPlayer ? "Update the player's information below." : "Enter the new player's information below."}
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...playerForm}>
-            <form onSubmit={playerForm.handleSubmit(onPlayerSubmit)} className="space-y-4">
-              <FormField
-                control={playerForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">
-                {editingPlayer ? "Update" : "Create"}
-              </Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
 
       {/* Record Game Dialog */}
       <Dialog 

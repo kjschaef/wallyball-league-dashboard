@@ -1,7 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PlayerCard } from "@/components/PlayerCard";
 import {
   Card,
   CardContent,
@@ -24,6 +26,12 @@ export default function Results() {
   const { data: matches = [] } = useQuery<MatchResult[]>({
     queryKey: ["/api/matches"],
   });
+
+  const { data: players } = useQuery<any[]>({
+    queryKey: ["/api/players"],
+  });
+
+  const queryClient = useQueryClient();
 
   const today = new Date();
   const todayStart = startOfToday();
@@ -80,11 +88,31 @@ export default function Results() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Volleyball Results</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
         <Button onClick={shareAsImage} variant="outline" size="sm">
           <Share2 className="mr-2 h-4 w-4" />
           Share as Image
         </Button>
+      </div>
+
+      {/* Player Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {players?.sort((a, b) => {
+          const aWinsPerDay = a.stats.won / (new Set(a.matches.map((m: any) => new Date(m.date).toLocaleDateString())).size || 1);
+          const bWinsPerDay = b.stats.won / (new Set(b.matches.map((m: any) => new Date(m.date).toLocaleDateString())).size || 1);
+          return bWinsPerDay - aWinsPerDay;
+        }).map((player) => (
+          <PlayerCard
+            key={player.id}
+            player={player}
+            onEdit={(player) => {
+              // Implement edit functionality if needed
+            }}
+            onDelete={(id) => {
+              // Implement delete functionality if needed
+            }}
+          />
+        ))}
       </div>
 
       <div id="results-content" className="space-y-6">
