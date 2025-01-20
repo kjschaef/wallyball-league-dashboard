@@ -12,17 +12,18 @@ export default function Overview() {
   const [showRecordGame, setShowRecordGame] = useState(false);
   const [showDailyWins, setShowDailyWins] = useState(false);
 
-  const { data: matches, isLoading, error } = useQuery({
+  const { data: matches = [], isLoading } = useQuery({
     queryKey: ["/api/matches"],
     queryFn: async () => {
-      const res = await fetch("http://0.0.0.0:5000/api/matches");
+      const res = await fetch("http://0.0.0.0:5000/api/matches", {
+        credentials: "include"
+      });
       if (!res.ok) throw new Error("Network response was not ok");
       return res.json();
-    },
+    }
   });
 
   if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading matches</div>;
 
   return (
     <div className="space-y-6">
@@ -31,7 +32,7 @@ export default function Overview() {
       <h2 className="text-2xl font-bold tracking-tight mt-8">Recent Matches</h2>
       <div>
         <GameHistory 
-          games={matches?.slice(0, 5) || []}
+          games={matches.slice(0, 5)}
           showViewAll={true}
         />
       </div>
