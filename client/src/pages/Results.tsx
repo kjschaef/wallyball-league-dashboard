@@ -87,13 +87,7 @@ export default function Results() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
-        <Button onClick={shareAsImage} variant="outline" size="sm">
-          <Share2 className="mr-2 h-4 w-4" />
-          Share as Image
-        </Button>
-      </div>
+      <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
 
       {/* Player Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -4,7 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Share2 } from "lucide-react";
+import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -118,13 +119,40 @@ export default function Dashboard() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
+  const shareAsImage = async () => {
+    const element = document.getElementById('dashboard-content');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        backgroundColor: '#ffffff',
+        scale: 2
+      });
+
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement('a');
+      link.download = `volleyball-dashboard-${format(new Date(), 'yyyy-MM-dd')}.png`;
+      link.href = image;
+      link.click();
+    } catch (error) {
+      console.error('Error creating image:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Wallyball Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold tracking-tight">Wallyball Dashboard</h1>
+        <Button onClick={shareAsImage} variant="outline" size="sm">
+          <Share2 className="mr-2 h-4 w-4" />
+          Share as Image
+        </Button>
+      </div>
 
-      <PerformanceTrend />
+      <div id="dashboard-content">
+        <PerformanceTrend />
 
-      <Card>
+        <Card>
         <CardHeader>
           <CardTitle>Recent Matches</CardTitle>
         </CardHeader>
@@ -174,6 +202,7 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      </div>
 
       <Dialog open={showDailyWins} onOpenChange={setShowDailyWins}>
         <DialogContent>
