@@ -126,16 +126,19 @@ export default function Dashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Today's Matches</CardTitle>
+          <CardTitle>Recent Matches</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            {matches
-              .filter(match => {
-                const matchDate = new Date(match.date);
-                const today = new Date();
-                return matchDate.toDateString() === today.toDateString();
-              })
+            {(() => {
+              // Find the most recent date that has matches
+              const mostRecentDate = matches
+                .map(match => new Date(match.date).toDateString())
+                .sort()
+                .reverse()[0];
+
+              return matches
+                .filter(match => new Date(match.date).toDateString() === mostRecentDate)
               .map((match) => (
                 <div key={match.id} className="group flex items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm">
                   <div className="flex items-center gap-4 min-w-0">
