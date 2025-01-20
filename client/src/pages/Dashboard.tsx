@@ -139,9 +139,35 @@ export default function Dashboard() {
 
               return matches
                 .filter(match => new Date(match.date).toDateString() === mostRecentDate)
-              .map((match) => (
-                <div key={match.id} className="group flex items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm">
-                  <div className="flex items-center gap-4 min-w-0">
+                .map((match) => (
+                  <div key={match.id} className="group flex items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">
+                        {format(new Date(match.date), "MMM d")}
+                      </span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={cn(
+                          "font-medium truncate",
+                          match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
+                        )}>
+                          {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
+                        </span>
+                        <span className="text-sm text-muted-foreground px-1 whitespace-nowrap">vs</span>
+                        <span className={cn(
+                          "font-medium truncate",
+                          match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
+                        )}>
+                          {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium tabular-nums">
+                      {match.teamOneGamesWon} - {match.teamTwoGamesWon}
+                    </div>
+                  </div>
+                ))
+            })()}
+          </div>
                     <span className="text-sm text-muted-foreground whitespace-nowrap">
                       {format(new Date(match.date), "MMM d")}
                     </span>
