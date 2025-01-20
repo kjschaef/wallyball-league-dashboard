@@ -62,10 +62,13 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     },
   });
 
-  // Trigger achievement check whenever stats are shown
+  // Only check achievements when player's stats change
   React.useEffect(() => {
-    checkAchievementsMutation.mutate(player.id);
-  }, [player.id, stats.won, stats.lost, checkAchievementsMutation]);
+    const timeoutId = setTimeout(() => {
+      checkAchievementsMutation.mutate(player.id);
+    }, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [player.id, stats.won, stats.lost]);
 
   return (
     <Card>

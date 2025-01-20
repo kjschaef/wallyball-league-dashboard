@@ -1,10 +1,15 @@
+
 import { GameHistory as GameHistoryComponent } from "@/components/GameHistory";
 import { useQuery } from "@tanstack/react-query";
 
 export default function GameHistory() {
-  const { data: games } = useQuery<any[]>({
+  const { data: games, isLoading } = useQuery<any[]>({
     queryKey: ["/api/matches"],
   });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
