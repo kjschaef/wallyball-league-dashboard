@@ -168,31 +168,6 @@ export default function Dashboard() {
                 ))
             })()}
           </div>
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">
-                      {format(new Date(match.date), "MMM d")}
-                    </span>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className={cn(
-                        "font-medium truncate",
-                        match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
-                      )}>
-                        {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
-                      </span>
-                      <span className="text-sm text-muted-foreground px-1 whitespace-nowrap">vs</span>
-                      <span className={cn(
-                        "font-medium truncate",
-                        match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
-                      )}>
-                        {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-sm font-medium tabular-nums">
-                    {match.teamOneGamesWon} - {match.teamTwoGamesWon}
-                  </div>
-                </div>
-              ))}
-          </div>
         </CardContent>
       </Card>
 
