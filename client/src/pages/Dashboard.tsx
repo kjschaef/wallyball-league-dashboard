@@ -184,7 +184,7 @@ export default function Dashboard() {
               return matches
                 .filter(match => new Date(match.date).toDateString() === mostRecentDate)
                 .map((match) => (
-                  <div key={match.id} className="group flex items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm">
+                  <div key={match.id} className="group flex items-center justify-between py-4 px-3 border-b hover:bg-muted/50 rounded-sm min-h-[4rem]">
                     <div className="flex items-center gap-4 min-w-0">
                       <span className="text-sm text-muted-foreground whitespace-nowrap">
                         {format(new Date(match.date), "MMM d")}
