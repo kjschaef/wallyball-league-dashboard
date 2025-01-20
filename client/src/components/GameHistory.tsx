@@ -31,21 +31,18 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Game } from "@db/schema";
 
-interface MatchResult {
-  id: number;
-  date: string;
-  teamOnePlayers: string[];
-  teamTwoPlayers: string[];
-  teamOneGamesWon: number;
-  teamTwoGamesWon: number;
-}
-
 interface GameHistoryProps {
-  games: MatchResult[];
-  showViewAll?: boolean;
+  games: Array<{
+    id: number;
+    date: string;
+    teamOnePlayers: string[];
+    teamTwoPlayers: string[];
+    teamOneGamesWon: number;
+    teamTwoGamesWon: number;
+  }>;
 }
 
-export function GameHistory({ games, showViewAll = false }: GameHistoryProps) {
+export function GameHistory({ games }: GameHistoryProps) {
   const [date, setDate] = useState<DateRange | undefined>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -61,7 +58,7 @@ export function GameHistory({ games, showViewAll = false }: GameHistoryProps) {
   });
 
   // Sort games by date, most recent first
-  const sortedGames = [...games].sort((a, b) =>
+  const sortedGames = [...games].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
@@ -178,37 +175,7 @@ export function GameHistory({ games, showViewAll = false }: GameHistoryProps) {
             </div>
           </div>
         ))}
-        {showViewAll && <Button>View All</Button>} {/* Added View All button */}
       </div>
     </div>
   );
 }
-
-
-// Placeholder for Overview page - needs actual chart and recent games implementation
-export function Overview() {
-  return (
-    <div>
-      <h1>Overview</h1>
-      {/* Wins per day chart will go here */}
-      {/* Recent games list will go here */}
-      <GameHistory games={[]} showViewAll={true}/>
-    </div>
-  );
-}
-
-// Placeholder for Statistics page - needs actual player stats and comparison implementation
-export function Statistics() {
-  return (
-    <div>
-      <h1>Statistics</h1>
-      {/* Player stats and comparison will go here */}
-    </div>
-  );
-}
-
-// Placeholder for Players page (assuming this already exists)
-// export function Players() { ... }
-
-// Placeholder for History page (assuming this already exists)
-// export function History() { ... }

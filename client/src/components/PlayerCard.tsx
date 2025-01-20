@@ -15,34 +15,19 @@ import {
 import { PlayerAchievements } from "./PlayerAchievements";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useLifecycle } from "@/hooks/useLifecycle";
+import React from "react";
 import type { Player } from "@db/schema";
 
-interface PlayerStats {
-  won: number;
-  lost: number;
-}
-
-interface Match {
-  date: string;
-  won: boolean;
-}
-
-interface PlayerWithStats extends Player {
-  matches: Match[];
-  stats: PlayerStats;
-}
-
 interface PlayerCardProps {
-  player: PlayerWithStats;
+  player: Player & { 
+    matches: Array<{ won: boolean, date: string }>, 
+    stats: { won: number, lost: number } 
+  };
   onEdit: (player: Player) => void;
   onDelete: (id: number) => void;
 }
 
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
-  // Add lifecycle monitoring
-  useLifecycle("PlayerCard");
-
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   const winRate = total > 0 ? Math.round((stats.won / total) * 100) : 0;

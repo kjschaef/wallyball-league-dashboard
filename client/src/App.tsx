@@ -1,60 +1,43 @@
-import { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Loader2 } from "lucide-react";
-import { Navbar } from "@/components/Navbar";
+import Dashboard from "./pages/Dashboard";
+import GameHistory from "./pages/GameHistory";
+import Results from "./pages/Results";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
-// Lazy load route components
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Players = lazy(() => import("@/pages/Players"));
-const RecordMatch = lazy(() => import("@/pages/RecordMatch"));
-
-// Loading fallback component
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center h-[50vh]">
-      <Loader2 className="h-8 w-8 animate-spin" />
-    </div>
-  );
-}
-
-// Route-level error boundary component
-function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
-  return (
-    <ErrorBoundary>
-      <Suspense fallback={<LoadingSpinner />}>
-        {children}
-      </Suspense>
-    </ErrorBoundary>
-  );
-}
-
-export default function App() {
+function App() {
   return (
     <div className="min-h-screen bg-background">
-      <ErrorBoundary>
-        <Navbar />
-      </ErrorBoundary>
-
+      <header className="border-b">
+        <nav className="container mx-auto px-4 py-4">
+          <ul className="flex gap-4">
+            <li>
+              <Link href="/">
+                <Button variant="ghost">Wallyball Standings</Button>
+              </Link>
+            </li>
+            <li>
+              <Link href="/history">
+                <Button variant="ghost">Game History</Button>
+              </Link>
+            </li>
+            <li>
+              <Link href="/results">
+                <Button variant="ghost">Results & Stats</Button>
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      </header>
       <main className="container mx-auto px-4 py-8">
         <Switch>
-          <Route path="/">
-            <RouteErrorBoundary>
-              <Dashboard />
-            </RouteErrorBoundary>
-          </Route>
-          <Route path="/players">
-            <RouteErrorBoundary>
-              <Players />
-            </RouteErrorBoundary>
-          </Route>
-          <Route path="/record">
-            <RouteErrorBoundary>
-              <RecordMatch />
-            </RouteErrorBoundary>
-          </Route>
+          <Route path="/" component={Dashboard} />
+          <Route path="/history" component={GameHistory} />
+          <Route path="/results" component={Results} />
         </Switch>
       </main>
     </div>
   );
 }
+
+export default App;
