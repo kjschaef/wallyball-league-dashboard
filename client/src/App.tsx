@@ -1,49 +1,60 @@
-import { Switch, Route, Link } from "wouter";
-import { Button } from "@/components/ui/button";
+import { lazy, Suspense } from "react";
+import { Switch, Route } from "wouter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import Overview from "./pages/Overview";
-import GameHistory from "./pages/GameHistory";
-import Statistics from "./pages/Statistics";
+import { Loader2 } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
 
-function Navigation() {
+// Lazy load route components
+const Overview = lazy(() => import("./pages/Overview"));
+const GameHistory = lazy(() => import("./pages/GameHistory"));
+const Statistics = lazy(() => import("./pages/Statistics"));
+
+// Loading fallback component
+function LoadingSpinner() {
   return (
-    <header className="border-b">
-      <nav className="container mx-auto px-4 py-4">
-        <ul className="flex gap-4">
-          <li>
-            <Link href="/">
-              <Button variant="ghost">Overview</Button>
-            </Link>
-          </li>
-          <li>
-            <Link href="/history">
-              <Button variant="ghost">Game History</Button>
-            </Link>
-          </li>
-          <li>
-            <Link href="/statistics">
-              <Button variant="ghost">Statistics</Button>
-            </Link>
-          </li>
-        </ul>
-      </nav>
-    </header>
+    <div className="flex items-center justify-center h-[50vh]">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  );
+}
+
+// Route-level error boundary component
+function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingSpinner />}>
+        {children}
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="container mx-auto px-4 py-8">
-          <Switch>
-            <Route path="/" component={Overview} />
-            <Route path="/history" component={GameHistory} />
-            <Route path="/statistics" component={Statistics} />
-          </Switch>
-        </main>
-      </div>
-    </ErrorBoundary>
+    <div className="min-h-screen bg-background">
+      <ErrorBoundary>
+        <Navbar />
+      </ErrorBoundary>
+
+      <main className="container mx-auto px-4 py-8">
+        <Switch>
+          <Route path="/">
+            <RouteErrorBoundary>
+              <Overview />
+            </RouteErrorBoundary>
+          </Route>
+          <Route path="/history">
+            <RouteErrorBoundary>
+              <GameHistory />
+            </RouteErrorBoundary>
+          </Route>
+          <Route path="/statistics">
+            <RouteErrorBoundary>
+              <Statistics />
+            </RouteErrorBoundary>
+          </Route>
+        </Switch>
+      </main>
+    </div>
   );
 }

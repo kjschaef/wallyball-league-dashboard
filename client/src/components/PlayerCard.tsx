@@ -15,7 +15,7 @@ import {
 import { PlayerAchievements } from "./PlayerAchievements";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import React from "react";
+import { useLifecycle } from "@/hooks/useLifecycle";
 import type { Player } from "@db/schema";
 
 interface PlayerStats {
@@ -40,6 +40,9 @@ interface PlayerCardProps {
 }
 
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
+  // Add lifecycle monitoring
+  useLifecycle("PlayerCard");
+
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   const winRate = total > 0 ? Math.round((stats.won / total) * 100) : 0;
