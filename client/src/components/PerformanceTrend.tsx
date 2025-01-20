@@ -146,9 +146,13 @@ export function PerformanceTrend() {
                 domain={[0, "auto"]}
                 tickFormatter={(value) => Math.round(value)}
               />
-              <Tooltip
+              <Tooltip 
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
                 formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
+                isAnimationActive={false}
+                active={true}
+                coordinate={{ x: 600, y: 100 }}
+                position={{ x: 600, y: 100 }}
               />
               <Legend />
               {playerStats.map((player, index) => (
@@ -161,6 +165,7 @@ export function PerformanceTrend() {
                   dot={{ r: 4 }}
                   activeDot={{ r: 6 }}
                   name={player.name}
+                  isAnimationActive={false}
                 />
               ))}
             </LineChart>
