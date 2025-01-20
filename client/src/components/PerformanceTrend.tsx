@@ -111,17 +111,29 @@ export function PerformanceTrend() {
                 // Show tooltip for latest data point initially
                 const latestDataPoint = chartData[chartData.length - 1];
                 if (latestDataPoint && e.currentTarget) {
-                  setTimeout(() => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    if (rect) {
-                      const event = new MouseEvent('mousemove', {
-                        clientX: rect.x + rect.width - 20,
-                        clientY: rect.y + 100,
-                        bubbles: true
-                      });
-                      e.currentTarget.dispatchEvent(event);
-                    }
-                  }, 100);
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  if (rect) {
+                    const event = new MouseEvent('mousemove', {
+                      clientX: rect.x + rect.width - 20,
+                      clientY: rect.y + 100,
+                      bubbles: true
+                    });
+                    e.currentTarget.dispatchEvent(event);
+                  }
+                }
+              }}
+              onMouseLeave={(e) => {
+                // Keep tooltip visible when mouse leaves
+                if (e.currentTarget) {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  if (rect) {
+                    const event = new MouseEvent('mousemove', {
+                      clientX: rect.x + rect.width - 20,
+                      clientY: rect.y + 100,
+                      bubbles: true
+                    });
+                    e.currentTarget.dispatchEvent(event);
+                  }
                 }
               }}
             >
