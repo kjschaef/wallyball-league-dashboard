@@ -124,9 +124,21 @@ export default function Dashboard() {
     if (!element) return;
 
     try {
+      // Get computed height of content
+      const height = element.getBoundingClientRect().height;
+      
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
-        scale: 2
+        scale: 2,
+        height: Math.ceil(height),
+        windowHeight: Math.ceil(height),
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('dashboard-content');
+          if (clonedElement) {
+            clonedElement.style.height = `${height}px`;
+            clonedElement.style.position = 'relative';
+          }
+        }
       });
 
       const image = canvas.toDataURL("image/png");
