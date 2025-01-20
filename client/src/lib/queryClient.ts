@@ -4,7 +4,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: async ({ queryKey }) => {
-        const res = await fetch(queryKey[0] as string, {
+        const res = await fetch(`http://0.0.0.0:5000${queryKey[0]}`, {
           credentials: "include",
         });
 
