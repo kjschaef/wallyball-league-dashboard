@@ -105,7 +105,22 @@ export function PerformanceTrend() {
       <CardContent>
         <div className="h-[400px] w-full">
           <ResponsiveContainer>
-            <LineChart data={chartData}>
+            <LineChart 
+              data={chartData}
+              onMouseEnter={(e) => {
+                // Show tooltip for latest data point initially
+                const latestDataPoint = chartData[chartData.length - 1];
+                if (latestDataPoint) {
+                  const { x, y } = e.currentTarget.getBoundingClientRect();
+                  const event = new MouseEvent('mousemove', {
+                    clientX: x + e.currentTarget.clientWidth - 20,
+                    clientY: y + 100,
+                    bubbles: true
+                  });
+                  e.currentTarget.dispatchEvent(event);
+                }
+              }}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
