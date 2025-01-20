@@ -18,11 +18,23 @@ import { useToast } from "@/hooks/use-toast";
 import React from "react";
 import type { Player } from "@db/schema";
 
+interface PlayerStats {
+  won: number;
+  lost: number;
+}
+
+interface Match {
+  date: string;
+  won: boolean;
+}
+
+interface PlayerWithStats extends Player {
+  matches: Match[];
+  stats: PlayerStats;
+}
+
 interface PlayerCardProps {
-  player: Player & { 
-    matches: Array<{ won: boolean, date: string }>, 
-    stats: { won: number, lost: number } 
-  };
+  player: PlayerWithStats;
   onEdit: (player: Player) => void;
   onDelete: (id: number) => void;
 }

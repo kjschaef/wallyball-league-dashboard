@@ -5,6 +5,16 @@ import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks }
 import { db } from "@db";
 import { players, matches, achievements, playerAchievements } from "@db/schema";
 
+// Fix the playerStats type and uniqueTeammates handling
+interface PlayerStats {
+  gamesPlayed: number;
+  gamesWon: number;
+  gamesLost: number;
+  perfectGames: number;
+  uniqueTeammates: number[];
+  winRate?: number;
+}
+
 export function registerRoutes(app: Express): Server {
   // Players endpoints
   app.get("/api/players", async (_req, res) => {
@@ -334,7 +344,7 @@ export function registerRoutes(app: Express): Server {
         )
       );
 
-      const playerStats = playerGames.reduce((acc, game) => {
+      const playerStats = playerGames.reduce<PlayerStats>((acc, game) => {
         const isTeamOne = [
           game.teamOnePlayerOneId,
           game.teamOnePlayerTwoId,
@@ -344,34 +354,29 @@ export function registerRoutes(app: Express): Server {
         const gamesWon = isTeamOne ? game.teamOneGamesWon : game.teamTwoGamesWon;
         const gamesLost = isTeamOne ? game.teamTwoGamesWon : game.teamOneGamesWon;
 
-        // Collect unique teammates
-        const teammates = new Set();
-        if (isTeamOne) {
-          [game.teamOnePlayerOneId, game.teamOnePlayerTwoId, game.teamOnePlayerThreeId]
-            .filter(id => id !== null && id !== playerId)
-            .forEach(id => teammates.add(id));
-        } else {
-          [game.teamTwoPlayerOneId, game.teamTwoPlayerTwoId, game.teamTwoPlayerThreeId]
-            .filter(id => id !== null && id !== playerId)
-            .forEach(id => teammates.add(id));
-        }
+        // Collect unique teammates as numbers
+        const newTeammates = isTeamOne
+          ? [game.teamOnePlayerOneId, game.teamOnePlayerTwoId, game.teamOnePlayerThreeId]
+              .filter((id): id is number => id !== null && id !== playerId)
+          : [game.teamTwoPlayerOneId, game.teamTwoPlayerTwoId, game.teamTwoPlayerThreeId]
+              .filter((id): id is number => id !== null && id !== playerId);
 
         return {
           gamesPlayed: acc.gamesPlayed + 1,
           gamesWon: acc.gamesWon + gamesWon,
           gamesLost: acc.gamesLost + gamesLost,
           perfectGames: acc.perfectGames + (gamesWon > 0 && gamesLost === 0 ? 1 : 0),
-          uniqueTeammates: new Set([...acc.uniqueTeammates, ...teammates])
+          uniqueTeammates: Array.from(new Set([...acc.uniqueTeammates, ...newTeammates]))
         };
       }, {
         gamesPlayed: 0,
         gamesWon: 0,
         gamesLost: 0,
         perfectGames: 0,
-        uniqueTeammates: new Set()
+        uniqueTeammates: []
       });
 
-      const winRate = playerStats.gamesWon / (playerStats.gamesWon + playerStats.gamesLost);
+      const winRate = playerStats.gamesWon / (playerStats.gamesWon + playerStats.gamesLost) || 0;
 
       // Get all achievements and check which ones the player qualifies for
       const allAchievements = await db.select().from(achievements);
@@ -397,7 +402,7 @@ export function registerRoutes(app: Express): Server {
           case 'win_rate >= 0.7':
             return winRate >= 0.7;
           case 'unique_teammates >= 5':
-            return playerStats.uniqueTeammates.size >= 5;
+            return playerStats.uniqueTeammates.length >= 5;
           case 'perfect_games >= 1':
             return playerStats.perfectGames >= 1;
           default:
@@ -422,7 +427,7 @@ export function registerRoutes(app: Express): Server {
         newAchievements,
         stats: {
           ...playerStats,
-          uniqueTeammates: playerStats.uniqueTeammates.size,
+          uniqueTeammates: playerStats.uniqueTeammates.length,
           winRate
         }
       });
