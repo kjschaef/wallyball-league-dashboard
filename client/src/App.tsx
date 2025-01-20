@@ -5,9 +5,9 @@ import { Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 
 // Lazy load route components
-const Overview = lazy(() => import("@/pages/Overview"));
-const GameHistory = lazy(() => import("@/pages/GameHistory"));
-const Statistics = lazy(() => import("@/pages/Statistics"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Players = lazy(() => import("@/pages/Players"));
+const RecordMatch = lazy(() => import("@/pages/RecordMatch"));
 
 // Loading fallback component
 function LoadingSpinner() {
@@ -40,17 +40,17 @@ export default function App() {
         <Switch>
           <Route path="/">
             <RouteErrorBoundary>
-              <Overview />
+              <Dashboard />
             </RouteErrorBoundary>
           </Route>
-          <Route path="/history">
+          <Route path="/players">
             <RouteErrorBoundary>
-              <GameHistory />
+              <Players />
             </RouteErrorBoundary>
           </Route>
-          <Route path="/statistics">
+          <Route path="/record">
             <RouteErrorBoundary>
-              <Statistics />
+              <RecordMatch />
             </RouteErrorBoundary>
           </Route>
         </Switch>
