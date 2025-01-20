@@ -198,7 +198,7 @@ export default function Dashboard() {
                         </span>
                         <span className="text-sm text-muted-foreground px-1 whitespace-nowrap">vs</span>
                         <span className={cn(
-                          "font-medium truncate",
+                          "font-medium whitespace-nowrap",
                           match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
                           {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
