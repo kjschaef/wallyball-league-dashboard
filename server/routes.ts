@@ -2,10 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { eq, or, and, gte, lte } from "drizzle-orm";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
-import { getDatabase } from "@db/config";
-
-const db = getDatabase(process.env.NODE_ENV === 'test' ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL);
-import { players, matches } from "@db/schema";
+import { db } from "@db";
+import { players, matches, achievements, playerAchievements } from "@db/schema";
 
 export function registerRoutes(app: Express): Server {
   // Players endpoints
@@ -262,7 +260,7 @@ export function registerRoutes(app: Express): Server {
               and(
                 gte(matches.date, start),
                 lte(matches.date, end),
-                playerId ? 
+                playerId ?
                   or(
                     eq(matches.teamOnePlayerOneId, Number(playerId)),
                     eq(matches.teamOnePlayerTwoId, Number(playerId)),
@@ -271,7 +269,7 @@ export function registerRoutes(app: Express): Server {
                     eq(matches.teamTwoPlayerTwoId, Number(playerId)),
                     eq(matches.teamTwoPlayerThreeId, Number(playerId))
                   )
-                : undefined
+                  : undefined
               )
             );
 
@@ -316,6 +314,150 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching performance trends:", error);
       res.status(500).json({ error: "Failed to fetch performance trends" });
+    }
+  });
+
+  // New endpoint for checking and awarding achievements
+  app.post("/api/achievements/check/:playerId", async (req, res) => {
+    try {
+      const playerId = parseInt(req.params.playerId);
+
+      // Get player's matches and current achievements
+      const playerGames = await db.select().from(matches).where(
+        or(
+          eq(matches.teamOnePlayerOneId, playerId),
+          eq(matches.teamOnePlayerTwoId, playerId),
+          eq(matches.teamOnePlayerThreeId, playerId),
+          eq(matches.teamTwoPlayerOneId, playerId),
+          eq(matches.teamTwoPlayerTwoId, playerId),
+          eq(matches.teamTwoPlayerThreeId, playerId)
+        )
+      );
+
+      const playerStats = playerGames.reduce((acc, game) => {
+        const isTeamOne = [
+          game.teamOnePlayerOneId,
+          game.teamOnePlayerTwoId,
+          game.teamOnePlayerThreeId
+        ].includes(playerId);
+
+        const gamesWon = isTeamOne ? game.teamOneGamesWon : game.teamTwoGamesWon;
+        const gamesLost = isTeamOne ? game.teamTwoGamesWon : game.teamOneGamesWon;
+
+        // Collect unique teammates
+        const teammates = new Set();
+        if (isTeamOne) {
+          [game.teamOnePlayerOneId, game.teamOnePlayerTwoId, game.teamOnePlayerThreeId]
+            .filter(id => id !== null && id !== playerId)
+            .forEach(id => teammates.add(id));
+        } else {
+          [game.teamTwoPlayerOneId, game.teamTwoPlayerTwoId, game.teamTwoPlayerThreeId]
+            .filter(id => id !== null && id !== playerId)
+            .forEach(id => teammates.add(id));
+        }
+
+        return {
+          gamesPlayed: acc.gamesPlayed + 1,
+          gamesWon: acc.gamesWon + gamesWon,
+          gamesLost: acc.gamesLost + gamesLost,
+          perfectGames: acc.perfectGames + (gamesWon > 0 && gamesLost === 0 ? 1 : 0),
+          uniqueTeammates: new Set([...acc.uniqueTeammates, ...teammates])
+        };
+      }, {
+        gamesPlayed: 0,
+        gamesWon: 0,
+        gamesLost: 0,
+        perfectGames: 0,
+        uniqueTeammates: new Set()
+      });
+
+      const winRate = playerStats.gamesWon / (playerStats.gamesWon + playerStats.gamesLost);
+
+      // Get all achievements and check which ones the player qualifies for
+      const allAchievements = await db.select().from(achievements);
+      const playerAchievementsData = await db.select()
+        .from(playerAchievements)
+        .where(eq(playerAchievements.playerId, playerId));
+
+      const unlockedAchievementIds = new Set(
+        playerAchievementsData.map(pa => pa.achievementId)
+      );
+
+      const newAchievements = allAchievements.filter(achievement => {
+        if (unlockedAchievementIds.has(achievement.id)) return false;
+
+        // Check conditions
+        switch (achievement.condition) {
+          case 'games_played >= 1':
+            return playerStats.gamesPlayed >= 1;
+          case 'games_played >= 10':
+            return playerStats.gamesPlayed >= 10;
+          case 'games_won >= 5':
+            return playerStats.gamesWon >= 5;
+          case 'win_rate >= 0.7':
+            return winRate >= 0.7;
+          case 'unique_teammates >= 5':
+            return playerStats.uniqueTeammates.size >= 5;
+          case 'perfect_games >= 1':
+            return playerStats.perfectGames >= 1;
+          default:
+            return false;
+        }
+      });
+
+      // Award new achievements
+      if (newAchievements.length > 0) {
+        await Promise.all(
+          newAchievements.map(achievement =>
+            db.insert(playerAchievements).values({
+              playerId,
+              achievementId: achievement.id,
+              unlockedAt: new Date()
+            })
+          )
+        );
+      }
+
+      res.json({
+        newAchievements,
+        stats: {
+          ...playerStats,
+          uniqueTeammates: playerStats.uniqueTeammates.size,
+          winRate
+        }
+      });
+    } catch (error) {
+      console.error("Error checking achievements:", error);
+      res.status(500).json({ error: "Failed to check achievements" });
+    }
+  });
+
+  // Endpoint to get player achievements
+  app.get("/api/achievements/:playerId", async (req, res) => {
+    try {
+      const playerId = parseInt(req.params.playerId);
+
+      const playerAchievementsData = await db
+        .select({
+          id: achievements.id,
+          name: achievements.name,
+          description: achievements.description,
+          icon: achievements.icon,
+          unlockedAt: playerAchievements.unlockedAt
+        })
+        .from(achievements)
+        .leftJoin(
+          playerAchievements,
+          and(
+            eq(achievements.id, playerAchievements.achievementId),
+            eq(playerAchievements.playerId, playerId)
+          )
+        );
+
+      res.json(playerAchievementsData);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ error: "Failed to fetch achievements" });
     }
   });
 

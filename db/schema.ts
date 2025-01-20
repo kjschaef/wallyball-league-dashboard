@@ -1,5 +1,4 @@
-
-import { pgTable, text, serial, integer, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, index, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const players = pgTable("players", {
@@ -31,12 +30,39 @@ export const matches = pgTable("matches", {
   teamTwoPlayerThreeIdx: index("team_two_player_three_idx").on(table.teamTwoPlayerThreeId),
 }));
 
+// New achievements table
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(), // Lucide icon name
+  condition: text("condition").notNull(), // Achievement condition (e.g., "wins >= 10")
+});
+
+// Player achievements junction table
+export const playerAchievements = pgTable("player_achievements", {
+  id: serial("id").primaryKey(),
+  playerId: integer("player_id").references(() => players.id).notNull(),
+  achievementId: integer("achievement_id").references(() => achievements.id).notNull(),
+  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
+}, (table) => ({
+  playerAchievementIdx: index("player_achievement_idx").on(table.playerId, table.achievementId),
+}));
+
 export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
 export const insertMatchSchema = createInsertSchema(matches);
 export const selectMatchSchema = createSelectSchema(matches);
+export const insertAchievementSchema = createInsertSchema(achievements);
+export const selectAchievementSchema = createSelectSchema(achievements);
+export const insertPlayerAchievementSchema = createInsertSchema(playerAchievements);
+export const selectPlayerAchievementSchema = createSelectSchema(playerAchievements);
 
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type Match = typeof matches.$inferSelect;
 export type NewMatch = typeof matches.$inferInsert;
+export type Achievement = typeof achievements.$inferSelect;
+export type NewAchievement = typeof achievements.$inferInsert;
+export type PlayerAchievement = typeof playerAchievements.$inferSelect;
+export type NewPlayerAchievement = typeof playerAchievements.$inferInsert;
