@@ -154,19 +154,24 @@ export function PerformanceTrend() {
                 };
               })
               .sort((a, b) => b.winsPerDay - a.winsPerDay)
-              .map((player, index) => (
-                <div 
-                  key={player.name}
-                  className="flex items-center justify-between py-0.5 px-2 text-sm bg-muted rounded"
-                  style={{ color: COLORS[playerStats.findIndex(p => p.name === player.name) % COLORS.length] }}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-muted-foreground w-4">{index + 1}.</span>
-                    <span>{player.name}</span>
+              .map((player, index) => {
+                const color = COLORS[playerStats.findIndex(p => p.name === player.name) % COLORS.length];
+                return (
+                  <div 
+                    key={player.name}
+                    className="bg-muted rounded-lg p-2 flex flex-col items-center"
+                    style={{ borderLeft: `3px solid ${color}` }}
+                  >
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <span className="text-xs text-muted-foreground">{index + 1}.</span>
+                      <span style={{ color }}>{player.name}</span>
+                    </div>
+                    <span className="text-lg font-semibold" style={{ color }}>
+                      {player.winsPerDay.toFixed(1)}
+                    </span>
                   </div>
-                  <span className="font-medium">{player.winsPerDay.toFixed(1)}</span>
-                </div>
-              ))}
+                );
+              })}
           </div>
         </div>
       </CardContent>
