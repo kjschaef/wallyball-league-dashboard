@@ -9,8 +9,10 @@ import "./index.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
-      <Toaster />
+      <TooltipProvider>
+        <App />
+        <Toaster />
+      </TooltipProvider>
     </QueryClientProvider>
   </StrictMode>,
 );
