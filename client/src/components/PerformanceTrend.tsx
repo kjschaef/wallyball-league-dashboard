@@ -141,6 +141,33 @@ export function PerformanceTrend() {
             </LineChart>
           </ResponsiveContainer>
         </div>
+
+        <div className="mt-6 border-t pt-6">
+          <h3 className="font-semibold mb-4">Current Wins/Day Standings</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {playerStats
+              .map(player => {
+                const lastDataPoint = chartData[chartData.length - 1];
+                return {
+                  name: player.name,
+                  winsPerDay: lastDataPoint[player.name] || 0
+                };
+              })
+              .sort((a, b) => b.winsPerDay - a.winsPerDay)
+              .map((player, index) => (
+                <div 
+                  key={player.name}
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">{index + 1}.</span>
+                    <span className="font-medium">{player.name}</span>
+                  </div>
+                  <span className="font-semibold">{player.winsPerDay.toFixed(1)}</span>
+                </div>
+              ))}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
