@@ -20,12 +20,18 @@ import {
 } from "@/components/ui/card";
 
 const COLORS = [
-  "#10b981", // emerald-500
-  "#3b82f6", // blue-500
-  "#f59e0b", // amber-500
-  "#ef4444", // red-500
-  "#8b5cf6", // violet-500
-  "#ec4899", // pink-500
+  "#FF6B6B", // Coral Red
+  "#4ECDC4", // Turquoise
+  "#FFD93D", // Sun Yellow
+  "#6C5CE7", // Deep Purple
+  "#A8E6CF", // Mint Green
+  "#FF8B94", // Light Pink
+  "#45B7D1", // Sky Blue
+  "#98CE00", // Lime Green
+  "#FF71CE", // Hot Pink
+  "#01CDFE", // Electric Blue
+  "#05FFA1", // Neon Green
+  "#B967FF", // Bright Purple
 ];
 
 export function PerformanceTrend() {
