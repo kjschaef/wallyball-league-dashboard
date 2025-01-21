@@ -191,14 +191,14 @@ export default function Dashboard() {
                         </span>
                         <div className="grid grid-cols-[minmax(0,1fr),auto,minmax(0,1fr)] items-center gap-2 w-full">
                           <div className={cn(
-                            "font-medium truncate",
+                            "font-medium break-words min-w-0",
                             match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
                           )}>
                             {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
                           </div>
                           <span className="text-sm text-muted-foreground px-2 whitespace-nowrap">vs</span>
                           <div className={cn(
-                            "font-medium truncate text-right",
+                            "font-medium break-words min-w-0 text-right",
                             match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
                           )}>
                             {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
