@@ -143,7 +143,7 @@ export function PerformanceTrend() {
 
         <div className="mt-4 border-t pt-4">
           <h3 className="font-semibold mb-2 text-sm">Standings</h3>
-          <div className="grid grid-cols-2 gap-1">
+          <div className="grid grid-cols-3 gap-1">
             {playerStats
               .map(player => {
                 const lastDataPoint = chartData[chartData.length - 1];
