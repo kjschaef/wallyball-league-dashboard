@@ -1,5 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -29,9 +30,19 @@ const COLORS = [
 ];
 
 export function PerformanceTrend() {
+  const [chartState, setChartState] = useState({ isActive: false });
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
   });
+
+  useEffect(() => {
+    const handleExport = () => {
+      setChartState({ isActive: true });
+      setTimeout(() => setChartState({ isActive: false }), 1000);
+    };
+    window.addEventListener('beforeprint', handleExport);
+    return () => window.removeEventListener('beforeprint', handleExport);
+  }, []);
 
   if (!players) {
     return (
@@ -163,7 +174,7 @@ export function PerformanceTrend() {
                   stroke={COLORS[index % COLORS.length]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
+                  activeDot={chartState.isActive ? { r: 6 } : false}
                   name={player.name}
                   isAnimationActive={false}
                 />
