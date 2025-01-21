@@ -120,7 +120,7 @@ export function GameHistory({ games }: GameHistoryProps) {
 
       <div className="grid gap-4">
         {filteredGames.map((game) => (
-          <div key={game.id} className="group flex items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm">
+          <div key={game.id} className="group flex items-center justify-between py-4 px-3 border-b hover:bg-muted/50 rounded-sm"> {/* Changed py-2 to py-4 */}
             <div className="flex items-center gap-4 min-w-0">
               <span className="text-sm text-muted-foreground whitespace-nowrap">
                 {format(new Date(game.date), "MMM d")}
