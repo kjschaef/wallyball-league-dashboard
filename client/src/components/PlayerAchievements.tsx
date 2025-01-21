@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Award, Trophy, Medal, Crown, Star, Users, Target } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Assuming Tooltip component exists
+
 import {
   Card,
   CardContent,
@@ -26,50 +28,30 @@ interface Achievement {
   unlockedAt: string | null;
 }
 
-export function PlayerAchievements({ playerId }: { playerId: number }) {
-  const { data: achievements } = useQuery<Achievement[]>({
+export function PlayerAchievements({ playerId, compact = false }: { playerId: number; compact?: boolean }) {
+  const { data: achievements } = useQuery({
     queryKey: [`/api/achievements/${playerId}`],
   });
 
   if (!achievements) return null;
 
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Achievements</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {achievements.map((achievement) => {
-          const Icon = ICON_MAP[achievement.icon] || Award;
-          const isUnlocked = achievement.unlockedAt !== null;
+  const unlockedAchievements = achievements.filter((a: any) => a.unlockedAt);
 
-          return (
-            <Card
-              key={achievement.id}
-              className={`relative ${
-                isUnlocked ? "bg-primary/5" : "bg-muted/50 opacity-75"
-              }`}
-            >
-              <CardHeader className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <Icon
-                    className={`h-5 w-5 ${
-                      isUnlocked ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  />
-                  <CardTitle className="text-base">{achievement.name}</CardTitle>
-                </div>
-                <CardDescription>{achievement.description}</CardDescription>
-              </CardHeader>
-              {isUnlocked && (
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Unlocked on {format(new Date(achievement.unlockedAt!), "MMM d, yyyy")}
-                  </p>
-                </CardContent>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-    </div>
+  return (
+    <>
+      {unlockedAchievements.map((achievement: any) => (
+        <Tooltip key={achievement.id} delayDuration={50}>
+          <TooltipTrigger asChild>
+            <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs cursor-help">
+              {achievement.icon}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-sm">
+            <p className="font-medium">{achievement.name}</p>
+            <p className="text-xs text-muted-foreground">{achievement.description}</p>
+          </TooltipContent>
+        </Tooltip>
+      ))}
+    </>
   );
 }

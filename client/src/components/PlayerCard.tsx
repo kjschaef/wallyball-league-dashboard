@@ -111,29 +111,26 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-4 gap-4 text-sm">
-            <div className="col-span-2 text-center bg-blue-50 rounded-lg p-3">
-              <p className="text-blue-600 font-medium">Wins/Day</p>
-              <p className="text-3xl font-bold text-blue-600">{winsPerDay}</p>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Wins/Day:</span>
+              <span className="text-lg font-semibold text-blue-600">{winsPerDay}</span>
             </div>
-            <div className="text-center">
-              <p className="text-muted-foreground text-xs">Record</p>
-              <p className="text-xl font-medium">
-                <span className="text-green-600">{stats.won}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Record:</span>
+              <span className="text-sm">
+                <span className="text-green-600 font-medium">{stats.won}</span>
                 {" / "}
-                <span className="text-red-600">{stats.lost}</span>
-              </p>
-              <p className="text-xs text-muted-foreground">Total: {total}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-muted-foreground">Win Rate</p>
-              <p className="text-2xl font-bold">{winRate}%</p>
+                <span className="text-red-600 font-medium">{stats.lost}</span>
+              </span>
             </div>
           </div>
 
-          {/* Add achievements section */}
-          <PlayerAchievements playerId={player.id} />
+          {/* Achievements as small icons */}
+          <div className="flex flex-wrap gap-1 mt-2">
+            <PlayerAchievements playerId={player.id} compact />
+          </div>
         </div>
       </CardContent>
     </Card>
