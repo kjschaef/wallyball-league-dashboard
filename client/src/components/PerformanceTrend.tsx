@@ -142,9 +142,9 @@ export function PerformanceTrend() {
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-6 border-t pt-6">
-          <h3 className="font-semibold mb-4">Current Wins/Day Standings</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="mt-4 border-t pt-4">
+          <h3 className="font-semibold mb-2 text-sm">Standings</h3>
+          <div className="space-y-1">
             {playerStats
               .map(player => {
                 const lastDataPoint = chartData[chartData.length - 1];
@@ -157,13 +157,13 @@ export function PerformanceTrend() {
               .map((player, index) => (
                 <div 
                   key={player.name}
-                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                  className="flex items-center justify-between py-0.5 px-2 text-sm bg-muted rounded"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">{index + 1}.</span>
-                    <span className="font-medium">{player.name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground w-4">{index + 1}.</span>
+                    <span>{player.name}</span>
                   </div>
-                  <span className="font-semibold">{player.winsPerDay.toFixed(1)}</span>
+                  <span className="font-medium">{player.winsPerDay.toFixed(1)}</span>
                 </div>
               ))}
           </div>
