@@ -1,6 +1,5 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -30,19 +29,9 @@ const COLORS = [
 ];
 
 export function PerformanceTrend() {
-  const [chartState, setChartState] = useState({ isActive: false });
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
   });
-
-  useEffect(() => {
-    const handleExport = () => {
-      setChartState({ isActive: true });
-      setTimeout(() => setChartState({ isActive: false }), 1000);
-    };
-    window.addEventListener('beforeprint', handleExport);
-    return () => window.removeEventListener('beforeprint', handleExport);
-  }, []);
 
   if (!players) {
     return (
@@ -116,38 +105,7 @@ export function PerformanceTrend() {
       <CardContent>
         <div className="h-[400px] w-full">
           <ResponsiveContainer>
-            <LineChart 
-              data={chartData}
-              onMouseEnter={(e) => {
-                // Show tooltip for latest data point initially
-                const latestDataPoint = chartData[chartData.length - 1];
-                if (latestDataPoint && e.currentTarget) {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  if (rect) {
-                    const event = new MouseEvent('mousemove', {
-                      clientX: rect.x + rect.width - 20,
-                      clientY: rect.y + 100,
-                      bubbles: true
-                    });
-                    e.currentTarget.dispatchEvent(event);
-                  }
-                }
-              }}
-              onMouseLeave={(e) => {
-                // Keep tooltip visible when mouse leaves
-                if (e.currentTarget) {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  if (rect) {
-                    const event = new MouseEvent('mousemove', {
-                      clientX: rect.x + rect.width - 20,
-                      clientY: rect.y + 100,
-                      bubbles: true
-                    });
-                    e.currentTarget.dispatchEvent(event);
-                  }
-                }
-              }}
-            >
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
@@ -157,12 +115,9 @@ export function PerformanceTrend() {
                 domain={[0, "auto"]}
                 tickFormatter={(value) => Math.round(value)}
               />
-              <Tooltip 
+              <Tooltip
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
                 formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
-                isAnimationActive={false}
-                active={chartState.isActive}
-                position={{ x: 600, y: 100 }}
               />
               <Legend />
               {playerStats.map((player, index) => (
@@ -173,9 +128,8 @@ export function PerformanceTrend() {
                   stroke={COLORS[index % COLORS.length]}
                   strokeWidth={2}
                   dot={{ r: 4 }}
-                  activeDot={chartState.isActive ? { r: 6 } : false}
+                  activeDot={{ r: 6 }}
                   name={player.name}
-                  isAnimationActive={false}
                 />
               ))}
             </LineChart>
