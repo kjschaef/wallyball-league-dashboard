@@ -1,6 +1,7 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Award, Trophy, Medal, Crown, Star, Users, Target } from "lucide-react";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Assuming Tooltip component exists
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
 import {
   Card,
@@ -38,7 +39,7 @@ export function PlayerAchievements({ playerId, compact = false }: { playerId: nu
   const unlockedAchievements = achievements.filter((a: any) => a.unlockedAt);
 
   return (
-    <>
+    <TooltipProvider>
       {unlockedAchievements.map((achievement: any) => (
         <Tooltip key={achievement.id} delayDuration={50}>
           <TooltipTrigger asChild>
@@ -52,6 +53,6 @@ export function PlayerAchievements({ playerId, compact = false }: { playerId: nu
           </TooltipContent>
         </Tooltip>
       ))}
-    </>
+    </TooltipProvider>
   );
 }
