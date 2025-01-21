@@ -189,16 +189,16 @@ export default function Dashboard() {
                       <span className="text-sm text-muted-foreground shrink-0">
                         {format(new Date(match.date), "MMM d")}
                       </span>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 flex-1 min-w-0 overflow-hidden">
+                      <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-2 w-full min-w-0">
                         <span className={cn(
-                          "font-medium truncate max-w-full",
+                          "font-medium truncate",
                           match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
                           {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
                         </span>
-                        <span className="text-sm text-muted-foreground shrink-0">vs</span>
+                        <span className="text-sm text-muted-foreground px-1">vs</span>
                         <span className={cn(
-                          "font-medium truncate max-w-full",
+                          "font-medium truncate text-right",
                           match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
                           {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
