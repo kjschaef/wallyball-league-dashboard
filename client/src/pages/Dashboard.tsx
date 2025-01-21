@@ -184,28 +184,28 @@ export default function Dashboard() {
               return matches
                 .filter(match => new Date(match.date).toDateString() === mostRecentDate)
                 .map((match) => (
-                  <div key={match.id} className="group flex items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm min-h-[3rem]">
-                    <div className="flex items-center gap-4 flex-1">
-                      <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  <div key={match.id} className="group flex flex-col sm:flex-row items-start sm:items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm min-h-[3rem] gap-2">
+                    <div className="flex items-center gap-2 w-full">
+                      <span className="text-sm text-muted-foreground shrink-0">
                         {format(new Date(match.date), "MMM d")}
                       </span>
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 flex-1 min-w-0 overflow-hidden">
                         <span className={cn(
-                          "font-medium whitespace-nowrap",
+                          "font-medium truncate max-w-full",
                           match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
                           {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
                         </span>
-                        <span className="text-sm text-muted-foreground px-1 whitespace-nowrap">vs</span>
+                        <span className="text-sm text-muted-foreground shrink-0">vs</span>
                         <span className={cn(
-                          "font-medium whitespace-nowrap",
+                          "font-medium truncate max-w-full",
                           match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
                           {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
                         </span>
                       </div>
                     </div>
-                    <div className="text-sm font-medium tabular-nums">
+                    <div className="text-sm font-medium tabular-nums shrink-0 self-end sm:self-center">
                       {match.teamOneGamesWon} - {match.teamTwoGamesWon}
                     </div>
                   </div>
