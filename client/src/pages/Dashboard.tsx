@@ -185,26 +185,26 @@ export default function Dashboard() {
                 .filter(match => new Date(match.date).toDateString() === mostRecentDate)
                 .map((match) => (
                   <div key={match.id} className="group flex flex-row items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm min-h-[3rem]">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="text-sm text-muted-foreground shrink-0">
-                        {format(new Date(match.date), "MMM d")}
-                      </span>
-                      <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-2 w-full min-w-0">
-                        <div className={cn(
-                          "font-medium min-w-0 break-words",
-                          match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
-                        )}>
-                          {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
-                        </div>
-                        <span className="text-sm text-muted-foreground px-2 whitespace-nowrap">vs</span>
-                        <div className={cn(
-                          "font-medium min-w-0 break-words text-right",
-                          match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
-                        )}>
-                          {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <span className="text-sm text-muted-foreground shrink-0">
+                          {format(new Date(match.date), "MMM d")}
+                        </span>
+                        <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-4 w-full min-w-0">
+                          <div className={cn(
+                            "font-medium min-w-0 break-words",
+                            match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
+                          )}>
+                            {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
+                          </div>
+                          <span className="text-sm text-muted-foreground px-2 whitespace-nowrap">vs</span>
+                          <div className={cn(
+                            "font-medium min-w-0 break-words text-right",
+                            match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
+                          )}>
+                            {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
+                          </div>
                         </div>
                       </div>
-                    </div>
                     <div className="text-sm font-medium tabular-nums shrink-0 self-end sm:self-center">
                       {match.teamOneGamesWon} - {match.teamTwoGamesWon}
                     </div>
