@@ -144,7 +144,7 @@ export function PerformanceTrend() {
 
         <div className="mt-4 border-t pt-4">
           <h3 className="font-semibold mb-2 text-sm">Standings</h3>
-          <div className="space-y-1">
+          <div className="grid grid-cols-2 gap-1">
             {playerStats
               .map(player => {
                 const lastDataPoint = chartData[chartData.length - 1];
@@ -158,6 +158,7 @@ export function PerformanceTrend() {
                 <div 
                   key={player.name}
                   className="flex items-center justify-between py-0.5 px-2 text-sm bg-muted rounded"
+                  style={{ color: COLORS[playerStats.findIndex(p => p.name === player.name) % COLORS.length] }}
                 >
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-muted-foreground w-4">{index + 1}.</span>
