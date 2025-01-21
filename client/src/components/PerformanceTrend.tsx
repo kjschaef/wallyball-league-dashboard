@@ -158,7 +158,7 @@ export function PerformanceTrend() {
                 return (
                   <div 
                     key={player.name}
-                    className="flex flex-col items-center justify-center p-2 bg-muted rounded-lg space-y-1"
+                    className="flex items-center justify-between p-2 bg-muted rounded-lg"
                     style={{ borderLeft: `3px solid ${color}` }}
                   >
                     <div className="flex items-center gap-1.5">
