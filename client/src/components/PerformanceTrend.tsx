@@ -161,8 +161,7 @@ export function PerformanceTrend() {
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
                 formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
                 isAnimationActive={false}
-                active={true}
-                coordinate={{ x: 600, y: 100 }}
+                active={chartState.isActive}
                 position={{ x: 600, y: 100 }}
               />
               <Legend />
