@@ -178,29 +178,29 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                       {format(new Date(match.date), "MMM d, h:mm a")}
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2">
                       <div className="space-y-2">
                         {/* Team One */}
                         <div className={cn(
-                          "flex items-center gap-2 font-medium text-sm",
+                          "grid grid-cols-[2rem_1fr] items-center gap-2 font-medium text-sm",
                           match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
-                          <div className="font-bold tabular-nums w-6 text-center">
+                          <div className="font-bold tabular-nums text-center">
                             {match.teamOneGamesWon}
                           </div>
-                          <div className="truncate">
+                          <div className="min-w-0">
                             {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
                           </div>
                         </div>
                         {/* Team Two */}
                         <div className={cn(
-                          "flex items-center gap-2 font-medium text-sm",
+                          "grid grid-cols-[2rem_1fr] items-center gap-2 font-medium text-sm",
                           match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
-                          <div className="font-bold tabular-nums w-6 text-center">
+                          <div className="font-bold tabular-nums text-center">
                             {match.teamTwoGamesWon}
                           </div>
-                          <div className="truncate">
+                          <div className="min-w-0">
                             {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
                           </div>
                         </div>
