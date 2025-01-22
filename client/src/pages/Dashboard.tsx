@@ -126,7 +126,7 @@ export default function Dashboard() {
     try {
       // Get computed height of content
       const height = element.getBoundingClientRect().height;
-      
+
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
         scale: 2,
@@ -169,51 +169,51 @@ export default function Dashboard() {
           <CardTitle>Recent Matches</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            {(() => {
-              if (matches.length === 0) {
-                return <div className="text-sm text-muted-foreground">No matches found</div>;
-              }
-
-              // Find the most recent date that has matches
-              const mostRecentDate = matches
-                .map(match => new Date(match.date))
-                .sort((a, b) => b.getTime() - a.getTime())[0]
-                .toDateString();
-
-              return matches
-                .filter(match => new Date(match.date).toDateString() === mostRecentDate)
-                .map((match) => (
-                  <div key={match.id} className="group flex flex-row items-center justify-between py-2 px-3 border-b hover:bg-muted/50 rounded-sm min-h-[3rem]">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-sm text-muted-foreground shrink-0">
-                          {format(new Date(match.date), "MMM d")}
-                        </span>
-                        <div className="grid grid-cols-[minmax(0,1fr),auto,minmax(0,1fr)] items-center gap-2 w-full">
-                          <div className={cn(
-                            "font-medium break-words min-w-0",
-                            match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
-                          )}>
-                            {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
-                          </div>
-                          <span className="text-sm text-muted-foreground px-2 whitespace-nowrap">vs</span>
-                          <div className={cn(
-                            "font-medium break-words min-w-0 text-right",
-                            match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
-                          )}>
-                            {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
-                          </div>
+            {recentMatches.length === 0 ? (
+              <p className="text-muted-foreground">No matches found</p>
+            ) : (
+              <div className="grid gap-4">
+                {recentMatches.map((match) => (
+                  <div key={match.id} className="flex flex-col space-y-3 p-4 border rounded-lg hover:bg-muted/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        {format(new Date(match.date), "MMM d, h:mm a")}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* Team One */}
+                      <div className="flex flex-col space-y-1">
+                        <div className={cn(
+                          "font-medium text-sm md:text-base",
+                          match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
+                        )}>
+                          {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
+                        </div>
+                        <div className="text-2xl font-bold">
+                          {match.teamOneGamesWon}
+                          <span className="text-sm font-normal text-muted-foreground ml-1">wins</span>
                         </div>
                       </div>
-                    <div className="text-sm font-medium tabular-nums shrink-0 ml-2">
-                      {match.teamOneGamesWon} - {match.teamTwoGamesWon}
+                      {/* Team Two */}
+                      <div className="flex flex-col space-y-1">
+                        <div className={cn(
+                          "font-medium text-sm md:text-base",
+                          match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
+                        )}>
+                          {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
+                        </div>
+                        <div className="text-2xl font-bold">
+                          {match.teamTwoGamesWon}
+                          <span className="text-sm font-normal text-muted-foreground ml-1">wins</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ))
-            })()}
-          </div>
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Dialog open={showDailyWins} onOpenChange={setShowDailyWins}>
