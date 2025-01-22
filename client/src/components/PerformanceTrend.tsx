@@ -50,16 +50,8 @@ export function PerformanceTrend() {
     );
   }
 
-  // Filter for recently active players (last 7 days)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  
-  const recentlyActivePlayers = players.filter(player => {
-    return player.matches.some(match => new Date(match.date) >= sevenDaysAgo);
-  });
-
   // Process player data to calculate cumulative wins per days played
-  const playerStats = recentlyActivePlayers.map((player) => {
+  const playerStats = players.map((player) => {
     const dailyStats = new Map();
     let cumulativeWins = 0;
     let daysPlayed = new Set();
