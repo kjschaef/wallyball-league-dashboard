@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -110,14 +110,11 @@ export function PerformanceTrend() {
       <CardContent>
         <div className="h-[400px] w-full">
           <ResponsiveContainer>
-            <BarChart data={chartData}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
                 tickFormatter={(date) => format(parseISO(date), "MMM d")}
-                height={60}
-                angle={-45}
-                textAnchor="end"
               />
               <YAxis
                 domain={[0, "auto"]}
@@ -129,14 +126,18 @@ export function PerformanceTrend() {
               />
               <Legend />
               {playerStats.map((player, index) => (
-                <Bar
+                <Line
                   key={player.id}
+                  type="monotone"
                   dataKey={player.name}
-                  fill={COLORS[index % COLORS.length]}
+                  stroke={COLORS[index % COLORS.length]}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
                   name={player.name}
                 />
               ))}
-            </BarChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
 
