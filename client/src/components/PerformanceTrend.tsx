@@ -83,10 +83,10 @@ export function PerformanceTrend() {
   });
 
   // Create chart data with wins and losses
-  const chartData = playerStats.map(player => ({
+  const chartData = players.map(player => ({
     name: player.name,
-    wins: player.matches.reduce((sum, match) => sum + (match.isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon), 0),
-    losses: player.matches.reduce((sum, match) => sum + (match.isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon), 0)
+    wins: player.stats.won,
+    losses: player.stats.lost
   }));
 
   return (
