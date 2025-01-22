@@ -82,60 +82,29 @@ export function PerformanceTrend() {
     player.dailyStats.forEach((_, date) => allDates.add(date));
   });
 
-  // Create chart data with cumulative wins
-  const chartData = Array.from(allDates)
-    .sort()
-    .reduce((acc, date) => {
-      const dataPoint: any = { date };
-      playerStats.forEach((player) => {
-        const stats = player.dailyStats.get(date);
-        if (stats) {
-          dataPoint[player.name] = stats.gamesWon;
-        } else if (acc.length > 0) {
-          // Use the last known value
-          dataPoint[player.name] = acc[acc.length - 1][player.name] ?? 0;
-        } else {
-          dataPoint[player.name] = 0;
-        }
-      });
-      acc.push(dataPoint);
-      return acc;
-    }, [] as any[]);
+  // Create chart data with wins and losses
+  const chartData = playerStats.map(player => ({
+    name: player.name,
+    wins: player.matches.reduce((sum, match) => sum + (match.isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon), 0),
+    losses: player.matches.reduce((sum, match) => sum + (match.isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon), 0)
+  }));
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Wins Per Day Played</CardTitle>
+        <CardTitle>Total Wins vs Losses</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full">
           <ResponsiveContainer>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
-                tickFormatter={(date) => format(parseISO(date), "MMM d")}
-                height={60}
-                angle={-45}
-                textAnchor="end"
-              />
-              <YAxis
-                domain={[0, "auto"]}
-                tickFormatter={(value) => Math.round(value)}
-              />
-              <Tooltip
-                labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
-                formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
-              />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
               <Legend />
-              {playerStats.map((player, index) => (
-                <Bar
-                  key={player.id}
-                  dataKey={player.name}
-                  fill={COLORS[index % COLORS.length]}
-                  name={player.name}
-                />
-              ))}
+              <Bar dataKey="wins" stackId="a" fill="#4ade80" name="Wins" />
+              <Bar dataKey="losses" stackId="a" fill="#f87171" name="Losses" />
             </BarChart>
           </ResponsiveContainer>
         </div>
