@@ -174,37 +174,33 @@ export default function Dashboard() {
             ) : (
               <div className="grid gap-4">
                 {recentMatches.map((match) => (
-                  <div key={match.id} className="flex flex-col space-y-3 p-4 border rounded-lg hover:bg-muted/50">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        {format(new Date(match.date), "MMM d, h:mm a")}
-                      </span>
+                  <div key={match.id} className="flex flex-col py-2 px-3 border-b last:border-b-0 hover:bg-muted/50">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                      {format(new Date(match.date), "MMM d, h:mm a")}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       {/* Team One */}
-                      <div className="flex flex-col space-y-1">
+                      <div className="flex items-center justify-between">
                         <div className={cn(
-                          "font-medium text-sm md:text-base",
+                          "font-medium text-sm truncate mr-2",
                           match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
                           {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
                         </div>
-                        <div className="text-2xl font-bold">
+                        <div className="font-bold tabular-nums">
                           {match.teamOneGamesWon}
-                          <span className="text-sm font-normal text-muted-foreground ml-1">wins</span>
                         </div>
                       </div>
                       {/* Team Two */}
-                      <div className="flex flex-col space-y-1">
+                      <div className="flex items-center justify-between">
                         <div className={cn(
-                          "font-medium text-sm md:text-base",
+                          "font-medium text-sm truncate mr-2",
                           match.teamTwoGamesWon > match.teamOneGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
                           {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
                         </div>
-                        <div className="text-2xl font-bold">
+                        <div className="font-bold tabular-nums">
                           {match.teamTwoGamesWon}
-                          <span className="text-sm font-normal text-muted-foreground ml-1">wins</span>
                         </div>
                       </div>
                     </div>
