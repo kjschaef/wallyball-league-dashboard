@@ -158,14 +158,14 @@ export function PerformanceTrend() {
                 return (
                   <div 
                     key={player.name}
-                    className="flex items-center justify-between px-2.5 py-3 bg-muted rounded-lg"
+                    className="flex items-center justify-between px-2 py-2.5 bg-muted rounded-lg"
                     style={{ borderLeft: `3px solid ${color}` }}
                   >
-                    <div className="flex items-center gap-1 min-w-0 flex-1 mr-2">
+                    <div className="flex items-center gap-1 min-w-0 flex-grow mr-1.5">
                       <span className="text-[0.65rem] sm:text-xs shrink-0 text-muted-foreground">{index + 1}.</span>
-                      <span className="text-xs sm:text-sm truncate" style={{ color }}>{player.name}</span>
+                      <span className="text-[0.7rem] sm:text-sm w-full" style={{ color }}>{player.name}</span>
                     </div>
-                    <span className="text-sm sm:text-lg font-semibold shrink-0" style={{ color }}>
+                    <span className="text-xs sm:text-base font-semibold shrink-0 pl-1" style={{ color }}>
                       {player.winsPerDay.toFixed(1)}
                     </span>
                   </div>
