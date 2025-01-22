@@ -163,7 +163,7 @@ export function PerformanceTrend() {
                   >
                     <div className="flex items-center gap-1 min-w-0 flex-grow mr-1.5">
                       <span className="text-[0.65rem] sm:text-xs shrink-0 text-muted-foreground">{index + 1}.</span>
-                      <span className="text-[0.7rem] sm:text-sm w-full" style={{ color }}>{player.name}</span>
+                      <span className="text-[0.7rem] sm:text-sm w-full font-bold" style={{ color }}>{player.name}</span>
                     </div>
                     <span className="text-xs sm:text-base font-semibold shrink-0 pl-1" style={{ color }}>
                       {player.winsPerDay.toFixed(1)}
