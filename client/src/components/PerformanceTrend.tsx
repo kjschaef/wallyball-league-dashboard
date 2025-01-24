@@ -205,14 +205,11 @@ export function PerformanceTrend() {
                   <div 
                     key={player.name}
                     className={cn(
-                      "flex items-center justify-between px-2 py-2.5 bg-muted rounded-lg relative",
-                      recentPlayerIds.has(player.id) && "bg-primary/10 ring-2 ring-primary shadow-md border border-primary/20"
+                      "flex items-center justify-between px-2 py-2.5 bg-muted rounded-lg",
+                      recentPlayerIds.has(player.id) && "bg-muted/80 ring-1 ring-primary/10"
                     )}
                     style={{ borderLeft: `3px solid ${color}` }}
                   >
-                    {recentPlayerIds.has(player.id) && (
-                      <div className="absolute -right-1 -top-1 w-2.5 h-2.5 bg-primary rounded-full" />
-                    )}
                     <div className="flex items-center gap-1 min-w-0 flex-grow mr-1.5">
                       <span className="text-[0.65rem] sm:text-xs shrink-0 text-muted-foreground">{index + 1}.</span>
                       <span className="text-[0.7rem] sm:text-sm w-full font-bold" style={{ color }}>{player.name}</span>
