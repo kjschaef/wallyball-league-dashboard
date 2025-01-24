@@ -92,19 +92,16 @@ export function PerformanceTrend() {
       cumulativeWins += gamesWon;
       daysPlayed.add(date);
 
-      // Calculate weights and bonuses
+      // Calculate activity weight
       const daysSinceJoining = Math.max(1, (new Date().getTime() - new Date(player.createdAt).getTime()) / (1000 * 60 * 60 * 24));
       const daysPlayedCount = daysPlayed.size;
       
       // Activity weight: penalize for playing fewer days relative to time in system
       const activityWeight = Math.min(1, daysPlayedCount / daysSinceJoining);
       
-      // Consistency bonus: reward frequent play (max 1.5x bonus)
-      const consistencyBonus = 1 + Math.min(0.5, daysPlayedCount / 14); // 2 weeks reference period
-      
       // Calculate weighted score
       const baseWinsPerDay = cumulativeWins / daysPlayedCount;
-      const weightedScore = baseWinsPerDay * activityWeight * consistencyBonus;
+      const weightedScore = baseWinsPerDay * activityWeight;
 
       dailyStats.set(date, { 
         winsPerDay: weightedScore,
