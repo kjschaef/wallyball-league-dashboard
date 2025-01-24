@@ -193,6 +193,7 @@ export function PerformanceTrend() {
               .map(player => {
                 const lastDataPoint = chartData[chartData.length - 1];
                 return {
+                  id: player.id,
                   name: player.name,
                   value: lastDataPoint[player.name] || 0
                 };
