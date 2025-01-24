@@ -169,23 +169,18 @@ export default function Dashboard() {
         <PerformanceTrend />
 
         <Card>
-        <CardHeader>
-          <CardTitle>Recent Matches</CardTitle>
-        </CardHeader>
-        <CardContent>
+          <CardHeader>
+            <CardTitle>Recent Matches - {mostRecentDayWithGames ? format(new Date(mostRecentDayWithGames), "MMM d, yyyy") : "No matches"}</CardTitle>
+          </CardHeader>
+          <CardContent>
             {filteredMatches.length === 0 ? (
               <p className="text-muted-foreground">No matches found</p>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-2">
                 {filteredMatches.map((match) => (
-                  <div key={match.id} className="flex flex-col py-2 px-3 border-b last:border-b-0 hover:bg-muted/50">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                      {format(new Date(match.date), "MMM d, h:mm a")}
-                    </div>
-                    <div className="grid grid-cols-1 gap-2">
-                      <div className="space-y-2">
-                        {/* Team One */}
-                        <div className={cn(
+                  <div key={match.id} className="flex flex-col py-1.5 px-3 border-b last:border-b-0 hover:bg-muted/50">
+                    <div className="grid grid-cols-1 gap-1.5">
+                      <div className={cn(
                           "grid grid-cols-[2rem_1fr] items-center gap-2 font-medium text-sm",
                           match.teamOneGamesWon > match.teamTwoGamesWon ? "text-green-600 dark:text-green-500" : ""
                         )}>
@@ -208,7 +203,6 @@ export default function Dashboard() {
                             {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
                           </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -294,84 +288,84 @@ export default function Dashboard() {
                   {/* Team One */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Team One</h3>
-                  <FormField
-                    control={gameForm.control}
-                    name="teamOnePlayers"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Players (up to 3)</FormLabel>
-                        <FormControl>
-                          <PlayerSelector
-                            players={players || []}
-                            selectedPlayers={teamOnePlayers}
-                            onSelect={(playerId) => {
-                              const newSelection = teamOnePlayers.includes(playerId)
-                                ? teamOnePlayers.filter(id => id !== playerId)
-                                : [...teamOnePlayers, playerId];
-                              setTeamOnePlayers(newSelection);
-                              field.onChange(newSelection);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={gameForm.control}
-                    name="teamOneGamesWon"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Games Won</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                    <FormField
+                      control={gameForm.control}
+                      name="teamOnePlayers"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Players (up to 3)</FormLabel>
+                          <FormControl>
+                            <PlayerSelector
+                              players={players || []}
+                              selectedPlayers={teamOnePlayers}
+                              onSelect={(playerId) => {
+                                const newSelection = teamOnePlayers.includes(playerId)
+                                  ? teamOnePlayers.filter(id => id !== playerId)
+                                  : [...teamOnePlayers, playerId];
+                                setTeamOnePlayers(newSelection);
+                                field.onChange(newSelection);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={gameForm.control}
+                      name="teamOneGamesWon"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Games Won</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                {/* Team Two */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Team Two</h3>
-                  <FormField
-                    control={gameForm.control}
-                    name="teamTwoPlayers"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Players (up to 3)</FormLabel>
-                        <FormControl>
-                          <PlayerSelector
-                            players={players || []}
-                            selectedPlayers={teamTwoPlayers}
-                            onSelect={(playerId) => {
-                              const newSelection = teamTwoPlayers.includes(playerId)
-                                ? teamTwoPlayers.filter(id => id !== playerId)
-                                : [...teamTwoPlayers, playerId];
-                              setTeamTwoPlayers(newSelection);
-                              field.onChange(newSelection);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={gameForm.control}
-                    name="teamTwoGamesWon"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Games Won</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                  {/* Team Two */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Team Two</h3>
+                    <FormField
+                      control={gameForm.control}
+                      name="teamTwoPlayers"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Players (up to 3)</FormLabel>
+                          <FormControl>
+                            <PlayerSelector
+                              players={players || []}
+                              selectedPlayers={teamTwoPlayers}
+                              onSelect={(playerId) => {
+                                const newSelection = teamTwoPlayers.includes(playerId)
+                                  ? teamTwoPlayers.filter(id => id !== playerId)
+                                  : [...teamTwoPlayers, playerId];
+                                setTeamTwoPlayers(newSelection);
+                                field.onChange(newSelection);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={gameForm.control}
+                      name="teamTwoGamesWon"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Games Won</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
 
