@@ -54,10 +54,28 @@ export function PerformanceTrend() {
   }
 
   // Process player data to calculate cumulative wins per days played
+  // Get most recent date with matches
+  const mostRecentDate = players
+    .flatMap(player => player.matches || [])
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date;
+
+  // Get players from most recent date
+  const recentPlayerIds = new Set(
+    players
+      .flatMap(player => player.matches || [])
+      .filter(match => new Date(match.date).toDateString() === new Date(mostRecentDate).toDateString())
+      .flatMap(match => [
+        match.isTeamOne ? player.id : null,
+        !match.isTeamOne ? player.id : null,
+      ])
+      .filter(id => id !== null)
+  );
+
   const playerStats = players.map((player) => {
     const dailyStats = new Map();
     let cumulativeWins = 0;
     let daysPlayed = new Set();
+    const isRecent = recentPlayerIds.has(player.id);
 
     // Sort matches by date
     const sortedMatches = [...(player.matches || [])].sort(
@@ -153,9 +171,10 @@ export function PerformanceTrend() {
                   type="monotone"
                   dataKey={player.name}
                   stroke={COLORS[index % COLORS.length]}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
+                  strokeWidth={recentPlayerIds.has(player.id) ? 3 : 1.5}
+                  strokeOpacity={recentPlayerIds.has(player.id) ? 1 : 0.6}
+                  dot={{ r: recentPlayerIds.has(player.id) ? 5 : 3 }}
+                  activeDot={{ r: recentPlayerIds.has(player.id) ? 7 : 5 }}
                   name={player.name}
                 />
               ))}
