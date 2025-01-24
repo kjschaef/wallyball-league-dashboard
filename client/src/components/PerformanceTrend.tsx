@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +36,7 @@ const COLORS = [
 ];
 
 export function PerformanceTrend() {
-  const [metric, setMetric] = React.useState<'winsPerDay' | 'totalWins'>('winsPerDay');
+  const [metric, setMetric] = useState<'winsPerDay' | 'totalWins'>('winsPerDay');
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
   });
