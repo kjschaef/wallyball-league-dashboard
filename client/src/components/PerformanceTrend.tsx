@@ -19,6 +19,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { cn } from "@/utils/cn";
 
 const COLORS = [
   "#FF6B6B", // Coral Red
@@ -202,7 +203,10 @@ export function PerformanceTrend() {
                 return (
                   <div 
                     key={player.name}
-                    className="flex items-center justify-between px-2 py-2.5 bg-muted rounded-lg"
+                    className={cn(
+                      "flex items-center justify-between px-2 py-2.5 bg-muted rounded-lg",
+                      recentPlayerIds.has(player.id) && "bg-muted/80 ring-2 ring-primary/20"
+                    )}
                     style={{ borderLeft: `3px solid ${color}` }}
                   >
                     <div className="flex items-center gap-1 min-w-0 flex-grow mr-1.5">
