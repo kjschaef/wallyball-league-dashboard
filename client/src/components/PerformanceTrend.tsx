@@ -167,8 +167,12 @@ export function PerformanceTrend() {
               <Tooltip
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
                 formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
+                contentStyle={{ fontWeight: recentPlayerIds.has(playerStats.find(p => p.name === name)?.id || 0) ? 'bold' : 'normal' }}
               />
-              <Legend />
+              <Legend formatter={(value) => {
+                const playerId = playerStats.find(p => p.name === value)?.id;
+                return recentPlayerIds.has(playerId || 0) ? <strong>{value}</strong> : value;
+              }} />
               {playerStats.map((player, index) => (
                 <Line
                   key={player.id}
