@@ -19,7 +19,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { cn } from "@/utils/cn";
+import { cn } from "@/lib/utils";
 
 const COLORS = [
   "#FF6B6B", // Coral Red
