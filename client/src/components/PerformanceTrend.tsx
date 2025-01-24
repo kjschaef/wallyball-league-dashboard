@@ -173,19 +173,27 @@ export function PerformanceTrend() {
                 const playerId = playerStats.find(p => p.name === value)?.id;
                 return recentPlayerIds.has(playerId || 0) ? <strong>{value}</strong> : value;
               }} />
-              {playerStats.map((player, index) => (
-                <Line
-                  key={player.id}
-                  type="monotone"
-                  dataKey={player.name}
-                  stroke={COLORS[index % COLORS.length]}
-                  strokeWidth={recentPlayerIds.has(player.id) ? 3 : 1.5}
-                  strokeOpacity={recentPlayerIds.has(player.id) ? 1 : 0.6}
-                  dot={{ r: recentPlayerIds.has(player.id) ? 5 : 3 }}
-                  activeDot={{ r: recentPlayerIds.has(player.id) ? 7 : 5 }}
-                  name={player.name}
-                />
-              ))}
+              {[...playerStats]
+                .sort((a, b) => {
+                  const aIsRecent = recentPlayerIds.has(a.id);
+                  const bIsRecent = recentPlayerIds.has(b.id);
+                  if (aIsRecent && !bIsRecent) return -1;
+                  if (!aIsRecent && bIsRecent) return 1;
+                  return 0;
+                })
+                .map((player, index) => (
+                  <Line
+                    key={player.id}
+                    type="monotone"
+                    dataKey={player.name}
+                    stroke={COLORS[playerStats.findIndex(p => p.id === player.id) % COLORS.length]}
+                    strokeWidth={recentPlayerIds.has(player.id) ? 3 : 1.5}
+                    strokeOpacity={recentPlayerIds.has(player.id) ? 1 : 0.6}
+                    dot={{ r: recentPlayerIds.has(player.id) ? 5 : 3 }}
+                    activeDot={{ r: recentPlayerIds.has(player.id) ? 7 : 5 }}
+                    name={player.name}
+                  />
+                ))}
             </LineChart>
           </ResponsiveContainer>
         </div>
