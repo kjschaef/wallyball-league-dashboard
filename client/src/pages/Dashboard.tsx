@@ -192,17 +192,8 @@ export default function Dashboard() {
                           <div className="font-bold tabular-nums text-center">
                             {match.teamOneGamesWon}
                           </div>
-                          <div className="min-w-0 flex gap-1 flex-wrap">
-                            {[match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId]
-                              .filter((id): id is number => id !== null)
-                              .map((playerId) => {
-                                const player = players?.find(p => p.id === playerId);
-                                return player ? (
-                                  <span key={player.id} className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium">
-                                    {player.name}
-                                  </span>
-                                ) : null;
-                              })}
+                          <div className="min-w-0">
+                            {formatTeam([match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId])}
                           </div>
                         </div>
                         {/* Team Two */}
@@ -213,17 +204,8 @@ export default function Dashboard() {
                           <div className="font-bold tabular-nums text-center">
                             {match.teamTwoGamesWon}
                           </div>
-                          <div className="min-w-0 flex gap-1 flex-wrap">
-                            {[match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId]
-                              .filter((id): id is number => id !== null)
-                              .map((playerId) => {
-                                const player = players?.find(p => p.id === playerId);
-                                return player ? (
-                                  <span key={player.id} className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium">
-                                    {player.name}
-                                  </span>
-                                ) : null;
-                              })}
+                          <div className="min-w-0">
+                            {formatTeam([match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId])}
                           </div>
                         </div>
                       </div>
