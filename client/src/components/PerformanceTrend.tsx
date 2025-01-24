@@ -171,10 +171,10 @@ export function PerformanceTrend() {
                 const lastDataPoint = chartData[chartData.length - 1];
                 return {
                   name: player.name,
-                  winsPerDay: lastDataPoint[player.name] || 0
+                  value: lastDataPoint[player.name] || 0
                 };
               })
-              .sort((a, b) => b.winsPerDay - a.winsPerDay)
+              .sort((a, b) => b.value - a.value)
               .map((player, index) => {
                 const color = COLORS[playerStats.findIndex(p => p.name === player.name) % COLORS.length];
                 return (
@@ -188,7 +188,7 @@ export function PerformanceTrend() {
                       <span className="text-[0.7rem] sm:text-sm w-full font-bold" style={{ color }}>{player.name}</span>
                     </div>
                     <span className="text-xs sm:text-base font-semibold shrink-0 pl-1" style={{ color }}>
-                      {player.winsPerDay.toFixed(1)}
+                      {player.value.toFixed(1)}
                     </span>
                   </div>
                 );
