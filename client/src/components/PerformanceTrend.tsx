@@ -62,13 +62,16 @@ export function PerformanceTrend() {
   // Get players from most recent date
   const recentPlayerIds = new Set(
     players
-      .flatMap(player => player.matches || [])
+      .flatMap(player => (player.matches || []).map(match => ({
+        ...match,
+        playerId: player.id
+      })))
       .filter(match => new Date(match.date).toDateString() === new Date(mostRecentDate).toDateString())
       .flatMap(match => [
-        match.isTeamOne ? player.id : null,
-        !match.isTeamOne ? player.id : null,
+        match.isTeamOne ? match.playerId : null,
+        !match.isTeamOne ? match.playerId : null,
       ])
-      .filter(id => id !== null)
+      .filter((id): id is number => id !== null)
   );
 
   const playerStats = players.map((player) => {
