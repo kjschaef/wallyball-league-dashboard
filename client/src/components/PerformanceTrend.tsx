@@ -205,7 +205,7 @@ export function PerformanceTrend() {
                     key={player.name}
                     className={cn(
                       "flex items-center justify-between px-2 py-2.5 bg-muted rounded-lg relative",
-                      recentPlayerIds.has(player.id) && "bg-primary/5 ring-2 ring-primary shadow-sm"
+                      recentPlayerIds.has(player.id) && "bg-primary/10 ring-2 ring-primary shadow-md border border-primary/20"
                     )}
                     style={{ borderLeft: `3px solid ${color}` }}
                   >
