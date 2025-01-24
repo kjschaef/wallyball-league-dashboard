@@ -114,10 +114,14 @@ export default function Dashboard() {
       .join(", ");
   };
 
-  // Get last 5 matches
+  // Get last 5 matches, filtered to most recent day with games
   const recentMatches = [...matches]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const mostRecentDayWithGames = recentMatches.length > 0 ? new Date(recentMatches[0].date).toLocaleDateString() : null;
+
+  const filteredMatches = recentMatches.filter(match => new Date(match.date).toLocaleDateString() === mostRecentDayWithGames).slice(0,5);
+
 
   const shareAsImage = async () => {
     const element = document.getElementById('dashboard-content');
@@ -169,11 +173,11 @@ export default function Dashboard() {
           <CardTitle>Recent Matches</CardTitle>
         </CardHeader>
         <CardContent>
-            {recentMatches.length === 0 ? (
+            {filteredMatches.length === 0 ? (
               <p className="text-muted-foreground">No matches found</p>
             ) : (
               <div className="grid gap-4">
-                {recentMatches.map((match) => (
+                {filteredMatches.map((match) => (
                   <div key={match.id} className="flex flex-col py-2 px-3 border-b last:border-b-0 hover:bg-muted/50">
                     <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                       {format(new Date(match.date), "MMM d, h:mm a")}
