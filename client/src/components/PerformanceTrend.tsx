@@ -81,6 +81,15 @@ export function PerformanceTrend() {
     let daysPlayed = new Set();
     const isRecent = recentPlayerIds.has(player.id);
 
+    // Calculate days since first game for activity weighting
+    const sortedMatches = [...(player.matches || [])].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    const firstGameDate = sortedMatches[0]?.date;
+    const daysSinceFirstGame = firstGameDate 
+      ? Math.max(1, Math.ceil((new Date().getTime() - new Date(firstGameDate).getTime()) / (1000 * 60 * 60 * 24)))
+      : 1;
+
     // Sort matches by date
     const sortedMatches = [...(player.matches || [])].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -91,8 +100,12 @@ export function PerformanceTrend() {
       const gamesWon = match.isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
       cumulativeWins += gamesWon;
       daysPlayed.add(date);
+      // Calculate weighted metrics
+      const activityWeight = Math.min(1, daysPlayed.size / daysSinceFirstGame);
+      const consistencyBonus = Math.log10(daysPlayed.size + 1);
+      
       dailyStats.set(date, { 
-        winsPerDay: cumulativeWins / daysPlayed.size,
+        winsPerDay: (cumulativeWins / daysPlayed.size) * activityWeight * consistencyBonus,
         totalWins: cumulativeWins 
       });
     });
@@ -101,6 +114,8 @@ export function PerformanceTrend() {
       id: player.id,
       name: player.name,
       dailyStats,
+      daysPlayed: daysPlayed.size,
+      daysSinceFirstGame,
     };
   });
 
