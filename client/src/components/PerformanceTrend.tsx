@@ -133,7 +133,7 @@ export function PerformanceTrend() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{metric === 'winsPerDay' ? 'Wins Per Day Played' : 'Total Wins'}</CardTitle>
+        <CardTitle>{metric === 'winsPerDay' ? 'Wins Per Day Played' : 'Total Wins'} - {mostRecentDate ? format(new Date(mostRecentDate), "MMM d, yyyy") : "No matches"}</CardTitle>
         <div className="flex gap-2">
           <Button 
             variant={metric === 'winsPerDay' ? 'default' : 'outline'} 
@@ -209,7 +209,7 @@ export function PerformanceTrend() {
                   <div 
                     key={player.name}
                     className={cn(
-                      "flex items-center justify-between px-2 py-2.5 bg-muted rounded-lg",
+                      "flex items-center justify-between px-2 py-1.5 bg-muted rounded-lg", //Reduced vertical padding
                       recentPlayerIds.has(player.id) && "border-2"
                     )}
                     style={{ 
