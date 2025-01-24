@@ -206,9 +206,12 @@ export function PerformanceTrend() {
                     key={player.name}
                     className={cn(
                       "flex items-center justify-between px-2 py-2.5 bg-muted rounded-lg",
-                      recentPlayerIds.has(player.id) && "bg-primary/20"
+                      recentPlayerIds.has(player.id) && "border-2"
                     )}
-                    style={{ borderLeft: `3px solid ${color}` }}
+                    style={{ 
+                      borderColor: recentPlayerIds.has(player.id) ? color : 'transparent',
+                      borderLeftWidth: '3px'
+                    }}
                   >
                     <div className="flex items-center gap-1 min-w-0 flex-grow mr-1.5">
                       <span className="text-[0.65rem] sm:text-xs shrink-0 text-muted-foreground">{index + 1}.</span>
