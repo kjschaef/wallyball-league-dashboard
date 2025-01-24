@@ -34,6 +34,7 @@ const COLORS = [
 ];
 
 export function PerformanceTrend() {
+  const [metric, setMetric] = useState<'winsPerDay' | 'totalWins'>('winsPerDay');
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
   });
@@ -66,7 +67,10 @@ export function PerformanceTrend() {
       const gamesWon = match.isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
       cumulativeWins += gamesWon;
       daysPlayed.add(date);
-      dailyStats.set(date, { gamesWon: cumulativeWins / daysPlayed.size });
+      dailyStats.set(date, { 
+        winsPerDay: cumulativeWins / daysPlayed.size,
+        totalWins: cumulativeWins 
+      });
     });
 
     return {
@@ -90,7 +94,7 @@ export function PerformanceTrend() {
       playerStats.forEach((player) => {
         const stats = player.dailyStats.get(date);
         if (stats) {
-          dataPoint[player.name] = stats.gamesWon;
+          dataPoint[player.name] = stats[metric];
         } else if (acc.length > 0) {
           // Use the last known value
           dataPoint[player.name] = acc[acc.length - 1][player.name] ?? 0;
@@ -104,8 +108,24 @@ export function PerformanceTrend() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Wins Per Day Played</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>{metric === 'winsPerDay' ? 'Wins Per Day Played' : 'Total Wins'}</CardTitle>
+        <div className="flex gap-2">
+          <Button 
+            variant={metric === 'winsPerDay' ? 'default' : 'outline'} 
+            size="sm"
+            onClick={() => setMetric('winsPerDay')}
+          >
+            Per Day
+          </Button>
+          <Button 
+            variant={metric === 'totalWins' ? 'default' : 'outline'} 
+            size="sm"
+            onClick={() => setMetric('totalWins')}
+          >
+            Total
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full">
