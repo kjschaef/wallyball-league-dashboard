@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Share2 } from "lucide-react";
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { startOfToday, endOfToday, startOfYear, endOfYear } from "date-fns";
 import html2canvas from "html2canvas";
+import { useToast } from "@/hooks/use-toast";
 
 interface MatchResult {
   id: number;
@@ -32,6 +32,7 @@ export default function Results() {
   });
 
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const today = new Date();
   const todayStart = startOfToday();
@@ -85,6 +86,15 @@ export default function Results() {
     }
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) =>
+      fetch(`/api/players/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/players"] });
+      toast({ title: "Player deleted successfully" });
+    },
+  });
+
   return (
     <div className="space-y-6 p-6">
       <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
@@ -102,9 +112,7 @@ export default function Results() {
             onEdit={(player) => {
               // Implement edit functionality if needed
             }}
-            onDelete={(id) => {
-              // Implement delete functionality if needed
-            }}
+            onDelete={(id) => deleteMutation.mutate(id)}
           />
         ))}
       </div>
