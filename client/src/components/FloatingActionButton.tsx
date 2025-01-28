@@ -26,6 +26,11 @@ export function FloatingActionButton({
   onAddPlayer,
   onRecordGame,
 }: FloatingActionButtonProps) {
+  const handleAddPlayer = (event: React.FormEvent) => {
+    event.preventDefault();
+    onAddPlayer();
+  };
+
   return (
     <div className="fixed bottom-6 right-6">
       <DropdownMenu>
@@ -43,14 +48,7 @@ export function FloatingActionButton({
               <DialogHeader>
                 <DialogTitle>Add Player</DialogTitle>
               </DialogHeader>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.target as HTMLFormElement;
-                const name = (form.elements.namedItem('name') as HTMLInputElement).value;
-                console.log("Adding player:", name);
-                onAddPlayer();
-                form.reset();
-              }}>
+              <form onSubmit={handleAddPlayer}>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
