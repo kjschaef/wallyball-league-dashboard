@@ -47,7 +47,8 @@ export function FloatingActionButton({
                 e.preventDefault();
                 const form = e.target as HTMLFormElement;
                 const name = (form.elements.namedItem('name') as HTMLInputElement).value;
-                onAddPlayer(name);
+                console.log("Adding player:", name);
+                onAddPlayer();
                 form.reset();
               }}>
                 <div className="space-y-4">
