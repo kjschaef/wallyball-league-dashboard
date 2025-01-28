@@ -2,6 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState, useRef } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import type { Player } from "@db/schema";
 import { PlayerCard } from "@/components/PlayerCard";
 import {
   Card,
@@ -23,6 +33,14 @@ interface MatchResult {
 }
 
 export default function Results() {
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    player: Player | null;
+  }>({
+    isOpen: false,
+    player: null,
+  });
+  const formRef = useRef<HTMLFormElement>(null);
   const { data: matches = [] } = useQuery<MatchResult[]>({
     queryKey: ["/api/matches"],
   });
@@ -33,6 +51,39 @@ export default function Results() {
 
   const queryClient = useQueryClient();
   const toast = useToast();
+
+  const updateMutation = useMutation({
+    mutationFn: (player: Player) =>
+      fetch(`/api/players/${player.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(player),
+      }).then((res) => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/players"] });
+      closeDialog();
+      toast({ title: "Player updated successfully" });
+    },
+  });
+
+  const closeDialog = () => {
+    setDialogState({ isOpen: false, player: null });
+    if (formRef.current) {
+      formRef.current.reset();
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const playerData = {
+      name: formData.get("name") as string,
+    };
+
+    if (dialogState.player) {
+      updateMutation.mutate({ ...dialogState.player, ...playerData });
+    }
+  };
 
   const today = new Date();
   const todayStart = startOfToday();
@@ -99,6 +150,31 @@ export default function Results() {
     <div className="space-y-6 p-6">
       <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
 
+      <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Player</DialogTitle>
+          </DialogHeader>
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                required
+                defaultValue={dialogState.player?.name}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" className="w-full" onClick={closeDialog}>
+                Cancel
+              </Button>
+              <Button type="submit" className="w-full">Update</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Player Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players?.sort((a, b) => {
@@ -109,9 +185,7 @@ export default function Results() {
           <PlayerCard
             key={player.id}
             player={player}
-            onEdit={(player) => {
-              // Implement edit functionality if needed
-            }}
+            onEdit={(player) => setDialogState({ isOpen: true, player })}
             onDelete={(id) => deleteMutation.mutate(id)}
           />
         ))}
