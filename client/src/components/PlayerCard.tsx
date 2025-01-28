@@ -23,11 +23,38 @@ interface PlayerCardProps {
     matches: Array<{ won: boolean, date: string }>, 
     stats: { won: number, lost: number } 
   };
-  onEdit: (player: Player) => void;
-  onDelete: (id: number) => void;
+  onEdit?: (player: Player) => void;
+  onDelete?: (id: number) => void;
 }
 
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const updateMutation = useMutation({
+    mutationFn: (updatedPlayer: Player) =>
+      fetch(`/api/players/${updatedPlayer.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedPlayer),
+      }).then((res) => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/players"] });
+      setShowEditDialog(false);
+      toast({ title: "Player updated successfully" });
+    },
+  });
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const playerData = {
+      ...player,
+      name: formData.get("name") as string,
+    };
+    updateMutation.mutate(playerData);
+  };
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   const winRate = total > 0 ? Math.round((stats.won / total) * 100) : 0;
@@ -80,7 +107,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onEdit(player)}
+            onClick={() => onEdit ? onEdit(player) : setShowEditDialog(true)}
           >
             <Edit className="h-4 w-4" />
           </Button>
@@ -110,6 +137,33 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           </AlertDialog>
         </div>
       </CardHeader>
+
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Player</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                required
+                defaultValue={player.name}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" className="w-full" onClick={() => setShowEditDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="w-full">
+                Update
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       <CardContent>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
