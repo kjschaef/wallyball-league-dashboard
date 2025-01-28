@@ -155,6 +155,11 @@ export default function Dashboard() {
     }
   };
 
+  const onAddPlayer = () => {
+    // Implement your add player logic here
+    console.log("Add player button clicked");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -222,6 +227,7 @@ export default function Dashboard() {
       </Dialog>
 
       <FloatingActionButton
+        onAddPlayer={onAddPlayer}
         onRecordGame={() => setShowRecordGame(true)}
         onDailyWins={() => setShowDailyWins(true)}
       />
