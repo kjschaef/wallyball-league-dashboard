@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -16,19 +15,41 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface FloatingActionButtonProps {
-  onAddPlayer: () => void;
   onRecordGame: () => void;
 }
 
 export function FloatingActionButton({
-  onAddPlayer,
   onRecordGame,
 }: FloatingActionButtonProps) {
-  const handleAddPlayer = (event: React.FormEvent) => {
-    event.preventDefault();
-    onAddPlayer();
+  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const createPlayerMutation = useMutation({
+    mutationFn: (newPlayer: { name: string }) =>
+      fetch("/api/players", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPlayer),
+      }).then((res) => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/players"] });
+      setShowAddPlayer(false);
+      toast({ title: "Player created successfully" });
+    },
+  });
+
+  const handleAddPlayer = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const name = (form.elements.namedItem('name') as HTMLInputElement).value;
+    createPlayerMutation.mutate({ name });
+    form.reset();
   };
 
   return (
@@ -40,7 +61,7 @@ export function FloatingActionButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={onAddPlayer}>
+          <DropdownMenuItem onSelect={() => setShowAddPlayer(true)}>
             Add Player
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onRecordGame}>
@@ -48,6 +69,23 @@ export function FloatingActionButton({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Dialog open={showAddPlayer} onOpenChange={setShowAddPlayer}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Player</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddPlayer}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" name="name" required />
+              </div>
+              <Button type="submit" className="w-full">Add Player</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

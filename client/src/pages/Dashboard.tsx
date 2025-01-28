@@ -226,9 +226,7 @@ export default function Dashboard() {
       </Dialog>
 
       <FloatingActionButton
-        onAddPlayer={onAddPlayer}
         onRecordGame={() => setShowRecordGame(true)}
-        onDailyWins={() => setShowDailyWins(true)}
       />
 
       {/* Record Game Dialog */}
