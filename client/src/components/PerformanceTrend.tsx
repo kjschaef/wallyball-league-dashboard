@@ -91,20 +91,8 @@ export function PerformanceTrend() {
       const gamesWon = match.isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
       cumulativeWins += gamesWon;
       daysPlayed.add(date);
-
-      // Calculate activity weight
-      const daysSinceJoining = Math.max(1, (new Date().getTime() - new Date(player.createdAt).getTime()) / (1000 * 60 * 60 * 24));
-      const daysPlayedCount = daysPlayed.size;
-      
-      // Activity weight: penalize for playing fewer days relative to time in system
-      const activityWeight = Math.min(1, daysPlayedCount / daysSinceJoining);
-      
-      // Calculate weighted score
-      const baseWinsPerDay = cumulativeWins / daysPlayedCount;
-      const weightedScore = baseWinsPerDay * activityWeight;
-
       dailyStats.set(date, { 
-        winsPerDay: weightedScore,
+        winsPerDay: cumulativeWins / daysPlayed.size,
         totalWins: cumulativeWins 
       });
     });
