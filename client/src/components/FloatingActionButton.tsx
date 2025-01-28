@@ -32,7 +32,9 @@ export function FloatingActionButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onAddPlayer}>Add Player</DropdownMenuItem>
+          <DialogTrigger asChild>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Add Player</DropdownMenuItem>
+          </DialogTrigger>
           <DropdownMenuItem onClick={onRecordGame}>
             Record Match
           </DropdownMenuItem>
