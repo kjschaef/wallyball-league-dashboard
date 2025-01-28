@@ -1,3 +1,4 @@
+
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,9 +33,17 @@ export function FloatingActionButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Add Player</DropdownMenuItem>
-          </DialogTrigger>
+          <Dialog>
+            <DialogTrigger asChild>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Add Player</DropdownMenuItem>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Player</DialogTitle>
+              </DialogHeader>
+              {/* Add Player form content will go here */}
+            </DialogContent>
+          </Dialog>
           <DropdownMenuItem onClick={onRecordGame}>
             Record Match
           </DropdownMenuItem>
