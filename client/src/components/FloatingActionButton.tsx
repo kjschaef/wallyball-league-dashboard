@@ -40,25 +40,9 @@ export function FloatingActionButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <Dialog>
-            <DialogTrigger asChild>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Add Player</DropdownMenuItem>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Player</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddPlayer}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" name="name" required />
-                  </div>
-                  <Button type="submit" className="w-full">Add Player</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <DropdownMenuItem onSelect={onAddPlayer}>
+            Add Player
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={onRecordGame}>
             Record Match
           </DropdownMenuItem>

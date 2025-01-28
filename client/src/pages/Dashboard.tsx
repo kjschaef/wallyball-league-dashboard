@@ -156,8 +156,7 @@ export default function Dashboard() {
   };
 
   const onAddPlayer = () => {
-    // Implement your add player logic here
-    console.log("Add player button clicked");
+    window.location.href = '/players';
   };
 
   return (
