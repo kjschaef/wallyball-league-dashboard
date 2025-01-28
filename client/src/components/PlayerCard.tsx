@@ -58,8 +58,6 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   const winRate = total > 0 ? Math.round((stats.won / total) * 100) : 0;
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Count unique days on which matches were played
   const uniqueDays = new Set(
