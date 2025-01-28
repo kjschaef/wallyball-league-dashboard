@@ -41,7 +41,21 @@ export function FloatingActionButton({
               <DialogHeader>
                 <DialogTitle>Add Player</DialogTitle>
               </DialogHeader>
-              {/* Add Player form content will go here */}
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const name = (form.elements.namedItem('name') as HTMLInputElement).value;
+                onAddPlayer(name);
+                form.reset();
+              }}>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input id="name" name="name" required />
+                  </div>
+                  <Button type="submit" className="w-full">Add Player</Button>
+                </div>
+              </form>
             </DialogContent>
           </Dialog>
           <DropdownMenuItem onClick={onRecordGame}>
