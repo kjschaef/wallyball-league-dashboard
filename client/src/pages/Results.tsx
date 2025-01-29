@@ -1,6 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
 import {
@@ -13,14 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import type { Player } from "@db/schema";
 import { PlayerCard } from "@/components/PlayerCard";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { startOfToday, endOfToday, startOfYear, endOfYear } from "date-fns";
-import html2canvas from "html2canvas";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { startOfYear, endOfYear } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
 interface MatchResult {
@@ -86,55 +78,33 @@ export default function Results() {
   };
 
   const today = new Date();
-  const todayStart = startOfToday();
-  const todayEnd = endOfToday();
-
-  const todayMatches = matches.filter(match => {
-    const matchDate = new Date(match.date);
-    return matchDate >= todayStart && matchDate <= todayEnd;
-  });
-
   const seasonStart = startOfYear(today);
   const seasonEnd = endOfYear(today);
 
-  const seasonMatches = matches.filter(match => {
+  const seasonMatches = matches.filter((match) => {
     const matchDate = new Date(match.date);
     return matchDate >= seasonStart && matchDate <= seasonEnd;
   });
 
-  const seasonStats = seasonMatches.reduce((acc, match) => {
-    return {
-      totalMatches: acc.totalMatches + 1,
-      totalGames: acc.totalGames + match.teamOneGamesWon + match.teamTwoGamesWon,
-      averageGamesPerMatch: (acc.totalGames + match.teamOneGamesWon + match.teamTwoGamesWon) / (acc.totalMatches + 1)
-    };
-  }, { totalMatches: 0, totalGames: 0, averageGamesPerMatch: 0 });
+  const seasonStats = seasonMatches.reduce(
+    (acc, match) => {
+      return {
+        totalMatches: acc.totalMatches + 1,
+        totalGames:
+          acc.totalGames + match.teamOneGamesWon + match.teamTwoGamesWon,
+        averageGamesPerMatch:
+          (acc.totalGames + match.teamOneGamesWon + match.teamTwoGamesWon) /
+          (acc.totalMatches + 1),
+      };
+    },
+    { totalMatches: 0, totalGames: 0, averageGamesPerMatch: 0 },
+  );
 
   const formatTeam = (players: string[]) => {
     if (players.length === 0) return "No players";
     if (players.length === 1) return players[0];
     if (players.length === 2) return `${players[0]} and ${players[1]}`;
     return `${players[0]}, ${players[1]} and ${players[2]}`;
-  };
-
-  const shareAsImage = async () => {
-    const element = document.getElementById('results-content');
-    if (!element) return;
-
-    try {
-      const canvas = await html2canvas(element, {
-        backgroundColor: '#ffffff',
-        scale: 2
-      });
-
-      const image = canvas.toDataURL("image/png");
-      const link = document.createElement('a');
-      link.download = `volleyball-results-${format(today, 'yyyy-MM-dd')}.png`;
-      link.href = image;
-      link.click();
-    } catch (error) {
-      console.error('Error creating image:', error);
-    }
   };
 
   const deleteMutation = useMutation({
@@ -150,7 +120,10 @@ export default function Results() {
     <div className="space-y-6 p-6">
       <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
 
-      <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
+      <Dialog
+        open={dialogState.isOpen}
+        onOpenChange={(open) => !open && closeDialog()}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Player</DialogTitle>
@@ -166,29 +139,76 @@ export default function Results() {
               />
             </div>
             <div className="flex gap-2">
-              <Button type="button" variant="outline" className="w-full" onClick={closeDialog}>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={closeDialog}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="w-full">Update</Button>
+              <Button type="submit" className="w-full">
+                Update
+              </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Season Statistics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Total Matches</p>
+              <p className="text-2xl font-bold">{seasonStats.totalMatches}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Total Games</p>
+              <p className="text-2xl font-bold">{seasonStats.totalGames}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">
+                Avg Games per Match
+              </p>
+              <p className="text-2xl font-bold">
+                {seasonStats.averageGamesPerMatch.toFixed(1)}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Player Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {players?.sort((a, b) => {
-          const aWinsPerDay = a.stats.won / (new Set(a.matches.map((m: any) => new Date(m.date).toLocaleDateString())).size || 1);
-          const bWinsPerDay = b.stats.won / (new Set(b.matches.map((m: any) => new Date(m.date).toLocaleDateString())).size || 1);
-          return bWinsPerDay - aWinsPerDay;
-        }).map((player) => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            onEdit={(player) => setDialogState({ isOpen: true, player })}
-            onDelete={(id) => deleteMutation.mutate(id)}
-          />
-        ))}
+        {players
+          ?.sort((a, b) => {
+            const aWinsPerDay =
+              a.stats.won /
+              (new Set(
+                a.matches.map((m: any) =>
+                  new Date(m.date).toLocaleDateString(),
+                ),
+              ).size || 1);
+            const bWinsPerDay =
+              b.stats.won /
+              (new Set(
+                b.matches.map((m: any) =>
+                  new Date(m.date).toLocaleDateString(),
+                ),
+              ).size || 1);
+            return bWinsPerDay - aWinsPerDay;
+          })
+          .map((player) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              onEdit={(player) => setDialogState({ isOpen: true, player })}
+              onDelete={(id) => deleteMutation.mutate(id)}
+            />
+          ))}
       </div>
 
       <div id="results-content" className="space-y-6">
@@ -201,49 +221,64 @@ export default function Results() {
               <p className="text-muted-foreground">No matches recorded yet</p>
             ) : (
               <div className="space-y-4">
-                {Object.entries(matches.reduce((acc, match) => {
-                  const teamOne = formatTeam(match.teamOnePlayers);
-                  const teamTwo = formatTeam(match.teamTwoPlayers);
-                  
-                  // Update team one stats
-                  if (!acc[teamOne]) {
-                    acc[teamOne] = { wins: 0, losses: 0, gamesPlayed: 0 };
-                  }
-                  acc[teamOne].wins += match.teamOneGamesWon;
-                  acc[teamOne].losses += match.teamTwoGamesWon;
-                  acc[teamOne].gamesPlayed += match.teamOneGamesWon + match.teamTwoGamesWon;
-                  
-                  // Update team two stats
-                  if (!acc[teamTwo]) {
-                    acc[teamTwo] = { wins: 0, losses: 0, gamesPlayed: 0 };
-                  }
-                  acc[teamTwo].wins += match.teamTwoGamesWon;
-                  acc[teamTwo].losses += match.teamOneGamesWon;
-                  acc[teamTwo].gamesPlayed += match.teamOneGamesWon + match.teamTwoGamesWon;
-                  
-                  return acc;
-                }, {} as Record<string, { wins: number; losses: number; gamesPlayed: number }>))
-                .filter(([, stats]) => stats.gamesPlayed >= 5) // Only teams with at least 5 games
-                .sort(([, a], [, b]) => (b.wins / b.gamesPlayed) - (a.wins / a.gamesPlayed))
-                .slice(0, 5)
-                .map(([team, stats]) => (
-                  <div key={team} className="flex flex-col p-2 hover:bg-muted/50 rounded">
-                    <div className="flex justify-between items-center">
-                      <div className="font-medium">{team}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Win Rate: {((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%
+                {Object.entries(
+                  matches.reduce(
+                    (acc, match) => {
+                      const teamOne = formatTeam(match.teamOnePlayers);
+                      const teamTwo = formatTeam(match.teamTwoPlayers);
+
+                      // Update team one stats
+                      if (!acc[teamOne]) {
+                        acc[teamOne] = { wins: 0, losses: 0, gamesPlayed: 0 };
+                      }
+                      acc[teamOne].wins += match.teamOneGamesWon;
+                      acc[teamOne].losses += match.teamTwoGamesWon;
+                      acc[teamOne].gamesPlayed +=
+                        match.teamOneGamesWon + match.teamTwoGamesWon;
+
+                      // Update team two stats
+                      if (!acc[teamTwo]) {
+                        acc[teamTwo] = { wins: 0, losses: 0, gamesPlayed: 0 };
+                      }
+                      acc[teamTwo].wins += match.teamTwoGamesWon;
+                      acc[teamTwo].losses += match.teamOneGamesWon;
+                      acc[teamTwo].gamesPlayed +=
+                        match.teamOneGamesWon + match.teamTwoGamesWon;
+
+                      return acc;
+                    },
+                    {} as Record<
+                      string,
+                      { wins: number; losses: number; gamesPlayed: number }
+                    >,
+                  ),
+                )
+                  .filter(([, stats]) => stats.gamesPlayed >= 5) // Only teams with at least 5 games
+                  .sort(
+                    ([, a], [, b]) =>
+                      b.wins / b.gamesPlayed - a.wins / a.gamesPlayed,
+                  )
+                  .slice(0, 5)
+                  .map(([team, stats]) => (
+                    <div
+                      key={team}
+                      className="flex flex-col p-2 hover:bg-muted/50 rounded"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="font-medium">{team}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Win Rate:{" "}
+                          {((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                        <div>
+                          Record: {stats.wins}-{stats.losses}
+                        </div>
+                        <div>Games Played: {stats.gamesPlayed}</div>
                       </div>
                     </div>
-                    <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                      <div>
-                        Record: {stats.wins}-{stats.losses}
-                      </div>
-                      <div>
-                        Games Played: {stats.gamesPlayed}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </CardContent>
@@ -258,71 +293,67 @@ export default function Results() {
               <p className="text-muted-foreground">No matches recorded yet</p>
             ) : (
               <div className="space-y-4">
-                {Object.entries(matches.reduce((acc, match) => {
-                  const teamOne = formatTeam(match.teamOnePlayers);
-                  const teamTwo = formatTeam(match.teamTwoPlayers);
-                  const matchupKey = [teamOne, teamTwo].sort().join(' vs ');
-                  
-                  if (!acc[matchupKey]) {
-                    acc[matchupKey] = {
-                      count: 0,
-                      teamOneWins: 0,
-                      teamTwoWins: 0,
-                      totalGames: 0
-                    };
-                  }
-                  
-                  acc[matchupKey].count += 1;
-                  acc[matchupKey].teamOneWins += match.teamOneGamesWon;
-                  acc[matchupKey].teamTwoWins += match.teamTwoGamesWon;
-                  acc[matchupKey].totalGames += match.teamOneGamesWon + match.teamTwoGamesWon;
-                  
-                  return acc;
-                }, {} as Record<string, { count: number; teamOneWins: number; teamTwoWins: number; totalGames: number; }>))
-                .sort(([, a], [, b]) => b.count - a.count)
-                .slice(0, 5)
-                .map(([matchup, stats]) => (
-                  <div key={matchup} className="flex flex-col p-2 hover:bg-muted/50 rounded">
-                    <div className="flex justify-between items-center">
-                      <div className="font-medium">{matchup}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Played {stats.count} times
+                {Object.entries(
+                  matches.reduce(
+                    (acc, match) => {
+                      const teamOne = formatTeam(match.teamOnePlayers);
+                      const teamTwo = formatTeam(match.teamTwoPlayers);
+                      const matchupKey = [teamOne, teamTwo].sort().join(" vs ");
+
+                      if (!acc[matchupKey]) {
+                        acc[matchupKey] = {
+                          count: 0,
+                          teamOneWins: 0,
+                          teamTwoWins: 0,
+                          totalGames: 0,
+                        };
+                      }
+
+                      acc[matchupKey].count += 1;
+                      acc[matchupKey].teamOneWins += match.teamOneGamesWon;
+                      acc[matchupKey].teamTwoWins += match.teamTwoGamesWon;
+                      acc[matchupKey].totalGames +=
+                        match.teamOneGamesWon + match.teamTwoGamesWon;
+
+                      return acc;
+                    },
+                    {} as Record<
+                      string,
+                      {
+                        count: number;
+                        teamOneWins: number;
+                        teamTwoWins: number;
+                        totalGames: number;
+                      }
+                    >,
+                  ),
+                )
+                  .sort(([, a], [, b]) => b.count - a.count)
+                  .slice(0, 5)
+                  .map(([matchup, stats]) => (
+                    <div
+                      key={matchup}
+                      className="flex flex-col p-2 hover:bg-muted/50 rounded"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="font-medium">{matchup}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Played {stats.count} times
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                        <div>
+                          Record: {stats.teamOneWins}-{stats.teamTwoWins}
+                        </div>
+                        <div>
+                          Average games per match:{" "}
+                          {(stats.totalGames / stats.count).toFixed(1)}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                      <div>
-                        Record: {stats.teamOneWins}-{stats.teamTwoWins}
-                      </div>
-                      <div>
-                        Average games per match: {(stats.totalGames / stats.count).toFixed(1)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Season Statistics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Total Matches</p>
-                <p className="text-2xl font-bold">{seasonStats.totalMatches}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Total Games</p>
-                <p className="text-2xl font-bold">{seasonStats.totalGames}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Avg Games per Match</p>
-                <p className="text-2xl font-bold">{seasonStats.averageGamesPerMatch.toFixed(1)}</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
