@@ -17,11 +17,11 @@ interface Achievement {
 }
 
 const ICON_MAP: { [key: string]: typeof Medal | typeof Star | typeof Trophy | typeof Target | typeof Users | typeof Award } = {
-  "games_played": Medal,
-  "games_won": Trophy,
-  "win_rate": Star,
+  "games": Medal,
+  "wins": Trophy,
+  "win_percentage": Star,
   "perfect_games": Target,
-  "unique_teammates": Users,
+  "teammates": Users,
   "achievement": Award,
 };
 
