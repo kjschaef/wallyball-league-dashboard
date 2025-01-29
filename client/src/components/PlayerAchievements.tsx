@@ -21,23 +21,23 @@ interface Achievement {
   id: number;
   name: string;
   description: string;
-  icon: keyof typeof ICON_MAP;
+  icon: string;
   unlockedAt: string | null;
 }
 
 export function PlayerAchievements({ playerId, compact = false }: { playerId: number; compact?: boolean }) {
-  const { data: achievements } = useQuery({
+  const { data: achievements } = useQuery<Achievement[]>({
     queryKey: [`/api/achievements/${playerId}`],
   });
 
   if (!achievements) return null;
 
-  const unlockedAchievements = achievements.filter((a: any) => a.unlockedAt);
+  const unlockedAchievements = achievements.filter((a) => a.unlockedAt);
 
   return (
     <TooltipProvider>
-      {unlockedAchievements.map((achievement: Achievement) => {
-        const IconComponent = ICON_MAP[achievement.icon];
+      {unlockedAchievements.map((achievement) => {
+        const IconComponent = ICON_MAP[achievement.icon as keyof typeof ICON_MAP];
         return (
           <Tooltip key={achievement.id} delayDuration={50}>
             <TooltipTrigger asChild>
