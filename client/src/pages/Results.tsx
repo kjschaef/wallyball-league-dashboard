@@ -232,8 +232,13 @@ export default function Results() {
                         Played {stats.count} times
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      Average games per match: {(stats.totalGames / stats.count).toFixed(1)}
+                    <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                      <div>
+                        Record: {stats.teamOneWins}-{stats.teamTwoWins}
+                      </div>
+                      <div>
+                        Average games per match: {(stats.totalGames / stats.count).toFixed(1)}
+                      </div>
                     </div>
                   </div>
                 ))}
