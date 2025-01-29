@@ -194,21 +194,46 @@ export default function Results() {
       <div id="results-content" className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Today's Matches - {format(today, "MMMM d, yyyy")}</CardTitle>
+            <CardTitle>Common Team Matchups</CardTitle>
           </CardHeader>
           <CardContent>
-            {todayMatches.length === 0 ? (
-              <p className="text-muted-foreground">No matches played today</p>
+            {matches.length === 0 ? (
+              <p className="text-muted-foreground">No matches recorded yet</p>
             ) : (
               <div className="space-y-4">
-                {todayMatches.map((match) => (
-                  <div key={match.id} className="flex justify-between items-center p-2 hover:bg-muted/50 rounded">
-                    <div className="flex-1">
-                      <div className="font-medium">{formatTeam(match.teamOnePlayers)}</div>
-                      <div className="font-medium">{formatTeam(match.teamTwoPlayers)}</div>
+                {Object.entries(matches.reduce((acc, match) => {
+                  const teamOne = formatTeam(match.teamOnePlayers);
+                  const teamTwo = formatTeam(match.teamTwoPlayers);
+                  const matchupKey = [teamOne, teamTwo].sort().join(' vs ');
+                  
+                  if (!acc[matchupKey]) {
+                    acc[matchupKey] = {
+                      count: 0,
+                      teamOneWins: 0,
+                      teamTwoWins: 0,
+                      totalGames: 0
+                    };
+                  }
+                  
+                  acc[matchupKey].count += 1;
+                  acc[matchupKey].teamOneWins += match.teamOneGamesWon;
+                  acc[matchupKey].teamTwoWins += match.teamTwoGamesWon;
+                  acc[matchupKey].totalGames += match.teamOneGamesWon + match.teamTwoGamesWon;
+                  
+                  return acc;
+                }, {} as Record<string, { count: number; teamOneWins: number; teamTwoWins: number; totalGames: number; }>))
+                .sort(([, a], [, b]) => b.count - a.count)
+                .slice(0, 5)
+                .map(([matchup, stats]) => (
+                  <div key={matchup} className="flex flex-col p-2 hover:bg-muted/50 rounded">
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">{matchup}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Played {stats.count} times
+                      </div>
                     </div>
-                    <div className="text-lg font-bold tabular-nums">
-                      {match.teamOneGamesWon} - {match.teamTwoGamesWon}
+                    <div className="text-sm text-muted-foreground mt-1">
+                      Average games per match: {(stats.totalGames / stats.count).toFixed(1)}
                     </div>
                   </div>
                 ))}
