@@ -8,13 +8,15 @@ import {
 } from "@/components/ui/tooltip";
 import { Medal, Star, Trophy, Target, Users, Award } from "lucide-react";
 
-const ICON_MAP: Record<string, any> = {
-  'games_played': Medal,
-  'games_won': Trophy,
-  'win_rate': Star,
-  'perfect_games': Target,
-  'unique_teammates': Users,
-  'achievement': Award,
+type IconType = typeof Medal | typeof Star | typeof Trophy | typeof Target | typeof Users | typeof Award;
+
+const ICON_MAP: Record<string, IconType> = {
+  games_played: Medal,
+  games_won: Trophy,
+  win_rate: Star,
+  perfect_games: Target,
+  unique_teammates: Users,
+  achievement: Award,
 };
 
 interface Achievement {
