@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import {
   Tooltip,
@@ -19,10 +18,10 @@ interface Achievement {
 const ICON_MAP: { [key: string]: typeof Medal | typeof Star | typeof Trophy | typeof Target | typeof Users | typeof Award } = {
   "games": Medal,
   "wins": Trophy,
-  "win_percentage": Star,
-  "perfect_games": Target,
-  "teammates": Users,
-  "achievement": Award,
+  "win_rate": Star,
+  "perfect": Target,
+  "unique_teammates": Users,
+  "default": Award,
 };
 
 export function PlayerAchievements({ playerId, compact = false }: { playerId: number; compact?: boolean }) {
