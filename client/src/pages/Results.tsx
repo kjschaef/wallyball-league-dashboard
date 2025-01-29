@@ -253,7 +253,7 @@ export default function Results() {
                     >,
                   ),
                 )
-                  .filter(([, stats]) => stats.gamesPlayed >= 5) // Only teams with at least 5 games
+                  .filter(([, stats]) => stats.gamesPlayed >= 3) // Only teams with at least 3 games
                   .sort(([, a], [, b]) => {
                     const aWinRate = a.wins / (a.wins + a.losses);
                     const bWinRate = b.wins / (b.wins + b.losses);
