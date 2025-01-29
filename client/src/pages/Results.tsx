@@ -254,10 +254,14 @@ export default function Results() {
                   ),
                 )
                   .filter(([, stats]) => stats.gamesPlayed >= 5) // Only teams with at least 5 games
-                  .sort(
-                    ([, a], [, b]) =>
-                      b.wins / b.gamesPlayed - a.wins / a.gamesPlayed,
-                  )
+                  .sort(([, a], [, b]) => {
+                    const aWinRate = a.wins / (a.wins + a.losses);
+                    const bWinRate = b.wins / (b.wins + b.losses);
+                    // If win rates are equal, prefer the team with more games played
+                    return bWinRate === aWinRate 
+                      ? b.gamesPlayed - a.gamesPlayed 
+                      : bWinRate - aWinRate;
+                  })
                   .slice(0, 5)
                   .map(([team, stats]) => (
                     <div
