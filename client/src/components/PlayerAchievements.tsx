@@ -16,10 +16,10 @@ interface Achievement {
 }
 
 const ICON_MAP: { [key: string]: typeof Medal | typeof Star | typeof Trophy | typeof Target | typeof Users | typeof Award } = {
-  "games": Medal,
-  "wins": Trophy,
+  "games_played": Medal,
+  "games_won": Trophy,
   "win_rate": Star,
-  "perfect": Target,
+  "perfect_games": Target,
   "unique_teammates": Users,
   "default": Award,
 };
