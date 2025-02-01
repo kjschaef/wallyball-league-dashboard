@@ -36,7 +36,11 @@ const COLORS = [
   "#B967FF", // Bright Purple
 ];
 
-export function PerformanceTrend() {
+interface PerformanceTrendProps {
+  isExporting?: boolean;
+}
+
+export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
   const [metric, setMetric] = useState<'winsPerDay' | 'totalWins'>('winsPerDay');
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
@@ -192,7 +196,7 @@ export function PerformanceTrend() {
                     dot={{ r: recentPlayerIds.has(player.id) ? 5 : 3 }}
                     activeDot={{ r: recentPlayerIds.has(player.id) ? 7 : 5 }}
                     name={player.name}
-                    isAnimationActive={false}
+                    isAnimationActive={!isExporting}
                   />
                 ))}
             </LineChart>

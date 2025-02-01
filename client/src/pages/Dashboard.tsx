@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [showDailyWins, setShowDailyWins] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isExporting, setIsExporting] = useState(false); // Added state for export
 
   const { data: matches = [] } = useQuery({
     queryKey: ["/api/matches"],
@@ -124,16 +125,16 @@ export default function Dashboard() {
 
 
   const shareAsImage = async () => {
-    const element = document.getElementById('dashboard-content');
-    if (!element) return;
-
     try {
+      setIsExporting(true);
+      const element = document.getElementById('dashboard-content');
+      if (!element) return;
+
       // Get computed height of content
       const height = element.getBoundingClientRect().height;
-      
-      // Set width and disable animations
+
+      // Set width immediately and wait for a brief moment
       element.style.width = '1200px';
-      element.style.setProperty('--chart-animation', 'none');
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const canvas = await html2canvas(element, {
@@ -160,6 +161,8 @@ export default function Dashboard() {
       link.click();
     } catch (error) {
       console.error('Error creating image:', error);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -178,7 +181,7 @@ export default function Dashboard() {
       </div>
 
       <div id="dashboard-content">
-        <PerformanceTrend />
+        <PerformanceTrend isExporting={isExporting} /> {/* Pass isExporting prop */}
 
         <Card>
           <CardHeader>
