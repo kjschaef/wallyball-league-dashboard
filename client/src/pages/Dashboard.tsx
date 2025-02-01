@@ -136,15 +136,15 @@ export default function Dashboard() {
       const height = element.getBoundingClientRect().height;
 
       // Set export width
-      element.style.width = '1000px';
+      element.style.width = '1200px';
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
         scale: 2,
-        width: 1000, // Standard width
+        width: 1200, // Standard width
         height: Math.ceil(height),
-        windowWidth: 1000,
+        windowWidth: 1200,
         windowHeight: Math.ceil(height),
         onclone: (clonedDoc) => {
           const clonedElement = clonedDoc.getElementById('dashboard-content');
