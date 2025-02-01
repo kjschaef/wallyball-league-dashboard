@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
-import { Calendar as CalendarIcon, Share2 } from "lucide-react";
+import { Calendar as CalendarIcon, Share2, Plus, Minus } from "lucide-react";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 import {
@@ -340,7 +340,38 @@ export default function Dashboard() {
                         <FormItem>
                           <FormLabel>Games Won</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" {...field} />
+                            <div className="flex items-center gap-4 w-full">
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                className="h-12 w-12 flex-shrink-0"
+                                onClick={() => {
+                                  const current = field.value || 0;
+                                  field.onChange(Math.max(0, current - 1));
+                                }}
+                              >
+                                <Minus className="h-6 w-6" />
+                              </Button>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="0" 
+                                  {...field} 
+                                  className="text-center text-lg h-12"
+                                />
+                              </FormControl>
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                className="h-12 w-12 flex-shrink-0"
+                                onClick={() => {
+                                  const current = field.value || 0;
+                                  field.onChange(current + 1);
+                                }}
+                              >
+                                <Plus className="h-6 w-6" />
+                              </Button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -381,7 +412,38 @@ export default function Dashboard() {
                         <FormItem>
                           <FormLabel>Games Won</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" {...field} />
+                            <div className="flex items-center gap-4 w-full">
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                className="h-12 w-12 flex-shrink-0"
+                                onClick={() => {
+                                  const current = field.value || 0;
+                                  field.onChange(Math.max(0, current - 1));
+                                }}
+                              >
+                                <Minus className="h-6 w-6" />
+                              </Button>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="0" 
+                                  {...field} 
+                                  className="text-center text-lg h-12"
+                                />
+                              </FormControl>
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                className="h-12 w-12 flex-shrink-0"
+                                onClick={() => {
+                                  const current = field.value || 0;
+                                  field.onChange(current + 1);
+                                }}
+                              >
+                                <Plus className="h-6 w-6" />
+                              </Button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
