@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Plus, Minus } from "lucide-react";
 
 const formSchema = z.object({
   playerId: z.string(),
@@ -69,6 +71,16 @@ export default function RecordMatch() {
     mutation.mutate(values);
   };
 
+  const incrementField = (field: keyof FormData) => {
+    const currentValue = form.getValues(field);
+    form.setValue(field, currentValue + 1);
+  };
+
+  const decrementField = (field: keyof FormData) => {
+    const currentValue = form.getValues(field);
+    form.setValue(field, Math.max(0, currentValue - 1));
+  };
+
   return (
     <div className="max-w-md mx-auto space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Record Match</h1>
@@ -113,9 +125,29 @@ export default function RecordMatch() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sets Won</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10"
+                      onClick={() => decrementField('won')}
+                    >
+                      <Minus className="h-6 w-6" />
+                    </Button>
+                    <FormControl>
+                      <Input type="number" min="0" {...field} className="text-center text-lg" />
+                    </FormControl>
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10"
+                      onClick={() => incrementField('won')}
+                    >
+                      <Plus className="h-6 w-6" />
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -127,9 +159,29 @@ export default function RecordMatch() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sets Lost</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10"
+                      onClick={() => decrementField('lost')}
+                    >
+                      <Minus className="h-6 w-6" />
+                    </Button>
+                    <FormControl>
+                      <Input type="number" min="0" {...field} className="text-center text-lg" />
+                    </FormControl>
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10"
+                      onClick={() => incrementField('lost')}
+                    >
+                      <Plus className="h-6 w-6" />
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
