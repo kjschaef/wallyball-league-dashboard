@@ -157,11 +157,25 @@ export default function Dashboard() {
         }
       });
 
-      const image = canvas.toDataURL("image/png");
-      const link = document.createElement('a');
-      link.download = `volleyball-dashboard-${format(new Date(), 'yyyy-MM-dd')}.png`;
-      link.href = image;
-      link.click();
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            toast({
+              title: "Image copied to clipboard",
+              variant: "success",
+            });
+          } catch (err) {
+            console.error('Failed to copy:', err);
+            toast({
+              title: "Failed to copy image",
+              variant: "destructive",
+            });
+          }
+        }
+      }, 'image/png');
     } catch (error) {
       console.error('Error creating image:', error);
     } finally {
