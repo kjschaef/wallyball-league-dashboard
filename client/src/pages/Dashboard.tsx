@@ -134,11 +134,14 @@ export default function Dashboard() {
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
         scale: 2,
+        width: 1200, // Standard width
         height: Math.ceil(height),
+        windowWidth: 1200,
         windowHeight: Math.ceil(height),
         onclone: (clonedDoc) => {
           const clonedElement = clonedDoc.getElementById('dashboard-content');
           if (clonedElement) {
+            clonedElement.style.width = '1200px';
             clonedElement.style.height = `${height}px`;
             clonedElement.style.position = 'relative';
           }
