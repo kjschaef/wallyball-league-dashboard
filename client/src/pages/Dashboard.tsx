@@ -125,13 +125,14 @@ export default function Dashboard() {
 
 
   const shareAsImage = async () => {
+    let originalWidth = '';
     try {
       setIsExporting(true);
       const element = document.getElementById('dashboard-content');
       if (!element) return;
 
       // Save original width and get computed height
-      const originalWidth = element.style.width;
+      originalWidth = element.style.width;
       const height = element.getBoundingClientRect().height;
 
       // Set export width
