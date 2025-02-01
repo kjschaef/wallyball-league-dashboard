@@ -159,28 +159,32 @@ export default function Dashboard() {
 
       canvas.toBlob(async (blob) => {
         if (blob) {
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
-            ]);
-            toast({
-              title: "Image copied to clipboard",
-              variant: "success",
-            });
-          } catch (err) {
-            console.error('Failed to copy:', err);
-            // Fallback to download
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = `volleyball-dashboard-${format(new Date(), 'yyyy-MM-dd')}.png`;
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
-            toast({
-              title: "Image downloaded (clipboard access denied)",
-              variant: "default",
-            });
+          if (navigator.clipboard && window.isSecureContext) {
+            try {
+              await navigator.clipboard.write([
+                new ClipboardItem({ 'image/png': blob })
+              ]);
+              toast({
+                title: "Image copied to clipboard",
+                variant: "success",
+              });
+              return;
+            } catch (err) {
+              console.error('Failed to copy:', err);
+            }
           }
+          // Fallback to download
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `volleyball-dashboard-${format(new Date(), 'yyyy-MM-dd')}.png`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+          toast({
+            title: "Image downloaded",
+            description: "Clipboard access not available in this context",
+            variant: "default",
+          });
         }
       }, 'image/png');
     } catch (error) {
