@@ -192,6 +192,7 @@ export function PerformanceTrend() {
                     dot={{ r: recentPlayerIds.has(player.id) ? 5 : 3 }}
                     activeDot={{ r: recentPlayerIds.has(player.id) ? 7 : 5 }}
                     name={player.name}
+                    isAnimationActive={false}
                   />
                 ))}
             </LineChart>
