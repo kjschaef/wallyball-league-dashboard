@@ -169,9 +169,16 @@ export default function Dashboard() {
             });
           } catch (err) {
             console.error('Failed to copy:', err);
+            // Fallback to download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `volleyball-dashboard-${format(new Date(), 'yyyy-MM-dd')}.png`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
             toast({
-              title: "Failed to copy image",
-              variant: "destructive",
+              title: "Image downloaded (clipboard access denied)",
+              variant: "default",
             });
           }
         }
