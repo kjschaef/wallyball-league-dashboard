@@ -51,7 +51,7 @@ export function GameHistory({ games }: GameHistoryProps) {
     mutationFn: (id: number) =>
       fetch(`/api/games/${id}`, { method: "DELETE" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/games"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       toast({ title: "Game deleted successfully" });
     },
