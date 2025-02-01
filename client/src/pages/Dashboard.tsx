@@ -130,6 +130,10 @@ export default function Dashboard() {
     try {
       // Get computed height of content
       const height = element.getBoundingClientRect().height;
+      
+      // Set width immediately and wait for a brief moment
+      element.style.width = '1200px';
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
