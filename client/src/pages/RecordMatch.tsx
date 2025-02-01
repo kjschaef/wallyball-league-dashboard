@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -62,6 +61,7 @@ export default function RecordMatch() {
         }),
       }).then((res) => res.json()),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       form.reset();
       toast({ title: "Match recorded successfully" });
@@ -83,12 +83,12 @@ export default function RecordMatch() {
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-6">
+    <div className="w-full max-w-md mx-auto p-4 space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Record Match</h1>
 
       <Card className="p-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="playerId"
@@ -126,24 +126,27 @@ export default function RecordMatch() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sets Won</FormLabel>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4 w-full">
                     <Button 
                       type="button"
                       variant="outline"
-                      size="icon"
-                      className="h-10 w-10"
+                      className="h-12 w-12 flex-shrink-0"
                       onClick={() => decrementField('won')}
                     >
                       <Minus className="h-6 w-6" />
                     </Button>
                     <FormControl>
-                      <Input type="number" min="0" {...field} className="text-center text-lg" />
+                      <Input 
+                        type="number" 
+                        min="0" 
+                        {...field} 
+                        className="text-center text-lg h-12" 
+                      />
                     </FormControl>
                     <Button 
                       type="button"
                       variant="outline"
-                      size="icon"
-                      className="h-10 w-10"
+                      className="h-12 w-12 flex-shrink-0"
                       onClick={() => incrementField('won')}
                     >
                       <Plus className="h-6 w-6" />
@@ -160,24 +163,27 @@ export default function RecordMatch() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sets Lost</FormLabel>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4 w-full">
                     <Button 
                       type="button"
                       variant="outline"
-                      size="icon"
-                      className="h-10 w-10"
+                      className="h-12 w-12 flex-shrink-0"
                       onClick={() => decrementField('lost')}
                     >
                       <Minus className="h-6 w-6" />
                     </Button>
                     <FormControl>
-                      <Input type="number" min="0" {...field} className="text-center text-lg" />
+                      <Input 
+                        type="number" 
+                        min="0" 
+                        {...field} 
+                        className="text-center text-lg h-12" 
+                      />
                     </FormControl>
                     <Button 
                       type="button"
                       variant="outline"
-                      size="icon"
-                      className="h-10 w-10"
+                      className="h-12 w-12 flex-shrink-0"
                       onClick={() => incrementField('lost')}
                     >
                       <Plus className="h-6 w-6" />
