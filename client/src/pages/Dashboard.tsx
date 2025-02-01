@@ -131,9 +131,10 @@ export default function Dashboard() {
       // Get computed height of content
       const height = element.getBoundingClientRect().height;
       
-      // Set width immediately and wait for a brief moment
+      // Set width and disable animations
       element.style.width = '1200px';
-      await new Promise(resolve => setTimeout(resolve, 300));
+      element.style.setProperty('--chart-animation', 'none');
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
