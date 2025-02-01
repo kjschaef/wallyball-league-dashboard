@@ -91,6 +91,7 @@ export default function Dashboard() {
         }),
       }).then((res) => res.json()),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       setShowRecordGame(false);
       gameForm.reset();
