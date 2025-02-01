@@ -130,10 +130,11 @@ export default function Dashboard() {
       const element = document.getElementById('dashboard-content');
       if (!element) return;
 
-      // Get computed height of content
+      // Save original width and get computed height
+      const originalWidth = element.style.width;
       const height = element.getBoundingClientRect().height;
 
-      // Set width immediately and wait for a brief moment
+      // Set export width
       element.style.width = '1200px';
       await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -162,6 +163,11 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error creating image:', error);
     } finally {
+      // Restore original width and reset export state
+      const element = document.getElementById('dashboard-content');
+      if (element) {
+        element.style.width = originalWidth;
+      }
       setIsExporting(false);
     }
   };
