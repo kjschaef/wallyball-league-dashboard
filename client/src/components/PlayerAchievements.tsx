@@ -40,7 +40,7 @@ export function PlayerAchievements({ playerId, compact = false }: { playerId: nu
             <Tooltip key={achievement.id} delayDuration={50}>
               <TooltipTrigger asChild>
                 <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs cursor-help">
-                  {ICON_MAP[achievement.icon] || ICON_MAP.default}
+                  {console.log('Achievement icon:', achievement.icon) || ICON_MAP[achievement.icon] || ICON_MAP.default}
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-sm">
