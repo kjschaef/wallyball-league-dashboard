@@ -5,7 +5,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Medal, Star, Trophy, Target, Users, Award } from "lucide-react";
 
 interface Achievement {
   id: number;
@@ -15,13 +14,13 @@ interface Achievement {
   unlockedAt: string | null;
 }
 
-const ICON_MAP: { [key: string]: typeof Medal | typeof Star | typeof Trophy | typeof Target | typeof Users | typeof Award } = {
-  "games_played": Medal,
-  "games_won": Trophy,
-  "win_rate": Star,
-  "perfect_games": Target,
-  "unique_teammates": Users,
-  "default": Award,
+const ICON_MAP: { [key: string]: string } = {
+  "games_played": "🏅",
+  "games_won": "🏆",
+  "win_rate": "⭐",
+  "perfect_games": "🎯",
+  "unique_teammates": "👥",
+  "default": "🥇",
 };
 
 export function PlayerAchievements({ playerId, compact = false }: { playerId: number; compact?: boolean }) {
@@ -37,12 +36,11 @@ export function PlayerAchievements({ playerId, compact = false }: { playerId: nu
     <TooltipProvider>
       <div className="flex gap-1">
         {unlockedAchievements.map((achievement) => {
-          const IconComponent = ICON_MAP[achievement.icon] || Award;
           return (
             <Tooltip key={achievement.id} delayDuration={50}>
               <TooltipTrigger asChild>
                 <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs cursor-help">
-                  <IconComponent className="h-4 w-4" />
+                  {ICON_MAP[achievement.icon] || ICON_MAP.default}
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-sm">
