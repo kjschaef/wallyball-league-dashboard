@@ -40,11 +40,22 @@ export function PlayerAchievements({ playerId, compact = false }: { playerId: nu
           return (
             <Tooltip key={achievement.id} delayDuration={50}>
               <TooltipTrigger asChild>
-                <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs cursor-help">
-                  {console.log('Achievement icon:', achievement.icon) || ICON_MAP[achievement.icon] || ICON_MAP.default}
+                <div 
+                  className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs cursor-help"
+                  onClick={(e) => {
+                    // Prevent immediate closing on mobile
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  {ICON_MAP[achievement.icon] || ICON_MAP.default}
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-sm">
+              <TooltipContent 
+                side="bottom" 
+                className="text-sm touch-auto"
+                sideOffset={10}
+              >
                 <p className="font-medium">{achievement.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {achievement.description}
