@@ -117,7 +117,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     player.dailyStats.forEach((_, date) => allDates.add(date));
   });
 
-  // Create chart data with cumulative wins
+  // Create chart data with cumulative wins and decay
   const chartData = Array.from(allDates)
     .sort()
     .reduce((acc, date) => {
@@ -125,10 +125,26 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
       playerStats.forEach((player) => {
         const stats = player.dailyStats.get(date);
         if (stats) {
+          // Use the value directly from the player's stats for this date
           dataPoint[player.name] = stats[metric];
         } else if (acc.length > 0) {
-          // Use the last known value
-          dataPoint[player.name] = acc[acc.length - 1][player.name] ?? 0;
+          // Calculate decay based on weeks since last play
+          const lastPlayDate = Array.from(player.dailyStats.keys())
+            .filter(d => d <= date)
+            .sort()
+            .pop();
+          
+          if (lastPlayDate) {
+            const weeksSinceLastPlay = Math.floor(
+              (new Date(date).getTime() - new Date(lastPlayDate).getTime()) / 
+              (1000 * 60 * 60 * 24 * 7)
+            );
+            const decayFactor = Math.max(0.5, 1 - (weeksSinceLastPlay * 0.05));
+            const lastValue = acc[acc.length - 1][player.name] ?? 0;
+            dataPoint[player.name] = lastValue * decayFactor;
+          } else {
+            dataPoint[player.name] = 0;
+          }
         } else {
           dataPoint[player.name] = 0;
         }
