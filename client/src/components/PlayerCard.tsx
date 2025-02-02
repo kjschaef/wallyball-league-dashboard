@@ -73,9 +73,14 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     matches.map(match => new Date(match.date).toLocaleDateString())
   ).size;
 
-  // Calculate average wins per day (total wins / number of unique days)
+  // Calculate average wins per day with decay factor
+  const daysSinceLastPlay = player.matches?.length 
+    ? Math.floor((new Date().getTime() - new Date(player.matches[0].date).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+    
+  const decayFactor = Math.max(0.5, 1 - (daysSinceLastPlay * 0.05)); // 5% decay per day, minimum 50% effectiveness
   const winsPerDay = uniqueDays > 0 
-    ? (stats.won / uniqueDays).toFixed(1)
+    ? ((stats.won / uniqueDays) * decayFactor).toFixed(1)
     : "0.0";
 
   // Add achievement check mutation
