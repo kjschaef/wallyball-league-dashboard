@@ -35,7 +35,7 @@ export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  icon: text("icon").notNull(), // Lucide icon name
+  icon: text("icon").notNull(), // Achievement type (e.g., "games_played", "games_won")
   condition: text("condition").notNull(), // Achievement condition (e.g., "wins >= 10")
 });
 
