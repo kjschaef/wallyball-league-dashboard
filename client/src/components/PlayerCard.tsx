@@ -74,11 +74,11 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   ).size;
 
   // Calculate average wins per day with decay factor
-  const daysSinceLastPlay = player.matches?.length 
-    ? Math.floor((new Date().getTime() - new Date(player.matches[0].date).getTime()) / (1000 * 60 * 60 * 24))
+  const weeksSinceLastPlay = player.matches?.length 
+    ? Math.floor((new Date().getTime() - new Date(player.matches[0].date).getTime()) / (1000 * 60 * 60 * 24 * 7))
     : 0;
     
-  const decayFactor = Math.max(0.5, 1 - (daysSinceLastPlay * 0.05)); // 5% decay per day, minimum 50% effectiveness
+  const decayFactor = Math.max(0.5, 1 - (weeksSinceLastPlay * 0.05)); // 5% decay per week, minimum 50% effectiveness
   const winsPerDay = uniqueDays > 0 
     ? ((stats.won / uniqueDays) * decayFactor).toFixed(1)
     : "0.0";
