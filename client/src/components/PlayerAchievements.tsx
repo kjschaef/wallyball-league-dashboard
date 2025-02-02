@@ -15,9 +15,9 @@ interface Achievement {
 }
 
 const ICON_MAP: { [key: string]: string } = {
-  "Medal": "🏅",
+  "Medal": "🏐",
   "Trophy": "🏆",
-  "Star": "⭐",
+  "Star": "🗓️",
   "Target": "🎯",
   "Users": "👥",
   "Crown": "👑",
