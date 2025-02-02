@@ -93,10 +93,13 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     sortedMatches.forEach((match: any) => {
       const date = format(new Date(match.date), "yyyy-MM-dd");
       const gamesWon = match.isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
+      const daysSinceLastPlay = Math.floor((new Date().getTime() - new Date(match.date).getTime()) / (1000 * 60 * 60 * 24));
+      const decayFactor = Math.max(0.5, 1 - (daysSinceLastPlay * 0.05)); // 5% decay per day, minimum 50% effectiveness
+      
       cumulativeWins += gamesWon;
       daysPlayed.add(date);
       dailyStats.set(date, { 
-        winsPerDay: cumulativeWins / daysPlayed.size,
+        winsPerDay: (cumulativeWins / daysPlayed.size) * decayFactor,
         totalWins: cumulativeWins 
       });
     });
