@@ -144,9 +144,8 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           }
         }
       });
-      acc.push(dataPoint);
-      return acc;
-    }, [] as any[]);
+      return dataPoint;
+    });
 
   return (
     <Card>
