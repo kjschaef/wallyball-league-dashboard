@@ -15,11 +15,12 @@ interface Achievement {
 }
 
 const ICON_MAP: { [key: string]: string } = {
-  "games_played": "🏅",
-  "games_won": "🏆",
-  "win_rate": "⭐",
-  "perfect_games": "🎯",
-  "unique_teammates": "👥",
+  "Medal": "🏅",
+  "Trophy": "🏆",
+  "Star": "⭐",
+  "Target": "🎯",
+  "Users": "👥",
+  "Crown": "👑",
   "default": "🥇",
 };
 
