@@ -200,36 +200,32 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
         </DialogContent>
       </Dialog>
       <CardContent>
-        <div className="space-y-2">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Wins/Day:</span>
-                <span className="text-lg font-semibold">{winsPerDay}</span>
-              </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Wins/Day:</span>
+              <span className="text-lg font-semibold">{winsPerDay}</span>
             </div>
             
             {/* Achievements as small icons */}
             <div className="flex flex-wrap gap-1">
               <PlayerAchievements playerId={player.id} compact />
             </div>
+          </div>
 
-            <div className="flex items-center justify-end">
-              <div className="text-right">
-                <span className={`text-2xl font-bold ${
-                  winRate >= 60 ? 'text-green-600' : 
-                  winRate >= 40 ? 'text-yellow-600' : 
-                  'text-red-600'
-                }`}>{winRate}%</span>
-                <span className="text-sm text-muted-foreground block">Win Rate</span>
-                <span className="text-sm">
-                  <span className="text-sm text-muted-foreground">Record: </span>
-                  <span className="text-green-600 font-medium">{stats.won}</span>
-                  {" / "}
-                  <span className="text-red-600 font-medium">{stats.lost}</span>
-                </span>
-              </div>
-            </div>
+          <div className="text-right">
+            <span className={`text-2xl font-bold ${
+              winRate >= 60 ? 'text-green-600' : 
+              winRate >= 40 ? 'text-yellow-600' : 
+              'text-red-600'
+            }`}>{winRate}%</span>
+            <span className="text-sm text-muted-foreground block">Win Rate</span>
+            <span className="text-sm">
+              <span className="text-sm text-muted-foreground">Record: </span>
+              <span className="text-green-600 font-medium">{stats.won}</span>
+              {" / "}
+              <span className="text-red-600 font-medium">{stats.lost}</span>
+            </span>
           </div>
         </div>
       </CardContent>
