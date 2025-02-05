@@ -202,13 +202,13 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
       <CardContent>
         <div className="space-y-2">
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Wins/Day:</span>
-                <span className="text-lg font-semibold">{winsPerDay}</span>
-              </div>
+            <div className="flex items-center justify-end">
               <div className="text-right">
-                <span className={`text-2xl font-bold ${winRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>{winRate}%</span>
+                <span className={`text-2xl font-bold ${
+                  winRate >= 60 ? 'text-green-600' : 
+                  winRate >= 40 ? 'text-yellow-600' : 
+                  'text-red-600'
+                }`}>{winRate}%</span>
                 <span className="text-sm text-muted-foreground block">Win Rate</span>
                 <span className="text-sm">
                   <span className="text-sm text-muted-foreground">Record: </span>
