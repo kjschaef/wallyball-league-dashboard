@@ -225,6 +225,52 @@ export default function Results() {
           ))}
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Achievement Legend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs">
+                🏐
+              </div>
+              <span className="text-sm">First Game Played</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs">
+                🏆
+              </div>
+              <span className="text-sm">Won 5 Games</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs">
+                🗓️
+              </div>
+              <span className="text-sm">Played 10 Games</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs">
+                🎯
+              </div>
+              <span className="text-sm">70% Win Rate</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs">
+                👥
+              </div>
+              <span className="text-sm">Played with 5 Different Teammates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-xs">
+                👑
+              </div>
+              <span className="text-sm">Perfect Game Victory</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div id="results-content" className="space-y-6">
         <Card>
           <CardHeader>
