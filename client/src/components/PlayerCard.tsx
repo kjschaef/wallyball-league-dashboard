@@ -210,16 +210,13 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               <div className="text-right">
                 <span className="text-2xl font-bold text-green-600">{winRate}%</span>
                 <span className="text-sm text-muted-foreground block">Win Rate</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Record:</span>
                 <span className="text-sm">
                   <span className="text-green-600 font-medium">{stats.won}</span>
                   {" / "}
                   <span className="text-red-600 font-medium">{stats.lost}</span>
                 </span>
               </div>
+            </div>
           </div>
 
           {/* Achievements as small icons */}
