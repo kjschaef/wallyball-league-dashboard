@@ -202,6 +202,18 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
       <CardContent>
         <div className="space-y-2">
           <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Wins/Day:</span>
+                <span className="text-lg font-semibold">{winsPerDay}</span>
+              </div>
+            </div>
+            
+            {/* Achievements as small icons */}
+            <div className="flex flex-wrap gap-1">
+              <PlayerAchievements playerId={player.id} compact />
+            </div>
+
             <div className="flex items-center justify-end">
               <div className="text-right">
                 <span className={`text-2xl font-bold ${
@@ -218,11 +230,6 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                 </span>
               </div>
             </div>
-          </div>
-
-          {/* Achievements as small icons */}
-          <div className="flex flex-wrap gap-1 mt-2">
-            <PlayerAchievements playerId={player.id} compact />
           </div>
         </div>
       </CardContent>
