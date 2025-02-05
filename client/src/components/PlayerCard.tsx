@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
 import { useState } from "react";
+import { startOfWeek, subWeeks } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -202,9 +203,49 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
       <CardContent>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Wins/Day:</span>
-              <span className="text-lg font-semibold">{winsPerDay}</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Wins/Day:</span>
+                <span className="text-lg font-semibold">{winsPerDay}</span>
+              </div>
+
+              {matches.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Streak:</span>
+                  <span className="text-lg font-semibold">
+                    {(() => {
+                      const weeks = new Set();
+                      let streak = 0;
+                      const now = new Date();
+                      let currentWeek = startOfWeek(now);
+                      
+                      for (const match of matches.sort((a, b) => 
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                      )) {
+                        const matchWeek = startOfWeek(new Date(match.date));
+                        if (currentWeek.getTime() === matchWeek.getTime()) {
+                          if (!weeks.has(matchWeek.getTime())) {
+                            weeks.add(matchWeek.getTime());
+                            streak++;
+                          }
+                        } else if (
+                          matchWeek.getTime() === 
+                          startOfWeek(subWeeks(currentWeek, 1)).getTime()
+                        ) {
+                          if (!weeks.has(matchWeek.getTime())) {
+                            weeks.add(matchWeek.getTime());
+                            streak++;
+                            currentWeek = matchWeek;
+                          }
+                        } else {
+                          break;
+                        }
+                      }
+                      return streak;
+                    })()}w
+                  </span>
+                </div>
+              )}
             </div>
             
             {/* Achievements as small icons */}
