@@ -84,6 +84,10 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     ? ((stats.won / uniqueDays) * decayFactor).toFixed(1)
     : "0.0";
 
+  const yearsPlayed = player.startYear 
+    ? new Date().getFullYear() - player.startYear 
+    : null;
+
   // Add achievement check mutation
   const checkAchievementsMutation = useMutation({
     mutationFn: (playerId: number) =>
@@ -197,13 +201,21 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               <span className="text-sm text-muted-foreground">Wins/Day:</span>
               <span className="text-lg font-semibold text-blue-600">{winsPerDay}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Record:</span>
-              <span className="text-sm">
-                <span className="text-green-600 font-medium">{stats.won}</span>
-                {" / "}
-                <span className="text-red-600 font-medium">{stats.lost}</span>
-              </span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Record:</span>
+                <span className="text-sm">
+                  <span className="text-green-600 font-medium">{stats.won}</span>
+                  {" / "}
+                  <span className="text-red-600 font-medium">{stats.lost}</span>
+                </span>
+              </div>
+              {yearsPlayed !== null && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Years:</span>
+                  <span className="text-sm font-medium">{yearsPlayed}</span>
+                </div>
+              )}
             </div>
           </div>
 
