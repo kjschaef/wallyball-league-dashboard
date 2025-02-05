@@ -87,6 +87,7 @@ export default function Players() {
     const formData = new FormData(e.currentTarget);
     const playerData = {
       name: formData.get("name") as string,
+      startYear: formData.get("startYear") ? parseInt(formData.get("startYear") as string) : null,
     };
 
     if (dialogState.player) {
@@ -111,14 +112,27 @@ export default function Players() {
             </DialogTitle>
           </DialogHeader>
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                required
-                defaultValue={dialogState.player?.name}
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  required
+                  defaultValue={dialogState.player?.name}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="startYear">Start Year</Label>
+                <Input
+                  id="startYear"
+                  name="startYear"
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  defaultValue={dialogState.player?.startYear}
+                />
+              </div>
             </div>
             <div className="flex gap-2">
               <Button type="button" variant="outline" className="w-full" onClick={closeDialog}>

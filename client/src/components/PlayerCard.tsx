@@ -61,6 +61,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     const playerData = {
       ...player,
       name: formData.get("name") as string,
+      startYear: formData.get("startYear") ? parseInt(formData.get("startYear") as string) : null,
     };
     updateMutation.mutate(playerData);
   };
@@ -156,14 +157,27 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             <DialogTitle>Edit Player</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                required
-                defaultValue={player.name}
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  required
+                  defaultValue={player.name}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="startYear">Start Year</Label>
+                <Input
+                  id="startYear"
+                  name="startYear"
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  defaultValue={player.startYear}
+                />
+              </div>
             </div>
             <div className="flex gap-2">
               <Button type="button" variant="outline" className="w-full" onClick={() => setShowEditDialog(false)}>
