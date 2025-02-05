@@ -105,10 +105,13 @@ export function registerRoutes(app: Express): Server {
       const playerId = parseInt(req.params.id);
       console.log("Updating player:", playerId);
 
-      // Only update the name field, excluding computed fields and timestamps
+      // Update name and startYear fields
       const updatedPlayer = await db
         .update(players)
-        .set({ name: req.body.name })
+        .set({ 
+          name: req.body.name,
+          startYear: req.body.startYear 
+        })
         .where(eq(players.id, playerId))
         .returning();
 
