@@ -212,7 +212,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               {matches.length > 0 && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Streak:</span>
-                  <span className="text-lg font-semibold">
+                  <span className="text-sm">
                     {(() => {
                       const weeks = new Set();
                       let streak = 0;
@@ -241,8 +241,8 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                           break;
                         }
                       }
-                      return streak;
-                    })()}w
+                      return `${streak} weeks`;
+                    })()}
                   </span>
                 </div>
               )}
