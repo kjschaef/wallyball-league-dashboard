@@ -117,8 +117,13 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-lg font-bold">
+        <CardTitle className="text-lg font-bold flex items-center gap-3">
           {player.name}
+          {yearsPlayed !== null && (
+            <span className="text-sm font-normal text-muted-foreground">
+              Years played: {yearsPlayed}
+            </span>
+          )}
         </CardTitle>
         <div className="flex space-x-2">
           <Button
@@ -201,8 +206,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               <span className="text-sm text-muted-foreground">Wins/Day:</span>
               <span className="text-lg font-semibold text-blue-600">{winsPerDay}</span>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Record:</span>
                 <span className="text-sm">
                   <span className="text-green-600 font-medium">{stats.won}</span>
@@ -210,13 +214,6 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                   <span className="text-red-600 font-medium">{stats.lost}</span>
                 </span>
               </div>
-              {yearsPlayed !== null && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Years:</span>
-                  <span className="text-sm font-medium">{yearsPlayed}</span>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Achievements as small icons */}
