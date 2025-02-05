@@ -185,6 +185,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
                 formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
                 contentStyle={{ fontWeight: recentPlayerIds.has(playerStats.find(p => p.name === name)?.id || 0) ? 'bold' : 'normal' }}
+                itemSorter={(a) => -a.value}
               />
               <Legend formatter={(value) => {
                 const playerId = playerStats.find(p => p.name === value)?.id;
