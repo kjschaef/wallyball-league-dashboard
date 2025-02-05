@@ -213,19 +213,19 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             </div>
           </div>
 
-          <div className="text-right">
+          <div className="text-right space-y-1">
             <span className="text-sm text-muted-foreground block">Win Rate</span>
             <span className={`text-2xl font-bold ${
               winRate >= 60 ? 'text-green-600' : 
               winRate >= 40 ? 'text-yellow-600' : 
               'text-red-600'
             }`}>{winRate}%</span>
-            <span className="text-sm">
+            <div className="text-sm">
               <span className="text-sm text-muted-foreground">Record: </span>
               <span className="text-green-600 font-medium">{stats.won}</span>
               {" / "}
               <span className="text-red-600 font-medium">{stats.lost}</span>
-            </span>
+            </div>
           </div>
         </div>
       </CardContent>
