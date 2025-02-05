@@ -201,10 +201,16 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
       </Dialog>
       <CardContent>
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Wins/Day:</span>
-              <span className="text-lg font-semibold text-blue-600">{winsPerDay}</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Wins/Day:</span>
+                <span className="text-lg font-semibold text-blue-600">{winsPerDay}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-bold text-green-600">{winRate}%</span>
+                <span className="text-sm text-muted-foreground block">Win Rate</span>
+              </div>
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Record:</span>
