@@ -204,9 +204,16 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Wins/Day:</span>
-                <span className="text-lg font-semibold">{winsPerDay}</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Wins/Day:</span>
+                  <span className="text-lg font-semibold">{winsPerDay}</span>
+                </div>
+                {weeksSinceLastPlay > 1 && (
+                  <div className="text-sm text-muted-foreground">
+                    -{Math.round((1 - decayFactor) * 100)}% inactivity penalty
+                  </div>
+                )}
               </div>
 
               {matches.length > 0 && (
