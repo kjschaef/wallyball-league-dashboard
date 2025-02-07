@@ -210,8 +210,8 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                   <span className="text-lg font-semibold">{winsPerDay}</span>
                 </div>
                 {weeksSinceLastPlay > 1 && (
-                  <div className="text-sm text-muted-foreground">
-                    -{Math.round((1 - decayFactor) * 100)}% inactivity penalty
+                  <div className="text-xs text-muted-foreground w-36">
+                    -{Math.min(Math.round(weeksSinceLastPlay * 5), 50)}% inactivity penalty
                   </div>
                 )}
               </div>
