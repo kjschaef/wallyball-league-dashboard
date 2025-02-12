@@ -137,7 +137,8 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 (1000 * 60 * 60 * 24)
               );
               const decayFactor = Math.max(0.5, 1 - (daysSinceLastPlay * 0.01));
-              dataPoint[player.name] = player.dailyStats.get(lastPlayDate)[metric] * decayFactor;
+              const value = player.dailyStats.get(lastPlayDate)[metric];
+              dataPoint[player.name] = metric === 'winsPerDay' ? value * decayFactor : value;
             } else {
               dataPoint[player.name] = 0;
             }
