@@ -238,19 +238,20 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
             Total
           </Button>
           <div className="flex items-center">
-            <Switch
-              checked={showAllData}
-              onCheckedChange={setShowAllData}
-              className="relative w-[200px] h-8 bg-black rounded-full data-[state=checked]:bg-black peer shrink-0"
-            >
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-white z-10">
+            <div className="relative w-[200px] h-8">
+              <Switch
+                checked={showAllData}
+                onCheckedChange={setShowAllData}
+                className="absolute w-full h-full bg-black rounded-full peer shrink-0 cursor-pointer"
+              />
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-white z-10 pointer-events-none">
                 Recent
               </span>
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-white z-10">
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-white z-10 pointer-events-none">
                 All Data
               </span>
-              <span className="block h-7 w-[96px] bg-emerald-400 rounded-full transition-transform duration-200 data-[state=checked]:translate-x-[100px] translate-x-[2px] my-0.5" />
-            </Switch>
+              <div className="absolute left-0.5 top-0.5 h-7 w-[96px] bg-emerald-400 rounded-full transition-transform duration-200 peer-data-[state=checked]:translate-x-[100px] pointer-events-none" />
+            </div>
           </div>
         </div>
       </CardHeader>
