@@ -237,13 +237,20 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           >
             Total
           </Button>
-          <div className="flex items-center gap-2">
-            <span className="text-sm">Recent</span>
+          <div className="flex items-center">
             <Switch
               checked={showAllData}
               onCheckedChange={setShowAllData}
-            />
-            <span className="text-sm">All Data</span>
+              className="relative w-[200px] h-8 bg-black rounded-full data-[state=checked]:bg-black peer shrink-0"
+            >
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-white z-10">
+                Recent
+              </span>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-white z-10">
+                All Data
+              </span>
+              <span className="block h-7 w-[96px] bg-emerald-400 rounded-full transition-transform duration-200 data-[state=checked]:translate-x-[100px] translate-x-[2px] my-0.5" />
+            </Switch>
           </div>
         </div>
       </CardHeader>
