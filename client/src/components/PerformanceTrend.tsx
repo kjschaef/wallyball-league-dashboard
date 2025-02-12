@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   LineChart,
   Line,
@@ -237,22 +237,19 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           >
             Total
           </Button>
-          <div className="flex items-center">
-            <div className="relative w-[200px] h-8">
-              <Switch
-                checked={showAllData}
-                onCheckedChange={setShowAllData}
-                className="absolute w-full h-full bg-black rounded-full peer shrink-0 cursor-pointer"
-              />
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-white z-10 pointer-events-none">
-                Recent
-              </span>
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-white z-10 pointer-events-none">
-                All Data
-              </span>
-              <div className="absolute left-0.5 top-0.5 h-7 w-[96px] bg-white rounded-full transition-transform duration-200 peer-data-[state=checked]:translate-x-[100px] pointer-events-none" />
-            </div>
-          </div>
+          <ToggleGroup
+            type="single"
+            value={showAllData ? "all" : "recent"}
+            onValueChange={(value) => setShowAllData(value === "all")}
+            className="border rounded-lg"
+          >
+            <ToggleGroupItem value="recent" className="px-3 data-[state=on]:bg-black data-[state=on]:text-white">
+              Recent
+            </ToggleGroupItem>
+            <ToggleGroupItem value="all" className="px-3 data-[state=on]:bg-black data-[state=on]:text-white">
+              All Data
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </CardHeader>
       <CardContent>
