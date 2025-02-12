@@ -193,16 +193,29 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           if (playerGames.length > 0) {
             dataPoint[player.name] = playerGames.reduce((a: number, b: number) => a + b, 0) / playerGames.length;
           } else {
-            // Find the last known value before this week
-            const previousWeeks = chartData.slice(0, chartData.length);
-            const lastKnownValue = previousWeeks.reverse().find(week => week[player.name] !== undefined)?.[player.name];
-            dataPoint[player.name] = lastKnownValue || 0;
+            dataPoint[player.name] = 0;
           }
         });
         return dataPoint;
       });
-      return weeklyData;
-      })();
+
+      // Process the data to handle missing values
+      return weeklyData.map((dataPoint, index) => {
+        const processedDataPoint = { ...dataPoint };
+        playerStats.forEach(player => {
+          if (processedDataPoint[player.name] === 0) {
+            // Find the last known value
+            for (let i = index - 1; i >= 0; i--) {
+              if (weeklyData[i][player.name] !== 0) {
+                processedDataPoint[player.name] = weeklyData[i][player.name];
+                break;
+              }
+            }
+          }
+        });
+        return processedDataPoint;
+      });
+    })();
 
   return (
     <Card>
