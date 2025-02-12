@@ -222,21 +222,20 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{metric === 'winsPerDay' ? 'Wins Per Day Played' : 'Total Wins'}</CardTitle>
-        <div className="flex gap-2">
-          <Button 
-            variant={metric === 'winsPerDay' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setMetric('winsPerDay')}
+        <div className="flex flex-col gap-2">
+          <ToggleGroup
+            type="single"
+            value={metric}
+            onValueChange={(value) => value && setMetric(value as 'winsPerDay' | 'totalWins')}
+            className="border rounded-lg"
           >
-            Per Day
-          </Button>
-          <Button 
-            variant={metric === 'totalWins' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setMetric('totalWins')}
-          >
-            Total
-          </Button>
+            <ToggleGroupItem value="winsPerDay" className="px-3 data-[state=on]:bg-black data-[state=on]:text-white">
+              Per Day
+            </ToggleGroupItem>
+            <ToggleGroupItem value="totalWins" className="px-3 data-[state=on]:bg-black data-[state=on]:text-white">
+              Total
+            </ToggleGroupItem>
+          </ToggleGroup>
           <ToggleGroup
             type="single"
             value={showAllData ? "all" : "recent"}
