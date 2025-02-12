@@ -144,28 +144,29 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
         });
         return dataPoint;
       })
-    : Array.from(allDates)
-      .sort()
-      .reduce((acc, date) => {
-        const weekStart = format(startOfWeek(new Date(date)), 'yyyy-MM-dd');
-        if (!acc[weekStart]) {
-          acc[weekStart] = { date: weekStart, games: {} };
-          playerStats.forEach(player => {
-            acc[weekStart].games[player.name] = [];
-          });
-        }
-        playerStats.forEach(player => {
-          const stats = player.dailyStats.get(date);
-          if (stats) {
-            acc[weekStart].games[player.name].push(stats[metric]);
-          }
-        });
-        return acc;
-      }, {} as any);
+    : (() => {
+        const weeklyAcc = Array.from(allDates)
+          .sort()
+          .reduce((acc, date) => {
+            const weekStart = format(startOfWeek(new Date(date)), 'yyyy-MM-dd');
+            if (!acc[weekStart]) {
+              acc[weekStart] = { date: weekStart, games: {} };
+              playerStats.forEach(player => {
+                acc[weekStart].games[player.name] = [];
+              });
+            }
+            playerStats.forEach(player => {
+              const stats = player.dailyStats.get(date);
+              if (stats) {
+                acc[weekStart].games[player.name].push(stats[metric]);
+              }
+            });
+            return acc;
+          }, {} as any);
 
-    const weeklyData = Object.values(acc)
+        return Object.values(weeklyAcc)
       .slice(-4)
-      .map((weekData: any) => {
+          .map((weekData: any) => {
         const dataPoint: any = { date: weekData.date };
         playerStats.forEach(player => {
           const playerGames = weekData.games[player.name];
@@ -176,7 +177,8 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           }
         });
         return dataPoint;
-      });
+          });
+      })();
 
   return (
     <Card>
