@@ -161,10 +161,11 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           }
         });
         return acc;
-      }, {} as any)
-      |> Object.values
-      |> #.slice(-4)
-      |> #.map((weekData: any) => {
+      }, {} as any);
+
+    const weeklyData = Object.values(weeklyAcc)
+      .slice(-4)
+      .map((weekData: any) => {
         const dataPoint: any = { date: weekData.date };
         playerStats.forEach(player => {
           const playerGames = weekData.games[player.name];
