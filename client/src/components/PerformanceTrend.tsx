@@ -173,7 +173,10 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           if (playerGames.length > 0) {
             dataPoint[player.name] = playerGames.reduce((a: number, b: number) => a + b, 0) / playerGames.length;
           } else {
-            dataPoint[player.name] = 0;
+            // Find the last known value before this week
+            const previousWeeks = chartData.slice(0, chartData.length);
+            const lastKnownValue = previousWeeks.reverse().find(week => week[player.name] !== undefined)?.[player.name];
+            dataPoint[player.name] = lastKnownValue || 0;
           }
         });
         return dataPoint;
