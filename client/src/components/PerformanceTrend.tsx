@@ -227,12 +227,12 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
             type="single"
             value={metric}
             onValueChange={(value) => value && setMetric(value as 'winsPerDay' | 'totalWins')}
-            className="border rounded-lg"
+            className="border rounded-lg w-[200px]"
           >
-            <ToggleGroupItem value="winsPerDay" className="px-3 data-[state=on]:bg-black data-[state=on]:text-white">
+            <ToggleGroupItem value="winsPerDay" className="px-3 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               Per Day
             </ToggleGroupItem>
-            <ToggleGroupItem value="totalWins" className="px-3 data-[state=on]:bg-black data-[state=on]:text-white">
+            <ToggleGroupItem value="totalWins" className="px-3 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               Total
             </ToggleGroupItem>
           </ToggleGroup>
@@ -240,12 +240,12 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
             type="single"
             value={showAllData ? "all" : "recent"}
             onValueChange={(value) => setShowAllData(value === "all")}
-            className="border rounded-lg"
+            className="border rounded-lg w-[200px]"
           >
-            <ToggleGroupItem value="recent" className="px-3 data-[state=on]:bg-black data-[state=on]:text-white">
+            <ToggleGroupItem value="recent" className="px-3 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               Recent
             </ToggleGroupItem>
-            <ToggleGroupItem value="all" className="px-3 data-[state=on]:bg-black data-[state=on]:text-white">
+            <ToggleGroupItem value="all" className="px-3 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               All Data
             </ToggleGroupItem>
           </ToggleGroup>
