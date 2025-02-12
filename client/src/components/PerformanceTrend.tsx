@@ -115,55 +115,67 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     player.dailyStats.forEach((_, date) => allDates.add(date));
   });
 
-  // Create weekly chart data
-  const weeklyData = new Map();
-  Array.from(allDates).forEach(date => {
-    const weekStart = format(startOfWeek(new Date(date)), 'yyyy-MM-dd');
-    if (!weeklyData.has(weekStart)) {
-      weeklyData.set(weekStart, { 
-        date: weekStart,
-        games: new Map(playerStats.map(player => [player.name, []])) 
-      });
-    }
-    playerStats.forEach(player => {
-      const stats = player.dailyStats.get(date);
-      if (stats) {
-        const weekData = weeklyData.get(weekStart);
-        weekData.games.get(player.name).push(stats[metric]);
-      }
-    });
-  });
-
-  const chartData = Array.from(weeklyData.values())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(showAllData ? 0 : -4) // Show all data or last 4 weeks
-    .map(weekData => {
-      const dataPoint: any = { date: weekData.date };
-      playerStats.forEach(player => {
-        const playerGames = weekData.games.get(player.name);
-        if (playerGames.length > 0) {
-          dataPoint[player.name] = playerGames.reduce((a, b) => a + b, 0) / playerGames.length;
-        } else {
-          const lastWeekWithGames = Array.from(weeklyData.values())
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .find(w => w.date < weekData.date && w.games.get(player.name).length > 0);
-          
-          if (lastWeekWithGames) {
-            const weeksSince = Math.floor(
-              (new Date(weekData.date).getTime() - new Date(lastWeekWithGames.date).getTime()) / 
-              (1000 * 60 * 60 * 24 * 7)
-            );
-            const decayFactor = Math.max(0.5, 1 - (weeksSince * 0.05));
-            const lastValue = lastWeekWithGames.games.get(player.name).reduce((a, b) => a + b, 0) / 
-                            lastWeekWithGames.games.get(player.name).length;
-            dataPoint[player.name] = lastValue * decayFactor;
+  const chartData = showAllData 
+    ? Array.from(allDates)
+      .sort()
+      .map(date => {
+        const dataPoint: any = { date };
+        playerStats.forEach(player => {
+          const stats = player.dailyStats.get(date);
+          if (stats) {
+            dataPoint[player.name] = stats[metric];
+          } else {
+            const lastPlayDate = Array.from(player.dailyStats.keys())
+              .filter(d => d <= date)
+              .sort()
+              .pop();
+            
+            if (lastPlayDate) {
+              const daysSinceLastPlay = Math.floor(
+                (new Date(date).getTime() - new Date(lastPlayDate).getTime()) / 
+                (1000 * 60 * 60 * 24)
+              );
+              const decayFactor = Math.max(0.5, 1 - (daysSinceLastPlay * 0.01));
+              dataPoint[player.name] = player.dailyStats.get(lastPlayDate)[metric] * decayFactor;
+            } else {
+              dataPoint[player.name] = 0;
+            }
+          }
+        });
+        return dataPoint;
+      })
+    : Array.from(allDates)
+      .sort()
+      .reduce((acc, date) => {
+        const weekStart = format(startOfWeek(new Date(date)), 'yyyy-MM-dd');
+        if (!acc[weekStart]) {
+          acc[weekStart] = { date: weekStart, games: {} };
+          playerStats.forEach(player => {
+            acc[weekStart].games[player.name] = [];
+          });
+        }
+        playerStats.forEach(player => {
+          const stats = player.dailyStats.get(date);
+          if (stats) {
+            acc[weekStart].games[player.name].push(stats[metric]);
+          }
+        });
+        return acc;
+      }, {} as any)
+      |> Object.values
+      |> #.slice(-4)
+      |> #.map((weekData: any) => {
+        const dataPoint: any = { date: weekData.date };
+        playerStats.forEach(player => {
+          const playerGames = weekData.games[player.name];
+          if (playerGames.length > 0) {
+            dataPoint[player.name] = playerGames.reduce((a: number, b: number) => a + b, 0) / playerGames.length;
           } else {
             dataPoint[player.name] = 0;
           }
-        }
+        });
+        return dataPoint;
       });
-      return dataPoint;
-    });
 
   return (
     <Card>
@@ -200,7 +212,10 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
-                tickFormatter={(date) => `Week of ${format(parseISO(date), "MMM d")}`}
+                tickFormatter={(date) => showAllData 
+                  ? format(parseISO(date), "MMM d")
+                  : `Week of ${format(parseISO(date), "MMM d")}`
+                }
               />
               <YAxis
                 domain={[0, "auto"]}
