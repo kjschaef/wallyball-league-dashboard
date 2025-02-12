@@ -250,7 +250,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-white z-10 pointer-events-none">
                 All Data
               </span>
-              <div className="absolute left-0.5 top-0.5 h-7 w-[96px] bg-emerald-400 rounded-full transition-transform duration-200 peer-data-[state=checked]:translate-x-[100px] pointer-events-none" />
+              <div className="absolute left-0.5 top-0.5 h-7 w-[96px] bg-white rounded-full transition-transform duration-200 peer-data-[state=checked]:translate-x-[100px] pointer-events-none" />
             </div>
           </div>
         </div>
