@@ -236,13 +236,14 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           >
             Total
           </Button>
-          <Button 
-            variant={showAllData ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setShowAllData(!showAllData)}
-          >
-            {showAllData ? 'Recent Data' : 'All Data'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Recent</span>
+            <Switch
+              checked={showAllData}
+              onCheckedChange={setShowAllData}
+            />
+            <span className="text-sm">All Data</span>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
