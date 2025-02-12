@@ -163,7 +163,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
         return acc;
       }, {} as any);
 
-    const weeklyData = Object.values(weeklyAcc)
+    const weeklyData = Object.values(acc)
       .slice(-4)
       .map((weekData: any) => {
         const dataPoint: any = { date: weekData.date };
