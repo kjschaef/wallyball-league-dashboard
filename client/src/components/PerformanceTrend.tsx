@@ -42,6 +42,7 @@ interface PerformanceTrendProps {
 
 export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
   const [metric, setMetric] = useState<'winsPerDay' | 'totalWins'>('winsPerDay');
+  const [showAllData, setShowAllData] = useState(false);
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
   });
@@ -135,7 +136,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
 
   const chartData = Array.from(weeklyData.values())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(-4) // Show last 4 weeks
+    .slice(showAllData ? 0 : -4) // Show all data or last 4 weeks
     .map(weekData => {
       const dataPoint: any = { date: weekData.date };
       playerStats.forEach(player => {
@@ -182,6 +183,13 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
             onClick={() => setMetric('totalWins')}
           >
             Total
+          </Button>
+          <Button 
+            variant={showAllData ? 'default' : 'outline'} 
+            size="sm"
+            onClick={() => setShowAllData(!showAllData)}
+          >
+            {showAllData ? 'Recent Data' : 'All Data'}
           </Button>
         </div>
       </CardHeader>
