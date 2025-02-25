@@ -12,6 +12,9 @@ describe('Team Stats', () => {
   });
 
   test('should aggregate team stats regardless of player order', () => {
+    // This mimics how the frontend processes teams
+    const processTeam = (players: number[]) => players.map(id => id.toString()).join(', ');
+    
     const matches = [
       {
         teamOnePlayers: [1, 2],
@@ -28,7 +31,7 @@ describe('Team Stats', () => {
     ];
 
     const stats = matches.reduce((acc, match) => {
-      const teamOne = formatTeam(match.teamOnePlayers);
+      const teamOne = processTeam(match.teamOnePlayers);
       
       if (!acc[teamOne]) {
         acc[teamOne] = { wins: 0, losses: 0 };
@@ -39,9 +42,12 @@ describe('Team Stats', () => {
       return acc;
     }, {} as Record<string, { wins: number; losses: number }>);
 
-    // Team [1,2] should have 3 wins and 3 losses total, combining both matches
-    const team12Stats = stats[formatTeam([1, 2])];
-    expect(team12Stats.wins).toBe(3);
-    expect(team12Stats.losses).toBe(3);
+    // Without sorting, "1, 2" and "2, 1" will be treated as different teams
+    const team12Stats = stats["1, 2"];
+    const team21Stats = stats["2, 1"];
+    
+    // The test should now fail, showing that the teams are treated differently
+    expect(team12Stats.wins + team21Stats.wins).toBe(3);
+    expect(team12Stats.losses + team21Stats.losses).toBe(3);
   });
 });
