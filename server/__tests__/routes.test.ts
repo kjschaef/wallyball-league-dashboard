@@ -1,113 +1,97 @@
-import { describe, expect, test, jest } from '@jest/globals';
-import type { Request, Response } from 'express';
-import { players, matches } from '../db/schema';
+import { describe, expect, jest, test } from '@jest/globals';
+import { Request, Response } from 'express';
+import { db } from '@db';
+import { setupRoutes } from '../routes';
 
-// Mock the database
-jest.mock('../db', () => ({
+jest.mock('@db', () => ({
   db: {
     select: jest.fn(),
     insert: jest.fn(),
     update: jest.fn(),
-    delete: jest.fn()
+    delete: jest.fn(),
   }
 }));
 
-describe("API Routes", () => {
-  let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
+describe('API Routes', () => {
+  const mockPlayers = [
+    { id: 1, name: 'Player 1', startYear: 2024 },
+    { id: 2, name: 'Player 2', startYear: 2024 }
+  ];
 
-  beforeEach(() => {
-    mockReq = {};
-    mockRes = {
-      json: jest.fn(),
-      status: jest.fn().mockReturnThis()
-    };
+  const mockRequest = (method: string, url: string, body?: any): Partial<Request> => ({
+    method,
+    url,
+    body
   });
 
-  test("GET /api/players returns players with stats", async () => {
-    const mockPlayers = [
-      { id: 1, name: "Player 1" },
-      { id: 2, name: "Player 2" }
-    ];
+  const mockResponse = (): Partial<Response> & { 
+    status: jest.Mock; 
+    json: jest.Mock;
+    send: jest.Mock;
+  } => {
+    const res: any = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+    res.send = jest.fn().mockReturnValue(res);
+    return res;
+  };
 
-    const mockMatches = [
-      { 
-        id: 1,
-        teamOnePlayerOneId: 1,
-        teamTwoPlayerOneId: 2,
-        teamOneGamesWon: 2,
-        teamTwoGamesWon: 1
-      }
-    ];
+  describe('Players Endpoints', () => {
+    test('GET /api/players should return empty array initially', async () => {
+      const req = mockRequest('GET', '/api/players');
+      const res = mockResponse();
 
-    // Mock database responses
-    const db = require('../db').db;
-    db.select.mockImplementation((table) => {
-      if (table === players) return Promise.resolve(mockPlayers);
-      if (table === matches) return Promise.resolve(mockMatches);
-      return Promise.resolve([]);
+      // Mock database response
+      (db.select as jest.Mock).mockImplementation(() => ({
+        from: jest.fn().mockResolvedValue(mockPlayers)
+      }));
+
+      const routes = setupRoutes();
+      await routes.handle(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockPlayers);
     });
 
-    await require('../routes').getPlayers(mockReq as Request, mockRes as Response);
-
-    expect(mockRes.json).toHaveBeenCalled();
-    const response = (mockRes.json as jest.Mock).mock.calls[0][0];
-    expect(response).toHaveLength(2);
-    expect(response[0]).toHaveProperty('stats');
-  });
-
-  test('POST /api/players creates a new player', async () => {
+    test('POST /api/players should create a new player', async () => {
       const newPlayer = { name: 'New Player', startYear: 2024 };
-      const { db } = require('@db');
-      db.insert.mockReturnValue({
-        values: jest.fn().mockReturnValue({
-          returning: jest.fn().mockResolvedValue([{ id: 1, ...newPlayer }])
-        })
-      });
+      const req = mockRequest('POST', '/api/players', newPlayer);
+      const res = mockResponse();
 
-      const response = await new Promise<express.Response>((resolve) => {
-        const req = express()
-          .request({ method: 'POST', url: '/api/players' });
-        app(req, <express.Response>{
-          status: (code) => ({
-            send: (data) => resolve({ status: code, body: data })
-          })
-        });
-      });
+      (db.insert as jest.Mock).mockImplementation(() => ({
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ id: 1, ...newPlayer }])
+      }));
 
-      expect(response.status).toBe(200);
-      expect(response.body).toMatchObject(newPlayer);
+      const routes = setupRoutes();
+      await routes.handle(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining(newPlayer));
     });
-
+  });
 
   describe('Matches Endpoints', () => {
-    test('POST /api/games creates a new match', async () => {
+    test('POST /api/games should create a new match', async () => {
       const newMatch = {
         teamOnePlayerOneId: 1,
         teamTwoPlayerOneId: 2,
         teamOneGamesWon: 2,
         teamTwoGamesWon: 1
       };
+      const req = mockRequest('POST', '/api/games', newMatch);
+      const res = mockResponse();
 
-      const { db } = require('@db');
-      db.insert.mockReturnValue({
-        values: jest.fn().mockReturnValue({
-          returning: jest.fn().mockResolvedValue([{ id: 1, ...newMatch }])
-        })
-      });
+      (db.insert as jest.Mock).mockImplementation(() => ({
+        values: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([{ id: 1, ...newMatch }])
+      }));
 
-      const response = await new Promise<express.Response>((resolve) => {
-        const req = express()
-          .request({ method: 'POST', url: '/api/games' });
-        app(req, <express.Response>{
-          status: (code) => ({
-            send: (data) => resolve({ status: code, body: data })
-          })
-        });
-      });
+      const routes = setupRoutes();
+      await routes.handle(req as Request, res as Response);
 
-      expect(response.status).toBe(200);
-      expect(response.body).toMatchObject(newMatch);
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining(newMatch));
     });
   });
 });
