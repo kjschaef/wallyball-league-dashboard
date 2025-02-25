@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import express from 'express';
 import { db } from '@db';
 import { registerRoutes } from '../routes';
+import { Player, Match } from '@db/schema';
 
 jest.mock('@db', () => ({
   db: {
@@ -42,10 +43,10 @@ describe('API Routes', () => {
       } as Partial<Response>;
 
       (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockResolvedValue(mockPlayers as any)
+        from: jest.fn().mockResolvedValue(mockPlayers as Player[])
       });
 
-      const route = app._router.stack.find((layer: any) => 
+      const route = app._router.stack.find((layer: express.Router) => 
         layer.route?.path === '/api/players' && 
         layer.route.methods.get
       );
@@ -71,10 +72,10 @@ describe('API Routes', () => {
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{ id: 1, ...newPlayer }])
+        returning: jest.fn().mockResolvedValue([{ id: 1, ...newPlayer } as Player])
       });
 
-      const route = app._router.stack.find(layer => 
+      const route = app._router.stack.find((layer: express.Router) => 
         layer.route?.path === '/api/players' && 
         layer.route.methods.post
       );
@@ -108,10 +109,10 @@ describe('API Routes', () => {
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{ id: 1, ...newMatch }])
+        returning: jest.fn().mockResolvedValue([{ id: 1, ...newMatch } as Match])
       });
 
-      const route = app._router.stack.find((layer: any) => 
+      const route = app._router.stack.find((layer: express.Router) => 
         layer.route?.path === '/api/games' && 
         layer.route.methods.post
       );
