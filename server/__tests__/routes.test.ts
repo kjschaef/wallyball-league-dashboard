@@ -43,7 +43,7 @@ describe('API Routes', () => {
       } as Partial<Response>;
 
       (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockResolvedValue(mockPlayers as Player[])
+        from: jest.fn().mockResolvedValue(mockPlayers)
       });
 
       const route = app._router.stack
