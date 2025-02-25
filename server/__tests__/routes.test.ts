@@ -125,7 +125,15 @@ describe('API Routes', () => {
 
       const createdMatch: Match = {
         id: 1,
-        ...newMatch
+        teamOnePlayerOneId: newMatch.teamOnePlayerOneId,
+        teamOnePlayerTwoId: null,
+        teamOnePlayerThreeId: null,
+        teamTwoPlayerOneId: newMatch.teamTwoPlayerOneId,
+        teamTwoPlayerTwoId: null,
+        teamTwoPlayerThreeId: null,
+        teamOneGamesWon: newMatch.teamOneGamesWon,
+        teamTwoGamesWon: newMatch.teamTwoGamesWon,
+        date: new Date()
       };
 
       (db.insert as jest.Mock).mockReturnValue({
