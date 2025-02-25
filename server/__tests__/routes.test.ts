@@ -72,8 +72,9 @@ describe('API Routes', () => {
       } as Partial<Response>;
 
       (db.insert as jest.Mock).mockReturnValue({
-        values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{ id: 1, createdAt: new Date(), ...newPlayer }])
+        values: jest.fn().mockReturnValue({
+          returning: jest.fn().mockResolvedValue([{ id: 1, createdAt: new Date(), ...newPlayer }] as any)
+        })
       });
 
       const route = app._router.stack
