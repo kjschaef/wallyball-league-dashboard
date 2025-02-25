@@ -1,18 +1,16 @@
 
 import { formatTeam } from "../utils";
 
-describe("Team Stats", () => {
-  test("formatTeam should handle different player orders", () => {
-    const team1 = formatTeam(["Chris", "Keith"]);
-    const team2 = formatTeam(["Keith", "Chris"]);
-    
-    expect(team1).toBe(team2);
-    expect(team1).toBe("Chris, Keith");
+describe('Team Stats Utils', () => {
+  test('formatTeam should sort player IDs and join with dash', () => {
+    expect(formatTeam([2, 1])).toBe('1-2');
+    expect(formatTeam([1, 2])).toBe('1-2');
+    expect(formatTeam([3, 1, 2])).toBe('1-2-3');
   });
 
-  test("formatTeam should handle empty or null values", () => {
-    expect(formatTeam([])).toBe("");
-    expect(formatTeam([null as any, "Chris"])).toBe("Chris");
-    expect(formatTeam(["Chris", undefined as any])).toBe("Chris");
+  test('formatTeam should treat teams with same players as identical', () => {
+    const team1 = formatTeam([2, 1]);
+    const team2 = formatTeam([1, 2]);
+    expect(team1).toBe(team2);
   });
 });
