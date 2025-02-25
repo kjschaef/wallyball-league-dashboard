@@ -1,4 +1,7 @@
 
-export function formatTeam(playerIds: number[]): string {
-  return playerIds.sort().join('-');
+export function formatTeam(playerIds: (number | null)[]): string {
+  return playerIds
+    .filter((id): id is number => id !== null)
+    .sort()
+    .join('-');
 }
