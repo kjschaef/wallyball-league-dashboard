@@ -1,3 +1,4 @@
+
 import { describe, expect, jest, test } from '@jest/globals';
 import { Request, Response } from 'express';
 import express from 'express';
@@ -71,9 +72,15 @@ describe('API Routes', () => {
         status: jest.fn().mockReturnThis(),
       } as Partial<Response>;
 
+      const createdPlayer: Player = {
+        id: 1,
+        createdAt: new Date(),
+        ...newPlayer
+      };
+
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnValue({
-          returning: jest.fn().mockResolvedValue([{ id: 1, createdAt: new Date(), ...newPlayer }] as Player[])
+          returning: jest.fn().mockResolvedValue([createdPlayer])
         })
       });
 
@@ -116,12 +123,15 @@ describe('API Routes', () => {
         status: jest.fn().mockReturnThis(),
       } as Partial<Response>;
 
+      const createdMatch: Match = {
+        id: 1,
+        ...newMatch
+      };
+
       (db.insert as jest.Mock).mockReturnValue({
-        values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{
-          id: 1,
-          ...newMatch,
-        }])
+        values: jest.fn().mockReturnValue({
+          returning: jest.fn().mockResolvedValue([createdMatch])
+        })
       });
 
       const route = app._router.stack
