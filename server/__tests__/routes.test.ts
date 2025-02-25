@@ -42,10 +42,10 @@ describe('API Routes', () => {
       } as Partial<Response>;
 
       (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockResolvedValue(mockPlayers)
+        from: jest.fn().mockResolvedValue(mockPlayers as any)
       });
 
-      const route = app._router.stack.find(layer => 
+      const route = app._router.stack.find((layer: any) => 
         layer.route?.path === '/api/players' && 
         layer.route.methods.get
       );
@@ -111,7 +111,7 @@ describe('API Routes', () => {
         returning: jest.fn().mockResolvedValue([{ id: 1, ...newMatch }])
       });
 
-      const route = app._router.stack.find(layer => 
+      const route = app._router.stack.find((layer: any) => 
         layer.route?.path === '/api/games' && 
         layer.route.methods.post
       );
