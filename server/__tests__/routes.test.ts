@@ -43,7 +43,7 @@ describe('API Routes', () => {
       } as Partial<Response>;
 
       (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockResolvedValue(mockPlayers)
+        from: jest.fn().mockResolvedValue(mockPlayers as Player[])
       });
 
       const route = app._router.stack
@@ -152,7 +152,7 @@ describe('API Routes', () => {
       await route.handle(mockReq, mockRes as Response);
 
       expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ ...newMatch })
+        expect.objectContaining(createdMatch)
       );
     });
   });
