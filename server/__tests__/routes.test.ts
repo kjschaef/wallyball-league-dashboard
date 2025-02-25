@@ -43,7 +43,7 @@ describe('API Routes', () => {
       } as Partial<Response>;
 
       (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockResolvedValue(mockPlayers as Player[])
+        from: jest.fn().mockResolvedValue(mockPlayers)
       });
 
       const route = app._router.stack
@@ -74,7 +74,7 @@ describe('API Routes', () => {
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{ id: 1, ...newPlayer }])
+        returning: jest.fn().mockResolvedValue([{ id: 1, createdAt: new Date(), ...newPlayer }])
       });
 
       const route = app._router.stack
@@ -113,7 +113,15 @@ describe('API Routes', () => {
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{ id: 1, ...newMatch, date: new Date() }])
+        returning: jest.fn().mockResolvedValue([{
+          id: 1,
+          ...newMatch,
+          teamOnePlayerTwoId: null,
+          teamOnePlayerThreeId: null,
+          teamTwoPlayerTwoId: null,
+          teamTwoPlayerThreeId: null,
+          date: new Date()
+        }])
       });
 
       const route = app._router.stack
