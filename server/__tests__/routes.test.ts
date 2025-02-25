@@ -1,10 +1,9 @@
-
 import { describe, expect, jest, test } from '@jest/globals';
 import { Request, Response } from 'express';
 import express from 'express';
 import { db } from '@db';
 import { registerRoutes } from '../routes';
-import { Player, Match } from '@db/schema';
+import type { Player, NewPlayer, Match, NewMatch } from '@db/schema';
 
 jest.mock('@db', () => ({
   db: {
@@ -26,9 +25,9 @@ describe('API Routes', () => {
 
   describe('Players Endpoints', () => {
     test('GET /api/players should return players array', async () => {
-      const mockPlayers = [
-        { id: 1, name: 'Player 1', startYear: 2024 },
-        { id: 2, name: 'Player 2', startYear: 2024 }
+      const mockPlayers: Player[] = [
+        { id: 1, name: 'Player 1', startYear: 2023, createdAt: new Date() },
+        { id: 2, name: 'Player 2', startYear: 2024, createdAt: new Date() }
       ];
 
       const mockReq = {
@@ -52,14 +51,14 @@ describe('API Routes', () => {
           layer.route.path === '/api/players' && 
           layer.route.stack[0].method === 'get'
         );
-      
+
       await route.handle(mockReq, mockRes as Response);
 
       expect(mockRes.json).toHaveBeenCalledWith(expect.arrayContaining(mockPlayers));
     });
 
     test('POST /api/players should create a new player', async () => {
-      const newPlayer = { name: 'New Player', startYear: 2024 };
+      const newPlayer: NewPlayer = { name: 'New Player', startYear: 2024 };
       const mockReq = {
         method: 'POST',
         url: '/api/players',
@@ -83,7 +82,7 @@ describe('API Routes', () => {
           layer.route.path === '/api/players' && 
           layer.route.stack[0].method === 'post'
         );
-      
+
       await route.handle(mockReq, mockRes as Response);
 
       expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining(newPlayer));
@@ -92,11 +91,16 @@ describe('API Routes', () => {
 
   describe('Matches Endpoints', () => {
     test('POST /api/games should create a new match', async () => {
-      const newMatch = {
+      const newMatch: NewMatch = {
         teamOnePlayerOneId: 1,
         teamTwoPlayerOneId: 2,
         teamOneGamesWon: 2,
-        teamTwoGamesWon: 1
+        teamTwoGamesWon: 1,
+        teamOnePlayerTwoId: null,
+        teamOnePlayerThreeId: null,
+        teamTwoPlayerTwoId: null,
+        teamTwoPlayerThreeId: null,
+        date: new Date()
       };
 
       const mockReq = {
@@ -116,11 +120,6 @@ describe('API Routes', () => {
         returning: jest.fn().mockResolvedValue([{
           id: 1,
           ...newMatch,
-          teamOnePlayerTwoId: null,
-          teamOnePlayerThreeId: null,
-          teamTwoPlayerTwoId: null,
-          teamTwoPlayerThreeId: null,
-          date: new Date()
         }])
       });
 
@@ -130,7 +129,7 @@ describe('API Routes', () => {
           layer.route.path === '/api/games' && 
           layer.route.stack[0].method === 'post'
         );
-      
+
       await route.handle(mockReq, mockRes as Response);
 
       expect(mockRes.json).toHaveBeenCalledWith(
