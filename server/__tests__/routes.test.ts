@@ -73,7 +73,7 @@ describe('API Routes', () => {
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnValue({
-          returning: jest.fn().mockResolvedValue([{ id: 1, createdAt: new Date(), ...newPlayer }] as any)
+          returning: jest.fn().mockResolvedValue([{ id: 1, createdAt: new Date(), ...newPlayer }] as Player[])
         })
       });
 
