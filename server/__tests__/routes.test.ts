@@ -1,10 +1,9 @@
-import { createServer } from "http";
-import express from 'express';
-import { registerRoutes } from '../routes';
-import { jest } from '@jest/globals';
+import { describe, expect, test, jest } from '@jest/globals';
+import type { Request, Response } from 'express';
+import { players, matches } from '../db/schema';
 
-// Mock the database module
-jest.mock('@db', () => ({
+// Mock the database
+jest.mock('../db', () => ({
   db: {
     select: jest.fn(),
     insert: jest.fn(),
@@ -13,66 +12,51 @@ jest.mock('@db', () => ({
   }
 }));
 
-describe('API Routes', () => {
-  let app: express.Express;
-  let server: ReturnType<typeof createServer>;
+describe("API Routes", () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
 
   beforeEach(() => {
-    app = express();
-    server = createServer(app); // Corrected server creation
-    registerRoutes(app); // Apply routes after server creation
+    mockReq = {};
+    mockRes = {
+      json: jest.fn(),
+      status: jest.fn().mockReturnThis()
+    };
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-    server.close();
-  });
+  test("GET /api/players returns players with stats", async () => {
+    const mockPlayers = [
+      { id: 1, name: "Player 1" },
+      { id: 2, name: "Player 2" }
+    ];
 
-  describe('Players Endpoints', () => {
-    test('GET /api/players returns players with stats', async () => {
-      const mockPlayers = [
-        { id: 1, name: 'Player 1' },
-        { id: 2, name: 'Player 2' }
-      ];
+    const mockMatches = [
+      { 
+        id: 1,
+        teamOnePlayerOneId: 1,
+        teamTwoPlayerOneId: 2,
+        teamOneGamesWon: 2,
+        teamTwoGamesWon: 1
+      }
+    ];
 
-      const mockMatches = [
-        {
-          id: 1,
-          teamOnePlayerOneId: 1,
-          teamTwoPlayerOneId: 2,
-          teamOneGamesWon: 2,
-          teamTwoGamesWon: 1,
-          date: new Date()
-        }
-      ];
-
-      const { db } = require('@db');
-      db.select.mockImplementation((table) => {
-        if (!table) {
-          return {
-            from: jest.fn().mockResolvedValue(mockPlayers)
-          };
-        }
-        return Promise.resolve(mockMatches);
-      });
-
-      const response = await new Promise<express.Response>((resolve) => {
-        const req = express()
-          .request({ method: 'GET', url: '/api/players' });
-        app(req, <express.Response>{
-          status: (code) => ({
-            send: (data) => resolve({ status: code, body: data })
-          })
-        });
-      });
-
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(2);
-      expect(db.select).toHaveBeenCalledTimes(2);
+    // Mock database responses
+    const db = require('../db').db;
+    db.select.mockImplementation((table) => {
+      if (table === players) return Promise.resolve(mockPlayers);
+      if (table === matches) return Promise.resolve(mockMatches);
+      return Promise.resolve([]);
     });
 
-    test('POST /api/players creates a new player', async () => {
+    await require('../routes').getPlayers(mockReq as Request, mockRes as Response);
+
+    expect(mockRes.json).toHaveBeenCalled();
+    const response = (mockRes.json as jest.Mock).mock.calls[0][0];
+    expect(response).toHaveLength(2);
+    expect(response[0]).toHaveProperty('stats');
+  });
+
+  test('POST /api/players creates a new player', async () => {
       const newPlayer = { name: 'New Player', startYear: 2024 };
       const { db } = require('@db');
       db.insert.mockReturnValue({
@@ -94,7 +78,7 @@ describe('API Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject(newPlayer);
     });
-  });
+
 
   describe('Matches Endpoints', () => {
     test('POST /api/games creates a new match', async () => {
