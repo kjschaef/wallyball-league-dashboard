@@ -46,10 +46,12 @@ describe('API Routes', () => {
         from: jest.fn().mockResolvedValue(mockPlayers as Player[])
       });
 
-      const route = app._router.stack.find((layer: express.Router) => 
-        layer.route?.path === '/api/players' && 
-        layer.route.methods.get
-      );
+      const route = app._router.stack
+        .filter((layer: any) => layer.route)
+        .find((layer: any) => 
+          layer.route.path === '/api/players' && 
+          layer.route.stack[0].method === 'get'
+        );
       
       await route.handle(mockReq, mockRes as Response);
 
@@ -72,13 +74,15 @@ describe('API Routes', () => {
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{ id: 1, ...newPlayer } as Player])
+        returning: jest.fn().mockResolvedValue([{ id: 1, ...newPlayer }])
       });
 
-      const route = app._router.stack.find((layer: express.Router) => 
-        layer.route?.path === '/api/players' && 
-        layer.route.methods.post
-      );
+      const route = app._router.stack
+        .filter((layer: any) => layer.route)
+        .find((layer: any) => 
+          layer.route.path === '/api/players' && 
+          layer.route.stack[0].method === 'post'
+        );
       
       await route.handle(mockReq, mockRes as Response);
 
@@ -109,17 +113,21 @@ describe('API Routes', () => {
 
       (db.insert as jest.Mock).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{ id: 1, ...newMatch } as Match])
+        returning: jest.fn().mockResolvedValue([{ id: 1, ...newMatch, date: new Date() }])
       });
 
-      const route = app._router.stack.find((layer: express.Router) => 
-        layer.route?.path === '/api/games' && 
-        layer.route.methods.post
-      );
+      const route = app._router.stack
+        .filter((layer: any) => layer.route)
+        .find((layer: any) => 
+          layer.route.path === '/api/games' && 
+          layer.route.stack[0].method === 'post'
+        );
       
       await route.handle(mockReq, mockRes as Response);
 
-      expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining(newMatch));
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({ ...newMatch })
+      );
     });
   });
 });
