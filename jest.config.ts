@@ -1,16 +1,34 @@
 
 import type { Config } from '@jest/types';
 
+// Separate configurations for server and client tests
 const config: Config.InitialOptions = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  roots: ['<rootDir>/server', '<rootDir>/client/src'],
-  moduleNameMapper: {
-    '^@db(.*)$': '<rootDir>/db$1',
-    '^@/(.*)$': '<rootDir>/client/src/$1',
-  },
-  testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
-  setupFiles: ['<rootDir>/server/__tests__/setup.ts'],
+  projects: [
+    // Server tests configuration
+    {
+      displayName: 'server',
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      roots: ['<rootDir>/server'],
+      moduleNameMapper: {
+        '^@db(.*)$': '<rootDir>/db$1',
+      },
+      testMatch: ['<rootDir>/server/__tests__/**/*.test.ts'],
+      setupFiles: ['<rootDir>/server/__tests__/setup.ts'],
+    },
+    // Client tests configuration
+    {
+      displayName: 'client',
+      preset: 'ts-jest',
+      testEnvironment: 'jsdom',
+      roots: ['<rootDir>/client/src'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/client/src/$1',
+      },
+      testMatch: ['<rootDir>/client/src/__tests__/**/*.test.[jt]s?(x)'],
+      setupFilesAfterEnv: ['<rootDir>/client/src/setupTests.ts'],
+    }
+  ]
 };
 
 export default config;
