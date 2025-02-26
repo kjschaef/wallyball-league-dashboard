@@ -27,6 +27,10 @@ const config: Config.InitialOptions = {
       },
       testMatch: ['<rootDir>/client/src/__tests__/**/*.test.[jt]s?(x)'],
       setupFilesAfterEnv: ['<rootDir>/client/src/setupTests.ts'],
+      transform: {
+        '^.+\\.(js|jsx|ts|tsx)$': 'ts-jest'
+      },
+      moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx'],
     }
   ]
 };
