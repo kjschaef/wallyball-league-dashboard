@@ -11,9 +11,9 @@ describe('Team Stats', () => {
     expect(formatTeam([2, 1, 1])).toBe('1-1-2');
   });
 
-  test('should aggregate team stats regardless of player order', () => {
-    // This mimics how the frontend processes teams
-    const processTeam = (players: number[]) => players.map(id => id.toString()).join(', ');
+  test('should properly aggregate team stats regardless of player order', () => {
+    // This uses our improved formatTeam function
+    const processTeam = (players: number[]) => formatTeam(players);
     
     const matches = [
       {
@@ -42,14 +42,12 @@ describe('Team Stats', () => {
       return acc;
     }, {} as Record<string, { wins: number; losses: number }>);
 
-    // Test that both team orders exist as separate entries
-    expect(stats["1, 2"]).toBeDefined();
-    expect(stats["2, 1"]).toBeDefined();
+    // Now with our fixed function, we should only have one team entry
+    expect(stats["1-2"]).toBeDefined();
+    expect(Object.keys(stats).length).toBe(1); // Should only have one team entry
     
-    // Each team should have their own stats instead of being combined
-    expect(stats["1, 2"].wins).toBe(2);
-    expect(stats["1, 2"].losses).toBe(1);
-    expect(stats["2, 1"].wins).toBe(1);
-    expect(stats["2, 1"].losses).toBe(2);
+    // The combined stats should add up correctly
+    expect(stats["1-2"].wins).toBe(3); // 2 + 1
+    expect(stats["1-2"].losses).toBe(3); // 1 + 2
   });
 });

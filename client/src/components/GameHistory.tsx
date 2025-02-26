@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Game } from "@db/schema";
+import { formatTeam } from "../utils/formatTeam";
 
 interface GameHistoryProps {
   games: Array<{
@@ -71,14 +71,7 @@ export function GameHistory({ games }: GameHistoryProps) {
     return gameDate >= date.from;
   });
 
-  const formatTeam = (players: string[]) => {
-    if (players.length === 0) return "No players";
-    // Sort players to ensure consistent team identification regardless of order
-    const sortedPlayers = [...players].sort();
-    if (sortedPlayers.length === 1) return sortedPlayers[0];
-    if (sortedPlayers.length === 2) return `${sortedPlayers[0]} and ${sortedPlayers[1]}`;
-    return `${sortedPlayers[0]}, ${sortedPlayers[1]} and ${sortedPlayers[2]}`;
-  };
+  // Using the imported formatTeam utility function
 
   return (
     <div className="space-y-4">
