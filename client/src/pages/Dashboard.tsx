@@ -108,12 +108,16 @@ export default function Dashboard() {
     recordGameMutation.mutate(data);
   };
 
+  // Use the shared formatTeam utility
   const formatTeam = (playerIds: (number | null)[]) => {
+    // Function to get player name from ID
+    const getPlayerName = (id: number) => players?.find(p => p.id === id)?.name;
+    
     return playerIds
       .filter((id): id is number => id !== null)
       // Sort IDs to ensure consistent team identification regardless of player order
       .sort()
-      .map(id => players.find(p => p.id === id)?.name)
+      .map(getPlayerName)
       .filter(Boolean)
       .join(", ");
   };

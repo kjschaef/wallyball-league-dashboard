@@ -14,6 +14,7 @@ import { PlayerCard } from "@/components/PlayerCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { startOfYear, endOfYear } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { formatTeamFromNames } from "@/lib/formatTeam";
 
 interface MatchResult {
   id: number;
@@ -100,15 +101,6 @@ export default function Results() {
     },
     { totalMatches: 0, totalGames: 0, averageGamesPerMatch: 0 },
   );
-
-  const formatTeam = (players: string[]) => {
-    if (players.length === 0) return "No players";
-    // Sort players to ensure consistent team identification regardless of order
-    const sortedPlayers = [...players].sort();
-    if (sortedPlayers.length === 1) return sortedPlayers[0];
-    if (sortedPlayers.length === 2) return `${sortedPlayers[0]} and ${sortedPlayers[1]}`;
-    return `${sortedPlayers[0]}, ${sortedPlayers[1]} and ${sortedPlayers[2]}`;
-  };
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) =>
