@@ -111,6 +111,8 @@ export default function Dashboard() {
   const formatTeam = (playerIds: (number | null)[]) => {
     return playerIds
       .filter((id): id is number => id !== null)
+      // Sort IDs to ensure consistent team identification regardless of player order
+      .sort()
       .map(id => players.find(p => p.id === id)?.name)
       .filter(Boolean)
       .join(", ");
