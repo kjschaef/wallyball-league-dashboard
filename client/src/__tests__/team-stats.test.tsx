@@ -8,6 +8,7 @@ test('formatTeam should return a consistent team name regardless of player order
   const team1 = ['Alice', 'Bob'];
   const team2 = ['Bob', 'Alice'];
   
-  // The fixed function should return the same team name for both orders
-  expect(formatTeam(team1)).toBe(formatTeam(team2));
+  // Both team orders should result in alphabetically sorted names
+  expect(formatTeam(team1)).toBe('Alice and Bob');
+  expect(formatTeam(team2)).toBe('Alice and Bob');
 });
