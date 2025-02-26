@@ -9,9 +9,10 @@ describe('Team Formatting Functionality', () => {
     const team1 = ['Alice', 'Bob'];
     const team2 = ['Bob', 'Alice'];
     
-    // Both team orders should result in alphabetically sorted names
+    // Verify both team orders produce the same output
+    expect(formatTeam(team1)).toBe(formatTeam(team2));
+    // Verify alphabetical sorting
     expect(formatTeam(team1)).toBe('Alice and Bob');
-    expect(formatTeam(team2)).toBe('Alice and Bob');
   });
   
   test('formatTeam should handle teams with 1 player', () => {
