@@ -42,12 +42,14 @@ describe('Team Stats', () => {
       return acc;
     }, {} as Record<string, { wins: number; losses: number }>);
 
-    // Without sorting, "1, 2" and "2, 1" will be treated as different teams
-    const team12Stats = stats["1, 2"];
-    const team21Stats = stats["2, 1"];
+    // Test that both team orders exist as separate entries
+    expect(stats["1, 2"]).toBeDefined();
+    expect(stats["2, 1"]).toBeDefined();
     
-    // The test should now fail, showing that the teams are treated differently
-    expect(team12Stats.wins + team21Stats.wins).toBe(3);
-    expect(team12Stats.losses + team21Stats.losses).toBe(3);
+    // Each team should have their own stats instead of being combined
+    expect(stats["1, 2"].wins).toBe(2);
+    expect(stats["1, 2"].losses).toBe(1);
+    expect(stats["2, 1"].wins).toBe(1);
+    expect(stats["2, 1"].losses).toBe(2);
   });
 });
