@@ -1,15 +1,42 @@
-/**
- * Basic tests for team name formatting functionality
- */
 
 import { formatTeam } from '../utils/formatTeam';
 
-test('formatTeam should return a consistent team name regardless of player order', () => {
-  const team1 = ['Alice', 'Bob'];
-  const team2 = ['Bob', 'Alice'];
+describe('Team Formatting Functionality', () => {
+  test('formatTeam should return a consistent team name regardless of player order', () => {
+    const team1 = ['Alice', 'Bob'];
+    const team2 = ['Bob', 'Alice'];
+    
+    expect(formatTeam(team1)).toBe(formatTeam(team2));
+    expect(formatTeam(team1)).toBe('Alice and Bob');
+  });
   
-  // Ensure both teams are formatted consistently 
-  expect(formatTeam(team1)).toBe(formatTeam(team2));
-  // Verify the order is alphabetical
-  expect(formatTeam(team1)).toBe('Alice and Bob');
+  test('formatTeam should handle teams with 1 player', () => {
+    const player = ['Alice'];
+    expect(formatTeam(player)).toBe('Alice');
+  });
+  
+  test('formatTeam should handle teams with 2 players', () => {
+    const team = ['Alice', 'Bob'];
+    expect(formatTeam(team)).toBe('Alice and Bob');
+  });
+  
+  test('formatTeam should handle teams with 3 players', () => {
+    const team = ['Charlie', 'Alice', 'Bob'];
+    expect(formatTeam(team)).toBe('Alice, Bob and Charlie');
+  });
+  
+  test('formatTeam should handle empty teams', () => {
+    expect(formatTeam([])).toBe('No players');
+  });
+});
+
+describe('Team Stats', () => {
+  test('formatTeam should handle null values', () => {
+    expect(formatTeam([1, null, 2])).toBe('1-2');
+  });
+
+  test('formatTeam should handle duplicate player IDs', () => {
+    expect(formatTeam([1, 1, 2])).toBe('1-1-2');
+    expect(formatTeam([2, 1, 1])).toBe('1-1-2');
+  });
 });
