@@ -5,14 +5,22 @@
  * @param players - Array of player names
  * @returns Formatted team name string
  */
-export function formatTeam(players: string[]): string {
-  if (players.length === 0) return "No players";
-  
-  // Sort players to ensure consistent team identification regardless of order
-  const sortedPlayers = [...players].sort();
-  
-  if (sortedPlayers.length === 1) return sortedPlayers[0];
-  if (sortedPlayers.length === 2) return `${sortedPlayers[0]} and ${sortedPlayers[1]}`;
+export function formatTeam(players: (string | number | null)[]): string {
+  if (!players || players.length === 0) return "No players";
+
+  // Filter out null values and convert to strings
+  const validPlayers = players.filter(p => p !== null).map(p => p?.toString() || '');
+
+  if (validPlayers.length === 0) return "No players";
+  if (validPlayers.length === 1) return validPlayers[0];
+  if (validPlayers.length === 2) return `${validPlayers[0]} and ${validPlayers[1]}`;
+
+  // Join with dashes for numeric IDs, commas for names
+  if (typeof players[0] === 'number') {
+    return validPlayers.sort().join('-');
+  }
+
+  const sortedPlayers = [...validPlayers].sort();
   return `${sortedPlayers[0]}, ${sortedPlayers[1]} and ${sortedPlayers[2]}`;
 }
 
