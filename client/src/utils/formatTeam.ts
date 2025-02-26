@@ -12,15 +12,18 @@ export function formatTeam(players: (string | number | null)[]): string {
   const validPlayers = players.filter(p => p !== null).map(p => p?.toString() || '');
 
   if (validPlayers.length === 0) return "No players";
-  if (validPlayers.length === 1) return validPlayers[0];
-  if (validPlayers.length === 2) return `${validPlayers[0]} and ${validPlayers[1]}`;
 
-  // Join with dashes for numeric IDs, commas for names
+  // Sort all inputs for consistency
+  const sortedPlayers = [...validPlayers].sort();
+
+  if (sortedPlayers.length === 1) return sortedPlayers[0];
+
+  // Handle numeric IDs differently
   if (typeof players[0] === 'number') {
-    return validPlayers.sort().join('-');
+    return sortedPlayers.join('-');
   }
 
-  const sortedPlayers = [...validPlayers].sort();
+  if (sortedPlayers.length === 2) return `${sortedPlayers[0]} and ${sortedPlayers[1]}`;
   return `${sortedPlayers[0]}, ${sortedPlayers[1]} and ${sortedPlayers[2]}`;
 }
 
