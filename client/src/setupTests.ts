@@ -3,6 +3,7 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import React from 'react';
 
 // Mock global fetch to avoid network requests
 global.fetch = jest.fn(() => 
@@ -14,18 +15,19 @@ global.fetch = jest.fn(() =>
   } as Response)
 );
 
+// Ensure React is available in the global scope for JSX transformation
+global.React = React;
+
 // Speed up animations in tests
 jest.mock('framer-motion', () => {
-  const React = require('react');
-  
   return {
     motion: {
-      div: (props: React.HTMLAttributes<HTMLDivElement>) => React.createElement('div', props),
-      span: (props: React.HTMLAttributes<HTMLSpanElement>) => React.createElement('span', props),
-      button: (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => React.createElement('button', props),
-      ul: (props: React.HTMLAttributes<HTMLUListElement>) => React.createElement('ul', props),
-      li: (props: React.HTMLAttributes<HTMLLIElement>) => React.createElement('li', props),
-      p: (props: React.HTMLAttributes<HTMLParagraphElement>) => React.createElement('p', props),
+      div: (props: any) => React.createElement('div', props),
+      span: (props: any) => React.createElement('span', props),
+      button: (props: any) => React.createElement('button', props),
+      ul: (props: any) => React.createElement('ul', props),
+      li: (props: any) => React.createElement('li', props),
+      p: (props: any) => React.createElement('p', props),
     },
     AnimatePresence: (props: { children: React.ReactNode }) => React.createElement(React.Fragment, null, props.children),
   };
@@ -34,9 +36,17 @@ jest.mock('framer-motion', () => {
 // Mock recharts to avoid rendering issues in tests
 jest.mock('recharts', () => require('./__mocks__/rechartsMock'));
 
+// Mock wouter for navigation
+jest.mock('wouter', () => {
+  return {
+    Link: (props: any) => React.createElement('a', { href: props.to, onClick: (e: any) => e.preventDefault(), ...props }, props.children),
+    useLocation: jest.fn().mockReturnValue(['/dashboard', jest.fn()]),
+    useRoute: jest.fn().mockReturnValue([true, {}]),
+  };
+});
+
 // Mock react-query
 jest.mock('@tanstack/react-query', () => {
-  const React = require('react');
   const actualReactQuery = jest.requireActual('@tanstack/react-query');
   
   return {
@@ -61,8 +71,8 @@ jest.mock('@tanstack/react-query', () => {
       setQueryData: jest.fn(),
       invalidateQueries: jest.fn(),
     })),
-    QueryClientProvider: (props: { children: React.ReactNode; client: any }) => {
-      return React.createElement(React.Fragment, null, props.children);
+    QueryClientProvider: ({ children, client }: { children: React.ReactNode; client: any }) => {
+      return React.createElement(React.Fragment, null, children);
     },
   };
 });

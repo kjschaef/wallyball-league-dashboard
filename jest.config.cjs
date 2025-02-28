@@ -1,6 +1,6 @@
 
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-export default {
+module.exports = {
   // Basic configuration
   testTimeout: 10000,
   verbose: true,
@@ -12,7 +12,7 @@ export default {
     // Server tests
     {
       displayName: 'server',
-      preset: 'ts-jest',
+      preset: 'ts-jest/presets/js-with-ts-esm',
       testEnvironment: 'node',
       testMatch: ['<rootDir>/server/__tests__/**/*.test.ts'],
       moduleNameMapper: {
@@ -21,36 +21,34 @@ export default {
       },
       transform: {
         '^.+\\.tsx?$': ['ts-jest', {
-          isolatedModules: true
+          isolatedModules: true,
+          useESM: true
         }]
       },
-      globals: {
-        'process.env.NODE_ENV': 'test'
-      }
+      moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+      extensionsToTreatAsEsm: ['.ts', '.tsx']
     },
     
     // Client tests
     {
       displayName: 'client',
-      preset: 'ts-jest',
       testEnvironment: 'jsdom',
       testMatch: ['<rootDir>/client/src/__tests__/**/*.test.{ts,tsx}'],
+      moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/client/src/$1',
-        '\\.(css|less|scss)$': '<rootDir>/client/src/__mocks__/styleMock.js',
-        '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/client/src/__mocks__/fileMock.js'
+        '\\.css$': '<rootDir>/client/src/__mocks__/styleMock.js',
+        '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/client/src/__mocks__/fileMock.js',
+        '^recharts$': '<rootDir>/client/src/__mocks__/rechartsMock.js',
+        'chart.js/auto': '<rootDir>/client/src/__mocks__/chartMock.js'
       },
       transform: {
-        '^.+\\.[tj]sx?$': ['ts-jest', {
-          isolatedModules: true,
-          tsconfig: 'tsconfig.json'
-        }]
+        '^.+\\.[tj]sx?$': ['babel-jest']
       },
-      // Setup files to run before tests
-      setupFilesAfterEnv: ['<rootDir>/client/src/setupTests.ts'],
-      globals: {
-        'process.env.NODE_ENV': 'test'
-      }
+      transformIgnorePatterns: [
+        "/node_modules/(?!(@testing-library|recharts))/"
+      ],
+      setupFilesAfterEnv: ['<rootDir>/client/src/setupTests.ts']
     }
   ]
 };

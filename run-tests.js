@@ -11,31 +11,22 @@ import { spawnSync } from 'child_process';
 const args = process.argv.slice(2);
 const testScope = args[0] || 'all';
 
-// Determine what tests to run
-let testPattern;
-switch (testScope) {
-  case 'client':
-    testPattern = 'client/src/__tests__/**/*.test.{ts,tsx}';
-    break;
-  case 'server':
-    testPattern = 'server/__tests__/**/*.test.ts';
-    break;
-  case 'all':
-  default:
-    testPattern = '{client/src,server}/__tests__/**/*.test.{ts,tsx}';
-}
-
 console.log(`\n🧪 Running ${testScope} tests...\n`);
 
 // Execute Jest
 const result = spawnSync('npx', [
   'jest',
-  testPattern,
-  '--config=jest.config.ts',
+  '--config=jest.config.cjs',
+  '--selectProjects', testScope,
   '--colors',
+  '--no-cache',
 ], { 
   stdio: 'inherit',
-  shell: true 
+  shell: true,
+  env: {
+    ...process.env,
+    NODE_ENV: 'test'
+  }
 });
 
 // Handle errors

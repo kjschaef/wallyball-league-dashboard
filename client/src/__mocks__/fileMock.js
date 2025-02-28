@@ -3,4 +3,4 @@
  * This mock returns an empty string for file imports
  */
 
-module.exports = '';
+export default '';

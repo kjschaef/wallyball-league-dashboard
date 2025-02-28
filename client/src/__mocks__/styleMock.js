@@ -3,4 +3,4 @@
  * This mock returns an empty object for CSS/SCSS imports
  */
 
-module.exports = {};
+export default {};

@@ -1,10 +1,14 @@
 /**
  * Mock implementation for Chart.js components in tests
  */
+import React from 'react';
 
-const React = require('react');
-
-module.exports = {
+const ChartJS = {
+  Chart: class {
+    constructor() {}
+    static register() {}
+  },
+  registerables: [],
   Line: function(props) {
     return React.createElement('canvas', { 'data-testid': 'chart-js-line', ...props });
   },
@@ -18,3 +22,5 @@ module.exports = {
     return React.createElement('canvas', { 'data-testid': 'chart-js-doughnut', ...props });
   }
 };
+
+export default ChartJS;

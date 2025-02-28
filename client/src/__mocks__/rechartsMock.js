@@ -3,9 +3,9 @@
  * This implementation avoids using JSX syntax to ensure compatibility with Jest
  */
 
-const React = require('react');
+import React from 'react';
 
-module.exports = {
+const Recharts = {
   ResponsiveContainer: function(props) {
     return React.createElement('div', { 'data-testid': 'responsive-container' }, props.children);
   },
@@ -46,3 +46,5 @@ module.exports = {
     return React.createElement('div', { 'data-testid': 'bar' });
   }
 };
+
+export default Recharts;

@@ -1,7 +1,10 @@
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Dashboard from '../pages/Dashboard';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import * as router from 'wouter';
+
+// Setup mocks before imports
+jest.mock('../__mocks__/rechartsMock', () => ({}), { virtual: true });
 
 // Create a test QueryClient
 const queryClient = new QueryClient({
@@ -14,9 +17,9 @@ const queryClient = new QueryClient({
 
 // Mock data for tests
 const mockPlayers = [
-  { id: 1, name: 'Alice', startYear: 2020, createdAt: new Date('2023-01-01') },
-  { id: 2, name: 'Bob', startYear: 2021, createdAt: new Date('2023-01-02') },
-  { id: 3, name: 'Charlie', startYear: 2022, createdAt: new Date('2023-01-03') },
+  { id: 1, name: 'Alice', startYear: 2020, createdAt: '2023-01-01' },
+  { id: 2, name: 'Bob', startYear: 2021, createdAt: '2023-01-02' },
+  { id: 3, name: 'Charlie', startYear: 2022, createdAt: '2023-01-03' },
 ];
 
 const mockMatches = [
@@ -38,61 +41,34 @@ const mockMatches = [
   },
 ];
 
-// Mock API calls
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQuery: jest.fn().mockImplementation((queryKey) => {
-    if (queryKey[0] === '/api/players') {
+// Configure mocks
+beforeEach(() => {
+  // Mock tanstack/react-query useQuery
+  jest.spyOn(require('@tanstack/react-query'), 'useQuery').mockImplementation((queryKey: any) => {
+    if (Array.isArray(queryKey) && queryKey[0] === '/api/players') {
       return { data: mockPlayers, isLoading: false };
     }
-    if (queryKey[0] === '/api/matches') {
+    if (Array.isArray(queryKey) && queryKey[0] === '/api/matches') {
       return { data: mockMatches, isLoading: false };
     }
     return { data: null, isLoading: false };
-  }),
-  useMutation: () => ({
+  });
+
+  // Mock tanstack/react-query useMutation
+  jest.spyOn(require('@tanstack/react-query'), 'useMutation').mockReturnValue({
     mutate: jest.fn().mockImplementation((data, { onSuccess }) => {
       if (onSuccess) onSuccess();
     }),
     isLoading: false,
-  }),
-}));
-
-// Mock wouter for navigation in a format compatible with Jest
-jest.mock('wouter', () => {
-  const React = require('react');
-  const actual = jest.requireActual('wouter');
-  
-  return {
-    ...actual,
-    useLocation: () => ['/dashboard', jest.fn()],
-    Link: function MockLink(props: { to: string; children: React.ReactNode }) {
-      return React.createElement(
-        'a',
-        { 
-          href: props.to, 
-          'data-testid': `link-to-${props.to.replace(/\//g, '')}` 
-        },
-        props.children
-      );
-    }
-  };
+  });
 });
 
-// Mock recharts using our shared mock
-jest.mock('recharts', () => require('../__mocks__/rechartsMock'));
-
 // Wrapper component with QueryClient provider
-const Wrapper = ({ children }: { children: React.ReactNode }) => {
-  const React = require('react');
-  const { QueryClientProvider } = require('@tanstack/react-query');
-  
-  return React.createElement(
-    QueryClientProvider,
-    { client: queryClient },
-    children
-  );
-};
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <QueryClientProvider client={queryClient}>
+    {children}
+  </QueryClientProvider>
+);
 
 describe('Dashboard Page', () => {
   beforeEach(() => {
@@ -172,7 +148,7 @@ describe('Dashboard Page', () => {
     
     // Check that the form was submitted
     await waitFor(() => {
-      expect(require('@tanstack/react-query').useMutation().mutate).toHaveBeenCalled();
+      expect(require('@tanstack/react-query').useMutation).toHaveBeenCalled();
     });
   });
 
