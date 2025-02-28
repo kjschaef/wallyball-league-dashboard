@@ -15,6 +15,8 @@ const config: Config.InitialOptions = {
       },
       testMatch: ['<rootDir>/server/__tests__/**/*.test.ts'],
       setupFiles: ['<rootDir>/server/__tests__/setup.ts'],
+      // Add timeout to prevent hanging tests
+      testTimeout: 5000,
     },
     // Client tests configuration
     {
