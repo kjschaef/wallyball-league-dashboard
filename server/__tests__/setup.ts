@@ -1,10 +1,24 @@
 
 // This file contains setup code that runs before tests
 
-// Add any global test setup here
-// For example:
-// - Mock global variables
-// - Set up test environment variables
-// - Configure test database connections
+// Set environment to test to avoid database operations if possible
+process.env.NODE_ENV = 'test';
 
-// Leave this empty for now - we can add specific setup as needed
+// Mock database connection for faster tests
+jest.mock('../../db/config', () => ({
+  getEnvironment: jest.fn().mockReturnValue('test'),
+  getDatabase: jest.fn().mockReturnValue({
+    // Add minimal mock implementations needed by tests
+    query: jest.fn().mockResolvedValue([]),
+    select: jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnValue({
+          execute: jest.fn().mockResolvedValue([])
+        })
+      })
+    })
+  })
+}));
+
+// Speed up tests by mocking timers
+jest.useFakeTimers();
