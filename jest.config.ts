@@ -3,6 +3,7 @@ import type { Config } from '@jest/types';
 
 // Separate configurations for server and client tests
 const config: Config.InitialOptions = {
+  testTimeout: 5000,
   projects: [
     // Server tests configuration
     {
@@ -15,8 +16,6 @@ const config: Config.InitialOptions = {
       },
       testMatch: ['<rootDir>/server/__tests__/**/*.test.ts'],
       setupFiles: ['<rootDir>/server/__tests__/setup.ts'],
-      // Add timeout to prevent hanging tests
-      testTimeout: 5000,
     },
     // Client tests configuration
     {
