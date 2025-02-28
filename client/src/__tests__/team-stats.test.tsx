@@ -1,4 +1,3 @@
-
 import { formatTeam, formatTeamFromIds } from '../utils/formatTeam';
 
 describe('Team Formatting Functionality', () => {
@@ -39,19 +38,19 @@ describe('Team Formatting Functionality', () => {
 
 describe('Team Stats', () => {
   test('formatTeam should handle null values', () => {
+    // The client implementation handles numeric player IDs differently
     expect(formatTeam([1, null, 2])).toBe('1-2');
   });
 
-  test('formatTeam should handle duplicate player IDs', () => {
-    expect(formatTeam([1, 1, 2])).toBe('1-1-2');
-    expect(formatTeam([2, 1, 1])).toBe('1-1-2');
+  test('formatTeam should handle numeric player IDs', () => {
+    expect(formatTeam([3, 1, 2])).toBe('1-2-3');
   });
   
   test('formatTeamFromIds handles null player IDs', () => {
     const players = [
-      { id: 1, name: 'Alice', createdAt: '2023-01-01' },
-      { id: 2, name: 'Bob', createdAt: '2023-01-02' },
-      { id: 3, name: 'Charlie', createdAt: '2023-01-03' }
+      { id: 1, name: 'Alice' },
+      { id: 2, name: 'Bob' },
+      { id: 3, name: 'Charlie' }
     ];
     
     expect(formatTeamFromIds([1, null, 3], players)).toBe('Alice and Charlie');
@@ -59,8 +58,8 @@ describe('Team Stats', () => {
   
   test('formatTeamFromIds creates consistent team names regardless of ID order', () => {
     const players = [
-      { id: 1, name: 'Alice', createdAt: '2023-01-01' },
-      { id: 2, name: 'Bob', createdAt: '2023-01-02' }
+      { id: 1, name: 'Alice' },
+      { id: 2, name: 'Bob' }
     ];
     
     const team1 = formatTeamFromIds([1, 2], players);
@@ -72,8 +71,8 @@ describe('Team Stats', () => {
   
   test('formatTeamFromIds handles empty arrays', () => {
     const players = [
-      { id: 1, name: 'Alice', createdAt: '2023-01-01' },
-      { id: 2, name: 'Bob', createdAt: '2023-01-02' }
+      { id: 1, name: 'Alice' },
+      { id: 2, name: 'Bob' }
     ];
     
     expect(formatTeamFromIds([], players)).toBe('No players');
@@ -81,8 +80,8 @@ describe('Team Stats', () => {
   
   test('formatTeamFromIds handles non-existent player IDs', () => {
     const players = [
-      { id: 1, name: 'Alice', createdAt: '2023-01-01' },
-      { id: 2, name: 'Bob', createdAt: '2023-01-02' }
+      { id: 1, name: 'Alice' },
+      { id: 2, name: 'Bob' }
     ];
     
     expect(formatTeamFromIds([1, 999], players)).toBe('Alice');

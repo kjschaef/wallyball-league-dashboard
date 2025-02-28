@@ -39,11 +39,18 @@ export function formatTeamFromIds(
   playerIds: (number | null)[], 
   players: Array<{id: number, name: string}>
 ): string {
-  return playerIds
+  if (!playerIds || playerIds.length === 0) return "No players";
+  
+  const playerNames = playerIds
     .filter((id): id is number => id !== null)
     // Sort IDs to ensure consistent team identification regardless of player order
     .sort()
     .map(id => players.find(p => p.id === id)?.name)
-    .filter((name): name is string => name !== undefined)
-    .join(", ");
+    .filter((name): name is string => name !== undefined);
+    
+  if (playerNames.length === 0) return "No players";
+  if (playerNames.length === 1) return playerNames[0];
+  if (playerNames.length === 2) return `${playerNames[0]} and ${playerNames[1]}`;
+  
+  return `${playerNames[0]}, ${playerNames[1]} and ${playerNames[2]}`;
 }

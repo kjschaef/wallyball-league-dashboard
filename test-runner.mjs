@@ -15,73 +15,76 @@
  *   --server       Run only server tests
  *   --watch        Run tests in watch mode (auto re-run on file changes)
  *   --file <path>  Run tests for a specific file
+ *   --coverage     Run tests with coverage reports
  */
 
 import { spawnSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-// Parse command-line arguments
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Parse command line arguments
 const args = process.argv.slice(2);
-const options = {
-  fast: !args.includes('--debug'),
-  client: args.includes('--client'),
-  server: args.includes('--server'),
-  watch: args.includes('--watch'),
-  file: args.includes('--file') ? args[args.indexOf('--file') + 1] : null
-};
+const hasFlag = (flag) => args.includes(flag);
 
-// If neither client nor server is specified, run both
-if (!options.client && !options.server) {
-  options.client = true;
-  options.server = true;
-}
+// Available configurations
+const CLIENT_TESTS = 'client/src/**/*.test.{ts,tsx}';
+const SERVER_TESTS = 'server/**/*.test.ts';
+const ALL_TESTS = '{client/src,server}/**/*.test.{ts,tsx}';
+
+// Determine test configuration
+const isDebug = hasFlag('--debug');
+const isWatch = hasFlag('--watch');
+const isCoverage = hasFlag('--coverage');
+const isClient = hasFlag('--client');
+const isServer = hasFlag('--server');
+
+// Get specific file path if provided
+const fileIndex = args.indexOf('--file');
+const specificFile = fileIndex !== -1 ? args[fileIndex + 1] : null;
+
+// Determine test pattern
+let testPattern = ALL_TESTS;
+if (isClient) testPattern = CLIENT_TESTS;
+if (isServer) testPattern = SERVER_TESTS;
+if (specificFile) testPattern = specificFile;
 
 // Build Jest command
-const jestCommand = ['npx', 'jest'];
+const jestArgs = [
+  'jest',
+  testPattern,
+  '--config=jest.config.ts',
+  isWatch ? '--watch' : '',
+  isCoverage ? '--coverage' : '',
+  isDebug ? '--runInBand' : '--maxWorkers=50%',
+  '--colors',
+  '--verbose',
+];
 
-// Add test selectors
-const testSelectors = [];
-if (options.client) testSelectors.push('client');
-if (options.server) testSelectors.push('server');
-if (testSelectors.length > 0) {
-  jestCommand.push(`--selectProjects=${testSelectors.join(',')}`);
-}
+// Filter out empty strings
+const filteredArgs = jestArgs.filter(Boolean);
 
-// Add specific file if requested
-if (options.file) {
-  jestCommand.push(options.file);
-}
+console.log(`\n🧪 Running tests with the following configuration:`);
+console.log(`   - Mode: ${isDebug ? 'Debug (sequential)' : 'Fast (parallel)'}`);
+console.log(`   - Tests: ${specificFile ? `File ${specificFile}` : isClient ? 'Client only' : isServer ? 'Server only' : 'All'}`);
+console.log(`   - Coverage: ${isCoverage ? 'Yes' : 'No'}`);
+console.log(`   - Watch mode: ${isWatch ? 'Yes' : 'No'}`);
+console.log(`\n   npx ${filteredArgs.join(' ')}\n`);
 
-// Add performance options
-if (options.fast) {
-  jestCommand.push('--maxWorkers=50%');
-} else {
-  jestCommand.push('--runInBand'); // Run tests in sequence for debugging
-}
-
-// Add watch mode if requested
-if (options.watch) {
-  jestCommand.push('--watch');
-}
-
-// Always use cache for speed unless explicitly disabled
-if (!args.includes('--no-cache')) {
-  jestCommand.push('--cache');
-}
-
-// Print command being executed
-console.log(`\nExecuting: ${jestCommand.join(' ')}\n`);
-
-// Run Jest
-const result = spawnSync(jestCommand[0], jestCommand.slice(1), { 
+// Execute Jest with the configured arguments
+const result = spawnSync('npx', filteredArgs, { 
   stdio: 'inherit',
-  env: {
-    ...process.env,
-    // Additional performance env variables
-    NODE_ENV: 'test',
-    // Disable logging during tests
-    DEBUG: '',
-  }
+  shell: true,
+  cwd: process.cwd(),
 });
 
-// Exit with the same code as the Jest process
+// Handle errors
+if (result.error) {
+  console.error(`\n❌ Error running tests: ${result.error.message}`);
+  process.exit(1);
+}
+
+// Exit with the same code as Jest
 process.exit(result.status);
