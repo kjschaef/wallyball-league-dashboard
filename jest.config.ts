@@ -16,12 +16,16 @@ export default {
       testEnvironment: 'node',
       testMatch: ['<rootDir>/server/__tests__/**/*.test.ts'],
       moduleNameMapper: {
-        '^@db/(.*)$': '<rootDir>/db/$1',
+        '^@db$': '<rootDir>/db',
+        '^@db/(.*)$': '<rootDir>/db/$1'
       },
       transform: {
         '^.+\\.tsx?$': ['ts-jest', {
-          isolatedModules: true,
+          isolatedModules: true
         }]
+      },
+      globals: {
+        'process.env.NODE_ENV': 'test'
       }
     },
     
@@ -39,8 +43,14 @@ export default {
       transform: {
         '^.+\\.[tj]sx?$': ['ts-jest', {
           isolatedModules: true,
+          tsconfig: 'tsconfig.json'
         }]
       },
+      // Setup files to run before tests
+      setupFilesAfterEnv: ['<rootDir>/client/src/setupTests.ts'],
+      globals: {
+        'process.env.NODE_ENV': 'test'
+      }
     }
   ]
 };

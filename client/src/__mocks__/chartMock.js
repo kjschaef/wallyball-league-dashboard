@@ -1,20 +1,20 @@
-// Mock for chart-related components
+/**
+ * Mock implementation for Chart.js components in tests
+ */
+
+const React = require('react');
+
 module.exports = {
-  ResponsiveContainer: ({ children }) => children,
-  LineChart: ({ children }) => children,
-  Line: () => null,
-  XAxis: () => null,
-  YAxis: () => null,
-  CartesianGrid: () => null,
-  Tooltip: () => null,
-  Legend: () => null,
-  BarChart: ({ children }) => children,
-  Bar: () => null,
-  PieChart: ({ children }) => children,
-  Pie: () => null,
-  Cell: () => null,
-  Scatter: () => null,
-  ScatterChart: () => null,
-  AreaChart: ({ children }) => children,
-  Area: () => null
+  Line: function(props) {
+    return React.createElement('canvas', { 'data-testid': 'chart-js-line', ...props });
+  },
+  Bar: function(props) {
+    return React.createElement('canvas', { 'data-testid': 'chart-js-bar', ...props });
+  },
+  Pie: function(props) {
+    return React.createElement('canvas', { 'data-testid': 'chart-js-pie', ...props });
+  },
+  Doughnut: function(props) {
+    return React.createElement('canvas', { 'data-testid': 'chart-js-doughnut', ...props });
+  }
 };

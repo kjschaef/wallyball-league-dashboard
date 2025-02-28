@@ -58,35 +58,41 @@ jest.mock('@tanstack/react-query', () => ({
   }),
 }));
 
-// Mock wouter for navigation
-jest.mock('wouter', () => ({
-  ...jest.requireActual('wouter'),
-  useLocation: () => ['/dashboard', jest.fn()],
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to} data-testid={`link-to-${to.replace(/\//g, '')}`}>
-      {children}
-    </a>
-  ),
-}));
+// Mock wouter for navigation in a format compatible with Jest
+jest.mock('wouter', () => {
+  const React = require('react');
+  const actual = jest.requireActual('wouter');
+  
+  return {
+    ...actual,
+    useLocation: () => ['/dashboard', jest.fn()],
+    Link: function MockLink(props: { to: string; children: React.ReactNode }) {
+      return React.createElement(
+        'a',
+        { 
+          href: props.to, 
+          'data-testid': `link-to-${props.to.replace(/\//g, '')}` 
+        },
+        props.children
+      );
+    }
+  };
+});
 
-// Mock recharts
-jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
-  LineChart: ({ children }: any) => <div data-testid="line-chart">{children}</div>,
-  Line: () => <div data-testid="chart-line" />,
-  XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />,
-  CartesianGrid: () => <div data-testid="cartesian-grid" />,
-  Tooltip: () => <div data-testid="tooltip" />,
-  Legend: () => <div data-testid="legend" />,
-}));
+// Mock recharts using our shared mock
+jest.mock('recharts', () => require('../__mocks__/rechartsMock'));
 
 // Wrapper component with QueryClient provider
-const Wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    {children}
-  </QueryClientProvider>
-);
+const Wrapper = ({ children }: { children: React.ReactNode }) => {
+  const React = require('react');
+  const { QueryClientProvider } = require('@tanstack/react-query');
+  
+  return React.createElement(
+    QueryClientProvider,
+    { client: queryClient },
+    children
+  );
+};
 
 describe('Dashboard Page', () => {
   beforeEach(() => {

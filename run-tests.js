@@ -5,7 +5,7 @@
  * Usage: node run-tests.js [client|server|all]
  */
 
-const { spawnSync } = require('child_process');
+import { spawnSync } from 'child_process';
 
 // Parse command line args
 const args = process.argv.slice(2);

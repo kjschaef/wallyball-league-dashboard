@@ -15,46 +15,57 @@ global.fetch = jest.fn(() =>
 );
 
 // Speed up animations in tests
-jest.mock('framer-motion', () => ({
-  motion: {
-    div: 'div',
-    span: 'span',
-    button: 'button',
-    ul: 'ul',
-    li: 'li',
-    p: 'p',
-  },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
-}));
+jest.mock('framer-motion', () => {
+  const React = require('react');
+  
+  return {
+    motion: {
+      div: (props: React.HTMLAttributes<HTMLDivElement>) => React.createElement('div', props),
+      span: (props: React.HTMLAttributes<HTMLSpanElement>) => React.createElement('span', props),
+      button: (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => React.createElement('button', props),
+      ul: (props: React.HTMLAttributes<HTMLUListElement>) => React.createElement('ul', props),
+      li: (props: React.HTMLAttributes<HTMLLIElement>) => React.createElement('li', props),
+      p: (props: React.HTMLAttributes<HTMLParagraphElement>) => React.createElement('p', props),
+    },
+    AnimatePresence: (props: { children: React.ReactNode }) => React.createElement(React.Fragment, null, props.children),
+  };
+});
 
 // Mock recharts to avoid rendering issues in tests
-jest.mock('recharts', () => require('../__mocks__/chartMock.js'));
+jest.mock('recharts', () => require('./__mocks__/rechartsMock'));
 
 // Mock react-query
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQuery: jest.fn().mockReturnValue({
-    data: [],
-    isLoading: false,
-    isError: false,
-    error: null,
-    refetch: jest.fn(),
-  }),
-  useMutation: jest.fn().mockReturnValue({
-    mutate: jest.fn(),
-    isLoading: false,
-    isError: false,
-    error: null,
-    isSuccess: false,
-  }),
-  QueryClient: jest.fn().mockImplementation(() => ({
-    prefetchQuery: jest.fn().mockResolvedValue(undefined),
-    getQueryData: jest.fn(),
-    setQueryData: jest.fn(),
-    invalidateQueries: jest.fn(),
-  })),
-  QueryClientProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
+jest.mock('@tanstack/react-query', () => {
+  const React = require('react');
+  const actualReactQuery = jest.requireActual('@tanstack/react-query');
+  
+  return {
+    ...actualReactQuery,
+    useQuery: jest.fn().mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: jest.fn(),
+    }),
+    useMutation: jest.fn().mockReturnValue({
+      mutate: jest.fn(),
+      isLoading: false,
+      isError: false,
+      error: null,
+      isSuccess: false,
+    }),
+    QueryClient: jest.fn().mockImplementation(() => ({
+      prefetchQuery: jest.fn().mockResolvedValue(undefined),
+      getQueryData: jest.fn(),
+      setQueryData: jest.fn(),
+      invalidateQueries: jest.fn(),
+    })),
+    QueryClientProvider: (props: { children: React.ReactNode; client: any }) => {
+      return React.createElement(React.Fragment, null, props.children);
+    },
+  };
+});
 
 // Mock window methods that might not be available in JSDOM
 Object.defineProperty(window, 'matchMedia', {

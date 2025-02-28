@@ -30,23 +30,19 @@ jest.mock('@tanstack/react-query', () => ({
 }));
 
 // Mock the recharts components to avoid rendering issues in tests
-jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
-  LineChart: ({ children }: any) => <div data-testid="line-chart">{children}</div>,
-  Line: () => <div data-testid="chart-line" />,
-  XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />,
-  CartesianGrid: () => <div data-testid="cartesian-grid" />,
-  Tooltip: () => <div data-testid="tooltip" />,
-  Legend: () => <div data-testid="legend" />,
-}));
+jest.mock('recharts', () => require('../__mocks__/rechartsMock'));
 
 // Wrapper component with QueryClient provider
-const Wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    {children}
-  </QueryClientProvider>
-);
+const Wrapper = ({ children }: { children: React.ReactNode }) => {
+  const React = require('react');
+  const { QueryClientProvider } = require('@tanstack/react-query');
+  
+  return React.createElement(
+    QueryClientProvider,
+    { client: queryClient },
+    children
+  );
+};
 
 describe('PerformanceTrend Component', () => {
   test('renders the performance chart', () => {

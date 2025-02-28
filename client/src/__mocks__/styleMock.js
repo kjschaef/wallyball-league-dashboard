@@ -1,3 +1,6 @@
-// This mock file is used to handle CSS imports in tests
-// By returning an empty object, we prevent Jest from trying to process CSS
+/**
+ * Mock for style imports in tests
+ * This mock returns an empty object for CSS/SCSS imports
+ */
+
 module.exports = {};

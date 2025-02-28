@@ -1,83 +1,177 @@
-# Volleyball Stats Testing Guide
+# Testing Guide for Volleyball League Application
 
-This document explains how to use the optimized test runner for the volleyball stats application.
+This document provides guidance for writing and running tests in the Volleyball League application.
 
-## Test Runner Usage
+## Testing Philosophy
 
-Our custom test runner provides various options for running tests with optimized performance:
+We follow these key principles for our tests:
 
-```bash
-node test-runner.mjs [options]
-```
-
-### Options
-
-- `--fast` - Run tests in parallel with minimal overhead (default)
-- `--debug` - Run tests in sequence for easier debugging
-- `--client` - Run only client tests
-- `--server` - Run only server tests
-- `--watch` - Run tests in watch mode (auto re-run on file changes)
-- `--file <path>` - Run tests for a specific file
-
-### Examples
-
-Run all tests with optimal performance:
-```bash
-node test-runner.mjs
-```
-
-Run only client tests:
-```bash
-node test-runner.mjs --client
-```
-
-Run only server tests:
-```bash
-node test-runner.mjs --server
-```
-
-Debug mode (tests run sequentially):
-```bash
-node test-runner.mjs --debug
-```
-
-Watch mode (auto-rerun tests on file changes):
-```bash
-node test-runner.mjs --watch
-```
-
-Test a specific file:
-```bash
-node test-runner.mjs --file client/src/__tests__/team-stats.test.tsx
-```
-
-## Performance Testing
-
-The client test suite includes performance benchmark tests in `client/src/__tests__/perf-test.test.tsx` that measure the execution time of critical functions like team formatting.
-
-Run performance tests:
-```bash
-node test-runner.mjs --file client/src/__tests__/perf-test.test.tsx
-```
-
-## Testing Best Practices
-
-1. **Unit Tests**: Focus on testing individual functions/components in isolation
-2. **Mock Data**: All tests should use mock data instead of connecting to the real database
-3. **Fast Execution**: Tests should run quickly to support rapid development
-4. **Independent Tests**: Each test should be independent and not rely on the state from other tests
+1. **Isolation**: Tests should run in isolation without external dependencies like databases.
+2. **Fast Execution**: Tests should be quick to run to support rapid development.
+3. **Reliability**: Tests should be deterministic and not flaky.
+4. **Clarity**: Test failures should provide clear indications of what failed.
 
 ## Test Structure
 
-- `client/src/__tests__/` - Client-side React component and utility tests
-- `server/__tests__/` - Server-side API and utility tests
-- `client/src/__mocks__/` - Mock implementations for assets (images, stylesheets)
+The application has two main types of tests:
 
-## Troubleshooting
+### Server Tests
 
-If tests are failing, try running in debug mode with:
-```bash
-node test-runner.mjs --debug
+Located in `server/__tests__/`, these tests focus on:
+- API routes and controllers
+- Data utilities
+- Business logic
+
+### Client Tests
+
+Located in `client/src/__tests__/`, these tests focus on:
+- React components
+- Hooks
+- Utility functions
+- State management
+
+## Running Tests
+
+You can run tests using the provided scripts:
+
+```
+# Run all tests
+node run-tests.js all
+
+# Run only server tests
+node run-tests.js server
+
+# Run only client tests
+node run-tests.js client
 ```
 
-This will execute tests sequentially and make stack traces easier to read.
+## Mocking
+
+### Database Mocking
+
+We use a custom mock implementation for Drizzle ORM in `server/__tests__/setup.ts`. This allows us to:
+- Test database queries without a real database connection
+- Configure mock responses for different test scenarios
+- Verify that the correct queries are being made
+
+Example of configuring mock results:
+
+```typescript
+import { configureMockDb, getMockData } from './setup';
+
+// Configure mock data for a test
+configureMockDb({ 
+  selectResults: getMockData.players 
+});
+```
+
+### Component Mocking
+
+For client-side tests, we mock:
+- External dependencies (React Query, Recharts, etc.)
+- Network requests using Jest's mock for `fetch`
+- Router functionality (wouter)
+
+### JSX-Free Mocking Approach
+
+We use a JSX-free approach for mocking React components in tests to ensure maximum compatibility with Jest. Instead of using JSX syntax in mock implementations, we use `React.createElement`:
+
+```javascript
+// ❌ Don't use JSX in mock implementations
+jest.mock('recharts', () => ({
+  ResponsiveContainer: ({ children }) => <div data-testid="responsive-container">{children}</div>,
+  LineChart: ({ children }) => <div data-testid="line-chart">{children}</div>,
+}));
+
+// ✅ Use React.createElement instead
+jest.mock('recharts', () => {
+  const React = require('react');
+  
+  return {
+    ResponsiveContainer: function(props) {
+      return React.createElement('div', { 'data-testid': 'responsive-container' }, props.children);
+    },
+    LineChart: function(props) {
+      return React.createElement('div', { 'data-testid': 'line-chart' }, props.children);
+    }
+  };
+});
+```
+
+For common components, we have reusable mock implementations in the `client/src/__mocks__/` directory:
+
+- `rechartsMock.js`: Mocks for Recharts visualization components
+- `chartMock.js`: Mocks for Chart.js components
+- `fileMock.js`: Mock for file imports (images, etc.)
+- `styleMock.js`: Mock for CSS/SCSS style imports
+
+## Writing Effective Tests
+
+### Server Tests
+
+1. Use the mock DB utilities to avoid real database connections
+2. Test API routes with supertest
+3. Include both happy path and error cases
+
+Example:
+
+```typescript
+describe('GET /api/players', () => {
+  it('returns list of players', async () => {
+    // Setup mock data
+    configureMockDb({ 
+      selectResults: getMockData.players 
+    });
+
+    // Execute request
+    const response = await request(app).get('/api/players');
+    
+    // Verify response
+    expect(response.status).toBe(200);
+    expect(response.body).toBeTruthy();
+  });
+});
+```
+
+### Client Tests
+
+1. Use React Testing Library to test components
+2. Test user interactions using fireEvent and userEvent
+3. Verify the correct elements appear in the DOM
+
+Example:
+
+```typescript
+test('renders the dashboard with all sections', () => {
+  render(<Dashboard />, { wrapper: Wrapper });
+  
+  // Check for main sections
+  expect(screen.getByText('Volleyball Stats Dashboard')).toBeInTheDocument();
+  expect(screen.getByText('Recent Matches')).toBeInTheDocument();
+  expect(screen.getByTestId('responsive-container')).toBeInTheDocument();
+});
+```
+
+## TypeScript and Testing
+
+We use TypeScript throughout our tests to ensure type safety. This includes:
+
+- Properly typed mock data and functions
+- Interface definitions for test data structures
+- Type checking for component props and state
+
+## Best Practices
+
+1. Keep tests focused on a single behavior or feature
+2. Use descriptive test and assertion names
+3. Minimize test setup code by using shared fixtures and helpers
+4. Clean up after tests to avoid affecting other tests
+5. Group related tests using `describe` blocks
+6. Use beforeEach/afterEach hooks for common setup and teardown
+7. Prefer specific assertions (e.g., `toHaveTextContent`) over generic ones
+
+## Troubleshooting Common Issues
+
+- **"Invalid URL" errors**: The tests are trying to connect to a real database. Make sure your mock DB setup is configured correctly.
+- **React component render issues**: Check that all required context providers are available in your test setup.
+- **JSX errors in tests**: Ensure proper mocking of UI components that might cause issues with Jest's transform.
