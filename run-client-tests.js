@@ -1,33 +1,23 @@
 #!/usr/bin/env node
 
 /**
- * Helper script to run just the client tests with fixed configuration
+ * Simple script to run client tests
  */
+const { execSync } = require('child_process');
 
-import { spawnSync } from 'child_process';
-
-console.log(`\n🧪 Running client tests with fixed configuration...\n`);
-
-// Execute Jest with only client tests using our fixed config
-const result = spawnSync('npx', [
-  'jest',
-  '--config=jest.client.fixed.config.js',
-  '--colors',
-  '--no-cache',
-], { 
-  stdio: 'inherit',
-  shell: true,
-  env: {
-    ...process.env,
-    NODE_ENV: 'test'
-  }
-});
-
-// Handle errors
-if (result.error) {
-  console.error(`\n❌ Error running tests: ${result.error.message}`);
+try {
+  console.log('\n🧪 Running client tests...\n');
+  
+  // Set NODE_ENV to test for proper Jest environment
+  process.env.NODE_ENV = 'test';
+  
+  // Run Jest with our client configuration
+  execSync('npx jest --config=jest.client.config.js --colors', { 
+    stdio: 'inherit'
+  });
+  
+  console.log('\n✅ Client tests completed successfully!\n');
+} catch (error) {
+  console.error('\n❌ Client tests failed\n');
   process.exit(1);
 }
-
-// Exit with the same code as Jest
-process.exit(result.status);
