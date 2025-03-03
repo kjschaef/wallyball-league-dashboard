@@ -35,15 +35,19 @@ Located in `client/src/__tests__/`, these tests focus on:
 You can run tests using the provided scripts:
 
 ```
-# Run all tests
-node run-tests.js all
+# Run all tests (Note: currently fails due to client-side test issues)
+npm test
 
-# Run only server tests
-node run-tests.js server
+# Run only server tests (recommended approach)
+node run-server-tests.js
 
-# Run only client tests
-node run-tests.js client
+# Run tests with specific scope
+node run-tests.js all    # Run all tests (both server and client)
+node run-tests.js server # Run only server tests
+node run-tests.js client # Run only client tests
 ```
+
+**Important Note**: Currently, the main `npm test` command will fail due to client-side test configuration issues. Until these are resolved, we recommend using the `run-server-tests.js` script which has been configured to run only the server tests, which are passing successfully.
 
 ## Mocking
 
@@ -184,6 +188,13 @@ We use TypeScript throughout our tests to ensure type safety. This includes:
 
 ### Server Tests
 
+#### Fixed Issues:
+- Implemented a comprehensive database mocking strategy for Drizzle ORM
+- Added proper type definitions for test data structures
+- Fixed route tests for basic GET operations
+- Resolved TypeScript errors with properly documented @ts-ignore comments
+
+#### Remaining Issues:
 In the server tests, we have temporarily skipped some of the more complex tests that require further investigation:
 
 - **POST /api/players**: Requires proper mock implementation for database insert operations
@@ -196,8 +207,28 @@ These tests have been marked with `.skip` in the test files to allow the rest of
 
 Client-side tests currently have issues with the Babel configuration that need to be addressed. The main problems include:
 
-1. Babel transform errors when parsing JSX in test files
-2. Module system compatibility issues between ESM and CommonJS
-3. Configuration mismatches between Jest and the project's TypeScript setup
+1. **Babel transform errors**: The current error is related to JSX parsing in mock files or test files. 
+   Error: `Support for the experimental syntax 'jsx' isn't currently enabled`
+
+2. **Module system compatibility issues**: There are conflicts between ESM and CommonJS module formats:
+   - The project is configured with `"type": "module"` in package.json
+   - Some test configuration files use CommonJS (`jest.config.cjs`)
+   - Babel and Jest need proper configuration to handle this mixed environment
+
+3. **Mocking strategy issues**: The mock implementations for UI components may need to be rewritten to avoid JSX syntax entirely
+
+### Workaround for Running Tests
+
+Until the client-side test issues are resolved, use the following approach:
+
+1. Use the provided `run-server-tests.js` script to run only the server-side tests:
+   ```
+   node run-server-tests.js
+   ```
+
+2. If you need to work on client-side tests, you may need to:
+   - Ensure all mock implementations use `React.createElement` instead of JSX
+   - Update Babel configuration to properly handle JSX in test files
+   - Consider using a more compatible approach for module imports/exports
 
 A future update will focus on fixing these issues to enable client-side tests to run successfully.
