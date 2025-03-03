@@ -2,9 +2,10 @@
  * Unit tests for the performance trends API endpoints
  */
 import request from 'supertest';
-import { createTestApp, resetMocks } from './testUtils';
-import { db } from '@db';
-import { matches } from '@db/schema';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { createTestApp, resetMocks } from './testUtils.js';
+import { db } from '../../db/index.js';
+import { matches } from '../../db/schema.js';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
 // Mock data for tests

@@ -2,9 +2,10 @@
  * Unit tests for the matches API endpoints
  */
 import request from 'supertest';
-import { createTestApp, resetMocks } from './testUtils';
-import { db } from '@db';
-import { matches, players } from '@db/schema';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { createTestApp, resetMocks } from './testUtils.js';
+import { db } from '../../db/index.js';
+import { matches, players } from '../../db/schema.js';
 
 // Mock data for tests
 const mockPlayers = [
