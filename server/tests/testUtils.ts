@@ -5,17 +5,25 @@ import express, { Express } from 'express';
 import { Server } from 'http';
 import { registerRoutes } from './mock-routes.js';
 import sinon from 'sinon';
-import * as chai from 'chai';
+import chai from 'chai';
+// Import and use chai-http without TypeScript checking
+// @ts-ignore
 import chaiHttp from 'chai-http';
 
-// Configure Chai
+// Configure Chai with HTTP plugin
+// @ts-ignore
 chai.use(chaiHttp);
 
 // Export testing libraries for convenience
 export const { expect } = chai;
 
-// Export the request function for making HTTP requests in tests
-export const request = chai.request;
+/**
+ * Creates a chai-http request for the given Express app
+ */
+export function request(app: Express) {
+  // @ts-ignore - Chai-http types are not working correctly, but the function works
+  return chai.request(app);
+}
 
 // Store stubs for later reset
 const stubs = new Map<string, sinon.SinonStub<any[], any>>();
@@ -52,7 +60,6 @@ export function stubMethod<T extends object, K extends keyof T>(
 
 /**
  * Reset all stubs between tests
- * This is the equivalent of the Jest resetMocks function
  */
 export function resetStubs(): void {
   stubs.forEach(stub => {

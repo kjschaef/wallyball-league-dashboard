@@ -1,12 +1,27 @@
 /**
  * Mock routes file for testing that avoids using aliased imports
- * This simulates the structure of server/routes.ts but with direct imports
+ * This simulates the structure of server/routes.ts but uses our test db
  */
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { eq, or, and, gte, lte } from "drizzle-orm";
 import { db } from "./setup.js";
-import { players, matches, achievements, playerAchievements } from "../../db/schema.js";
+import { players, matches, achievements, playerAchievements, type Player, type Match } from "../../db/schema.js";
+
+// Define types for our statistics
+interface PlayerStats {
+  won: number;
+  lost: number;
+}
+
+interface ProcessedMatch {
+  id: number;
+  date: string;
+  teamOneGamesWon: number;
+  teamTwoGamesWon: number;
+  isTeamOne: boolean;
+  won: boolean;
+}
 
 // Mock routes file that mimics the real routes but uses our test db
 export function registerRoutes(app: Express): Server {
@@ -20,10 +35,10 @@ export function registerRoutes(app: Express): Server {
       const allMatches = await db.select().from(matches);
       console.log("Successfully fetched matches:", allMatches);
 
-      const playersWithStats = allPlayers.map((player) => {
+      const playersWithStats = allPlayers.map((player: Player) => {
         // Filter matches where the player participated
         const playerMatches = allMatches.filter(
-          (match) =>
+          (match: Match) =>
             match.teamOnePlayerOneId === player.id ||
             match.teamOnePlayerTwoId === player.id ||
             match.teamOnePlayerThreeId === player.id ||
@@ -34,7 +49,7 @@ export function registerRoutes(app: Express): Server {
 
         // Calculate player statistics
         const stats = playerMatches.reduce(
-          (acc, match) => {
+          (acc: PlayerStats, match: Match) => {
             // Determine which team the player was on
             const isTeamOne =
               match.teamOnePlayerOneId === player.id ||
@@ -58,7 +73,7 @@ export function registerRoutes(app: Express): Server {
         );
 
         // Add matches with win/loss info to player data
-        const processedMatches = playerMatches.map((match) => {
+        const processedMatches = playerMatches.map((match: Match) => {
           const isTeamOne =
             match.teamOnePlayerOneId === player.id ||
             match.teamOnePlayerTwoId === player.id ||
