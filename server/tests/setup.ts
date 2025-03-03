@@ -4,21 +4,6 @@
  * This file runs before each test file, setting up global stubs and configurations
  */
 import sinon from 'sinon';
-// Mock db object instead of importing directly
-export const db = {
-  select: () => {},
-  from: () => {},
-  where: () => {},
-  eq: () => {},
-  or: () => {},
-  and: () => {},
-  insert: () => {},
-  update: () => {},
-  delete: () => {},
-  values: () => {},
-  set: () => {},
-  returning: () => {},
-};
 
 // Set up environment variables for testing
 process.env.NODE_ENV = 'test';
@@ -26,48 +11,52 @@ process.env.NODE_ENV = 'test';
 // Create a sandbox for managing stubs
 const sandbox = sinon.createSandbox();
 
+// Mock the database module that will be imported in the tests
+// This matches the structure used in routes.ts: db.select().from(players)
+export const db = {
+  select: sandbox.stub().returnsThis(),
+  insert: sandbox.stub().returnsThis(),
+  update: sandbox.stub().returnsThis(),
+  delete: sandbox.stub().returnsThis(),
+  from: sandbox.stub().returnsThis(),
+  where: sandbox.stub().returnsThis(),
+  set: sandbox.stub().returnsThis(),
+  values: sandbox.stub().returnsThis(),
+  returning: sandbox.stub().resolves([])
+};
+
 // Define database operation methods to stub
 const dbMethods = [
-  'select', 'from', 'where', 'eq', 'or', 'and', 
-  'insert', 'update', 'delete', 'values', 'set', 'returning'
+  'select', 'from', 'where', 'insert', 'update', 
+  'delete', 'values', 'set', 'returning'
 ] as const;
 
-// Create a type for the database stub
 type DbStub = {
   [K in typeof dbMethods[number]]: sinon.SinonStub;
 };
 
-// Setup stubs for database operations
+/**
+ * Setup database stubs that can be configured in individual tests
+ * Returns the stubbed methods for configuration in tests
+ */
 export function setupDbStubs(): DbStub {
-  // Create stubs for database methods
-  const dbStub: Partial<DbStub> = {};
-  
-  // Create individual stubs
+  // Reset the stubs to their default behavior
   dbMethods.forEach(method => {
-    // Create a stub that returns itself for chainable methods, or resolves to empty array for terminating methods
     if (method === 'returning') {
-      dbStub[method] = sandbox.stub().resolves([]);
+      db[method].resolves([]);
     } else {
-      dbStub[method] = sandbox.stub().returnsThis();
+      db[method].returnsThis();
     }
   });
 
-  // Apply the stubs to the actual db object where those methods exist
-  dbMethods.forEach(method => {
-    if (typeof db[method as keyof typeof db] === 'function') {
-      // @ts-ignore - The typing here is complex due to the dynamic nature of stubbing
-      sandbox.stub(db, method).callsFake(function(this: any, ...args: any[]) {
-        return dbStub[method]?.apply(this, args);
-      });
-    }
-  });
-
-  return dbStub as DbStub;
+  return db as unknown as DbStub;
 }
 
-// Reset all stubs
+/**
+ * Reset all stubs to their original state
+ */
 export function resetStubs(): void {
-  sandbox.restore();
+  sandbox.reset();
 }
 
 // Mocha hooks for setup and teardown
