@@ -1,68 +1,84 @@
-# API Unit Testing Guide
+# Volleyball League Manager - Testing Guide
 
-## Overview
+This directory contains tests for the Volleyball League Manager API endpoints. The tests are written using Mocha and Chai, with additional tools like Sinon for mocking/stubbing.
 
-This folder contains unit tests for the volleyball league management API endpoints. These tests are designed to run fast and locally, without affecting the production database.
+## Testing Philosophy
 
-## Testing Approach
+The testing approach follows these principles:
 
-The tests follow these best practices:
-
-1. **Isolation**: Each test is independent and doesn't rely on the state from other tests.
-2. **Mocking**: Database operations are mocked to avoid touching the actual database.
-3. **Speed**: Tests are designed to run quickly by avoiding real network or database operations.
-4. **Coverage**: Tests cover happy paths as well as error scenarios.
-5. **Readability**: Tests are structured with clear assertions and descriptions.
+1. **Isolation**: Tests run in isolation without affecting the production database.
+2. **Speed**: Tests are designed to run quickly without external dependencies.
+3. **Completeness**: API endpoints have comprehensive test coverage.
+4. **Maintainability**: Tests are organized by domain area for easy maintenance.
 
 ## Test Structure
 
-- `setup.ts` - Jest setup file that configures global mocks
-- `testUtils.ts` - Helper utilities for test setup and teardown
-- `players.test.ts` - Tests for player management endpoints
-- `matches.test.ts` - Tests for game/match management endpoints
-- `trends.test.ts` - Tests for performance trends reporting
-- `achievements.test.ts` - Tests for player achievements
+The test files are organized by domain area:
+
+- `players.test.ts`: Tests for player-related endpoints
+- `matches.test.ts`: Tests for match recording and retrieval
+- `achievements.test.ts`: Tests for player achievements
+- `trends.test.ts`: Tests for performance trend data
 
 ## Running Tests
 
-### Run all tests
+To run all tests:
 
 ```bash
-npm test
+node run-tests.js
 ```
 
-### Run tests with coverage report
+To run a specific test file:
 
 ```bash
-npm test -- --coverage
+npx mocha server/tests/players.test.ts
 ```
 
-### Run specific test file
+## Test Utilities
 
-```bash
-npm test -- server/tests/players.test.ts
-```
+The `testUtils.ts` file provides common utilities for testing:
 
-### Run tests in watch mode (for development)
+- `createTestApp()`: Creates an Express app with all routes registered
+- `stubMethod()`: Creates a Sinon stub and tracks it for later restoration
+- `resetStubs()`: Resets all stubs between tests (equivalent to Jest's `resetMocks`)
+- `expect`: Chai assertion library exported for convenience
+- `request`: Chai HTTP request utility for testing API endpoints
 
-```bash
-npm test -- --watch
-```
+## Writing Tests
 
-## Mocking Strategy
+When writing a new test:
 
-We use Jest's mocking capabilities to isolate our tests from external dependencies:
+1. Import required utilities:
+   ```typescript
+   import { expect, request, createTestApp, resetStubs } from "./testUtils.js";
+   ```
 
-1. **Database Mocking**: All database operations are mocked in `setup.ts` to return predictable responses
-2. **date-fns**: Date utility functions are mocked in specific tests to provide consistent date handling
-3. **Express**: We use supertest to simulate HTTP requests without actually starting a server
+2. Use the Mocha `describe` and `it` functions for test organization:
+   ```typescript
+   describe("Player API", () => {
+     // Reset stubs between tests
+     afterEach(() => {
+       resetStubs();
+     });
 
-## Adding New Tests
+     it("should return all players", async () => {
+       // Test implementation
+     });
+   });
+   ```
 
-When adding new API endpoints, please follow these guidelines for testing:
+3. Use Chai's assertion library:
+   ```typescript
+   expect(response.status).to.equal(200);
+   expect(response.body).to.be.an("array");
+   ```
 
-1. Create a new test file if it's a completely new feature area
-2. Add mock data that represents realistic database responses
-3. Test both successful operations and error handling
-4. Verify that the correct database operations are called with the right parameters
-5. Test edge cases and validation logic
+4. Use Sinon for mocking database operations:
+   ```typescript
+   // Mock db.select().from().where()... chain
+   // The test setup handles this automatically for most cases
+   ```
+
+## Test Database
+
+Tests use a mocked database layer to avoid affecting any real database. The mocking is set up in `setup.ts` and automatically applied to all tests.
