@@ -3,8 +3,8 @@
  */
 import express, { Express } from 'express';
 import { Server } from 'http';
-import { registerRoutes } from '../routes';
-import * as sinon from 'sinon';
+import { registerRoutes } from '../routes.js';
+import sinon from 'sinon';
 import * as chai from 'chai';
 import chaiHttp from 'chai-http';
 

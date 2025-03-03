@@ -3,7 +3,7 @@
  * 
  * This file runs before each test file, setting up global stubs and configurations
  */
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import { db } from '../../db/index.js';
 
 // Set up environment variables for testing
