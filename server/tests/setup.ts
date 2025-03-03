@@ -3,9 +3,10 @@
  * 
  * This file runs before each test file, setting up global mocks and configurations
  */
+import { jest } from '@jest/globals';
 
 // Mock the database connection and operations
-jest.mock('@db', () => {
+jest.mock('../../../db/index.ts', () => {
   // This lets us control what db operations return in tests
   return {
     db: {
