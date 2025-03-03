@@ -3,7 +3,7 @@
  */
 import express, { Express } from 'express';
 import { Server } from 'http';
-import { registerRoutes } from '../routes.js';
+import { registerRoutes } from './mock-routes.js';
 import sinon from 'sinon';
 import * as chai from 'chai';
 import chaiHttp from 'chai-http';

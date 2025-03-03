@@ -4,7 +4,21 @@
  * This file runs before each test file, setting up global stubs and configurations
  */
 import sinon from 'sinon';
-import { db } from '../../db/index.js';
+// Mock db object instead of importing directly
+export const db = {
+  select: () => {},
+  from: () => {},
+  where: () => {},
+  eq: () => {},
+  or: () => {},
+  and: () => {},
+  insert: () => {},
+  update: () => {},
+  delete: () => {},
+  values: () => {},
+  set: () => {},
+  returning: () => {},
+};
 
 // Set up environment variables for testing
 process.env.NODE_ENV = 'test';
