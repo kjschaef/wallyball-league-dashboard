@@ -13,8 +13,8 @@ chai.use(chaiHttp);
 
 // Export testing libraries for convenience
 export const { expect } = chai;
-// Create a type-safe request function
-// @ts-ignore - Chai HTTP extends chai with the request method
+
+// Export the request function for making HTTP requests in tests
 export const request = chai.request;
 
 // Store stubs for later reset
