@@ -103,11 +103,9 @@ export default function Results() {
 
   const formatTeam = (players: string[]) => {
     if (players.length === 0) return "No players";
-    // Sort players to ensure consistent team identification regardless of order
-    const sortedPlayers = [...players].sort();
-    if (sortedPlayers.length === 1) return sortedPlayers[0];
-    if (sortedPlayers.length === 2) return `${sortedPlayers[0]} and ${sortedPlayers[1]}`;
-    return `${sortedPlayers[0]}, ${sortedPlayers[1]} and ${sortedPlayers[2]}`;
+    if (players.length === 1) return players[0];
+    if (players.length === 2) return `${players[0]} and ${players[1]}`;
+    return `${players[0]}, ${players[1]} and ${players[2]}`;
   };
 
   const deleteMutation = useMutation({
