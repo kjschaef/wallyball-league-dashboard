@@ -1,5 +1,5 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
   moduleNameMapper: {
@@ -13,12 +13,30 @@ module.exports = {
       displayName: 'backend',
       testMatch: ['<rootDir>/server/**/*.test.ts', '<rootDir>/db/**/*.test.ts'],
       testEnvironment: 'node',
+      transform: {
+        '^.+\\.tsx?$': [
+          'ts-jest',
+          {
+            useESM: true,
+          },
+        ],
+      },
+      extensionsToTreatAsEsm: ['.ts', '.tsx'],
     },
     {
       displayName: 'frontend',
       testMatch: ['<rootDir>/client/src/**/*.test.tsx', '<rootDir>/client/src/**/*.test.ts'],
       testEnvironment: 'jsdom',
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      transform: {
+        '^.+\\.tsx?$': [
+          'ts-jest',
+          {
+            useESM: true,
+          },
+        ],
+      },
+      extensionsToTreatAsEsm: ['.ts', '.tsx'],
     },
   ],
   // Coverage configuration
@@ -30,4 +48,16 @@ module.exports = {
     '!**/dist/**',
   ],
   coverageDirectory: 'coverage',
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
+  },
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(drizzle-orm|drizzle-kit|drizzle-zod)/)',
+  ],
 };

@@ -2,10 +2,12 @@
 import '@testing-library/jest-dom';
 
 // Mock objects and global values needed for tests
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+global.ResizeObserver = function() {
+  return {
+    observe: function() {},
+    unobserve: function() {},
+    disconnect: function() {}
+  };
+};
 
 // Add any other global mocks needed for all tests here
