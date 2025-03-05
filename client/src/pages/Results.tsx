@@ -25,6 +25,7 @@ import {
   ResponsiveContainer,
 } from "recharts"; // Import Recharts components
 import cn from 'classnames';
+import { queryClient } from '@/lib/queryClient';
 
 
 interface MatchResult {
