@@ -13,29 +13,29 @@ function show_usage() {
   echo "  help        - Show this help message"
 }
 
-# Run tests based on argument
+# Run tests based on argument using TS-Node directly
 if [ $# -eq 0 ]; then
   # Default: run all tests
-  npx mocha
+  npx ts-node node_modules/mocha/bin/mocha.js
 else
   case "$1" in
     "all")
-      npx mocha
+      npx ts-node node_modules/mocha/bin/mocha.js
       ;;
     "db")
-      npx mocha test/db/**/*.test.ts
+      npx ts-node node_modules/mocha/bin/mocha.js test/db/**/*.test.ts
       ;;
     "server")
-      npx mocha test/server/**/*.test.ts
+      npx ts-node node_modules/mocha/bin/mocha.js test/server/**/*.test.ts
       ;;
     "client")
-      npx mocha test/client/**/*.test.ts
+      npx ts-node node_modules/mocha/bin/mocha.js test/client/**/*.test.tsx
       ;;
     "utils")
-      npx mocha test/utils.test.ts
+      npx ts-node node_modules/mocha/bin/mocha.js test/utils.test.ts
       ;;
     "watch")
-      npx mocha --watch
+      npx ts-node node_modules/mocha/bin/mocha.js --watch
       ;;
     "help")
       show_usage
