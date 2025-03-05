@@ -425,7 +425,7 @@ export default function Results() {
 
                             // Determine which team's wins should be displayed first
                             const teamWithMoreWins = teamOneWins > teamTwoWins ? 0 : 
-                                                   teamTwoWins > teamOneWins ? 1 : -1;
+                                                   teamTwoWins > teamOneWins ? 1 : -1;eamOneWins ? 1 : -1;
 
                             if (teamWithMoreWins === 0) {
                               // Team One has more wins, display their record first
@@ -489,14 +489,20 @@ export default function Results() {
                             } else if (teamWithMoreWins === 1) {
                               return (
                                 <>
-                                  Record: {teamTwoWins}-{teamOneWins}
+                                  Record: {teamOneWins}-{teamTwoWins}
                                   <span className="text-green-600 ml-1"></span>
+                                </>
+                              );
+                            } else if (teamWithMoreWins === 1) {
+                              return (
+                                <>
+                                  Record: {teamTwoWins}-{teamOneWins}
                                 </>
                               );
                             } else {
                               return (
                                 <>
-                                  Record: {teamOneWins}-{teamTwoWins}
+                                  Record: {teamOneWins}-{teamTwoWins} (Tied)
                                 </>
                               );
                             }
