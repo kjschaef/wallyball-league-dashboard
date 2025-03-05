@@ -5,6 +5,7 @@ function show_usage() {
   echo "Usage: ./run-tests.sh [options]"
   echo "Options:"
   echo "  all         - Run all tests"
+  echo "  basic       - Run basic verification tests (JS only)"
   echo "  db          - Run database tests"
   echo "  server      - Run server API tests"
   echo "  client      - Run client component tests"
@@ -13,29 +14,41 @@ function show_usage() {
   echo "  help        - Show this help message"
 }
 
-# Run tests based on argument using TS-Node directly
+# Run tests based on argument
 if [ $# -eq 0 ]; then
   # Default: run all tests
-  npx ts-node node_modules/mocha/bin/mocha.js
+  echo "Running all tests..."
+  NODE_OPTIONS="--require ts-node/register" npx mocha
 else
   case "$1" in
     "all")
-      npx ts-node node_modules/mocha/bin/mocha.js
+      echo "Running all tests..."
+      NODE_OPTIONS="--require ts-node/register" npx mocha
+      ;;
+    "basic")
+      echo "Running basic JS tests only (no TypeScript)..."
+      # Run without requiring the TypeScript setup
+      npx mocha --no-config test/simple.test.js
       ;;
     "db")
-      npx ts-node node_modules/mocha/bin/mocha.js test/db/**/*.test.ts
+      echo "Running database tests..."
+      NODE_OPTIONS="--require ts-node/register" npx mocha test/db/**/*.test.ts
       ;;
     "server")
-      npx ts-node node_modules/mocha/bin/mocha.js test/server/**/*.test.ts
+      echo "Running server API tests..."
+      NODE_OPTIONS="--require ts-node/register" npx mocha test/server/**/*.test.ts
       ;;
     "client")
-      npx ts-node node_modules/mocha/bin/mocha.js test/client/**/*.test.tsx
+      echo "Running client component tests..."
+      NODE_OPTIONS="--require ts-node/register" npx mocha test/client/**/*.test.tsx
       ;;
     "utils")
-      npx ts-node node_modules/mocha/bin/mocha.js test/utils.test.ts
+      echo "Running utility tests..."
+      NODE_OPTIONS="--require ts-node/register" npx mocha test/utils.test.ts
       ;;
     "watch")
-      npx ts-node node_modules/mocha/bin/mocha.js --watch
+      echo "Running tests in watch mode..."
+      NODE_OPTIONS="--require ts-node/register" npx mocha --watch
       ;;
     "help")
       show_usage

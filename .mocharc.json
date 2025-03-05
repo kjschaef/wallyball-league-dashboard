@@ -1,11 +1,11 @@
 {
   "require": [
+    "ts-node/register",
     "test/setup.ts"
   ],
   "extension": ["ts", "tsx"],
   "spec": ["test/**/*.test.ts", "test/**/*.test.tsx"],
   "watch-files": ["test/**/*.ts", "test/**/*.tsx"],
-  "timeout": 15000,
-  "parallel": false,
+  "timeout": 5000,
   "bail": false
 }
