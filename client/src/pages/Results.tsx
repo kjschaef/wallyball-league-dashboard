@@ -469,9 +469,7 @@ export default function Results() {
                                 <>
                                   Record: {stats.teamTwoWins}-{stats.teamOneWins}
                                   {stats.teamOneWins !== stats.teamTwoWins && (
-                                    <span className={stats.teamTwoWins > stats.teamOneWins ? "text-green-600 ml-1" : "text-red-600 ml-1"}>
-                                      ({stats.teamTwoWins > stats.teamOneWins ? "Keith and Parker lead" : "Hodnett and Nate lead"})
-                                    </span>
+                                    <span className={stats.teamTwoWins > stats.teamOneWins ? "text-green-600 ml-1" : "text-red-600 ml-1"}></span>
                                   )}
                                 </>
                               );
@@ -482,9 +480,7 @@ export default function Results() {
                               <>
                                 Record: {stats.teamOneWins}-{stats.teamTwoWins}
                                 {stats.teamOneWins !== stats.teamTwoWins && (
-                                  <span className={stats.teamOneWins > stats.teamTwoWins ? "text-green-600 ml-1" : "text-red-600 ml-1"}>
-                                    ({stats.teamOneWins > stats.teamTwoWins ? `${teams[0]} leads` : `${teams[1]} leads`})
-                                  </span>
+                                  <span className={stats.teamOneWins > stats.teamTwoWins ? "text-green-600 ml-1" : "text-red-600 ml-1"}></span>
                                 )}
                               </>
                             );
