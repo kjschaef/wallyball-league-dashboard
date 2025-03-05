@@ -195,6 +195,83 @@ export default function Results() {
         </CardContent>
       </Card>
 
+      <Card>
+          <CardHeader>
+            <CardTitle>Best Performing Teams (Top 10)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {matches.length === 0 ? (
+              <p className="text-muted-foreground">No matches recorded yet</p>
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(
+                  matches.reduce(
+                    (acc, match) => {
+                      // Sort player names before forming team identifier
+                      const teamOne = formatTeam([...match.teamOnePlayers].sort());
+                      const teamTwo = formatTeam([...match.teamTwoPlayers].sort());
+
+                      // Update team one stats
+                      if (!acc[teamOne]) {
+                        acc[teamOne] = { wins: 0, losses: 0, gamesPlayed: 0 };
+                      }
+                      acc[teamOne].wins += match.teamOneGamesWon;
+                      acc[teamOne].losses += match.teamTwoGamesWon;
+                      acc[teamOne].gamesPlayed +=
+                        match.teamOneGamesWon + match.teamTwoGamesWon;
+
+                      // Update team two stats
+                      if (!acc[teamTwo]) {
+                        acc[teamTwo] = { wins: 0, losses: 0, gamesPlayed: 0 };
+                      }
+                      acc[teamTwo].wins += match.teamTwoGamesWon;
+                      acc[teamTwo].losses += match.teamOneGamesWon;
+                      acc[teamTwo].gamesPlayed +=
+                        match.teamOneGamesWon + match.teamTwoGamesWon;
+
+                      return acc;
+                    },
+                    {} as Record<
+                      string,
+                      { wins: number; losses: number; gamesPlayed: number }
+                    >,
+                  ),
+                )
+                  .filter(([, stats]) => stats.gamesPlayed >= 3) // Only teams with at least 3 games
+                  .sort(([, a], [, b]) => {
+                    const aWinRate = a.wins / (a.wins + a.losses);
+                    const bWinRate = b.wins / (b.wins + b.losses);
+                    // If win rates are equal, prefer the team with more games played
+                    return bWinRate === aWinRate 
+                      ? b.gamesPlayed - a.gamesPlayed 
+                      : bWinRate - aWinRate;
+                  })
+                  .slice(0, 10)
+                  .map(([team, stats]) => (
+                    <div
+                      key={team}
+                      className="flex flex-col p-2 hover:bg-muted/50 rounded"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="font-medium">{team}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Win Rate:{" "}
+                          {((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                        <div>
+                          Record: {stats.wins}-{stats.losses}
+                        </div>
+                        <div>Games Played: {stats.gamesPlayed}</div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
       {/* Player Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players
@@ -271,85 +348,7 @@ export default function Results() {
         </CardContent>
       </Card>
 
-      <div id="results-content" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Best Performing Teams</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {matches.length === 0 ? (
-              <p className="text-muted-foreground">No matches recorded yet</p>
-            ) : (
-              <div className="space-y-4">
-                {Object.entries(
-                  matches.reduce(
-                    (acc, match) => {
-                      // Sort player names before forming team identifier
-                      const teamOne = formatTeam([...match.teamOnePlayers].sort());
-                      const teamTwo = formatTeam([...match.teamTwoPlayers].sort());
-
-                      // Update team one stats
-                      if (!acc[teamOne]) {
-                        acc[teamOne] = { wins: 0, losses: 0, gamesPlayed: 0 };
-                      }
-                      acc[teamOne].wins += match.teamOneGamesWon;
-                      acc[teamOne].losses += match.teamTwoGamesWon;
-                      acc[teamOne].gamesPlayed +=
-                        match.teamOneGamesWon + match.teamTwoGamesWon;
-
-                      // Update team two stats
-                      if (!acc[teamTwo]) {
-                        acc[teamTwo] = { wins: 0, losses: 0, gamesPlayed: 0 };
-                      }
-                      acc[teamTwo].wins += match.teamTwoGamesWon;
-                      acc[teamTwo].losses += match.teamOneGamesWon;
-                      acc[teamTwo].gamesPlayed +=
-                        match.teamOneGamesWon + match.teamTwoGamesWon;
-
-                      return acc;
-                    },
-                    {} as Record<
-                      string,
-                      { wins: number; losses: number; gamesPlayed: number }
-                    >,
-                  ),
-                )
-                  .filter(([, stats]) => stats.gamesPlayed >= 3) // Only teams with at least 3 games
-                  .sort(([, a], [, b]) => {
-                    const aWinRate = a.wins / (a.wins + a.losses);
-                    const bWinRate = b.wins / (b.wins + b.losses);
-                    // If win rates are equal, prefer the team with more games played
-                    return bWinRate === aWinRate 
-                      ? b.gamesPlayed - a.gamesPlayed 
-                      : bWinRate - aWinRate;
-                  })
-                  .slice(0, 5)
-                  .map(([team, stats]) => (
-                    <div
-                      key={team}
-                      className="flex flex-col p-2 hover:bg-muted/50 rounded"
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">{team}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Win Rate:{" "}
-                          {((stats.wins / stats.gamesPlayed) * 100).toFixed(1)}%
-                        </div>
-                      </div>
-                      <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                        <div>
-                          Record: {stats.wins}-{stats.losses}
-                        </div>
-                        <div>Games Played: {stats.gamesPlayed}</div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
+      <Card>
           <CardHeader>
             <CardTitle>Common Team Matchups</CardTitle>
           </CardHeader>
@@ -422,7 +421,6 @@ export default function Results() {
             )}
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }
