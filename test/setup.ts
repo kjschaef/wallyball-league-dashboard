@@ -1,52 +1,28 @@
 import { JSDOM } from 'jsdom';
 import { expect } from 'chai';
 
-// Create a simplified JSDOM instance
+// Set up JSDOM for React Testing Library
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
-  url: 'http://localhost:3000',
+  url: 'http://localhost/',
+  pretendToBeVisual: true,
 });
 
-// Simplified global setup for testing
-(global as any).window = dom.window;
-(global as any).document = dom.window.document;
-(global as any).navigator = { userAgent: 'node.js' };
-(global as any).HTMLElement = dom.window.HTMLElement;
-(global as any).getComputedStyle = dom.window.getComputedStyle;
+// Set up global variables for JSDOM
+global.window = dom.window as any;
+global.document = dom.window.document;
+global.navigator = dom.window.navigator;
+global.HTMLElement = dom.window.HTMLElement;
+global.Element = dom.window.Element;
 
-// Mock requestAnimationFrame (needed for React)
+// Required for some DOM operations in React components
 (global.window as any).requestAnimationFrame = function(callback: Function) {
   return setTimeout(callback, 0);
 };
 
-// Mock cancelAnimationFrame
 (global.window as any).cancelAnimationFrame = function(id: number) {
   clearTimeout(id);
 };
 
-// Mock matchMedia
-Object.defineProperty(global.window, 'matchMedia', {
-  writable: true,
-  value: (query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => {},
-  }),
-});
-
-// Make sure chai exists globally
+// Make React Testing Library work with Chai's expect
+// This is needed for the .toBeInTheDocument() and similar assertions
 (global as any).expect = expect;
-
-// This suppresses React-specific warnings in the test output
-const originalConsoleError = console.error;
-console.error = (message: any, ...args: any[]) => {
-  if (typeof message === 'string') {
-    if (message.includes('React does not recognize the')) return;
-    if (message.includes('Warning:')) return;
-  }
-  originalConsoleError(message, ...args);
-};

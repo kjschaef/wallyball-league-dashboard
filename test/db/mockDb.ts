@@ -18,8 +18,8 @@ export class MockDatabase {
     const now = new Date();
     const newPlayer: Player = {
       id: this.nextPlayerId++,
-      name: player.name,
-      startYear: player.startYear,
+      name: player.name || '',  // Provide default value to avoid undefined
+      startYear: player.startYear || 2023, // Provide default value to avoid undefined
       createdAt: now,
     };
     this.players.push(newPlayer);

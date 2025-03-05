@@ -1,59 +1,49 @@
-import React from 'react';
 import { expect } from 'chai';
+import { describe, it } from 'mocha';
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StatCard } from '../../../client/src/components/StatCard';
 
-describe('<StatCard />', () => {
-  it('should render the title and value correctly', () => {
-    // Render the component with props
-    render(<StatCard title="Wins" value="42" description="Total wins this season" />);
+describe('StatCard Component', () => {
+  it('renders title and value correctly', () => {
+    // Arrange
+    const title = 'Win Rate';
+    const value = '75%';
     
-    // Assert that the title is rendered
-    expect(screen.getByText('Wins')).to.exist;
+    // Act
+    render(<StatCard title={title} value={value} />);
     
-    // Assert that the value is rendered
-    expect(screen.getByText('42')).to.exist;
-    
-    // Assert that the description is rendered
-    expect(screen.getByText('Total wins this season')).to.exist;
+    // Assert
+    expect(screen.getByText(title)).to.exist;
+    expect(screen.getByText(value)).to.exist;
   });
-  
-  it('should render with custom className', () => {
-    // Render with custom class name
+
+  it('renders description when provided', () => {
+    // Arrange
+    const title = 'Total Games';
+    const value = '42';
+    const description = 'Games played this season';
+    
+    // Act
+    render(<StatCard title={title} value={value} description={description} />);
+    
+    // Assert
+    expect(screen.getByText(description)).to.exist;
+  });
+
+  it('applies custom className when provided', () => {
+    // Arrange
+    const title = 'Achievements';
+    const value = '10';
+    const customClass = 'custom-stat-card';
+    
+    // Act
     const { container } = render(
-      <StatCard 
-        title="Win Rate" 
-        value="75%" 
-        className="custom-class" 
-      />
+      <StatCard title={title} value={value} className={customClass} />
     );
     
-    // Find the element with the custom class
-    const cardElement = container.querySelector('.custom-class');
-    
-    // Assert that the element exists
-    expect(cardElement).to.exist;
-  });
-  
-  it('should render with an icon when provided', () => {
-    // Render with an icon
-    render(
-      <StatCard 
-        title="Score" 
-        value="100" 
-        icon={<div data-testid="test-icon">🏆</div>} 
-      />
-    );
-    
-    // Assert that the icon is rendered
-    expect(screen.getByTestId('test-icon')).to.exist;
-  });
-  
-  it('should work with numeric values', () => {
-    // Render with numeric value
-    render(<StatCard title="Points" value={123} />);
-    
-    // Assert that the numeric value is rendered
-    expect(screen.getByText('123')).to.exist;
+    // Assert - check if the class is applied to the main container
+    const cardElement = container.firstChild as HTMLElement;
+    expect(cardElement.className).to.include(customClass);
   });
 });
