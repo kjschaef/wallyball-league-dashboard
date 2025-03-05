@@ -5,24 +5,23 @@ import sinon from 'sinon';
 import type { SinonSandbox } from 'sinon';
 import type { Player } from '../../../db/schema';
 
-// Import the PlayerSelector component directly with relative paths
+// Import the PlayerSelector component directly
 import { PlayerSelector } from '../../../client/src/components/PlayerSelector';
 
-// Set up mocks at the top level - the module-resolver will handle path aliases
-const mockUtils = {
-  cn: (...inputs: string[]) => inputs.filter(Boolean).join(' ')
-};
+// Mock utility functions
+const cn = (...inputs: string[]) => inputs.filter(Boolean).join(' ');
 
-const MockButton: React.FC<{
-  children: React.ReactNode; 
-  variant?: string;
+// Define mock components used by PlayerSelector.tsx
+const MockButton = ({ children, variant, className, onClick, disabled }: {
+  children: React.ReactNode;
+  variant?: 'default' | 'outline' | 'ghost';
   className?: string;
   onClick?: () => void;
   disabled?: boolean;
-}> = ({ children, variant, className, onClick, disabled }) => (
+}) => (
   <button 
     onClick={onClick} 
-    className={className} 
+    className={className}
     data-state={variant === 'default' ? 'on' : 'off'}
     disabled={disabled}
   >
@@ -30,11 +29,11 @@ const MockButton: React.FC<{
   </button>
 );
 
-const MockScrollArea: React.FC<{
-  children: React.ReactNode;
-}> = ({ children }) => <div>{children}</div>;
+const MockScrollArea = ({ children }: { children: React.ReactNode }) => (
+  <div data-testid="scroll-area">{children}</div>
+);
 
-// Mock data
+// Mock player data
 const mockPlayers: Player[] = [
   { id: 1, name: 'Player One', startYear: 2020, createdAt: new Date() },
   { id: 2, name: 'Player Two', startYear: 2021, createdAt: new Date() },
@@ -47,21 +46,24 @@ describe('PlayerSelector Component', () => {
   beforeEach(() => {
     sandbox = sinon.createSandbox();
     
-    // Create global mocks for the module resolver
-    (global as any).cn = mockUtils.cn;
+    // Set up mocks
     (global as any).Button = MockButton;
-    (global as any).ScrollArea = MockScrollArea;
+    (global as any).ScrollArea = MockScrollArea; 
+    (global as any).cn = cn;
   });
   
   afterEach(() => {
     sandbox.restore();
+    
+    // Clean up global mocks
+    delete (global as any).Button;
+    delete (global as any).ScrollArea;
+    delete (global as any).cn;
   });
   
   it('renders correctly with player list', () => {
-    // Setup mock callback
     const handleSelectMock = () => {};
     
-    // Render component with mock data
     render(
       <PlayerSelector 
         players={mockPlayers}
@@ -70,7 +72,7 @@ describe('PlayerSelector Component', () => {
       />
     );
     
-    // Assert that all players are displayed
+    // Check that all players are displayed
     expect(screen.getByText('Player One')).to.exist;
     expect(screen.getByText('Player Two')).to.exist;
     expect(screen.getByText('Player Three')).to.exist;
@@ -137,13 +139,8 @@ describe('PlayerSelector Component', () => {
     const playerElements = screen.getAllByRole('button');
     expect(playerElements.length).to.equal(3);
     
-    // Check if the unselected player is disabled or has a className that indicates it's disabled
+    // Third player should be disabled because max players is reached
     const playerThreeElement = playerElements[2];
-    const isDisabledByClass = playerThreeElement.className &&
-                              playerThreeElement.className.includes('opacity-50') && 
-                              playerThreeElement.className.includes('cursor-not-allowed');
-    
-    // Since we're using a mock Button component, we need to check the className instead of the disabled attribute
-    expect(isDisabledByClass || playerThreeElement.hasAttribute('disabled')).to.be.true;
+    expect(playerThreeElement.hasAttribute('disabled')).to.be.true;
   });
 });

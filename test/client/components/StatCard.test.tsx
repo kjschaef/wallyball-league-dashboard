@@ -2,9 +2,33 @@ import React from 'react';
 import { expect } from 'chai';
 import { render, screen } from '@testing-library/react';
 import { StatCard } from '../../../client/src/components/StatCard';
-import { Trophy } from 'lucide-react';
+
+// Mock for lucide-react Trophy icon
+const MockTrophy = (props: React.HTMLAttributes<HTMLDivElement>) => {
+  return <div {...props}>Trophy Icon</div>;
+};
+
+// Mock for the cn utility
+const cn = (...inputs: string[]) => inputs.filter(Boolean).join(' ');
 
 describe('StatCard Component', () => {
+  // Setup mock environment
+  before(() => {
+    // Register mock implementations
+    (global as any).lucideReact = { Trophy: MockTrophy };
+    (global as any).cn = cn;
+    
+    // Set up global handlers for imports
+    (global as any).Trophy = MockTrophy;
+  });
+
+  after(() => {
+    // Clean up
+    delete (global as any).lucideReact;
+    delete (global as any).cn;
+    delete (global as any).Trophy;
+  });
+
   it('renders with title and value', () => {
     render(
       <StatCard 
@@ -36,7 +60,7 @@ describe('StatCard Component', () => {
       <StatCard 
         title="Trophies" 
         value={5}
-        icon={<Trophy data-testid="trophy-icon" />}
+        icon={<MockTrophy data-testid="trophy-icon" />}
       />
     );
     

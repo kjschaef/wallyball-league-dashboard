@@ -3,7 +3,6 @@ import { JSDOM } from 'jsdom';
 import { expect } from 'chai';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { register } from 'module';
 
 // Register path aliases for import resolution
 const __filename = fileURLToPath(import.meta.url);
@@ -31,8 +30,20 @@ global.document = dom.window.document;
 global.navigator = dom.window.navigator;
 global.HTMLElement = dom.window.HTMLElement;
 global.Element = dom.window.Element;
+global.Node = dom.window.Node;
+global.NodeList = dom.window.NodeList;
+global.MouseEvent = dom.window.MouseEvent;
+global.KeyboardEvent = dom.window.KeyboardEvent;
+global.Event = dom.window.Event;
 global.history = dom.window.history;
 global.location = dom.window.location;
+
+// Add polyfills for browser APIs
+global.MutationObserver = class {
+  constructor(callback) {}
+  disconnect() {}
+  observe(element, options) {}
+};
 
 // CSS support mocks
 global.window.CSS = { supports: () => true };
@@ -51,7 +62,7 @@ global.localStorage = {
   length: 0
 };
 
-// Required for some DOM operations in React components
+// Required for React operations
 global.window.requestAnimationFrame = function(callback) {
   return setTimeout(callback, 0);
 };
@@ -60,7 +71,7 @@ global.window.cancelAnimationFrame = function(id) {
   clearTimeout(id);
 };
 
-// Mock media queries for responsive design testing
+// Mock media queries
 global.window.matchMedia = (query) => ({
   matches: false,
   media: query,
@@ -72,8 +83,31 @@ global.window.matchMedia = (query) => ({
   dispatchEvent: () => true,
 });
 
+// Add Jest-like mocking capabilities
+global.jest = {
+  mock: (modulePath, mockImplementation) => {
+    const mockModuleName = modulePath.split('/').pop();
+    global[mockModuleName] = mockImplementation();
+  }
+};
+
+// Function to create a mock implementation
+global.createMockImplementation = (implementation) => {
+  return () => implementation;
+};
+
 // Make React Testing Library work with Chai's expect
 global.expect = expect;
+
+// In-memory fetch mock implementation
+global.fetch = async (url, options = {}) => {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({}),
+    text: async () => '',
+  };
+};
 
 // Export to be imported where needed
 export const jsdom = dom;

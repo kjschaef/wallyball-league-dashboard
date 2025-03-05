@@ -2,6 +2,26 @@
 
 This document provides an overview of the testing infrastructure and guidelines for the volleyball league management platform.
 
+## Project Status
+
+### Completed
+- ✅ Basic JavaScript test infrastructure with passing tests
+- ✅ TypeScript test infrastructure with ES module support
+- ✅ JSDOM environment setup for component testing
+- ✅ React component test examples (StatCard, PlayerSelector)
+- ✅ Mock database configuration for database tests
+- ✅ API test infrastructure with proper request/response validation
+
+### In Progress
+- 🔄 Path alias resolution in TypeScript tests
+- 🔄 Mock implementation for UI components
+- 🔄 Global mock system for dependencies
+
+### Next Steps
+- Integration tests for key workflows
+- Performance testing for critical queries
+- End-to-end testing with database integration
+
 ## Overview
 
 The testing infrastructure is designed to be:
@@ -42,24 +62,74 @@ test/
 └── utils.test.ts           # TypeScript utility tests
 ```
 
+## Test Files and Responsibilities
+
+Each test file has specific responsibilities:
+
+### Component Tests
+- `PlayerSelector.test.tsx`: Tests player selection UI, state management, and interactions
+- `StatCard.test.tsx`: Tests statistics display component with different prop combinations
+
+### Database Tests
+- `player.test.ts`: Tests player CRUD operations and validation rules
+- `mockDb.ts`: Provides an in-memory database implementation for isolated testing
+
+### API Tests
+- `api.test.ts`: Tests API endpoints for proper request handling and response formatting
+
 ## Configuration Files
 
-- **.mocharc.json**: Mocha configuration (timeouts, extensions, etc.)
-- **run-ts-tests.sh**: Script for running TypeScript tests with proper environment setup
-- **run-tests.sh**: Script for running all tests
+- **.mocharc.json**: Mocha configuration with timeout settings, extensions, and module loading options
+- **run-ts-tests.sh**: Script for running TypeScript tests with proper environment variables
+- **run-tests.sh**: Script for running all tests or specific test categories
 
-## Path Alias Resolution
+## Mock Implementation
 
-The testing infrastructure supports path aliases (e.g., `@/components`, `@db/schema`) through a custom module resolution system:
+The testing infrastructure includes a robust mocking system:
 
-1. **module-resolver.js**: Hooks into Node.js module loading system to resolve aliases
-2. **setup-path-aliases.js**: Maps aliases to actual paths on the filesystem
-3. **jsdom-setup.js**: Sets up the browser environment with alias support
+### Component Mocks
+```typescript
+// Mock Button component
+const MockButton = ({ children, variant, className, onClick, disabled }) => (
+  <button 
+    onClick={onClick} 
+    className={className} 
+    data-state={variant === 'default' ? 'on' : 'off'}
+    disabled={disabled}
+  >
+    {children}
+  </button>
+);
 
-Supported aliases:
-- `@/`: Points to `client/src/`
-- `@db/`: Points to `db/`
-- `@test/`: Points to `test/`
+// Mock ScrollArea component
+const MockScrollArea = ({ children }) => (
+  <div data-testid="scroll-area">{children}</div>
+);
+```
+
+### Utility Mocks
+```typescript
+// Mock the cn utility from utils.ts
+const cn = (...inputs) => inputs.filter(Boolean).join(' ');
+```
+
+### Database Mocks
+```typescript
+// Mock database class from mockDb.ts
+export class MockDatabase {
+  private players = [];
+  
+  async createPlayer(player) {
+    // Implementation
+  }
+  
+  async getPlayerById(id) {
+    // Implementation
+  }
+  
+  // Other methods...
+}
+```
 
 ## Running Tests
 
@@ -75,11 +145,12 @@ Tests can be run using the provided scripts:
 ./run-ts-tests.sh components # Run frontend component tests
 ./run-ts-tests.sh utils      # Run utility function tests
 ./run-ts-tests.sh js         # Run JavaScript tests only
+
+# Run basic tests only (fastest)
+./run-tests.sh basic
 ```
 
-## Test Environment Setup
-
-### JSDOM Environment
+## JSDOM Environment
 
 For React component testing, we use JSDOM to simulate a browser environment with:
 
@@ -90,14 +161,26 @@ For React component testing, we use JSDOM to simulate a browser environment with
 - Local storage mocks
 - Media query simulation
 
-### Mock Database
+Key JSDOM setup code:
+```javascript
+// Set up JSDOM
+const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
+  url: 'http://localhost/',
+  pretendToBeVisual: true,
+  runScripts: 'dangerously'
+});
 
-Database tests use a mock database implementation (`mockDb.ts`) that mimics Drizzle ORM behavior:
+// Set up global variables
+global.window = dom.window;
+global.document = dom.window.document;
+global.navigator = dom.window.navigator;
+global.HTMLElement = dom.window.HTMLElement;
 
-- In-memory data storage
-- CRUD operations for all models
-- Transaction support
-- Relationship simulations
+// Mock implementations
+global.window.requestAnimationFrame = function(callback) {
+  return setTimeout(callback, 0);
+};
+```
 
 ## Testing Strategies
 
@@ -110,7 +193,16 @@ Database tests verify the correctness of:
 - Data validation
 - Error handling
 
-Example: `test/db/player.test.ts`
+```typescript
+// Example database test
+it('creates a player correctly', async () => {
+  const mockPlayer = { name: 'Test Player', startYear: 2023 };
+  const createdPlayer = await mockDb.createPlayer(mockPlayer);
+  
+  expect(createdPlayer.id).to.exist;
+  expect(createdPlayer.name).to.equal('Test Player');
+});
+```
 
 ### API Testing
 
@@ -120,64 +212,73 @@ API tests verify:
 - Request validation
 - Response formatting
 - Error scenarios
-- Authentication/authorization (when applicable)
 
-Example: `test/server/api.test.ts`
+```typescript
+// Example API test
+it('returns 200 for valid player creation', async () => {
+  const response = await request(app)
+    .post('/api/players')
+    .send({ name: 'New Player', startYear: 2023 });
+    
+  expect(response.status).to.equal(200);
+  expect(response.body.id).to.exist;
+});
+```
 
 ### Component Testing
 
 React component tests verify:
 
 - Rendering correctness
-- User interactions (clicks, inputs, etc.)
+- User interactions
 - Prop handling
 - State management
-- Event handling
 
-Examples: `test/client/components/PlayerSelector.test.tsx`, `test/client/components/StatCard.test.tsx`
+```typescript
+// Example component test
+it('renders with title and value', () => {
+  render(
+    <StatCard 
+      title="Win Rate" 
+      value="75%" 
+    />
+  );
+  
+  expect(screen.getByText('Win Rate')).to.exist;
+  expect(screen.getByText('75%')).to.exist;
+});
+```
 
 ## Best Practices
 
-1. **Independence**: Each test should be independent and not rely on the state from other tests
-2. **Mocking**: Mock external dependencies to isolate the code being tested
-3. **Test Coverage**: Aim for comprehensive test coverage of critical functionality
-4. **Readability**: Use descriptive test names and follow the Arrange-Act-Assert pattern
-5. **Speed**: Optimize tests for fast execution without extending timeouts
-6. **Cleanup**: Properly reset state and restore stubs after each test
+1. **Independence**: Tests should not rely on state from other tests
+2. **Mocking**: Mock external dependencies to isolate code under test
+3. **Descriptive Names**: Use clear test names that describe expected behavior
+4. **Arrange-Act-Assert**: Structure tests with setup, action, and verification phases
+5. **Fast Execution**: Tests should run quickly without timeout extensions
+6. **Proper Cleanup**: Reset state and restore stubs after each test
 
-## Adding New Tests
+## Troubleshooting
 
-When adding new tests:
+### Path Resolution Issues
 
-1. Place the test file in the appropriate directory based on what it's testing
-2. Use the appropriate testing utilities (Chai, Sinon, Testing Library)
-3. Follow the established patterns in existing tests
-4. Verify that path aliases are resolved correctly
-5. Keep tests focused and specific to the functionality being tested
+If you encounter path alias resolution problems:
 
-## Troubleshooting Common Issues
+1. Use relative paths as a temporary solution
+2. Check module-resolver.js configuration
+3. Verify that paths match the project structure
 
-### Path Resolution Problems
+### Common Errors
 
-If you encounter import errors related to path aliases:
+1. **"Cannot find module"**: Check import paths and make sure dependencies are installed
+2. **"TypeError: undefined is not a function"**: Check that all mocks are properly implemented
+3. **"Cannot read property 'X' of undefined"**: Verify that objects are properly initialized before access
 
-1. Verify aliases are defined correctly in `setup-path-aliases.js`
-2. Check that the module resolver is properly loaded in `.mocharc.json`
-3. Try using relative paths as a fallback if needed
+### Performance Issues
 
-### JSDOM Simulation Issues
+If tests are running slowly:
 
-For DOM-related test failures:
-
-1. Check if the DOM API is properly mocked in `jsdom-setup.js`
-2. Add missing browser API mocks as needed
-3. Verify that event handlers are working correctly
-
-### Timeout Issues
-
-If tests are timing out:
-
-1. Check for unresolved promises or missing `await` statements
-2. Look for infinite loops or blocked execution
-3. Verify that mocks and stubs are configured correctly
-4. Optimize slow operations rather than extending timeouts
+1. Minimize network requests in tests
+2. Use in-memory database implementations
+3. Mock heavy computations
+4. Group related tests to reduce setup/teardown overhead
