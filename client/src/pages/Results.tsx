@@ -421,7 +421,12 @@ export default function Results() {
                       </div>
                       <div className="flex justify-between text-sm text-muted-foreground mt-1">
                         <div>
-                          Record: {stats.teamOneWins}-{stats.teamTwoWins}
+                          Record: {stats.teamOneWins}-{stats.teamTwoWins} 
+                          {stats.teamOneWins !== stats.teamTwoWins && (
+                            <span className={stats.teamOneWins > stats.teamTwoWins ? "text-green-600 ml-1" : "text-red-600 ml-1"}>
+                              ({stats.teamOneWins > stats.teamTwoWins ? "First team leads" : "Second team leads"})
+                            </span>
+                          )}
                         </div>
                         <div>
                           Average games per match:{" "}
