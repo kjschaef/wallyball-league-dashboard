@@ -1,32 +1,59 @@
 import React from 'react';
+import { expect } from 'chai';
 import { render, screen } from '@testing-library/react';
 import { StatCard } from '../../../client/src/components/StatCard';
-import { expect } from 'chai';
 
-describe('StatCard Component', () => {
-  it('should render with title and value', () => {
-    render(<StatCard title="Test Title" value="42" />);
+describe('<StatCard />', () => {
+  it('should render the title and value correctly', () => {
+    // Render the component with props
+    render(<StatCard title="Wins" value="42" description="Total wins this season" />);
     
-    // Verify the title and value are displayed
-    expect(screen.getByText('Test Title')).to.exist;
+    // Assert that the title is rendered
+    expect(screen.getByText('Wins')).to.exist;
+    
+    // Assert that the value is rendered
     expect(screen.getByText('42')).to.exist;
-  });
-
-  it('should render with description when provided', () => {
-    const description = 'This is a test description';
-    render(<StatCard title="Test" value="10" description={description} />);
     
-    expect(screen.getByText(description)).to.exist;
+    // Assert that the description is rendered
+    expect(screen.getByText('Total wins this season')).to.exist;
   });
-
-  it('should apply custom className when provided', () => {
-    const customClass = 'custom-test-class';
+  
+  it('should render with custom className', () => {
+    // Render with custom class name
     const { container } = render(
-      <StatCard title="Test" value="10" className={customClass} />
+      <StatCard 
+        title="Win Rate" 
+        value="75%" 
+        className="custom-class" 
+      />
     );
     
-    // Find the main container element and check for the class
-    const cardElement = container.firstChild as HTMLElement;
-    expect(cardElement.className).to.include(customClass);
+    // Find the element with the custom class
+    const cardElement = container.querySelector('.custom-class');
+    
+    // Assert that the element exists
+    expect(cardElement).to.exist;
+  });
+  
+  it('should render with an icon when provided', () => {
+    // Render with an icon
+    render(
+      <StatCard 
+        title="Score" 
+        value="100" 
+        icon={<div data-testid="test-icon">🏆</div>} 
+      />
+    );
+    
+    // Assert that the icon is rendered
+    expect(screen.getByTestId('test-icon')).to.exist;
+  });
+  
+  it('should work with numeric values', () => {
+    // Render with numeric value
+    render(<StatCard title="Points" value={123} />);
+    
+    // Assert that the numeric value is rendered
+    expect(screen.getByText('123')).to.exist;
   });
 });

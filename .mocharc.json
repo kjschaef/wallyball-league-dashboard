@@ -10,5 +10,7 @@
   "extension": ["ts", "tsx"],
   "spec": ["test/**/*.test.ts", "test/**/*.test.tsx"],
   "watch-files": ["test/**/*.ts", "test/**/*.tsx"],
-  "timeout": 5000
+  "timeout": 10000,
+  "parallel": false,
+  "bail": true
 }

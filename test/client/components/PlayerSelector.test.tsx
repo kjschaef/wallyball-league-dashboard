@@ -1,84 +1,113 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { PlayerSelector } from '../../../client/src/components/PlayerSelector';
 import { expect } from 'chai';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { PlayerSelector } from '../../../client/src/components/PlayerSelector';
 import sinon from 'sinon';
 
-describe('PlayerSelector Component', () => {
-  // Sample test data
-  const mockPlayers = [
-    { id: 1, name: 'Player 1', startYear: 2020, createdAt: new Date() },
-    { id: 2, name: 'Player 2', startYear: 2021, createdAt: new Date() },
-    { id: 3, name: 'Player 3', startYear: 2022, createdAt: new Date() }
-  ];
+// Mock player data for testing
+const mockPlayers = [
+  { id: 1, name: 'John', startYear: 2021, createdAt: new Date() },
+  { id: 2, name: 'Sarah', startYear: 2022, createdAt: new Date() },
+  { id: 3, name: 'Mike', startYear: 2023, createdAt: new Date() }
+];
 
-  it('should render player options', () => {
+describe('<PlayerSelector />', () => {
+  it('should render the list of players', () => {
+    // Render the component with props
     render(
       <PlayerSelector 
-        players={mockPlayers}
-        selectedPlayers={[]}
-        onSelect={() => {}}
+        players={mockPlayers} 
+        selectedPlayers={[]} 
+        onSelect={() => {}} 
       />
     );
     
-    // Check that all player names are rendered
-    mockPlayers.forEach(player => {
-      expect(screen.getByText(player.name)).to.exist;
-    });
+    // Assert that all player names are rendered
+    expect(screen.getByText('John')).to.exist;
+    expect(screen.getByText('Sarah')).to.exist;
+    expect(screen.getByText('Mike')).to.exist;
   });
-
-  it('should mark selected players', () => {
-    render(
+  
+  it('should mark selected players as active', () => {
+    // Render with selected players
+    const { container } = render(
       <PlayerSelector 
-        players={mockPlayers}
-        selectedPlayers={[1]} // Player 1 is selected
-        onSelect={() => {}}
+        players={mockPlayers} 
+        selectedPlayers={[2]} // Sarah is selected
+        onSelect={() => {}} 
       />
     );
     
-    // Find all player elements and check if the correct one is marked as selected
-    const playerElements = screen.getAllByRole('button');
+    // Find all player items
+    const playerItems = container.querySelectorAll('[role="button"]');
     
-    // This is a simplified test - in a real test, you would check for a specific class
-    // or attribute that indicates selection
-    expect(playerElements.length).to.be.at.least(mockPlayers.length);
+    // Check that Sarah's button has the active class
+    const sarahButton = Array.from(playerItems).find(
+      item => item.textContent?.includes('Sarah')
+    );
+    
+    // We can't directly test for CSS classes with testing-library
+    // but we can check for attributes that would be added for selected state
+    expect(sarahButton?.getAttribute('aria-pressed')).to.equal('true');
   });
-
-  it('should call onSelect when a player is clicked', async () => {
+  
+  it('should call onSelect when a player is clicked', () => {
+    // Create a spy for the onSelect callback
     const onSelectSpy = sinon.spy();
     
+    // Render the component
     render(
       <PlayerSelector 
-        players={mockPlayers}
-        selectedPlayers={[]}
-        onSelect={onSelectSpy}
+        players={mockPlayers} 
+        selectedPlayers={[]} 
+        onSelect={onSelectSpy} 
       />
     );
     
-    // Get the first player element and click it
-    const playerElement = screen.getByText('Player 1');
-    await userEvent.click(playerElement);
+    // Find and click on John's button
+    const johnButton = screen.getByText('John').closest('[role="button"]');
+    if (johnButton) {
+      fireEvent.click(johnButton);
+    }
     
-    // Check if onSelect was called with the correct player ID
+    // Assert that onSelect was called with the correct player ID
     expect(onSelectSpy.calledOnce).to.be.true;
-    expect(onSelectSpy.calledWith(1)).to.be.true; // Called with the ID of Player 1
+    expect(onSelectSpy.calledWith(1)).to.be.true; // ID of John
   });
-
+  
   it('should respect maxPlayers limit', () => {
-    const maxPlayers = 2;
-    
-    render(
+    // Render with max 2 players and already 2 selected
+    const { container } = render(
       <PlayerSelector 
-        players={mockPlayers}
-        selectedPlayers={[1, 2]} // Already selected 2 players
-        maxPlayers={maxPlayers}
-        onSelect={() => {}}
+        players={mockPlayers} 
+        selectedPlayers={[1, 2]} // John and Sarah selected
+        maxPlayers={2} 
+        onSelect={() => {}} 
       />
     );
     
-    // In a real implementation, there might be disabled buttons or other UI indicators
-    // that show the max limit has been reached
-    // This is a simplified test - you would check for specific UI state that indicates limitation
+    // Find Mike's button
+    const mikeButton = screen.getByText('Mike').closest('[role="button"]');
+    
+    // Verify that Mike's button is disabled
+    expect(mikeButton?.getAttribute('aria-disabled')).to.equal('true');
+  });
+  
+  it('should apply custom className when provided', () => {
+    // Render with custom className
+    const { container } = render(
+      <PlayerSelector 
+        players={mockPlayers} 
+        selectedPlayers={[]} 
+        onSelect={() => {}} 
+        className="custom-selector-class" 
+      />
+    );
+    
+    // Find element with the custom class
+    const element = container.querySelector('.custom-selector-class');
+    
+    // Assert that the element exists
+    expect(element).to.exist;
   });
 });

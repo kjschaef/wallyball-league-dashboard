@@ -3,14 +3,14 @@ import sinon from 'sinon';
 import supertest from 'supertest';
 import express, { Express } from 'express';
 import { db } from '../../db';
-import { players, matches } from '../../db/schema';
+import { players, matches, type Player } from '../../db/schema';
 
 // Import routes registration
 import { registerRoutes } from '../../server/routes';
 
 describe('API Routes', () => {
   let app: Express;
-  let request: supertest.SuperTest<supertest.Test>;
+  let request: any; // Use 'any' temporarily to avoid TypeScript errors with supertest
   let sandbox: sinon.SinonSandbox;
   
   beforeEach(() => {
@@ -38,17 +38,18 @@ describe('API Routes', () => {
   describe('GET /api/players', () => {
     it('should return all players', async () => {
       // Prepare test data
-      const mockPlayers = [
+      const mockPlayers: Player[] = [
         { id: 1, name: 'Player 1', startYear: 2022, createdAt: new Date() },
         { id: 2, name: 'Player 2', startYear: 2023, createdAt: new Date() }
       ];
       
+      // Create a proper mock of the select chain
+      const orderByStub = sandbox.stub().resolves(mockPlayers);
+      const fromMock = { orderBy: orderByStub };
+      const selectMock = { from: sandbox.stub().returns(fromMock) };
+      
       // Stub the DB call
-      sandbox.stub(db, 'select').returns({
-        from: sandbox.stub().returns({
-          orderBy: sandbox.stub().resolves(mockPlayers)
-        })
-      } as any);
+      sandbox.stub(db, 'select').returns(selectMock as any);
       
       // Make the request
       const response = await request.get('/api/players');
@@ -60,12 +61,13 @@ describe('API Routes', () => {
     });
     
     it('should handle database errors', async () => {
+      // Create a proper mock of the select chain
+      const orderByStub = sandbox.stub().rejects(new Error('Database error'));
+      const fromMock = { orderBy: orderByStub };
+      const selectMock = { from: sandbox.stub().returns(fromMock) };
+      
       // Stub the DB call to simulate an error
-      sandbox.stub(db, 'select').returns({
-        from: sandbox.stub().returns({
-          orderBy: sandbox.stub().rejects(new Error('Database error'))
-        })
-      } as any);
+      sandbox.stub(db, 'select').returns(selectMock as any);
       
       // Make the request
       const response = await request.get('/api/players');
@@ -84,21 +86,21 @@ describe('API Routes', () => {
         startYear: 2024
       };
       
-      const createdPlayer = {
+      const createdPlayer: Player = {
         id: 3,
         name: 'New Player',
         startYear: 2024,
         createdAt: new Date()
       };
       
+      // Create a proper mock of the insert chain
+      const executeStub = sandbox.stub().resolves([createdPlayer]);
+      const returningMock = { execute: executeStub };
+      const valuesMock = { returning: sandbox.stub().returns(returningMock) };
+      const insertMock = { values: sandbox.stub().returns(valuesMock) };
+      
       // Stub the DB call
-      sandbox.stub(db, 'insert').returns({
-        values: sandbox.stub().returns({
-          returning: sandbox.stub().returns({
-            get: sandbox.stub().resolves([createdPlayer])
-          })
-        })
-      } as any);
+      sandbox.stub(db, 'insert').returns(insertMock as any);
       
       // Make the request
       const response = await request

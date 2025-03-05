@@ -1,30 +1,19 @@
-# Testing Guide
+# Testing Infrastructure
 
-This document outlines the testing approach for the Volleyball League Management Platform.
+This document provides an overview of the testing infrastructure for the Volleyball League Management Platform.
 
-## Testing Stack
+## Overview
 
-- **Mocha**: Test runner
-- **Chai**: Assertion library
-- **Sinon**: Mocking, stubbing, and spying
-- **Supertest**: HTTP assertions for API testing
-- **React Testing Library**: Components testing
-- **JSDOM**: DOM environment for frontend tests
+The project uses Mocha as the test runner with Chai for assertions and Sinon for mocking. The tests are organized into separate directories for different aspects of the application:
 
-## Test Structure
-
-```
-test/
-├── db/              # Database operation tests
-├── server/          # API endpoint tests
-├── client/          # React component tests
-│   └── components/  # UI component tests
-└── utils.test.ts    # Utility function tests
-```
+- `test/db`: Tests for database operations
+- `test/server`: Tests for API endpoints
+- `test/client`: Tests for React components
+- `test/utils.test.ts`: Tests for utility functions
 
 ## Running Tests
 
-We provide a convenient script to run tests. Make it executable with `chmod +x run-tests.sh`.
+To run tests, use the `run-tests.sh` script:
 
 ```bash
 # Run all tests
@@ -39,47 +28,96 @@ We provide a convenient script to run tests. Make it executable with `chmod +x r
 # Run only client component tests
 ./run-tests.sh client
 
-# Run only utility function tests
+# Run only utility tests
 ./run-tests.sh utils
 
 # Run tests in watch mode
 ./run-tests.sh watch
-
-# Show usage information
-./run-tests.sh help
 ```
 
-## Test Types
+## Test Structure
 
 ### Database Tests
 
-These tests verify database operations with mocked database connections to avoid actual database dependencies. We use Sinon to stub the database methods.
+Database tests in `test/db` focus on testing database operations using mocks to avoid real database interactions. These tests use Sinon to mock the Drizzle ORM methods.
+
+Example:
+```typescript
+describe('Player Database Operations', () => {
+  it('should return a player when found', async () => {
+    // Mock database and test player data retrieval
+  });
+});
+```
 
 ### API Tests
 
-API tests verify that our Express routes work correctly. We use Supertest to make HTTP assertions without starting a real server. The database is mocked to isolate tests.
+API tests in `test/server` test the Express routes using Supertest to make requests to the API endpoints. These tests also mock the database to focus on testing the route handlers.
 
-### Component Tests
+Example:
+```typescript
+describe('GET /api/players', () => {
+  it('should return all players', async () => {
+    // Make a request to the API and verify the response
+  });
+});
+```
 
-React component tests verify that our UI components render correctly and respond to user interactions. We use React Testing Library with a JSDOM environment.
+### React Component Tests
+
+React component tests in `test/client` use React Testing Library to render components and test their behavior. These tests focus on the user interaction with components.
+
+Example:
+```typescript
+describe('<StatCard />', () => {
+  it('should render the title and value correctly', () => {
+    // Render the component and test its content
+  });
+});
+```
 
 ### Utility Tests
 
-Pure function tests verify that our utility functions work as expected.
+Utility tests in `test/utils.test.ts` test general utility functions used throughout the application.
 
-## Mocking Strategy
+Example:
+```typescript
+describe('cn (class name utility)', () => {
+  it('should combine multiple class names', () => {
+    // Test utility function behavior
+  });
+});
+```
 
-We use different mocking approaches depending on the test type:
+## Configuration Files
 
-- **Database**: Direct mocking of the Drizzle ORM methods
-- **APIs**: Mocking database dependencies, not the actual HTTP layer
-- **Components**: Mocking API calls and external dependencies
+- `.mocharc.json`: Mocha configuration file
+- `tsconfig.json`: TypeScript configuration with appropriate test settings
+- `test/setup.ts`: Setup file for JSDOM and global test environment
 
 ## Best Practices
 
-1. Write focused, isolated tests
-2. Use descriptive test names (e.g., "should return 404 when user not found")
-3. Set up and tear down test resources properly
-4. Keep tests independent (no shared state)
-5. Mock external dependencies
-6. Test both happy paths and edge cases
+1. **Use Mocks for External Services**: Always mock database calls, API requests, and other external services.
+2. **Test Behavior, Not Implementation**: Focus on testing what components and functions do, not how they do it.
+3. **Write Isolated Tests**: Each test should be independent and not rely on other tests.
+4. **Use Descriptive Test Names**: Test descriptions should clearly explain what's being tested.
+5. **Keep Tests Fast**: Tests should run quickly to provide rapid feedback.
+
+## Adding New Tests
+
+1. Create a new test file in the appropriate directory.
+2. Import necessary testing utilities.
+3. Write test cases using the `describe` and `it` functions.
+4. Run the tests to ensure they pass.
+
+Example of a new test file:
+```typescript
+import { expect } from 'chai';
+
+describe('Feature Name', () => {
+  it('should behave in a specific way', () => {
+    // Test code
+    expect(result).to.equal(expectedValue);
+  });
+});
+```
