@@ -1,57 +1,80 @@
-import { expect } from 'chai';
-import { describe, it, before } from 'mocha';
 import React from 'react';
+import { expect } from 'chai';
 import { render, screen } from '@testing-library/react';
 import { StatCard } from '../../../client/src/components/StatCard';
-import '../../../test/jsdom-setup.js';
+import { Trophy } from 'lucide-react';
 
 describe('StatCard Component', () => {
-  before(() => {
-    // Ensure JSDOM is properly setup before running React component tests
-    if (!global.window) {
-      throw new Error('JSDOM environment not properly set up');
-    }
-  });
-
-  it('renders title and value correctly', () => {
-    // Arrange
-    const title = 'Win Rate';
-    const value = '75%';
-    
-    // Act
-    render(<StatCard title={title} value={value} />);
-    
-    // Assert
-    expect(screen.getByText(title)).to.exist;
-    expect(screen.getByText(value)).to.exist;
-  });
-
-  it('renders description when provided', () => {
-    // Arrange
-    const title = 'Total Games';
-    const value = '42';
-    const description = 'Games played this season';
-    
-    // Act
-    render(<StatCard title={title} value={value} description={description} />);
-    
-    // Assert
-    expect(screen.getByText(description)).to.exist;
-  });
-
-  it('applies custom className when provided', () => {
-    // Arrange
-    const title = 'Achievements';
-    const value = '10';
-    const customClass = 'custom-stat-card';
-    
-    // Act
-    const { container } = render(
-      <StatCard title={title} value={value} className={customClass} />
+  it('renders with title and value', () => {
+    render(
+      <StatCard 
+        title="Win Rate" 
+        value="75%" 
+      />
     );
     
-    // Assert - check if the class is applied to the main container
-    const cardElement = container.firstChild as HTMLElement;
-    expect(cardElement.className).to.include(customClass);
+    expect(screen.getByText('Win Rate')).to.exist;
+    expect(screen.getByText('75%')).to.exist;
+  });
+  
+  it('renders with description when provided', () => {
+    render(
+      <StatCard 
+        title="Games Played" 
+        value={42} 
+        description="Total games this season"
+      />
+    );
+    
+    expect(screen.getByText('Games Played')).to.exist;
+    expect(screen.getByText('42')).to.exist;
+    expect(screen.getByText('Total games this season')).to.exist;
+  });
+  
+  it('renders with icon when provided', () => {
+    render(
+      <StatCard 
+        title="Trophies" 
+        value={5}
+        icon={<Trophy data-testid="trophy-icon" />}
+      />
+    );
+    
+    expect(screen.getByText('Trophies')).to.exist;
+    expect(screen.getByText('5')).to.exist;
+    expect(screen.getByTestId('trophy-icon')).to.exist;
+  });
+  
+  it('applies custom className when provided', () => {
+    render(
+      <StatCard 
+        title="Points" 
+        value={125}
+        className="custom-class" 
+      />
+    );
+    
+    const cardElement = screen.getByText('Points').closest('div');
+    expect(cardElement?.className).to.include('custom-class');
+  });
+  
+  it('renders numbers and strings correctly', () => {
+    const { rerender } = render(
+      <StatCard 
+        title="Number Value" 
+        value={1000} 
+      />
+    );
+    
+    expect(screen.getByText('1000')).to.exist;
+    
+    rerender(
+      <StatCard 
+        title="String Value" 
+        value="1,000" 
+      />
+    );
+    
+    expect(screen.getByText('1,000')).to.exist;
   });
 });
