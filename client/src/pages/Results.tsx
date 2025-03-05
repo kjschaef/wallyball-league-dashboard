@@ -414,7 +414,44 @@ export default function Results() {
                       className="flex flex-col p-2 hover:bg-muted/50 rounded"
                     >
                       <div className="flex justify-between items-center">
-                        <div className="font-medium">{matchup}</div>
+                        <div className="font-medium">
+                          {(() => {
+                            const teams = matchup.split(" vs ");
+                            
+                            // Special case for Keith and Parker vs Hodnett and Nate
+                            if (matchup.includes("Keith and Parker") && matchup.includes("Hodnett and Nate")) {
+                              const keithAndParker = "Keith and Parker";
+                              const hodnettAndNate = "Hodnett and Nate";
+                              const isKeithLeading = stats.teamTwoWins > stats.teamOneWins;
+                              
+                              return (
+                                <>
+                                  <span className={isKeithLeading ? "text-green-600 font-semibold" : ""}>
+                                    {keithAndParker}
+                                  </span>
+                                  <span className="mx-1">vs</span>
+                                  <span className={!isKeithLeading && stats.teamOneWins > stats.teamTwoWins ? "text-green-600 font-semibold" : ""}>
+                                    {hodnettAndNate}
+                                  </span>
+                                </>
+                              );
+                            }
+                            
+                            // For all other matchups
+                            const isFirstTeamWinning = stats.teamOneWins > stats.teamTwoWins;
+                            return (
+                              <>
+                                <span className={isFirstTeamWinning ? "text-green-600 font-semibold" : ""}>
+                                  {teams[0]}
+                                </span>
+                                <span className="mx-1">vs</span>
+                                <span className={!isFirstTeamWinning && stats.teamOneWins !== stats.teamTwoWins ? "text-green-600 font-semibold" : ""}>
+                                  {teams[1]}
+                                </span>
+                              </>
+                            );
+                          })()}
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           Played {stats.count} times
                         </div>
@@ -424,6 +461,7 @@ export default function Results() {
                           {/* Extract team names to display correct record order */}
                           {(() => {
                             const teams = matchup.split(" vs ");
+                            
                             // If second team (Keith and Parker) should have more wins
                             if (matchup.includes("Keith and Parker") && matchup.includes("Hodnett and Nate")) {
                               // Swap the display format to show Keith and Parker's wins first
@@ -432,9 +470,7 @@ export default function Results() {
                                   Record: {stats.teamTwoWins}-{stats.teamOneWins}
                                   {stats.teamOneWins !== stats.teamTwoWins && (
                                     <span className={stats.teamTwoWins > stats.teamOneWins ? "text-green-600 ml-1" : "text-red-600 ml-1"}>
-                                      ({matchup.indexOf("Keith and Parker") < matchup.indexOf("Hodnett and Nate") 
-                                        ? (stats.teamOneWins > stats.teamTwoWins ? "First team leads" : "Second team leads")
-                                        : (stats.teamTwoWins > stats.teamOneWins ? "First team leads" : "Second team leads")})
+                                      ({stats.teamTwoWins > stats.teamOneWins ? "Keith and Parker lead" : "Hodnett and Nate lead"})
                                     </span>
                                   )}
                                 </>
@@ -447,7 +483,7 @@ export default function Results() {
                                 Record: {stats.teamOneWins}-{stats.teamTwoWins}
                                 {stats.teamOneWins !== stats.teamTwoWins && (
                                   <span className={stats.teamOneWins > stats.teamTwoWins ? "text-green-600 ml-1" : "text-red-600 ml-1"}>
-                                    ({stats.teamOneWins > stats.teamTwoWins ? "First team leads" : "Second team leads"})
+                                    ({stats.teamOneWins > stats.teamTwoWins ? `${teams[0]} leads` : `${teams[1]} leads`})
                                   </span>
                                 )}
                               </>
