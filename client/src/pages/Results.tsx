@@ -14,16 +14,6 @@ import { PlayerCard } from "@/components/PlayerCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { startOfYear, endOfYear } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts"; // Import Recharts components
 import cn from 'classnames';
 import { queryClient } from '@/lib/queryClient';
 
@@ -261,6 +251,7 @@ export default function Results() {
                       losses: stats.losses
                     }));
 
+
                     return (
                       <>
                         <div className="mb-4">
@@ -285,33 +276,6 @@ export default function Results() {
                               </div>
                             </div>
                           ))}
-                        </div>
-
-                        {/* Team Performance Chart */}
-                        <div className="h-[300px] w-full mt-4">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={chartData}
-                              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis 
-                                dataKey="name" 
-                                angle={-45}
-                                textAnchor="end"
-                                height={60}
-                              />
-                              <YAxis label={{ value: 'Win Rate (%)', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip formatter={(value, name) => {
-                                if (name === 'winRate') return [`${value}%`, 'Win Rate'];
-                                return [value, name === 'wins' ? 'Wins' : 'Losses'];
-                              }} />
-                              <Legend />
-                              <Bar dataKey="winRate" fill="#82ca9d" name="Win Rate" />
-                              <Bar dataKey="wins" fill="#8884d8" name="Wins" stack="a" />
-                              <Bar dataKey="losses" fill="#ffc658" name="Losses" stack="a" />
-                            </BarChart>
-                          </ResponsiveContainer>
                         </div>
                       </>
                     );
