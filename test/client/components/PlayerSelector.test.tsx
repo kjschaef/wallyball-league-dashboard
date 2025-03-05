@@ -1,9 +1,10 @@
 import { expect } from 'chai';
-import { describe, it } from 'mocha';
+import { describe, it, before } from 'mocha';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PlayerSelector } from '../../../client/src/components/PlayerSelector';
 import { Player } from '../../../db/schema';
+import '../../../test/jsdom-setup.js';
 
 describe('PlayerSelector Component', () => {
   // Mock player data for testing
@@ -12,6 +13,13 @@ describe('PlayerSelector Component', () => {
     { id: 2, name: 'Jane Smith', startYear: 2021, createdAt: new Date() },
     { id: 3, name: 'Bob Johnson', startYear: 2022, createdAt: new Date() }
   ];
+
+  before(() => {
+    // Ensure JSDOM is properly setup before running React component tests
+    if (!global.window) {
+      throw new Error('JSDOM environment not properly set up');
+    }
+  });
 
   it('renders all players correctly', () => {
     // Arrange

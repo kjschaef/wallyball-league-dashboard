@@ -6,20 +6,30 @@
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "noEmit": true,
     "module": "ESNext",
+    "target": "ESNext", 
     "strict": true,
     "lib": ["esnext", "dom", "dom.iterable"],
-    "jsx": "preserve",
+    "jsx": "react",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
-    "types": ["node", "vite/client", "mocha", "chai"],
+    "types": ["node", "vite/client", "mocha", "chai", "@testing-library/react"],
     "paths": {
       "@db": ["./db/index.ts"],
       "@db/*": ["./db/*"],
       "@/*": ["./client/src/*"],
       "@test/*": ["./test/*"]
+    }
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "esm": true,
+    "compilerOptions": {
+      "module": "ESNext",
+      "moduleResolution": "node"
     }
   }
 }

@@ -16,10 +16,11 @@ export class MockDatabase {
   // Player operations
   async createPlayer(player: NewPlayer): Promise<Player> {
     const now = new Date();
+    // Create a new player with all required fields and safe defaults
     const newPlayer: Player = {
       id: this.nextPlayerId++,
-      name: player.name || '',  // Provide default value to avoid undefined
-      startYear: player.startYear || 2023, // Provide default value to avoid undefined
+      name: player.name || '',  // Default empty string if name is undefined
+      startYear: player.startYear === undefined ? null : player.startYear, // Accept null for optional fields
       createdAt: now,
     };
     this.players.push(newPlayer);

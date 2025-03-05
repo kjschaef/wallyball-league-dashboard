@@ -1,10 +1,18 @@
 import { expect } from 'chai';
-import { describe, it } from 'mocha';
+import { describe, it, before } from 'mocha';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StatCard } from '../../../client/src/components/StatCard';
+import '../../../test/jsdom-setup.js';
 
 describe('StatCard Component', () => {
+  before(() => {
+    // Ensure JSDOM is properly setup before running React component tests
+    if (!global.window) {
+      throw new Error('JSDOM environment not properly set up');
+    }
+  });
+
   it('renders title and value correctly', () => {
     // Arrange
     const title = 'Win Rate';
