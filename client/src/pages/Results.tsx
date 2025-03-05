@@ -480,20 +480,21 @@ export default function Results() {
                             const teamTwoWins = stats.teamTwoWins;
                             const teamWithMoreWins = teamOneWins > teamTwoWins ? 0 : teamTwoWins > teamOneWins ? 1 : -1;
                             if (teamWithMoreWins === 0) {
+                              // Team one has more wins
                               return (
                                 <>
-                                  Record: {teamOneWins}-{teamTwoWins}
-                                  <span className="text-green-600 ml-1"></span>
+                                  Record: <span className="text-green-600">{teamOneWins}</span>-{teamTwoWins}
                                 </>
                               );
                             } else if (teamWithMoreWins === 1) {
+                              // Team two has more wins
                               return (
                                 <>
-                                  Record: {teamTwoWins}-{teamOneWins}
-                                  <span className="text-green-600 ml-1"></span>
+                                  Record: <span className="text-green-600">{teamTwoWins}</span>-{teamOneWins}
                                 </>
                               );
                             } else {
+                              //It's a tie
                               return (
                                 <>
                                   Record: {teamOneWins}-{teamTwoWins} (Tied)
