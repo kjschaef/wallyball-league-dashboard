@@ -1,11 +1,14 @@
 {
-  "require": "ts-node/register",
+  "require": [
+    "ts-node/register",
+    "test/setup.ts"
+  ],
   "node-option": [
     "experimental-specifier-resolution=node",
     "loader=ts-node/esm"
   ],
-  "extension": ["ts"],
-  "spec": ["test/**/*.test.ts"],
-  "watch-files": ["test/**/*.ts", "server/**/*.ts", "db/**/*.ts"],
+  "extension": ["ts", "tsx"],
+  "spec": ["test/**/*.test.ts", "test/**/*.test.tsx"],
+  "watch-files": ["test/**/*.ts", "test/**/*.tsx"],
   "timeout": 5000
 }

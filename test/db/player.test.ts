@@ -2,78 +2,97 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { db } from '../../db';
 import { players } from '../../db/schema';
+import { eq } from 'drizzle-orm';
 
-// Example tests for player-related database operations
-describe('Player Repository Tests', () => {
-  // Setup sandbox for isolation
+describe('Player Database Operations', () => {
   let sandbox: sinon.SinonSandbox;
   
   beforeEach(() => {
-    // Create a sinon sandbox before each test
+    // Create a sandbox for managing stubs
     sandbox = sinon.createSandbox();
   });
   
   afterEach(() => {
-    // Restore all stubs/mocks after each test
+    // Restore all stubbed methods
     sandbox.restore();
   });
-
-  it('should mock finding a player by ID', async () => {
-    // Mock the database query
-    const mockPlayer = { 
-      id: 1, 
-      name: 'Test Player', 
-      startYear: 2023,
-      createdAt: new Date()
-    };
-    
-    // Stub the db.select method
-    const selectStub = sandbox.stub(db, 'select').callsFake(() => {
-      return {
-        from: () => ({
-          where: () => ({
-            get: async () => mockPlayer
+  
+  describe('getPlayerById', () => {
+    it('should return a player when found', async () => {
+      // Prepare test data
+      const mockPlayer = {
+        id: 1,
+        name: 'Test Player',
+        startYear: 2023,
+        createdAt: new Date()
+      };
+      
+      // Mock the database query response
+      const queryStub = sandbox.stub().resolves([mockPlayer]);
+      sandbox.stub(db, 'select').returns({
+        from: sandbox.stub().returns({
+          where: sandbox.stub().returns({
+            get: queryStub
           })
         })
-      } as any;
+      } as any);
+      
+      // Execute the operation (simulating how it would be used in the app)
+      const result = await db.select().from(players).where(eq(players.id, 1));
+      
+      // Assert that the result is as expected
+      expect(result).to.deep.equal([mockPlayer]);
     });
     
-    // Call our mocked query (we're not testing actual implementation here)
-    const result = await db.select().from(players).where({ id: 1 }).get();
-    
-    // Assertions
-    expect(result).to.deep.equal(mockPlayer);
-    expect(selectStub.calledOnce).to.be.true;
-  });
-
-  it('should mock inserting a player', async () => {
-    // Prepare test data
-    const newPlayer = { 
-      name: 'New Player', 
-      startYear: 2025 
-    };
-    
-    const insertedPlayer = {
-      id: 99,
-      name: 'New Player',
-      startYear: 2025,
-      createdAt: new Date()
-    };
-    
-    // Stub the insert method
-    const insertStub = sandbox.stub(db, 'insert').callsFake(() => {
-      return {
-        values: () => ({
-          returning: async () => [insertedPlayer]
+    it('should return empty array when player not found', async () => {
+      // Mock the database query response for not found
+      const queryStub = sandbox.stub().resolves([]);
+      sandbox.stub(db, 'select').returns({
+        from: sandbox.stub().returns({
+          where: sandbox.stub().returns({
+            get: queryStub
+          })
         })
-      } as any;
+      } as any);
+      
+      // Execute the operation
+      const result = await db.select().from(players).where(eq(players.id, 999));
+      
+      // Assert that the result is empty
+      expect(result).to.be.an('array').that.is.empty;
     });
-    
-    // Call our mocked insert
-    const result = await db.insert(players).values(newPlayer).returning();
-    
-    // Assertions
-    expect(result[0]).to.deep.equal(insertedPlayer);
-    expect(insertStub.calledOnce).to.be.true;
+  });
+  
+  describe('createPlayer', () => {
+    it('should insert a new player and return the result', async () => {
+      // Prepare test data
+      const newPlayer = {
+        name: 'New Player',
+        startYear: 2024
+      };
+      
+      const insertedPlayer = {
+        id: 5,
+        name: 'New Player',
+        startYear: 2024,
+        createdAt: new Date()
+      };
+      
+      // Mock the database insert operation
+      const insertStub = sandbox.stub().resolves([insertedPlayer]);
+      sandbox.stub(db, 'insert').returns({
+        values: sandbox.stub().returns({
+          returning: sandbox.stub().returns({
+            get: insertStub
+          })
+        })
+      } as any);
+      
+      // Execute the operation (simulating how it would be used in the app)
+      const result = await db.insert(players).values(newPlayer).returning().get();
+      
+      // Assert the result
+      expect(result).to.deep.equal([insertedPlayer]);
+    });
   });
 });
