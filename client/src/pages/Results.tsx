@@ -284,8 +284,9 @@ export default function Results() {
                 {Object.entries(
                   matches.reduce(
                     (acc, match) => {
-                      const teamOne = formatTeam(match.teamOnePlayers);
-                      const teamTwo = formatTeam(match.teamTwoPlayers);
+                      // Sort player names before forming team identifier
+                      const teamOne = formatTeam([...match.teamOnePlayers].sort());
+                      const teamTwo = formatTeam([...match.teamTwoPlayers].sort());
 
                       // Update team one stats
                       if (!acc[teamOne]) {
@@ -360,8 +361,9 @@ export default function Results() {
                 {Object.entries(
                   matches.reduce(
                     (acc, match) => {
-                      const teamOne = formatTeam(match.teamOnePlayers);
-                      const teamTwo = formatTeam(match.teamTwoPlayers);
+                      // Sort player names within each team for consistent team identification
+                      const teamOne = formatTeam([...match.teamOnePlayers].sort());
+                      const teamTwo = formatTeam([...match.teamTwoPlayers].sort());
                       const matchupKey = [teamOne, teamTwo].sort().join(" vs ");
 
                       if (!acc[matchupKey]) {
