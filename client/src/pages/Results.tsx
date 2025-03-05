@@ -417,39 +417,56 @@ export default function Results() {
                         <div className="font-medium">
                           {(() => {
                             const teams = matchup.split(" vs ");
-                            
-                            // Special case for Keith and Parker vs Hodnett and Nate
-                            if (matchup.includes("Keith and Parker") && matchup.includes("Hodnett and Nate")) {
-                              const keithAndParker = "Keith and Parker";
-                              const hodnettAndNate = "Hodnett and Nate";
-                              
-                              // Always highlight Keith and Parker as winning
+
+                            // For all matchups, display based on actual win/loss record
+                            // For each matchup, determine which team has more wins
+                            const teamOneWins = stats.teamOneWins;
+                            const teamTwoWins = stats.teamTwoWins;
+
+                            // Determine which team's wins should be displayed first
+                            const teamWithMoreWins = teamOneWins > teamTwoWins ? 0 : 
+                                                   teamTwoWins > teamOneWins ? 1 : -1;
+
+                            if (teamWithMoreWins === 0) {
+                              // Team One has more wins, display their record first
                               return (
                                 <>
                                   <span className="text-green-600 font-semibold">
-                                    {keithAndParker}
+                                    {teams[0]}
                                   </span>
                                   <span className="mx-1">vs</span>
                                   <span>
-                                    {hodnettAndNate}
+                                    {teams[1]}
+                                  </span>
+                                </>
+                              );
+                            } else if (teamWithMoreWins === 1) {
+                              // Team Two has more wins, display their record first
+                              return (
+                                <>
+                                  <span>
+                                    {teams[0]}
+                                  </span>
+                                  <span className="mx-1">vs</span>
+                                  <span className="text-green-600 font-semibold">
+                                    {teams[1]}
+                                  </span>
+                                </>
+                              );
+                            } else {
+                              // Teams have equal wins
+                              return (
+                                <>
+                                  <span>
+                                    {teams[0]}
+                                  </span>
+                                  <span className="mx-1">vs</span>
+                                  <span>
+                                    {teams[1]}
                                   </span>
                                 </>
                               );
                             }
-                            
-                            // For all other matchups
-                            const isFirstTeamWinning = stats.teamOneWins > stats.teamTwoWins;
-                            return (
-                              <>
-                                <span className={isFirstTeamWinning ? "text-green-600 font-semibold" : ""}>
-                                  {teams[0]}
-                                </span>
-                                <span className="mx-1">vs</span>
-                                <span className={!isFirstTeamWinning && stats.teamOneWins !== stats.teamTwoWins ? "text-green-600 font-semibold" : ""}>
-                                  {teams[1]}
-                                </span>
-                              </>
-                            );
                           })()}
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -458,44 +475,31 @@ export default function Results() {
                       </div>
                       <div className="flex justify-between text-sm text-muted-foreground mt-1">
                         <div>
-                          {/* Extract team names to display correct record order */}
                           {(() => {
-                            const teams = matchup.split(" vs ");
-                            
-                            // Special handling for Keith and Parker vs Hodnett and Nate
-                            if (matchup.includes("Keith and Parker") && matchup.includes("Hodnett and Nate")) {
-                              const keithAndParkerAreTeamOne = teams[0].includes("Keith and Parker");
-                              
-                              // For this specific matchup, we know Keith and Parker should have more wins
-                              // So we'll hard-code the display for consistency
-                              if (keithAndParkerAreTeamOne) {
-                                // Keith and Parker are team one in the key
-                                return (
-                                  <>
-                                    Record: {stats.teamOneWins}-{stats.teamTwoWins}
-                                    <span className="text-green-600 ml-1"></span>
-                                  </>
-                                );
-                              } else {
-                                // Keith and Parker are team two in the key
-                                return (
-                                  <>
-                                    Record: {stats.teamTwoWins}-{stats.teamOneWins}
-                                    <span className="text-green-600 ml-1"></span>
-                                  </>
-                                );
-                              }
+                            const teamOneWins = stats.teamOneWins;
+                            const teamTwoWins = stats.teamTwoWins;
+                            const teamWithMoreWins = teamOneWins > teamTwoWins ? 0 : teamTwoWins > teamOneWins ? 1 : -1;
+                            if (teamWithMoreWins === 0) {
+                              return (
+                                <>
+                                  Record: {teamOneWins}-{teamTwoWins}
+                                  <span className="text-green-600 ml-1"></span>
+                                </>
+                              );
+                            } else if (teamWithMoreWins === 1) {
+                              return (
+                                <>
+                                  Record: {teamTwoWins}-{teamOneWins}
+                                  <span className="text-green-600 ml-1"></span>
+                                </>
+                              );
+                            } else {
+                              return (
+                                <>
+                                  Record: {teamOneWins}-{teamTwoWins}
+                                </>
+                              );
                             }
-                            
-                            // Default display for other matchups
-                            return (
-                              <>
-                                Record: {stats.teamOneWins}-{stats.teamTwoWins}
-                                {stats.teamOneWins !== stats.teamTwoWins && (
-                                  <span className={stats.teamOneWins > stats.teamTwoWins ? "text-green-600 ml-1" : "text-red-600 ml-1"}></span>
-                                )}
-                              </>
-                            );
                           })()}
                         </div>
                         <div>
