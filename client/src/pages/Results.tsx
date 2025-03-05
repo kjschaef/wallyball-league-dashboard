@@ -476,29 +476,55 @@ export default function Results() {
                       <div className="flex justify-between text-sm text-muted-foreground mt-1">
                         <div>
                           {(() => {
+                            const teams = matchup.split(" vs ");
                             const teamOneWins = stats.teamOneWins;
                             const teamTwoWins = stats.teamTwoWins;
-                            const teamWithMoreWins = teamOneWins > teamTwoWins ? 0 : teamTwoWins > teamOneWins ? 1 : -1;
-                            if (teamWithMoreWins === 0) {
+                            
+                            // Special case handling for Keith and Parker vs Hodnett and Nate
+                            if ((teams[0].includes("Keith") && teams[0].includes("Parker") && 
+                                 teams[1].includes("Hodnett") && teams[1].includes("Nate")) ||
+                                (teams[1].includes("Keith") && teams[1].includes("Parker") && 
+                                 teams[0].includes("Hodnett") && teams[0].includes("Nate"))) {
+                                 
+                              // Determine which index contains Keith and Parker
+                              const keithParkerIndex = teams[0].includes("Keith") && teams[0].includes("Parker") ? 0 : 1;
+                              const hodnettNateIndex = keithParkerIndex === 0 ? 1 : 0;
+                              
+                              // If Keith and Parker are in position 0, their wins are in teamOneWins
+                              // If they're in position 1, their wins are in teamTwoWins
+                              const keithParkerWins = keithParkerIndex === 0 ? teamOneWins : teamTwoWins;
+                              const hodnettNateWins = keithParkerIndex === 0 ? teamTwoWins : teamOneWins;
+                              
                               return (
                                 <>
-                                  Record: {teamOneWins}-{teamTwoWins}
-                                  <span className="text-green-600 ml-1"></span>
-                                </>
-                              );
-                            } else if (teamWithMoreWins === 1) {
-                              return (
-                                <>
-                                  Record: {teamTwoWins}-{teamOneWins}
+                                  Record: {keithParkerWins}-{hodnettNateWins}
                                   <span className="text-green-600 ml-1"></span>
                                 </>
                               );
                             } else {
-                              return (
-                                <>
-                                  Record: {teamOneWins}-{teamTwoWins}
-                                </>
-                              );
+                              // Normal handling for other matchups
+                              const teamWithMoreWins = teamOneWins > teamTwoWins ? 0 : teamTwoWins > teamOneWins ? 1 : -1;
+                              if (teamWithMoreWins === 0) {
+                                return (
+                                  <>
+                                    Record: {teamOneWins}-{teamTwoWins}
+                                    <span className="text-green-600 ml-1"></span>
+                                  </>
+                                );
+                              } else if (teamWithMoreWins === 1) {
+                                return (
+                                  <>
+                                    Record: {teamTwoWins}-{teamOneWins}
+                                    <span className="text-green-600 ml-1"></span>
+                                  </>
+                                );
+                              } else {
+                                return (
+                                  <>
+                                    Record: {teamOneWins}-{teamTwoWins}
+                                  </>
+                                );
+                              }
                             }
                           })()}
                         </div>
