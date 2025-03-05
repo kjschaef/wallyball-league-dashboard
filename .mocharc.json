@@ -1,6 +1,8 @@
 {
   "require": [
-    "ts-node/register"
+    "ts-node/register",
+    "test/jsdom-setup.js",
+    "test/setup.ts"
   ],
   "node-option": [
     "experimental-specifier-resolution=node",
