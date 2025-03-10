@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
-import { Calendar as CalendarIcon, Share2, Plus, Minus } from "lucide-react";
+import { Calendar as CalendarIcon, Share2, Plus, Minus, Trophy, Percent, Award } from "lucide-react";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { StatCard } from "@/components/StatCard";
 import {
   Form,
   FormControl,
@@ -198,6 +199,75 @@ export default function Dashboard() {
       </div>
 
       <div id="dashboard-content">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {players.length > 0 && (
+            <>
+              {/* Top Win Percentage Player */}
+              {(() => {
+                const topWinRatePlayer = [...players]
+                  .filter(p => (p.stats.won + p.stats.lost) >= 10) // At least 10 games played
+                  .sort((a, b) => {
+                    const aWinRate = a.stats.won / (a.stats.won + a.stats.lost) || 0;
+                    const bWinRate = b.stats.won / (b.stats.won + b.stats.lost) || 0;
+                    return bWinRate - aWinRate;
+                  })[0];
+                
+                if (topWinRatePlayer) {
+                  const winRate = Math.round((topWinRatePlayer.stats.won / (topWinRatePlayer.stats.won + topWinRatePlayer.stats.lost)) * 100);
+                  return (
+                    <StatCard 
+                      title="Top Win Percentage" 
+                      value={`${winRate}%`}
+                      description={`${topWinRatePlayer.name} (${topWinRatePlayer.stats.won}-${topWinRatePlayer.stats.lost})`}
+                      icon={<Trophy className="h-4 w-4 text-yellow-500" />} 
+                    />
+                  );
+                }
+                return null;
+              })()}
+              
+              {/* Average Win Percentage */}
+              {(() => {
+                const activePlayers = players.filter(p => (p.stats.won + p.stats.lost) > 0);
+                if (activePlayers.length > 0) {
+                  const totalWins = activePlayers.reduce((sum, p) => sum + p.stats.won, 0);
+                  const totalGames = activePlayers.reduce((sum, p) => sum + p.stats.won + p.stats.lost, 0);
+                  const avgWinRate = totalGames > 0 ? Math.round((totalWins / totalGames) * 100) : 0;
+                  return (
+                    <StatCard 
+                      title="Average Win Rate" 
+                      value={`${avgWinRate}%`}
+                      description={`Based on ${totalGames} total games`}
+                      icon={<Percent className="h-4 w-4 text-blue-500" />} 
+                    />
+                  );
+                }
+                return null;
+              })()}
+              
+              {/* Most Games Played */}
+              {(() => {
+                const topGamesPlayer = [...players]
+                  .sort((a, b) => (b.stats.won + b.stats.lost) - (a.stats.won + a.stats.lost))[0];
+                
+                if (topGamesPlayer) {
+                  const totalGames = topGamesPlayer.stats.won + topGamesPlayer.stats.lost;
+                  const winRate = Math.round((topGamesPlayer.stats.won / totalGames) * 100);
+                  return (
+                    <StatCard 
+                      title="Most Active Player" 
+                      value={`${totalGames} games`}
+                      description={`${topGamesPlayer.name} (${winRate}% win rate)`}
+                      icon={<Award className="h-4 w-4 text-purple-500" />} 
+                    />
+                  );
+                }
+                return null;
+              })()}
+            </>
+          )}
+        </div>
+        
         <PerformanceTrend isExporting={isExporting} /> {/* Pass isExporting prop */}
 
         <Card>

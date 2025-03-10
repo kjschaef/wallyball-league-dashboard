@@ -205,15 +205,28 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Wins/Day:</span>
-                  <span className="text-lg font-semibold">{winsPerDay}</span>
-                </div>
-                {weeksSinceLastPlay > 1 && (
-                  <div className="text-xs text-red-500 w-36">
-                    -{Math.min(Math.round(weeksSinceLastPlay * 5), 50)}% inactivity penalty
+                <div className="text-left">
+                  <span className="text-sm text-muted-foreground block">Record</span>
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium">
+                      <span className="text-green-600">{stats.won}</span>
+                      {" - "}
+                      <span className="text-red-600">{stats.lost}</span>
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1">
+                      {total} games
+                    </span>
                   </div>
-                )}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm text-muted-foreground">Wins/Day:</span>
+                  <span className="text-sm">{winsPerDay}</span>
+                  {weeksSinceLastPlay > 1 && (
+                    <div className="text-xs text-red-500">
+                      -{Math.min(Math.round(weeksSinceLastPlay * 5), 50)}% inactive
+                    </div>
+                  )}
+                </div>
               </div>
 
               {matches.length > 0 && (
@@ -261,18 +274,22 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             </div>
           </div>
 
-          <div className="text-right space-y-1">
-            <span className="text-sm text-muted-foreground block">Win Rate</span>
-            <span className={`text-2xl font-bold ${
+          <div className="text-right">
+            <span className="text-sm text-muted-foreground block mb-1">Win Percentage</span>
+            <span className={`text-3xl font-bold ${
               winRate >= 60 ? 'text-green-600' : 
-              winRate >= 40 ? 'text-yellow-600' : 
+              winRate >= 45 ? 'text-yellow-600' : 
               'text-red-600'
             }`}>{winRate}%</span>
-            <div className="text-sm">
-              <span className="text-sm text-muted-foreground">Record: </span>
-              <span className="text-green-600 font-medium">{stats.won}</span>
-              {" / "}
-              <span className="text-red-600 font-medium">{stats.lost}</span>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 mt-2 rounded-full h-2.5">
+              <div 
+                className={`h-2.5 rounded-full ${
+                  winRate >= 60 ? 'bg-green-600' : 
+                  winRate >= 45 ? 'bg-yellow-600' : 
+                  'bg-red-600'
+                }`} 
+                style={{ width: `${Math.min(100, Math.max(0, winRate))}%` }}
+              />
             </div>
           </div>
         </div>
