@@ -41,8 +41,15 @@ interface PerformanceTrendProps {
   isExporting?: boolean;
 }
 
+interface PlayerMatch {
+  date: string;
+  isTeamOne: boolean;
+  teamOneGamesWon: number;
+  teamTwoGamesWon: number;
+}
+
 export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
-  const [metric, setMetric] = useState<'winsPerDay' | 'totalWins'>('winsPerDay');
+  const [metric, setMetric] = useState<'winPercentage' | 'winsPerDay' | 'totalWins'>('winPercentage');
   const [showAllData, setShowAllData] = useState(false);
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
@@ -84,6 +91,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
   const playerStats = players.map((player) => {
     const dailyStats = new Map();
     let cumulativeWins = 0;
+    let cumulativeTotalGames = 0;
     let daysPlayed = new Set();
     const isRecent = recentPlayerIds.has(player.id);
 
@@ -92,12 +100,23 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
-    sortedMatches.forEach((match: any) => {
+    sortedMatches.forEach((match) => {
       const date = format(new Date(match.date), "yyyy-MM-dd");
       const gamesWon = match.isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
+      const gamesLost = match.isTeamOne ? match.teamTwoGamesWon || 0 : match.teamOneGamesWon || 0;
+      const totalGames = gamesWon + gamesLost;
+      
       cumulativeWins += gamesWon;
+      cumulativeTotalGames += totalGames;
       daysPlayed.add(date);
+      
+      // Calculate win percentage (handle division by zero)
+      const winPercentage = cumulativeTotalGames > 0 
+        ? (cumulativeWins / cumulativeTotalGames) * 100 
+        : 0;
+        
       dailyStats.set(date, { 
+        winPercentage: winPercentage,
         winsPerDay: cumulativeWins / daysPlayed.size,
         totalWins: cumulativeWins 
       });
@@ -222,18 +241,25 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{metric === 'winsPerDay' ? 'Wins Per Day Played' : 'Total Wins'}</CardTitle>
+        <CardTitle>
+          {metric === 'winPercentage' ? 'Win Percentage' : 
+           metric === 'winsPerDay' ? 'Wins Per Day Played' : 
+           'Total Wins'}
+        </CardTitle>
         <div className="flex flex-col gap-2">
           <ToggleGroup
             type="single"
             value={metric}
-            onValueChange={(value) => value && setMetric(value as 'winsPerDay' | 'totalWins')}
-            className="border rounded-lg w-[200px]"
+            onValueChange={(value) => value && setMetric(value as 'winPercentage' | 'winsPerDay' | 'totalWins')}
+            className="border rounded-lg w-[270px]"
           >
-            <ToggleGroupItem value="winsPerDay" className="px-3 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
+            <ToggleGroupItem value="winPercentage" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
+              Win %
+            </ToggleGroupItem>
+            <ToggleGroupItem value="winsPerDay" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               Per Day
             </ToggleGroupItem>
-            <ToggleGroupItem value="totalWins" className="px-3 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
+            <ToggleGroupItem value="totalWins" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               Total
             </ToggleGroupItem>
           </ToggleGroup>
@@ -266,13 +292,15 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               />
               <YAxis
                 domain={[0, "auto"]}
-                tickFormatter={(value) => Math.round(value)}
+                tickFormatter={(value) => `${Math.round(value)}`}
               />
               <Tooltip
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
                 formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
                 contentStyle={{ fontWeight: recentPlayerIds.has(playerStats.find(p => p.name === name)?.id || 0) ? 'bold' : 'normal' }}
-                itemSorter={(a) => -a.value}
+                itemSorter={(a) => {
+                  return a.value !== undefined ? -a.value : 0;
+                }}
               />
               <Legend formatter={(value) => {
                 const playerId = playerStats.find(p => p.name === value)?.id;
