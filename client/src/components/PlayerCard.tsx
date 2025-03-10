@@ -152,7 +152,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onDelete(player.id)}>
+                <AlertDialogAction onClick={() => onDelete && onDelete(player.id)}>
                   Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -185,7 +185,8 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                   type="number"
                   min="1900"
                   max="2100"
-                  defaultValue={player.startYear}
+                  value={player.startYear ? player.startYear.toString() : ''}
+                  onChange={(e) => {}}
                 />
               </div>
             </div>

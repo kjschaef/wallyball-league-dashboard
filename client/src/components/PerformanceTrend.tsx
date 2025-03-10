@@ -73,10 +73,19 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     .flatMap(player => player.matches || [])
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date;
 
+  // Defining the match type to fix the type error
+  interface Match {
+    date: string;
+    isTeamOne: boolean;
+    teamOneGamesWon?: number;
+    teamTwoGamesWon?: number;
+    [key: string]: any;
+  }
+
   // Get players from most recent date
   const recentPlayerIds = new Set(
     players
-      .flatMap(player => (player.matches || []).map(match => ({
+      .flatMap(player => (player.matches || []).map((match: Match) => ({
         ...match,
         playerId: player.id
       })))
@@ -291,13 +300,28 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 }
               />
               <YAxis
-                domain={[0, "auto"]}
-                tickFormatter={(value) => `${Math.round(value)}`}
+                domain={metric === 'winPercentage' ? [0, 100] : [0, 'auto']}
+                tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
+                label={{ 
+                  value: metric === 'winPercentage' ? 'Win %' : metric === 'winsPerDay' ? 'Wins/Day' : 'Total Wins', 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  style: { textAnchor: 'middle' }
+                }}
               />
               <Tooltip
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
-                formatter={(value: number, name: string) => [Number(value.toFixed(1)), name]}
-                contentStyle={{ fontWeight: recentPlayerIds.has(playerStats.find(p => p.name === name)?.id || 0) ? 'bold' : 'normal' }}
+                formatter={(value: number, name: string) => {
+                  const formattedValue = Number(value.toFixed(1));
+                  const displayValue = metric === 'winPercentage' 
+                    ? `${formattedValue}%` 
+                    : formattedValue;
+                  return [displayValue, name];
+                }}
+                contentStyle={{ 
+                  fontWeight: recentPlayerIds.has(playerStats.find(p => p.name === name)?.id || 0) ? 'bold' : 'normal',
+                  borderRadius: '8px' 
+                }}
                 itemSorter={(a) => {
                   return a.value !== undefined ? -a.value : 0;
                 }}
@@ -333,8 +357,14 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
         </div>
 
         <div className="mt-4 border-t pt-4">
-          <h3 className="font-semibold mb-2 text-sm">Standings</h3>
-          <div className="grid grid-cols-3 gap-1">
+          <h3 className="font-semibold mb-2 text-sm">
+            {metric === 'winPercentage' 
+              ? 'Win Percentage Rankings' 
+              : metric === 'winsPerDay' 
+                ? 'Wins Per Day Rankings' 
+                : 'Total Wins Rankings'}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
             {playerStats
               .map(player => {
                 const lastDataPoint = chartData[chartData.length - 1];
@@ -347,6 +377,10 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               .sort((a, b) => b.value - a.value)
               .map((player, index) => {
                 const color = COLORS[playerStats.findIndex(p => p.name === player.name) % COLORS.length];
+                const fullStats = playerStats.find(p => p.id === player.id);
+                const playerMatches = players.find(p => p.id === player.id)?.matches || [];
+                const matchesCount = playerMatches.length;
+                
                 return (
                   <div 
                     key={player.name}
@@ -361,10 +395,19 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                   >
                     <div className="flex items-center gap-1 min-w-0 flex-grow mr-1.5">
                       <span className="text-[0.65rem] sm:text-xs shrink-0 text-muted-foreground">{index + 1}.</span>
-                      <span className="text-[0.7rem] sm:text-sm w-full font-bold" style={{ color }}>{player.name}</span>
+                      <div className="min-w-0 flex-grow">
+                        <span className="text-[0.7rem] sm:text-sm font-bold block truncate" style={{ color }}>{player.name}</span>
+                        {metric === 'winPercentage' && (
+                          <span className="text-[0.6rem] sm:text-xs text-muted-foreground block">
+                            {matchesCount} games played
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <span className="text-xs sm:text-base font-semibold shrink-0 pl-1" style={{ color }}>
-                      {player.value.toFixed(1)}
+                      {metric === 'winPercentage' 
+                        ? `${player.value.toFixed(1)}%` 
+                        : player.value.toFixed(1)}
                     </span>
                   </div>
                 );
