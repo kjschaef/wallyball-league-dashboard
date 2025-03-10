@@ -164,9 +164,30 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 (new Date(date).getTime() - new Date(lastPlayDate).getTime()) / 
                 (1000 * 60 * 60 * 24)
               );
-              const decayFactor = Math.max(0.5, 1 - (daysSinceLastPlay * 0.01));
+              // Apply a stronger inactivity penalty:
+              // - First 7 days: minimal penalty (max 7% reduction)
+              // - Days 8-30: moderate penalty (up to 30% total reduction)
+              // - Beyond 30 days: severe penalty (up to 50% reduction)
+              let inactivityPenalty = 0;
+              
+              if (daysSinceLastPlay <= 7) {
+                // 1% penalty per day for first week
+                inactivityPenalty = daysSinceLastPlay * 0.01;
+              } else if (daysSinceLastPlay <= 30) {
+                // First week penalty + additional penalty for days 8-30
+                inactivityPenalty = 0.07 + ((daysSinceLastPlay - 7) * 0.01);
+              } else {
+                // Maximum penalty capped at 50%
+                inactivityPenalty = Math.min(0.5, 0.3 + ((daysSinceLastPlay - 30) * 0.01));
+              }
+              
+              const decayFactor = 1 - inactivityPenalty;
               const value = player.dailyStats.get(lastPlayDate)[metric];
-              dataPoint[player.name] = metric === 'winsPerDay' ? value * decayFactor : value;
+              
+              // Apply the penalty to all metrics, but store information about the penalty
+              dataPoint[player.name] = value * decayFactor;
+              // Store the penalty information for the tooltip
+              dataPoint[`${player.name}_penalty`] = inactivityPenalty;
             } else {
               dataPoint[player.name] = 0;
             }
@@ -229,17 +250,39 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
         return dataPoint;
       });
 
-      // Process the data to handle missing values
+      // Process the data to handle missing values with inactivity penalty
       return weeklyData.map((dataPoint, index) => {
         const processedDataPoint = { ...dataPoint };
+        const currentWeekDate = new Date(dataPoint.date);
+        
         playerStats.forEach(player => {
           if (processedDataPoint[player.name] === 0) {
             // Find the last known value
+            let lastValue = 0;
+            let lastValueIndex = -1;
+            
             for (let i = index - 1; i >= 0; i--) {
               if (weeklyData[i][player.name] !== 0) {
-                processedDataPoint[player.name] = weeklyData[i][player.name];
+                lastValue = weeklyData[i][player.name];
+                lastValueIndex = i;
                 break;
               }
+            }
+            
+            if (lastValueIndex >= 0) {
+              // Calculate weeks since last activity
+              const lastActiveWeekDate = new Date(weeklyData[lastValueIndex].date);
+              const weeksSinceLastActive = Math.round((currentWeekDate.getTime() - lastActiveWeekDate.getTime()) / 
+                (7 * 24 * 60 * 60 * 1000));
+                
+              // Apply inactivity penalty based on weeks of inactivity
+              // Each week of inactivity results in a 5% penalty, capped at 50%
+              const inactivityPenalty = Math.min(0.5, weeksSinceLastActive * 0.05);
+              const penalizedValue = lastValue * (1 - inactivityPenalty);
+              
+              processedDataPoint[player.name] = penalizedValue;
+              // Store the penalty information
+              processedDataPoint[`${player.name}_penalty`] = inactivityPenalty;
             }
           }
         });
@@ -311,11 +354,27 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               />
               <Tooltip
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
-                formatter={(value: number, name: string) => {
+                formatter={(value: number, name: string, entry: any) => {
+                  if (name.includes('_penalty')) return null; // Skip penalty fields in tooltip
+                  
                   const formattedValue = Number(value.toFixed(1));
-                  const displayValue = metric === 'winPercentage' 
+                  let displayValue: string | number = metric === 'winPercentage' 
                     ? `${formattedValue}%` 
                     : formattedValue;
+                  
+                  // Check if this player has an inactivity penalty applied
+                  const penaltyKey = `${name}_penalty`;
+                  if (entry.payload[penaltyKey]) {
+                    const penalty = entry.payload[penaltyKey];
+                    const penaltyPercent = Math.round(penalty * 100);
+                    
+                    // Only show penalty if it's significant (>1%)
+                    if (penaltyPercent > 1) {
+                      // Create penalty message as a string to avoid TypeScript issues with React elements
+                      displayValue = `${displayValue} (${penaltyPercent}% inactivity penalty)`;
+                    }
+                  }
+                  
                   return [displayValue, name];
                 }}
                 contentStyle={{ 
@@ -323,12 +382,16 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                   borderRadius: '8px' 
                 }}
                 itemSorter={(a) => {
+                  if (typeof a.dataKey === 'string' && a.dataKey.includes('_penalty')) return -9999; // Hide penalty items from tooltip
                   return a.value !== undefined ? -a.value : 0;
                 }}
               />
-              <Legend formatter={(value) => {
+              <Legend formatter={(value: string) => {
+                // Only process player names, not penalty keys
+                if (value.includes('_penalty')) return null;
+                
                 const playerId = playerStats.find(p => p.name === value)?.id;
-                return recentPlayerIds.has(playerId || 0) ? <strong>{value}</strong> : value;
+                return recentPlayerIds.has(playerId || 0) ? value : value;
               }} />
               {[...playerStats]
                 .sort((a, b) => {
@@ -371,7 +434,8 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 return {
                   id: player.id,
                   name: player.name,
-                  value: lastDataPoint[player.name] || 0
+                  value: lastDataPoint[player.name] || 0,
+                  penaltyApplied: lastDataPoint[`${player.name}_penalty`] || 0
                 };
               })
               .sort((a, b) => b.value - a.value)
@@ -404,11 +468,18 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                         )}
                       </div>
                     </div>
-                    <span className="text-xs sm:text-base font-semibold shrink-0 pl-1" style={{ color }}>
-                      {metric === 'winPercentage' 
-                        ? `${player.value.toFixed(1)}%` 
-                        : player.value.toFixed(1)}
-                    </span>
+                    <div className="text-right shrink-0 pl-1">
+                      <span className="text-xs sm:text-base font-semibold" style={{ color }}>
+                        {metric === 'winPercentage' 
+                          ? `${player.value.toFixed(1)}%` 
+                          : player.value.toFixed(1)}
+                      </span>
+                      {player.penaltyApplied > 0.02 && (
+                        <div className="text-[0.6rem] text-right text-muted-foreground">
+                          -{Math.round(player.penaltyApplied * 100)}% inactive
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
