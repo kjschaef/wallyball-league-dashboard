@@ -164,21 +164,16 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 (new Date(date).getTime() - new Date(lastPlayDate).getTime()) / 
                 (1000 * 60 * 60 * 24)
               );
-              // Apply a stronger inactivity penalty:
-              // - First 7 days: minimal penalty (max 7% reduction)
-              // - Days 8-30: moderate penalty (up to 30% total reduction)
-              // - Beyond 30 days: severe penalty (up to 50% reduction)
+              
+              // Convert days to weeks
+              const weeksSinceLastPlay = Math.floor(daysSinceLastPlay / 7);
+              
+              // No penalty for first 2 weeks, then 5% per week up to 50%
               let inactivityPenalty = 0;
               
-              if (daysSinceLastPlay <= 7) {
-                // 1% penalty per day for first week
-                inactivityPenalty = daysSinceLastPlay * 0.01;
-              } else if (daysSinceLastPlay <= 30) {
-                // First week penalty + additional penalty for days 8-30
-                inactivityPenalty = 0.07 + ((daysSinceLastPlay - 7) * 0.01);
-              } else {
-                // Maximum penalty capped at 50%
-                inactivityPenalty = Math.min(0.5, 0.3 + ((daysSinceLastPlay - 30) * 0.01));
+              if (weeksSinceLastPlay > 2) {
+                // Apply 5% penalty per week after the first 2 weeks
+                inactivityPenalty = Math.min(0.5, (weeksSinceLastPlay - 2) * 0.05);
               }
               
               const decayFactor = 1 - inactivityPenalty;
@@ -275,9 +270,12 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               const weeksSinceLastActive = Math.round((currentWeekDate.getTime() - lastActiveWeekDate.getTime()) / 
                 (7 * 24 * 60 * 60 * 1000));
                 
-              // Apply inactivity penalty based on weeks of inactivity
-              // Each week of inactivity results in a 5% penalty, capped at 50%
-              const inactivityPenalty = Math.min(0.5, weeksSinceLastActive * 0.05);
+              // No penalty for first 2 weeks, then 5% per week up to 50%
+              let inactivityPenalty = 0;
+              if (weeksSinceLastActive > 2) {
+                // Apply 5% penalty per week after the first 2 weeks
+                inactivityPenalty = Math.min(0.5, (weeksSinceLastActive - 2) * 0.05);
+              }
               const penalizedValue = lastValue * (1 - inactivityPenalty);
               
               processedDataPoint[player.name] = penalizedValue;
@@ -371,7 +369,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                     // Only show penalty if it's significant (>1%)
                     if (penaltyPercent > 1) {
                       // Create penalty message as a string to avoid TypeScript issues with React elements
-                      displayValue = `${displayValue} (${penaltyPercent}% inactivity penalty)`;
+                      displayValue = `${displayValue} (${penaltyPercent}% inactive penalty)`;
                     }
                   }
                   
