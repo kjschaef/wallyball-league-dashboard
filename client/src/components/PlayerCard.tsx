@@ -69,16 +69,23 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   
-  // Calculate inactivity penalty
+  // Calculate inactivity penalty - matches[0] is the most recent match
   const weeksSinceLastPlay = player.matches?.length 
     ? Math.floor((new Date().getTime() - new Date(player.matches[0].date).getTime()) / (1000 * 60 * 60 * 24 * 7))
     : 0;
-    
-  const decayFactor = Math.max(0.5, 1 - (weeksSinceLastPlay * 0.05)); // 5% decay per week, minimum 50% effectiveness
+  
+  // No penalty for first 2 weeks, then 5% per week up to 50%
+  let inactivityPenalty = 0;
+  if (weeksSinceLastPlay > 2) {
+    // Apply 5% penalty per week after the first 2 weeks
+    inactivityPenalty = Math.min(0.5, (weeksSinceLastPlay - 2) * 0.05);
+  }
+  
+  const decayFactor = 1 - inactivityPenalty;
   
   // Apply decay factor to win percentage
   const winRateBase = total > 0 ? Math.round((stats.won / total) * 100) : 0;
-  const winRate = weeksSinceLastPlay > 1 
+  const winRate = weeksSinceLastPlay > 2 
     ? Math.round(winRateBase * decayFactor) 
     : winRateBase;
   
@@ -229,9 +236,9 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-sm text-muted-foreground">Wins/Day:</span>
                   <span className="text-sm">{winsPerDay}</span>
-                  {weeksSinceLastPlay > 1 && (
+                  {weeksSinceLastPlay > 2 && inactivityPenalty > 0 && (
                     <div className="text-xs text-red-500">
-                      -{Math.min(Math.round(weeksSinceLastPlay * 5), 50)}% inactive
+                      -{Math.round(inactivityPenalty * 100)}% inactive
                     </div>
                   )}
                 </div>
@@ -289,9 +296,9 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               winRate >= 45 ? 'text-yellow-600' : 
               'text-red-600'
             }`}>{winRate}%</span>
-            {weeksSinceLastPlay > 1 && winRateBase !== winRate && (
+            {weeksSinceLastPlay > 2 && inactivityPenalty > 0 && (
               <div className="text-xs text-red-500 mt-1">
-                Actual: {winRateBase}% (-{Math.min(Math.round(weeksSinceLastPlay * 5), 50)}% inactive)
+                Actual: {winRateBase}% (-{Math.round(inactivityPenalty * 100)}% inactive)
               </div>
             )}
             <div className="w-full bg-gray-200 dark:bg-gray-700 mt-2 rounded-full h-2.5">
