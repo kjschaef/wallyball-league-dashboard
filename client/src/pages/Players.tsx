@@ -157,16 +157,29 @@ export default function Players() {
           // Create a sorted copy of the players array
           if (!players) return null;
           
-          const sortedPlayers = [...players].sort((a, b) => {
-            const aTotal = a.stats.won + a.stats.lost;
-            const bTotal = b.stats.won + b.stats.lost;
-            
-            const aWinRate = aTotal > 0 ? (a.stats.won / aTotal) * 100 : 0;
-            const bWinRate = bTotal > 0 ? (b.stats.won / bTotal) * 100 : 0;
-            
-            // Sort by win percentage descending
-            return bWinRate - aWinRate;
+          // Create a new array with win percentage calculation
+          const playersWithWinRate = players.map(player => {
+            const total = player.stats.won + player.stats.lost;
+            const winRate = total > 0 ? (player.stats.won / total) * 100 : 0;
+            return {
+              ...player,
+              winRateCalculated: winRate
+            };
           });
+          
+          // Sort by calculated win rate (descending)
+          const sortedPlayers = playersWithWinRate.sort((a, b) => {
+            return b.winRateCalculated - a.winRateCalculated;
+          });
+          
+          // Debug the sorting
+          console.log('Sorted players by win rate:', 
+            sortedPlayers.map(p => ({
+              name: p.name, 
+              winRate: p.winRateCalculated.toFixed(1) + '%', 
+              record: `${p.stats.won}-${p.stats.lost}`
+            }))
+          );
           
           return sortedPlayers.map((player) => (
             <PlayerCard
