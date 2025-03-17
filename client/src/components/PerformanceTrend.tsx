@@ -20,7 +20,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, calculateInactivityPenalty } from "@/lib/utils";
 
 const COLORS = [
   "#FF6B6B", // Coral Red
@@ -165,18 +165,15 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 (1000 * 60 * 60 * 24)
               );
               
-              // Convert days to weeks
-              const weeksSinceLastPlay = Math.floor(daysSinceLastPlay / 7);
+              // Create a temporary player object for inactivity calculation
+              const tempPlayer = {
+                matches: [{
+                  date: lastPlayDate
+                }]
+              };
               
-              // No penalty for first 2 weeks, then 5% per week up to 50%
-              let inactivityPenalty = 0;
-              
-              if (weeksSinceLastPlay > 2) {
-                // Apply 5% penalty per week after the first 2 weeks
-                inactivityPenalty = Math.min(0.5, (weeksSinceLastPlay - 2) * 0.05);
-              }
-              
-              const decayFactor = 1 - inactivityPenalty;
+              // Use centralized utility function to calculate penalty
+              const { penaltyPercentage: inactivityPenalty, decayFactor } = calculateInactivityPenalty(tempPlayer);
               const value = player.dailyStats.get(lastPlayDate)[metric];
               
               // Apply the penalty to all metrics, but store information about the penalty
@@ -265,18 +262,19 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
             }
             
             if (lastValueIndex >= 0) {
-              // Calculate weeks since last activity
+              // Get the date of last activity
               const lastActiveWeekDate = new Date(weeklyData[lastValueIndex].date);
-              const weeksSinceLastActive = Math.round((currentWeekDate.getTime() - lastActiveWeekDate.getTime()) / 
-                (7 * 24 * 60 * 60 * 1000));
-                
-              // No penalty for first 2 weeks, then 5% per week up to 50%
-              let inactivityPenalty = 0;
-              if (weeksSinceLastActive > 2) {
-                // Apply 5% penalty per week after the first 2 weeks
-                inactivityPenalty = Math.min(0.5, (weeksSinceLastActive - 2) * 0.05);
-              }
-              const penalizedValue = lastValue * (1 - inactivityPenalty);
+              
+              // Create a temporary player object for inactivity calculation
+              const tempPlayer = {
+                matches: [{
+                  date: format(lastActiveWeekDate, "yyyy-MM-dd")
+                }]
+              };
+              
+              // Use centralized utility function to calculate penalty
+              const { penaltyPercentage: inactivityPenalty, decayFactor } = calculateInactivityPenalty(tempPlayer);
+              const penalizedValue = lastValue * decayFactor;
               
               processedDataPoint[player.name] = penalizedValue;
               // Store the penalty information
