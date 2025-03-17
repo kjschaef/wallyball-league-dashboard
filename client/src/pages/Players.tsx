@@ -14,6 +14,12 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
 
+// Extended player type that includes the data we receive from the API
+interface ExtendedPlayer extends Player {
+  matches: Array<{ won: boolean, date: string }>;
+  stats: { won: number, lost: number };
+}
+
 export default function Players() {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
@@ -27,8 +33,8 @@ export default function Players() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: players } = useQuery<Player[]>({
-    queryKey: ["/api/players"],
+  const { data: players } = useQuery<ExtendedPlayer[]>({
+    queryKey: ["/api/players"]
   });
 
   const createMutation = useMutation({
@@ -130,7 +136,7 @@ export default function Players() {
                   type="number"
                   min="1900"
                   max="2100"
-                  defaultValue={dialogState.player?.startYear}
+                  defaultValue={dialogState.player?.startYear?.toString() || ''}
                 />
               </div>
             </div>
@@ -147,23 +153,30 @@ export default function Players() {
       </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {players?.slice().sort((a, b) => {
-          const aTotal = (a.stats?.won || 0) + (a.stats?.lost || 0);
-          const bTotal = (b.stats?.won || 0) + (b.stats?.lost || 0);
+        {(() => {
+          // Create a sorted copy of the players array
+          if (!players) return null;
           
-          const aWinRate = aTotal > 0 ? (a.stats?.won || 0) / aTotal * 100 : 0;
-          const bWinRate = bTotal > 0 ? (b.stats?.won || 0) / bTotal * 100 : 0;
+          const sortedPlayers = [...players].sort((a, b) => {
+            const aTotal = a.stats.won + a.stats.lost;
+            const bTotal = b.stats.won + b.stats.lost;
+            
+            const aWinRate = aTotal > 0 ? (a.stats.won / aTotal) * 100 : 0;
+            const bWinRate = bTotal > 0 ? (b.stats.won / bTotal) * 100 : 0;
+            
+            // Sort by win percentage descending
+            return bWinRate - aWinRate;
+          });
           
-          // Sort by win percentage descending
-          return bWinRate - aWinRate;
-        }).map((player) => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            onEdit={(player) => openDialog(player)}
-            onDelete={(id) => deleteMutation.mutate(id)}
-          />
-        ))}
+          return sortedPlayers.map((player) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              onEdit={(player) => openDialog(player)}
+              onDelete={(id) => deleteMutation.mutate(id)}
+            />
+          ));
+        })()}
       </div>
     </div>
   );
