@@ -147,7 +147,16 @@ export default function Players() {
       </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {players?.map((player) => (
+        {players?.slice().sort((a, b) => {
+          const aTotal = (a.stats?.won || 0) + (a.stats?.lost || 0);
+          const bTotal = (b.stats?.won || 0) + (b.stats?.lost || 0);
+          
+          const aWinRate = aTotal > 0 ? (a.stats?.won || 0) / aTotal * 100 : 0;
+          const bWinRate = bTotal > 0 ? (b.stats?.won || 0) / bTotal * 100 : 0;
+          
+          // Sort by win percentage descending
+          return bWinRate - aWinRate;
+        }).map((player) => (
           <PlayerCard
             key={player.id}
             player={player}
