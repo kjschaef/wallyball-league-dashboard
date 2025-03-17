@@ -1,5 +1,5 @@
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import type { Player } from "@db/schema";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 
 export default function Players() {
   const [dialogState, setDialogState] = useState<{
@@ -30,34 +23,13 @@ export default function Players() {
     player: null,
   });
   
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const formRef = useRef<HTMLFormElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  type PlayerWithStats = Player & { 
-    matches: Array<{ won: boolean, date: string }>, 
-    stats: { won: number, lost: number } 
-  };
-
-  const { data: players } = useQuery<PlayerWithStats[]>({
+  const { data: players } = useQuery<Player[]>({
     queryKey: ["/api/players"],
   });
-  
-  const sortedPlayers = useMemo(() => {
-    if (!players) return [];
-    return [...players].sort((a, b) => {
-      // Calculate win percentage for each player
-      const aTotal = a.stats.won + a.stats.lost;
-      const bTotal = b.stats.won + b.stats.lost;
-      
-      const aWinRate = aTotal > 0 ? Math.round((a.stats.won / aTotal) * 100) : 0;
-      const bWinRate = bTotal > 0 ? Math.round((b.stats.won / bTotal) * 100) : 0;
-      
-      // Sort by win percentage
-      return sortOrder === "desc" ? bWinRate - aWinRate : aWinRate - bWinRate;
-    });
-  }, [players, sortOrder]);
 
   const createMutation = useMutation({
     mutationFn: (newPlayer: Partial<Player>) =>
@@ -129,24 +101,7 @@ export default function Players() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Players</h1>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="sort-order">Sort by Win %:</Label>
-            <Select
-              value={sortOrder}
-              onValueChange={(value) => setSortOrder(value as "asc" | "desc")}
-            >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Sort order" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">Highest First</SelectItem>
-                <SelectItem value="asc">Lowest First</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={() => openDialog()}>Add Player</Button>
-        </div>
+        <Button onClick={() => openDialog()}>Add Player</Button>
       </div>
 
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && closeDialog()}>
@@ -175,7 +130,7 @@ export default function Players() {
                   type="number"
                   min="1900"
                   max="2100"
-                  defaultValue={dialogState.player?.startYear as number | undefined}
+                  defaultValue={dialogState.player?.startYear}
                 />
               </div>
             </div>
@@ -192,7 +147,7 @@ export default function Players() {
       </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {sortedPlayers.map((player) => (
+        {players?.map((player) => (
           <PlayerCard
             key={player.id}
             player={player}
