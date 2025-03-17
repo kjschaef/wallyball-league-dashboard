@@ -25,6 +25,7 @@ import {
 import { PlayerAchievements } from "./PlayerAchievements";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { calculateInactivityPenalty } from "@/lib/utils";
 import React from "react";
 import type { Player } from "@db/schema";
 
@@ -69,30 +70,12 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   
-  // Calculate inactivity penalty
-  const today = new Date();
-  const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000;
-  const maxPenalty = 0.5; // 50% maximum penalty
-  const penaltyPerWeek = 0.05; // 5% penalty per week after grace period
-  
-  // Get the last match date or creation date if no matches
-  const lastMatch = player.matches && player.matches.length > 0 
-    ? new Date(player.matches[player.matches.length - 1].date) 
-    : (player.createdAt ? new Date(player.createdAt) : new Date());
-  
-  // Calculate inactivity time in milliseconds
-  const inactiveTime = today.getTime() - lastMatch.getTime();
-  
-  // Calculate excess inactive time (after 2-week grace period)
-  const excessInactiveTime = Math.max(0, inactiveTime - twoWeeksInMs);
-  
-  // Calculate weeks inactive beyond grace period
-  const weeksInactive = Math.floor(excessInactiveTime / (7 * 24 * 60 * 60 * 1000));
-  
-  // Calculate penalty (5% per week after grace period, up to 50%)
-  const inactivityPenalty = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
-  
-  const decayFactor = 1 - inactivityPenalty;
+  // Calculate inactivity penalty using the utility function
+  const { 
+    weeksInactive, 
+    penaltyPercentage: inactivityPenalty,
+    decayFactor
+  } = calculateInactivityPenalty(player);
   
   // Apply decay factor to win percentage
   const winRateBase = total > 0 ? Math.round((stats.won / total) * 100) : 0;
