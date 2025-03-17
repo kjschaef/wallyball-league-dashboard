@@ -45,7 +45,7 @@ export default function Results() {
   });
 
   const queryClient = useQueryClient();
-  const toast = useToast();
+  const { toast } = useToast();
 
   const updateMutation = useMutation({
     mutationFn: (player: Player) =>
@@ -151,7 +151,7 @@ export default function Results() {
                   type="number"
                   min="1900"
                   max="2100"
-                  defaultValue={dialogState.player?.startYear}
+                  defaultValue={dialogState.player?.startYear || ''}
                 />
               </div>
             </div>
@@ -289,21 +289,15 @@ export default function Results() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players
           ?.sort((a, b) => {
-            const aWinsPerDay =
-              a.stats.won /
-              (new Set(
-                a.matches.map((m: any) =>
-                  new Date(m.date).toLocaleDateString(),
-                ),
-              ).size || 1);
-            const bWinsPerDay =
-              b.stats.won /
-              (new Set(
-                b.matches.map((m: any) =>
-                  new Date(m.date).toLocaleDateString(),
-                ),
-              ).size || 1);
-            return bWinsPerDay - aWinsPerDay;
+            // Calculate win percentages
+            const aTotal = a.stats.won + a.stats.lost;
+            const bTotal = b.stats.won + b.stats.lost;
+            
+            const aWinRate = aTotal > 0 ? (a.stats.won / aTotal) * 100 : 0;
+            const bWinRate = bTotal > 0 ? (b.stats.won / bTotal) * 100 : 0;
+            
+            // Sort by win percentage (highest first)
+            return bWinRate - aWinRate;
           })
           .map((player) => (
             <PlayerCard

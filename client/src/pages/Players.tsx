@@ -153,43 +153,27 @@ export default function Players() {
       </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {(() => {
-          // Create a sorted copy of the players array
-          if (!players) return null;
-          
-          // Create a new array with win percentage calculation
-          const playersWithWinRate = players.map(player => {
-            const total = player.stats.won + player.stats.lost;
-            const winRate = total > 0 ? (player.stats.won / total) * 100 : 0;
-            return {
-              ...player,
-              winRateCalculated: winRate
-            };
-          });
-          
-          // Sort by calculated win rate (descending)
-          const sortedPlayers = playersWithWinRate.sort((a, b) => {
-            return b.winRateCalculated - a.winRateCalculated;
-          });
-          
-          // Debug the sorting
-          console.log('Sorted players by win rate:', 
-            sortedPlayers.map(p => ({
-              name: p.name, 
-              winRate: p.winRateCalculated.toFixed(1) + '%', 
-              record: `${p.stats.won}-${p.stats.lost}`
-            }))
-          );
-          
-          return sortedPlayers.map((player) => (
+        {players && [...players]
+          .sort((a, b) => {
+            // Calculate total games for each player
+            const aTotal = a.stats.won + a.stats.lost;
+            const bTotal = b.stats.won + b.stats.lost;
+            
+            // Calculate win percentages
+            const aWinRate = aTotal > 0 ? (a.stats.won / aTotal) * 100 : 0;
+            const bWinRate = bTotal > 0 ? (b.stats.won / bTotal) * 100 : 0;
+            
+            // Sort by win percentage in descending order
+            return bWinRate - aWinRate;
+          })
+          .map((player) => (
             <PlayerCard
               key={player.id}
               player={player}
               onEdit={(player) => openDialog(player)}
               onDelete={(id) => deleteMutation.mutate(id)}
             />
-          ));
-        })()}
+          ))}
       </div>
     </div>
   );
