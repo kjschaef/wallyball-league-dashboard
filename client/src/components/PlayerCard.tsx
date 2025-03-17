@@ -69,23 +69,34 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   
-  // Calculate inactivity penalty - matches[0] is the most recent match
-  const weeksSinceLastPlay = player.matches?.length 
-    ? Math.floor((new Date().getTime() - new Date(player.matches[0].date).getTime()) / (1000 * 60 * 60 * 24 * 7))
-    : 0;
+  // Calculate inactivity penalty
+  const today = new Date();
+  const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000;
+  const maxPenalty = 0.5; // 50% maximum penalty
+  const penaltyPerWeek = 0.05; // 5% penalty per week after grace period
   
-  // No penalty for first 2 weeks, then 5% per week up to 50%
-  let inactivityPenalty = 0;
-  if (weeksSinceLastPlay > 2) {
-    // Apply 5% penalty per week after the first 2 weeks
-    inactivityPenalty = Math.min(0.5, (weeksSinceLastPlay - 2) * 0.05);
-  }
+  // Get the last match date or creation date if no matches
+  const lastMatch = player.matches && player.matches.length > 0 
+    ? new Date(player.matches[player.matches.length - 1].date) 
+    : (player.createdAt ? new Date(player.createdAt) : new Date());
+  
+  // Calculate inactivity time in milliseconds
+  const inactiveTime = today.getTime() - lastMatch.getTime();
+  
+  // Calculate excess inactive time (after 2-week grace period)
+  const excessInactiveTime = Math.max(0, inactiveTime - twoWeeksInMs);
+  
+  // Calculate weeks inactive beyond grace period
+  const weeksInactive = Math.floor(excessInactiveTime / (7 * 24 * 60 * 60 * 1000));
+  
+  // Calculate penalty (5% per week after grace period, up to 50%)
+  const inactivityPenalty = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
   
   const decayFactor = 1 - inactivityPenalty;
   
   // Apply decay factor to win percentage
   const winRateBase = total > 0 ? Math.round((stats.won / total) * 100) : 0;
-  const winRate = weeksSinceLastPlay > 2 
+  const winRate = weeksInactive > 0 
     ? Math.round(winRateBase * decayFactor) 
     : winRateBase;
   
@@ -236,7 +247,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-sm text-muted-foreground">Wins/Day:</span>
                   <span className="text-sm">{winsPerDay}</span>
-                  {weeksSinceLastPlay > 2 && inactivityPenalty > 0 && (
+                  {weeksInactive > 0 && inactivityPenalty > 0 && (
                     <div className="text-xs text-red-500">
                       -{Math.round(inactivityPenalty * 100)}% inactive
                     </div>
@@ -296,7 +307,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               winRate >= 45 ? 'text-yellow-600' : 
               'text-red-600'
             }`}>{winRate}%</span>
-            {weeksSinceLastPlay > 2 && inactivityPenalty > 0 && (
+            {weeksInactive > 0 && inactivityPenalty > 0 && (
               <div className="text-xs text-red-500 mt-1">
                 Actual: {winRateBase}% (-{Math.round(inactivityPenalty * 100)}% inactive)
               </div>

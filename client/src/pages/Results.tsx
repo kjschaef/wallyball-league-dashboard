@@ -289,14 +289,46 @@ export default function Results() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players
           ?.sort((a, b) => {
-            // Calculate win percentages
+            // Calculate inactivity periods
+            const today = new Date();
+            const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000;
+            const maxPenalty = 0.5; // 50% maximum penalty
+            const penaltyPerWeek = 0.05; // 5% penalty per week after grace period
+            
+            // Determine the last match date for each player
+            const aLastMatch = a.matches && a.matches.length > 0 
+              ? new Date(a.matches[a.matches.length - 1].date) 
+              : (a.createdAt ? new Date(a.createdAt) : new Date());
+            const bLastMatch = b.matches && b.matches.length > 0 
+              ? new Date(b.matches[b.matches.length - 1].date) 
+              : (b.createdAt ? new Date(b.createdAt) : new Date());
+            
+            // Calculate inactivity time in milliseconds
+            const aInactiveTime = today.getTime() - aLastMatch.getTime();
+            const bInactiveTime = today.getTime() - bLastMatch.getTime();
+            
+            // Calculate penalties (no penalty for first 2 weeks, then 5% per week up to 50%)
+            const aExcessInactiveTime = Math.max(0, aInactiveTime - twoWeeksInMs);
+            const bExcessInactiveTime = Math.max(0, bInactiveTime - twoWeeksInMs);
+            
+            const aWeeksInactive = Math.floor(aExcessInactiveTime / (7 * 24 * 60 * 60 * 1000));
+            const bWeeksInactive = Math.floor(bExcessInactiveTime / (7 * 24 * 60 * 60 * 1000));
+            
+            const aPenalty = Math.min(maxPenalty, aWeeksInactive * penaltyPerWeek);
+            const bPenalty = Math.min(maxPenalty, bWeeksInactive * penaltyPerWeek);
+            
+            // Calculate total games for each player
             const aTotal = a.stats.won + a.stats.lost;
             const bTotal = b.stats.won + b.stats.lost;
             
-            const aWinRate = aTotal > 0 ? (a.stats.won / aTotal) * 100 : 0;
-            const bWinRate = bTotal > 0 ? (b.stats.won / bTotal) * 100 : 0;
+            // Calculate win percentages with penalty applied
+            const aBaseWinRate = aTotal > 0 ? (a.stats.won / aTotal) * 100 : 0;
+            const bBaseWinRate = bTotal > 0 ? (b.stats.won / bTotal) * 100 : 0;
             
-            // Sort by win percentage (highest first)
+            const aWinRate = aBaseWinRate * (1 - aPenalty);
+            const bWinRate = bBaseWinRate * (1 - bPenalty);
+            
+            // Sort by penalized win percentage (highest first)
             return bWinRate - aWinRate;
           })
           .map((player) => (
