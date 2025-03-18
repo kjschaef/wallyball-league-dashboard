@@ -290,21 +290,42 @@ export default function Results() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players
           ?.sort((a, b) => {
+            // Ensure matches are correctly sorted by date first (newest last)
+            const sortMatches = (matches: any[]) => {
+              return [...matches].sort((a, b) => 
+                new Date(a.date).getTime() - new Date(b.date).getTime()
+              );
+            };
+            
+            // Prepare player data with sorted matches
+            const playerA = {...a, matches: sortMatches(a.matches || [])};
+            const playerB = {...b, matches: sortMatches(b.matches || [])};
+            
             // Calculate win percentages with inactivity penalty applied using the utility function
-            const { penalizedWinRate: aWinRate } = calculatePenalizedWinPercentage(a);
-            const { penalizedWinRate: bWinRate } = calculatePenalizedWinPercentage(b);
+            const { penalizedWinRate: aWinRate } = calculatePenalizedWinPercentage(playerA);
+            const { penalizedWinRate: bWinRate } = calculatePenalizedWinPercentage(playerB);
             
             // Sort by penalized win percentage (highest first)
             return bWinRate - aWinRate;
           })
-          .map((player) => (
-            <PlayerCard
-              key={player.id}
-              player={player}
-              onEdit={(player) => setDialogState({ isOpen: true, player })}
-              onDelete={(id) => deleteMutation.mutate(id)}
-            />
-          ))}
+          .map((player) => {
+            // Ensure matches are sorted by date before being passed to PlayerCard
+            const sortedPlayer = {
+              ...player,
+              matches: [...(player.matches || [])].sort((a, b) => 
+                new Date(a.date).getTime() - new Date(b.date).getTime()
+              )
+            };
+            
+            return (
+              <PlayerCard
+                key={player.id}
+                player={sortedPlayer}
+                onEdit={(player) => setDialogState({ isOpen: true, player })}
+                onDelete={(id) => deleteMutation.mutate(id)}
+              />
+            );
+          })}
       </div>
 
       <Card>
