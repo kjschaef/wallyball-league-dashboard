@@ -165,15 +165,30 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 (1000 * 60 * 60 * 24)
               );
               
-              // Create a temporary player object for inactivity calculation
-              const tempPlayer = {
-                matches: [{
-                  date: lastPlayDate
-                }]
-              };
+              // Calculate inactivity as of the chart date, not today
+              const chartDate = new Date(date);
+              const lastActivityDate = new Date(lastPlayDate);
               
-              // Use centralized utility function to calculate penalty
-              const { penaltyPercentage: inactivityPenalty, decayFactor } = calculateInactivityPenalty(tempPlayer);
+              // Calculate inactivity time in days
+              const daysSinceLastActivity = Math.floor(
+                (chartDate.getTime() - lastActivityDate.getTime()) / (24 * 60 * 60 * 1000)
+              );
+              
+              // No penalty for first 2 weeks
+              const gracePeriodDays = 14;
+              const excessInactiveDays = Math.max(0, daysSinceLastActivity - gracePeriodDays);
+              
+              // Calculate weeks inactive beyond grace period (5% per week)
+              const weeksInactive = Math.floor(excessInactiveDays / 7);
+              const penaltyPerWeek = 0.05; // 5% per week
+              const maxPenalty = 0.5; // 50% maximum penalty
+              
+              // Calculate penalty gradually
+              const inactivityPenalty = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
+              const decayFactor = 1 - inactivityPenalty;
+              
+              console.log(`Player ${player.name} on ${date}: ${daysSinceLastActivity} days since activity, penalty: ${Math.round(inactivityPenalty * 100)}%`);
+              
               const value = player.dailyStats.get(lastPlayDate)[metric];
               
               // Apply the penalty to all metrics, but store information about the penalty
@@ -265,15 +280,29 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               // Get the date of last activity
               const lastActiveWeekDate = new Date(weeklyData[lastValueIndex].date);
               
-              // Create a temporary player object for inactivity calculation
-              const tempPlayer = {
-                matches: [{
-                  date: format(lastActiveWeekDate, "yyyy-MM-dd")
-                }]
-              };
+              // Calculate inactivity as of the current week date, not today
+              const currentDate = currentWeekDate;
+              const lastActivityDate = lastActiveWeekDate;
               
-              // Use centralized utility function to calculate penalty
-              const { penaltyPercentage: inactivityPenalty, decayFactor } = calculateInactivityPenalty(tempPlayer);
+              // Calculate inactivity time in days
+              const daysSinceLastActivity = Math.floor(
+                (currentDate.getTime() - lastActivityDate.getTime()) / (24 * 60 * 60 * 1000)
+              );
+              
+              // No penalty for first 2 weeks
+              const gracePeriodDays = 14;
+              const excessInactiveDays = Math.max(0, daysSinceLastActivity - gracePeriodDays);
+              
+              // Calculate weeks inactive beyond grace period (5% per week)
+              const weeksInactive = Math.floor(excessInactiveDays / 7);
+              const penaltyPerWeek = 0.05; // 5% per week
+              const maxPenalty = 0.5; // 50% maximum penalty
+              
+              // Calculate penalty gradually
+              const inactivityPenalty = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
+              const decayFactor = 1 - inactivityPenalty;
+              
+              console.log(`Weekly view - ${player.name} on week of ${format(currentDate, 'MMM d')}: ${daysSinceLastActivity} days since activity, penalty: ${Math.round(inactivityPenalty * 100)}%`);
               const penalizedValue = lastValue * decayFactor;
               
               processedDataPoint[player.name] = penalizedValue;
