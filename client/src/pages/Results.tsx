@@ -290,9 +290,9 @@ export default function Results() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players
           ?.sort((a, b) => {
-            // Ensure matches are correctly sorted by date first (newest last)
+            // Ensure matches are correctly sorted by date first (oldest first)
             const sortMatches = (matches: any[]) => {
-              return [...matches].sort((a, b) => 
+              return [...(matches || [])].sort((a, b) => 
                 new Date(a.date).getTime() - new Date(b.date).getTime()
               );
             };
@@ -300,6 +300,17 @@ export default function Results() {
             // Prepare player data with sorted matches
             const playerA = {...a, matches: sortMatches(a.matches || [])};
             const playerB = {...b, matches: sortMatches(b.matches || [])};
+            
+            // DEBUG: Log the most recent match date for each player
+            const getLastMatchDate = (player: any) => {
+              const sortedMatches = sortMatches(player.matches || []);
+              return sortedMatches.length > 0 
+                ? new Date(sortedMatches[sortedMatches.length - 1].date).toISOString()
+                : 'No matches';
+            };
+            
+            console.log(`Sorting players: ${playerA.name} last match: ${getLastMatchDate(playerA)}`);
+            console.log(`Sorting players: ${playerB.name} last match: ${getLastMatchDate(playerB)}`);
             
             // Calculate win percentages with inactivity penalty applied using the utility function
             const { penalizedWinRate: aWinRate } = calculatePenalizedWinPercentage(playerA);

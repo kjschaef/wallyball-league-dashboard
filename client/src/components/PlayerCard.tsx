@@ -70,12 +70,21 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   
+  // Ensure we're working with matches in order (oldest first)
+  const sortedPlayer = {
+    ...player,
+    matches: [...player.matches].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    )
+  };
+  
   // Calculate inactivity penalty using the utility function
   const { 
     weeksInactive, 
     penaltyPercentage: inactivityPenalty,
-    decayFactor
-  } = calculateInactivityPenalty(player);
+    decayFactor,
+    lastMatch
+  } = calculateInactivityPenalty(sortedPlayer);
   
   // Apply decay factor to win percentage
   const winRateBase = total > 0 ? Math.round((stats.won / total) * 100) : 0;

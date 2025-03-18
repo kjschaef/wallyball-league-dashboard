@@ -26,10 +26,18 @@ export function calculateInactivityPenalty(player: PlayerWithMatches) {
   const maxPenalty = 0.5; // 50% maximum penalty
   const penaltyPerWeek = 0.05; // 5% penalty per week after grace period
   
+  // Make sure matches are in chronological order (oldest first)
+  const sortedMatches = player.matches ? 
+    [...player.matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) : 
+    [];
+  
   // Get the last match date or creation date if no matches
-  const lastMatch = player.matches && player.matches.length > 0 
-    ? new Date(player.matches[player.matches.length - 1].date) 
+  const lastMatch = sortedMatches.length > 0 
+    ? new Date(sortedMatches[sortedMatches.length - 1].date) 
     : (player.createdAt ? new Date(player.createdAt) : new Date());
+  
+  // Add logging to debug
+  console.log(`Player: ${(player as any).name || 'Unknown'}, Last activity: ${lastMatch.toISOString()}`);
   
   // Calculate inactivity time in milliseconds
   const inactiveTime = today.getTime() - lastMatch.getTime();
@@ -42,6 +50,9 @@ export function calculateInactivityPenalty(player: PlayerWithMatches) {
   
   // Calculate penalty (5% per week after grace period, up to 50%)
   const penaltyPercentage = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
+  
+  // Log the penalty calculation for debugging
+  console.log(`Weeks inactive: ${weeksInactive}, Penalty: ${Math.round(penaltyPercentage * 100)}%`);
   
   return {
     lastMatch,
