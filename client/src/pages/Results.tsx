@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
@@ -17,7 +18,6 @@ import { useToast } from "@/hooks/use-toast";
 import { calculatePenalizedWinPercentage } from "@/lib/utils";
 import cn from 'classnames';
 import { queryClient } from '@/lib/queryClient';
-
 
 interface MatchResult {
   id: number;
@@ -213,11 +213,9 @@ export default function Results() {
                     const teamStats = Object.entries(
                       matches.reduce(
                         (acc, match) => {
-                          // Sort player names within each team for consistent team identification
                           const teamOne = formatTeam([...match.teamOnePlayers].sort());
                           const teamTwo = formatTeam([...match.teamTwoPlayers].sort());
 
-                          // Update team one stats
                           if (!acc[teamOne]) {
                             acc[teamOne] = { wins: 0, losses: 0, winRate: 0 };
                           }
@@ -226,7 +224,6 @@ export default function Results() {
                           acc[teamOne].winRate =
                             acc[teamOne].wins / (acc[teamOne].wins + acc[teamOne].losses);
 
-                          // Update team two stats
                           if (!acc[teamTwo]) {
                             acc[teamTwo] = { wins: 0, losses: 0, winRate: 0 };
                           }
@@ -243,15 +240,6 @@ export default function Results() {
                       .filter(([_, stats]) => stats.wins + stats.losses >= 3)
                       .sort((a, b) => b[1].winRate - a[1].winRate)
                       .slice(0, 5);
-
-                    // Chart data for team performance
-                    const chartData = teamStats.map(([team, stats]) => ({
-                      name: team,
-                      winRate: parseFloat((stats.winRate * 100).toFixed(0)),
-                      wins: stats.wins,
-                      losses: stats.losses
-                    }));
-
 
                     return (
                       <>
@@ -290,37 +278,11 @@ export default function Results() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {players
           ?.sort((a, b) => {
-            // Ensure matches are correctly sorted by date first (oldest first)
-            const sortMatches = (matches: any[]) => {
-              return [...(matches || [])].sort((a, b) => 
-                new Date(a.date).getTime() - new Date(b.date).getTime()
-              );
-            };
-            
-            // Prepare player data with sorted matches
-            const playerA = {...a, matches: sortMatches(a.matches || [])};
-            const playerB = {...b, matches: sortMatches(b.matches || [])};
-            
-            // DEBUG: Log the most recent match date for each player
-            const getLastMatchDate = (player: any) => {
-              const sortedMatches = sortMatches(player.matches || []);
-              return sortedMatches.length > 0 
-                ? new Date(sortedMatches[sortedMatches.length - 1].date).toISOString()
-                : 'No matches';
-            };
-            
-            console.log(`Sorting players: ${playerA.name} last match: ${getLastMatchDate(playerA)}`);
-            console.log(`Sorting players: ${playerB.name} last match: ${getLastMatchDate(playerB)}`);
-            
-            // Calculate win percentages with inactivity penalty applied using the utility function
-            const { penalizedWinRate: aWinRate } = calculatePenalizedWinPercentage(playerA);
-            const { penalizedWinRate: bWinRate } = calculatePenalizedWinPercentage(playerB);
-            
-            // Sort by penalized win percentage (highest first)
+            const { penalizedWinRate: aWinRate } = calculatePenalizedWinPercentage(a);
+            const { penalizedWinRate: bWinRate } = calculatePenalizedWinPercentage(b);
             return bWinRate - aWinRate;
           })
           .map((player) => {
-            // Ensure matches are sorted by date before being passed to PlayerCard
             const sortedPlayer = {
               ...player,
               matches: [...(player.matches || [])].sort((a, b) => 
@@ -397,7 +359,6 @@ export default function Results() {
                 {Object.entries(
                   matches.reduce(
                     (acc, match) => {
-                      // Sort player names within each team for consistent team identification
                       const teamOne = formatTeam([...match.teamOnePlayers].sort());
                       const teamTwo = formatTeam([...match.teamTwoPlayers].sort());
                       const matchupKey = [teamOne, teamTwo].sort().join(" vs ");
@@ -441,18 +402,12 @@ export default function Results() {
                         <div className="font-medium">
                           {(() => {
                             const teams = matchup.split(" vs ");
-
-                            // For all matchups, display based on actual win/loss record
-                            // For each matchup, determine which team has more wins
                             const teamOneWins = stats.teamOneWins;
                             const teamTwoWins = stats.teamTwoWins;
-
-                            // Determine which team's wins should be displayed first
                             const teamWithMoreWins = teamOneWins > teamTwoWins ? 0 : 
                                                    teamTwoWins > teamOneWins ? 1 : -1;
 
                             if (teamWithMoreWins === 0) {
-                              // Team One has more wins, display their record first
                               return (
                                 <>
                                   <span className="text-green-600 font-semibold">
@@ -465,7 +420,6 @@ export default function Results() {
                                 </>
                               );
                             } else if (teamWithMoreWins === 1) {
-                              // Team Two has more wins, display their record first
                               return (
                                 <>
                                   <span>
@@ -478,7 +432,6 @@ export default function Results() {
                                 </>
                               );
                             } else {
-                              // Teams have equal wins
                               return (
                                 <>
                                   <span>
@@ -504,21 +457,18 @@ export default function Results() {
                             const teamTwoWins = stats.teamTwoWins;
                             const teamWithMoreWins = teamOneWins > teamTwoWins ? 0 : teamTwoWins > teamOneWins ? 1 : -1;
                             if (teamWithMoreWins === 0) {
-                              // Team one has more wins
                               return (
                                 <>
                                   Record: <span className="text-green-600">{teamOneWins}</span>-{teamTwoWins}
                                 </>
                               );
                             } else if (teamWithMoreWins === 1) {
-                              // Team two has more wins
                               return (
                                 <>
                                   Record: <span className="text-green-600">{teamTwoWins}</span>-{teamOneWins}
                                 </>
                               );
                             } else {
-                              //It's a tie
                               return (
                                 <>
                                   Record: {teamOneWins}-{teamTwoWins} (Tied)
