@@ -447,7 +447,6 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                     strokeOpacity={recentPlayerIds.has(player.id) ? 1 : 0.6}
                     dot={{ r: 3, strokeWidth: 2 }}
                     activeDot={{ r: 6, strokeWidth: 0 }}
-                    animationDuration={1500} // Added animation
                     name={player.name}
                     isAnimationActive={!isExporting}
                   />
