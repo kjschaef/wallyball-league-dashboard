@@ -64,7 +64,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     );
   }
 
-  // Process player data to calculate cumulative wins per days played
+  // Process player data to calculate win percentages
   // Get most recent date with matches
   const mostRecentDate = players
     .flatMap(player => player.matches || [])
@@ -339,10 +339,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
-                tickFormatter={(date) => showAllData 
-                  ? format(parseISO(date), "MMM d")
-                  : `Week of ${format(parseISO(date), "MMM d")}`
-                }
+                tickFormatter={(date) => format(parseISO(date), "MMM d")}
               />
               <YAxis
                 domain={[0, 100]}
