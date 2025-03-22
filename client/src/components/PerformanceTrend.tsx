@@ -70,6 +70,9 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     .flatMap(player => player.matches || [])
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date;
 
+  // Initializing metric to winPercentage
+  const metric = 'winPercentage';
+
   // Defining the match type to fix the type error
   interface Match {
     date: string;
