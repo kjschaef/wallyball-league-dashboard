@@ -236,15 +236,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-muted-foreground">Wins/Day:</span>
-                  <span className="text-sm">{winsPerDay}</span>
-                  {weeksInactive > 0 && inactivityPenalty > 0 && (
-                    <div className="text-xs text-red-500">
-                      -{Math.round(inactivityPenalty * 100)}% inactive
-                    </div>
-                  )}
-                </div>
+                
               </div>
 
               {matches.length > 0 && (

@@ -49,7 +49,7 @@ interface PlayerMatch {
 }
 
 export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
-  const [metric, setMetric] = useState<'winPercentage' | 'winsPerDay' | 'totalWins'>('winPercentage');
+  const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
   const [showAllData, setShowAllData] = useState(false);
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
@@ -332,9 +332,6 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
           >
             <ToggleGroupItem value="winPercentage" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               Win %
-            </ToggleGroupItem>
-            <ToggleGroupItem value="winsPerDay" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
-              Per Day
             </ToggleGroupItem>
             <ToggleGroupItem value="totalWins" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               Total
