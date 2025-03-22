@@ -201,14 +201,14 @@ export default function Results() {
 
       <Card>
           <CardHeader>
-            <CardTitle>Best Performing Teams (Top 5)</CardTitle>
+            <CardTitle>Best Performing Teams (Min. 6 Games)</CardTitle>
           </CardHeader>
           <CardContent>
             {matches.length === 0 ? (
               <p className="text-muted-foreground">No matches recorded yet</p>
             ) : (
               <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-2">Top 5 Best Performing Teams</h3>
+                  <h3 className="text-lg font-semibold mb-2">Top 5 Best Performing Teams (Min. 6 Games)</h3>
                   {(() => {
                     const teamStats = Object.entries(
                       matches.reduce(
@@ -237,7 +237,7 @@ export default function Results() {
                         {} as Record<string, { wins: number; losses: number; winRate: number }>
                       )
                     )
-                      .filter(([_, stats]) => stats.wins + stats.losses >= 3)
+                      .filter(([_, stats]) => stats.wins + stats.losses >= 6)
                       .sort((a, b) => b[1].winRate - a[1].winRate)
                       .slice(0, 5);
 
