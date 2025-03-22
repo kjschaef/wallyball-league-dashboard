@@ -208,7 +208,6 @@ export default function Results() {
               <p className="text-muted-foreground">No matches recorded yet</p>
             ) : (
               <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-2">Top 5 Best Performing Teams (Min. 6 Games)</h3>
                   {(() => {
                     const teamStats = Object.entries(
                       matches.reduce(
