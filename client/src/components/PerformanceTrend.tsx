@@ -10,6 +10,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 import { format, parseISO, startOfWeek } from "date-fns";
 import {
@@ -65,13 +66,27 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
   }
 
   // Process player data to calculate win percentages
-  // Get most recent date with matches
-  const mostRecentDate = players
-    .flatMap(player => player.matches || [])
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date;
+  const chartData = players
+    .filter(player => player.matches && player.matches.length > 0)
+    .map(player => {
+      const matches = [...player.matches]
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      let totalGames = 0;
+      let gamesWon = 0;
+      
+      matches.forEach(match => {
+        const isTeamOne = match.isTeamOne;
+        gamesWon += isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
+        totalGames += match.teamOneGamesWon + match.teamTwoGamesWon;
+      });
 
-  // Initializing metric to winPercentage
-  const metric = 'winPercentage';
+      return {
+        name: player.name,
+        winPercentage: totalGames > 0 ? (gamesWon / totalGames) * 100 : 0,
+        date: matches[matches.length - 1].date,
+      };
+    });
 
   // Defining the match type to fix the type error
   interface Match {
