@@ -381,8 +381,8 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               <Tooltip
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
                 formatter={(value: number, name: string, entry: any) => {
-                  if (name.includes('_penalty')) return null; // Skip penalty fields in tooltip
-
+                  // Skip penalty fields in tooltip and rows with 0% penalty
+                  if (name.includes('_penalty') || value === 0) return null;
                   const formattedValue = Number(value.toFixed(1));
                   let displayValue: string | number = metric === 'winPercentage' 
                     ? `${formattedValue}%` 
