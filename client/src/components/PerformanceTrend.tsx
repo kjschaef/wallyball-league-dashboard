@@ -114,16 +114,16 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
       const gamesWon = match.isTeamOne ? match.teamOneGamesWon || 0 : match.teamTwoGamesWon || 0;
       const gamesLost = match.isTeamOne ? match.teamTwoGamesWon || 0 : match.teamOneGamesWon || 0;
       const totalGames = gamesWon + gamesLost;
-      
+
       cumulativeWins += gamesWon;
       cumulativeTotalGames += totalGames;
       daysPlayed.add(date);
-      
+
       // Calculate win percentage (handle division by zero)
       const winPercentage = cumulativeTotalGames > 0 
         ? (cumulativeWins / cumulativeTotalGames) * 100 
         : 0;
-        
+
       dailyStats.set(date, { 
         winPercentage: winPercentage,
         winsPerDay: cumulativeWins / daysPlayed.size,
@@ -164,33 +164,33 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 (new Date(date).getTime() - new Date(lastPlayDate).getTime()) / 
                 (1000 * 60 * 60 * 24)
               );
-              
+
               // Calculate inactivity as of the chart date, not today
               const chartDate = new Date(date);
               const lastActivityDate = new Date(lastPlayDate);
-              
+
               // Calculate inactivity time in days
               const daysSinceLastActivity = Math.floor(
                 (chartDate.getTime() - lastActivityDate.getTime()) / (24 * 60 * 60 * 1000)
               );
-              
+
               // No penalty for first 2 weeks
               const gracePeriodDays = 14;
               const excessInactiveDays = Math.max(0, daysSinceLastActivity - gracePeriodDays);
-              
+
               // Calculate weeks inactive beyond grace period (5% per week)
               const weeksInactive = Math.floor(excessInactiveDays / 7);
               const penaltyPerWeek = 0.05; // 5% per week
               const maxPenalty = 0.5; // 50% maximum penalty
-              
+
               // Calculate penalty gradually
               const inactivityPenalty = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
               const decayFactor = 1 - inactivityPenalty;
-              
+
               console.log(`Player ${player.name} on ${date}: ${daysSinceLastActivity} days since activity, penalty: ${Math.round(inactivityPenalty * 100)}%`);
-              
+
               const value = player.dailyStats.get(lastPlayDate)[metric];
-              
+
               // Apply the penalty to all metrics, but store information about the penalty
               dataPoint[player.name] = value * decayFactor;
               // Store the penalty information for the tooltip
@@ -261,13 +261,13 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
       return weeklyData.map((dataPoint, index) => {
         const processedDataPoint = { ...dataPoint };
         const currentWeekDate = new Date(dataPoint.date);
-        
+
         playerStats.forEach(player => {
           if (processedDataPoint[player.name] === 0) {
             // Find the last known value
             let lastValue = 0;
             let lastValueIndex = -1;
-            
+
             for (let i = index - 1; i >= 0; i--) {
               if (weeklyData[i][player.name] !== 0) {
                 lastValue = weeklyData[i][player.name];
@@ -275,36 +275,36 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 break;
               }
             }
-            
+
             if (lastValueIndex >= 0) {
               // Get the date of last activity
               const lastActiveWeekDate = new Date(weeklyData[lastValueIndex].date);
-              
+
               // Calculate inactivity as of the current week date, not today
               const currentDate = currentWeekDate;
               const lastActivityDate = lastActiveWeekDate;
-              
+
               // Calculate inactivity time in days
               const daysSinceLastActivity = Math.floor(
                 (currentDate.getTime() - lastActivityDate.getTime()) / (24 * 60 * 60 * 1000)
               );
-              
+
               // No penalty for first 2 weeks
               const gracePeriodDays = 14;
               const excessInactiveDays = Math.max(0, daysSinceLastActivity - gracePeriodDays);
-              
+
               // Calculate weeks inactive beyond grace period (5% per week)
               const weeksInactive = Math.floor(excessInactiveDays / 7);
               const penaltyPerWeek = 0.05; // 5% per week
               const maxPenalty = 0.5; // 50% maximum penalty
-              
+
               // Calculate penalty gradually
               const inactivityPenalty = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
               const decayFactor = 1 - inactivityPenalty;
-              
+
               console.log(`Weekly view - ${player.name} on week of ${format(currentDate, 'MMM d')}: ${daysSinceLastActivity} days since activity, penalty: ${Math.round(inactivityPenalty * 100)}%`);
               const penalizedValue = lastValue * decayFactor;
-              
+
               processedDataPoint[player.name] = penalizedValue;
               // Store the penalty information
               processedDataPoint[`${player.name}_penalty`] = inactivityPenalty;
@@ -354,17 +354,21 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full">
-          <ResponsiveContainer>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis
                 dataKey="date"
                 tickFormatter={(date) => showAllData 
                   ? format(parseISO(date), "MMM d")
                   : `Week of ${format(parseISO(date), "MMM d")}`
                 }
+                stroke="#888888"
+                tick={{ fontSize: 12 }}
               />
               <YAxis
+                stroke="#888888"
+                tick={{ fontSize: 12 }}
                 domain={metric === 'winPercentage' ? [0, 100] : [0, 'auto']}
                 tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
                 label={{ 
@@ -378,30 +382,33 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 labelFormatter={(date) => format(parseISO(date as string), "MMM d, yyyy")}
                 formatter={(value: number, name: string, entry: any) => {
                   if (name.includes('_penalty')) return null; // Skip penalty fields in tooltip
-                  
+
                   const formattedValue = Number(value.toFixed(1));
                   let displayValue: string | number = metric === 'winPercentage' 
                     ? `${formattedValue}%` 
                     : formattedValue;
-                  
+
                   // Check if this player has an inactivity penalty applied
                   const penaltyKey = `${name}_penalty`;
                   if (entry.payload[penaltyKey]) {
                     const penalty = entry.payload[penaltyKey];
                     const penaltyPercent = Math.round(penalty * 100);
-                    
+
                     // Only show penalty if it's significant (>1%)
                     if (penaltyPercent > 1) {
                       // Create penalty message as a string to avoid TypeScript issues with React elements
                       displayValue = `${displayValue} (${penaltyPercent}% inactive penalty)`;
                     }
                   }
-                  
+
                   return [displayValue, name];
                 }}
                 contentStyle={{ 
                   fontWeight: recentPlayerIds.has(playerStats.find(p => p.name === name)?.id || 0) ? 'bold' : 'normal',
-                  borderRadius: '8px' 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  border: '1px solid #e2e8f0'
                 }}
                 itemSorter={(a) => {
                   if (typeof a.dataKey === 'string' && a.dataKey.includes('_penalty')) return -9999; // Hide penalty items from tooltip
@@ -411,10 +418,17 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               <Legend formatter={(value: string) => {
                 // Only process player names, not penalty keys
                 if (value.includes('_penalty')) return null;
-                
+
                 const playerId = playerStats.find(p => p.name === value)?.id;
                 return recentPlayerIds.has(playerId || 0) ? value : value;
-              }} />
+              }} 
+                verticalAlign="top" 
+                height={36}
+                wrapperStyle={{
+                  paddingBottom: '10px',
+                  fontSize: '12px'
+                }}
+              />
               {[...playerStats]
                 .sort((a, b) => {
                   const aIsRecent = recentPlayerIds.has(a.id);
@@ -429,10 +443,10 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                     type="monotone"
                     dataKey={player.name}
                     stroke={COLORS[playerStats.findIndex(p => p.id === player.id) % COLORS.length]}
-                    strokeWidth={recentPlayerIds.has(player.id) ? 3 : 1.5}
+                    strokeWidth={2}
                     strokeOpacity={recentPlayerIds.has(player.id) ? 1 : 0.6}
-                    dot={{ r: recentPlayerIds.has(player.id) ? 5 : 3 }}
-                    activeDot={{ r: recentPlayerIds.has(player.id) ? 7 : 5 }}
+                    dot={{ r: 3, strokeWidth: 2 }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
                     name={player.name}
                     isAnimationActive={!isExporting}
                   />
@@ -466,7 +480,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 const fullStats = playerStats.find(p => p.id === player.id);
                 const playerMatches = players.find(p => p.id === player.id)?.matches || [];
                 const matchesCount = playerMatches.length;
-                
+
                 return (
                   <div 
                     key={player.name}
