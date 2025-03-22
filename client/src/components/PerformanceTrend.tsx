@@ -10,9 +10,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
-import { format, parseISO, startOfWeek } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   Card,
   CardContent,
@@ -65,28 +64,11 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     );
   }
 
-  // Process player data to calculate win percentages
-  const chartData = players
-    .filter(player => player.matches && player.matches.length > 0)
-    .map(player => {
-      const matches = [...player.matches]
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      let totalGames = 0;
-      let gamesWon = 0;
-      
-      matches.forEach(match => {
-        const isTeamOne = match.isTeamOne;
-        gamesWon += isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
-        totalGames += match.teamOneGamesWon + match.teamTwoGamesWon;
-      });
-
-      return {
-        name: player.name,
-        winPercentage: totalGames > 0 ? (gamesWon / totalGames) * 100 : 0,
-        date: matches[matches.length - 1].date,
-      };
-    });
+  // Process player data to calculate cumulative wins per days played
+  // Get most recent date with matches
+  const mostRecentDate = players
+    .flatMap(player => player.matches || [])
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date;
 
   // Defining the match type to fix the type error
   interface Match {
@@ -357,7 +339,10 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
-                tickFormatter={(date) => format(parseISO(date), "MMM d")}
+                tickFormatter={(date) => showAllData 
+                  ? format(parseISO(date), "MMM d")
+                  : `Week of ${format(parseISO(date), "MMM d")}`
+                }
               />
               <YAxis
                 domain={[0, 100]}
