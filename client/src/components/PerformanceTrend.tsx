@@ -9,18 +9,16 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
-import { format, parseISO, startOfWeek } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { cn, calculateInactivityPenalty } from "@/lib/utils";
+import { calculateInactivityPenalty } from "@/lib/utils";
 
 const COLORS = [
   "#FF6B6B", // Coral Red
@@ -49,7 +47,6 @@ interface PlayerMatch {
 }
 
 export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
-  const [metric, setMetric] = useState<'winPercentage' | 'winsPerDay' | 'totalWins'>('winPercentage');
   const [showAllData, setShowAllData] = useState(false);
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
@@ -318,28 +315,8 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>
-          {metric === 'winPercentage' ? 'Win Percentage' : 
-           metric === 'winsPerDay' ? 'Wins Per Day Played' : 
-           'Total Wins'}
-        </CardTitle>
+        <CardTitle>Win Percentage</CardTitle>
         <div className="flex flex-col gap-2">
-          <ToggleGroup
-            type="single"
-            value={metric}
-            onValueChange={(value) => value && setMetric(value as 'winPercentage' | 'winsPerDay' | 'totalWins')}
-            className="border rounded-lg w-[270px]"
-          >
-            <ToggleGroupItem value="winPercentage" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
-              Win %
-            </ToggleGroupItem>
-            <ToggleGroupItem value="winsPerDay" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
-              Per Day
-            </ToggleGroupItem>
-            <ToggleGroupItem value="totalWins" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
-              Total
-            </ToggleGroupItem>
-          </ToggleGroup>
           <ToggleGroup
             type="single"
             value={showAllData ? "all" : "recent"}
@@ -368,10 +345,10 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
                 }
               />
               <YAxis
-                domain={metric === 'winPercentage' ? [0, 100] : [0, 'auto']}
-                tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
+                domain={[0, 100]}
+                tickFormatter={(value) => `${Math.round(value)}%`}
                 label={{ 
-                  value: metric === 'winPercentage' ? 'Win %' : metric === 'winsPerDay' ? 'Wins/Day' : 'Total Wins', 
+                  value: 'Win %', 
                   angle: -90, 
                   position: 'insideLeft',
                   style: { textAnchor: 'middle' }
@@ -446,11 +423,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
 
         <div className="mt-4 border-t pt-4">
           <h3 className="font-semibold mb-2 text-sm">
-            {metric === 'winPercentage' 
-              ? 'Win Percentage Rankings' 
-              : metric === 'winsPerDay' 
-                ? 'Wins Per Day Rankings' 
-                : 'Total Wins Rankings'}
+            Win Percentage Rankings
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
             {playerStats
