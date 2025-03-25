@@ -236,7 +236,17 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                     </span>
                   </div>
                 </div>
-                
+                <div className="text-left">
+                  <span className="text-sm text-muted-foreground block">Game Duration</span>
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium">
+                      {stats.averageGameLength} mins/game
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1">
+                      {stats.totalMatchTime}h total
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {matches.length > 0 && (

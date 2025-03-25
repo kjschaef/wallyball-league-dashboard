@@ -45,13 +45,23 @@ export function registerRoutes(app: Express): Server {
               ? match.teamTwoGamesWon
               : match.teamOneGamesWon;
 
+            const totalGamesInMatch = match.teamOneGamesWon + match.teamTwoGamesWon;
+            const avgGameLength = 90 / totalGamesInMatch; // 90 minutes per match divided by total games
+
             return {
               won: acc.won + gamesWon,
               lost: acc.lost + gamesLost,
+              totalMatchTime: acc.totalMatchTime + 90, // 90 minutes per match
+              totalGames: acc.totalGames + totalGamesInMatch,
             };
           },
-          { won: 0, lost: 0 },
+          { won: 0, lost: 0, totalMatchTime: 0, totalGames: 0 },
         );
+
+        // Calculate average game length
+        const averageGameLength = stats.totalGames > 0 ? stats.totalMatchTime / stats.totalGames : 0;
+        stats.averageGameLength = Math.round(averageGameLength);
+        stats.totalMatchTime = Math.round(stats.totalMatchTime / 60); // Convert to hours
 
         // Add matches with win/loss info to player data
         const processedMatches = playerMatches.map((match) => {
