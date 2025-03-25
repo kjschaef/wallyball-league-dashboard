@@ -22,10 +22,23 @@ Add player-specific average game length statistics to display the typical durati
    - Show total playing time in hours
    - Include within existing stats section
 
+2. Add to Results page:
+   - New "Game Duration Stats" section with bar chart visualization
+   - Toggle switch between "Average Game Duration" and "Total Playing Time"
+   - Responsive chart layout that adjusts to screen width
+   - Color-coded bars matching player colors from other charts
+
 ### UI/UX Requirements
 - Display format: "Avg. Game: XX mins"
 - Round to nearest minute
 - Include tooltip explaining calculation method
+- Bar chart requirements:
+  - Y-axis: Minutes for average duration, Hours for total time
+  - X-axis: Player names
+  - Tooltips showing exact values
+  - Bars sorted by duration/time in descending order
+  - Consistent color scheme with existing charts
+  - Smooth transition animation when toggling views
 
 ## Implementation Steps
 
@@ -35,6 +48,14 @@ interface PlayerStats {
   // Existing stats
   averageGameLength: number;
   totalMatchTime: number;
+}
+
+interface GameDurationData {
+  playerId: number;
+  playerName: string;
+  averageGameLength: number;
+  totalPlayingTime: number;
+  totalGames: number;
 }
 
 // Calculation logic
