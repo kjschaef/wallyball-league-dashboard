@@ -1,4 +1,3 @@
-
 # Average Game Length Feature Specification
 
 ## Overview
@@ -8,8 +7,8 @@ Add player-specific average game length statistics to display the typical durati
 
 ### Data Model
 - Use existing match data from the database
-- Calculate based on fixed 1.5 hour (90 minute) match duration
-- Formula: `(90 minutes / total_games_in_match) * total_games_played`
+- Calculate based on fixed 90 minute daily session duration
+- Formula: `(90 minutes / total_games_played_that_day) * total_games_played`
 
 ### API Changes
 1. Extend `/api/players` endpoint to include:
@@ -41,7 +40,6 @@ Add player-specific average game length statistics to display the typical durati
   - Smooth transition animation when toggling views
 
 ## Implementation Steps
-
 1. Backend:
 ```typescript
 interface PlayerStats {
@@ -58,15 +56,23 @@ interface GameDurationData {
   totalGames: number;
 }
 
-// Calculation logic
+// Calculation logic needs to be updated to reflect daily sessions.  This is complex and requires more information about the 'matches' data structure.  A placeholder is used for illustration.  A proper implementation would require understanding the match data format to accurately calculate daily game totals.
+
 const gameStats = matches.reduce((acc, match) => {
-  const totalGames = match.teamOneGamesWon + match.teamTwoGamesWon;
-  const avgGameLength = 90 / totalGames; // minutes per game
-  return {
-    totalGames: acc.totalGames + totalGames,
-    totalTime: acc.totalTime + 90
-  };
-}, { totalGames: 0, totalTime: 0 });
+  //This needs to be updated to account for daily sessions.  Example below assumes match data includes a 'date' property.
+  const matchDate = match.date; // Assumes a 'date' property exists in the match object.
+  const dailyGames = acc[matchDate] || { totalGames: 0, totalTime: 0 };
+  const totalGamesForDay = match.teamOneGamesWon + match.teamTwoGamesWon;
+  dailyGames.totalGames += totalGamesForDay;
+  dailyGames.totalTime += 90; // 90 minutes per daily session
+  acc[matchDate] = dailyGames; //Store stats by date.
+  return acc;
+}, {});
+
+
+//Further processing needed to calculate averageGameLength and totalMatchTime  based on the daily games data.
+
+
 ```
 
 2. Frontend:
@@ -74,11 +80,11 @@ const gameStats = matches.reduce((acc, match) => {
 <StatDisplay
   label="Avg. Game"
   value={`${Math.round(player.stats.averageGameLength)} mins`}
-  tooltip="Based on 1.5 hour matches"
+  tooltip="Based on 90-minute daily sessions"
 />
 ```
 
 ## Success Criteria
-- Accurate calculation of average game length
+- Accurate calculation of average game length based on daily sessions
 - Consistent display across all player cards
 - Clear and understandable presentation of time statistics
