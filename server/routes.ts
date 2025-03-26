@@ -28,39 +28,46 @@ export function registerRoutes(app: Express): Server {
             match.teamTwoPlayerThreeId === player.id,
         );
 
-        // Calculate player statistics
-        const stats = playerMatches.reduce(
-          (acc, match) => {
-            // Determine which team the player was on
-            const isTeamOne =
-              match.teamOnePlayerOneId === player.id ||
-              match.teamOnePlayerTwoId === player.id ||
-              match.teamOnePlayerThreeId === player.id;
+        // Group matches by date
+        const matchesByDate = playerMatches.reduce((acc, match) => {
+          const date = new Date(match.date).toISOString().split('T')[0];
+          if (!acc[date]) acc[date] = [];
+          acc[date].push(match);
+          return acc;
+        }, {});
 
-            // Sum up individual games won and lost
-            const gamesWon = isTeamOne
-              ? match.teamOneGamesWon
-              : match.teamTwoGamesWon;
-            const gamesLost = isTeamOne
-              ? match.teamTwoGamesWon
-              : match.teamOneGamesWon;
+        // Calculate stats per day (90 min session)
+        const stats = Object.values(matchesByDate).reduce(
+          (acc, dayMatches) => {
+            const totalGamesInDay = dayMatches.reduce((sum, match) => {
+              return sum + match.teamOneGamesWon + match.teamTwoGamesWon;
+            }, 0);
 
-            const totalGamesInMatch = match.teamOneGamesWon + match.teamTwoGamesWon;
-            const avgGameLength = 90 / totalGamesInMatch; // 90 minutes per match divided by total games
+            let dayWins = 0;
+            let dayLosses = 0;
+
+            dayMatches.forEach(match => {
+              const isTeamOne =
+                match.teamOnePlayerOneId === player.id ||
+                match.teamOnePlayerTwoId === player.id ||
+                match.teamOnePlayerThreeId === player.id;
+
+              dayWins += isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
+              dayLosses += isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon;
+            });
 
             return {
-              won: acc.won + gamesWon,
-              lost: acc.lost + gamesLost,
-              totalMatchTime: acc.totalMatchTime + 90, // 90 minutes per match
-              totalGames: acc.totalGames + totalGamesInMatch,
+              won: acc.won + dayWins,
+              lost: acc.lost + dayLosses,
+              totalMatchTime: acc.totalMatchTime + 90, // 90 minutes per daily session
+              totalGames: acc.totalGames + totalGamesInDay,
             };
           },
-          { won: 0, lost: 0, totalMatchTime: 0, totalGames: 0 },
+          { won: 0, lost: 0, totalMatchTime: 0, totalGames: 0 }
         );
 
-        // Calculate average game length
-        const averageGameLength = stats.totalGames > 0 ? stats.totalMatchTime / stats.totalGames : 0;
-        stats.averageGameLength = Math.round(averageGameLength);
+        // Calculate average game length and convert total time to hours
+        stats.averageGameLength = stats.totalGames > 0 ? Math.round((stats.totalMatchTime / stats.totalGames)) : 0;
         stats.totalMatchTime = Math.round(stats.totalMatchTime / 60); // Convert to hours
 
         // Add matches with win/loss info to player data

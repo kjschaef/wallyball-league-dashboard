@@ -326,6 +326,10 @@ export default function Results() {
                 <div 
                   key={player.id}
                   className="flex items-center gap-2 mb-2"
+                  title={showTotalTime ? 
+                    `Total playing time: ${player.stats.totalMatchTime} hours` : 
+                    `Average game length: ${player.stats.averageGameLength} minutes\nBased on 90-minute daily sessions`
+                  }
                 >
                   <div className="w-24 truncate">{player.name}</div>
                   <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">

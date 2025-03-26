@@ -238,11 +238,17 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                 </div>
                 <div className="text-left">
                   <span className="text-sm text-muted-foreground block">Game Duration</span>
-                  <div className="flex items-start gap-2">
+                  <div 
+                    className="flex items-start gap-2"
+                    title="Average game length based on 90-minute daily sessions"
+                  >
                     <span className="font-medium">
-                      {stats.averageGameLength} mins/game
+                      Avg. Game: {stats.averageGameLength} mins
                     </span>
-                    <span className="text-xs text-muted-foreground mt-1">
+                    <span 
+                      className="text-xs text-muted-foreground mt-1"
+                      title="Total playing time across all sessions"
+                    >
                       {stats.totalMatchTime}h total
                     </span>
                   </div>
