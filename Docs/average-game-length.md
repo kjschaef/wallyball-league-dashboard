@@ -40,48 +40,44 @@ Add player-specific average game length statistics to display the typical durati
   - Smooth transition animation when toggling views
 
 ## Implementation Steps
-1. Backend:
-```typescript
-interface PlayerStats {
-  // Existing stats
-  averageGameLength: number;
-  totalMatchTime: number;
-}
 
-interface GameDurationData {
-  playerId: number;
-  playerName: string;
-  averageGameLength: number;
-  totalPlayingTime: number;
-  totalGames: number;
-}
-
-// Calculation logic needs to be updated to reflect daily sessions.  This is complex and requires more information about the 'matches' data structure.  A placeholder is used for illustration.  A proper implementation would require understanding the match data format to accurately calculate daily game totals.
-
-const gameStats = matches.reduce((acc, match) => {
-  //This needs to be updated to account for daily sessions.  Example below assumes match data includes a 'date' property.
-  const matchDate = match.date; // Assumes a 'date' property exists in the match object.
-  const dailyGames = acc[matchDate] || { totalGames: 0, totalTime: 0 };
-  const totalGamesForDay = match.teamOneGamesWon + match.teamTwoGamesWon;
-  dailyGames.totalGames += totalGamesForDay;
-  dailyGames.totalTime += 90; // 90 minutes per daily session
-  acc[matchDate] = dailyGames; //Store stats by date.
-  return acc;
-}, {});
-
-
-//Further processing needed to calculate averageGameLength and totalMatchTime  based on the daily games data.
-
+### Backend Calculation Logic (Pseudocode)
 
 ```
+For each player:
+  1. Group matches by date
+  2. For each unique date:
+     - Count total games played that day
+     - Add 90 minutes to total time (one session per day)
+  3. Calculate final stats:
+     totalMatchTime = sum of all daily sessions (in hours)
+     totalGames = sum of all games across all days
+     averageGameLength = (totalMatchTime * 60) / totalGames (in minutes)
+```
 
-2. Frontend:
-```typescript
-<StatDisplay
-  label="Avg. Game"
-  value={`${Math.round(player.stats.averageGameLength)} mins`}
-  tooltip="Based on 90-minute daily sessions"
-/>
+### Data Structures
+
+```
+PlayerStats {
+  averageGameLength: number (minutes)
+  totalMatchTime: number (hours)
+  totalGames: number
+}
+
+Match {
+  date: timestamp
+  teamOneGamesWon: number
+  teamTwoGamesWon: number
+  // other match data...
+}
+```
+
+### Frontend Display
+
+```
+- Display average game length rounded to nearest minute
+- Show total playing time in hours
+- Include tooltip explaining "90-minute daily session" calculation
 ```
 
 ## Success Criteria
