@@ -28,38 +28,30 @@ export function registerRoutes(app: Express): Server {
             match.teamTwoPlayerThreeId === player.id,
         );
 
-        // Calculate player statistics
-        const stats = playerMatches.reduce(
-          (acc, match) => {
-            // Determine which team the player was on
-            const isTeamOne =
-              match.teamOnePlayerOneId === player.id ||
-              match.teamOnePlayerTwoId === player.id ||
-              match.teamOnePlayerThreeId === player.id;
-
-            // Sum up individual games won and lost
-            const gamesWon = isTeamOne
-              ? match.teamOneGamesWon
-              : match.teamTwoGamesWon;
-            const gamesLost = isTeamOne
-              ? match.teamTwoGamesWon
-              : match.teamOneGamesWon;
-
-            const totalGamesInMatch = match.teamOneGamesWon + match.teamTwoGamesWon;
-            const avgGameLength = 90 / totalGamesInMatch; // 90 minutes per match divided by total games
-
-            return {
-              won: acc.won + gamesWon,
-              lost: acc.lost + gamesLost,
-              totalMatchTime: acc.totalMatchTime + 90, // 90 minutes per match
-              totalGames: acc.totalGames + totalGamesInMatch,
+        // Group matches by date for daily session calculation
+        const matchesByDate = playerMatches.reduce((acc, match) => {
+          const dateKey = new Date(match.date).toISOString().split('T')[0];
+          if (!acc[dateKey]) {
+            acc[dateKey] = {
+              totalGames: 0,
+              totalTime: 90, // 90 minutes per daily session
             };
-          },
-          { won: 0, lost: 0, totalMatchTime: 0, totalGames: 0 },
+          }
+          acc[dateKey].totalGames += (match.teamOneGamesWon + match.teamTwoGamesWon);
+          return acc;
+        }, {} as Record<string, { totalGames: number; totalTime: number; }>);
+
+        // Calculate overall stats
+        const stats = Object.values(matchesByDate).reduce(
+          (acc, dayStats) => ({
+            totalMatchTime: acc.totalMatchTime + dayStats.totalTime,
+            totalGames: acc.totalGames + dayStats.totalGames,
+          }),
+          { totalMatchTime: 0, totalGames: 0 },
         );
 
         // Calculate average game length
-        const averageGameLength = stats.totalGames > 0 ? stats.totalMatchTime / stats.totalGames : 0;
+        const averageGameLength = stats.totalGames > 0 ? (stats.totalMatchTime / stats.totalGames) : 0;
         stats.averageGameLength = Math.round(averageGameLength);
         stats.totalMatchTime = Math.round(stats.totalMatchTime / 60); // Convert to hours
 
