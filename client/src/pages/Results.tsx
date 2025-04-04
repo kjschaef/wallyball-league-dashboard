@@ -303,51 +303,29 @@ export default function Results() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Game Duration Stats</CardTitle>
+          <CardTitle>Total Playing Time</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Player Game Durations</h3>
-              <Button
-                variant="outline"
-                onClick={() => setShowTotalTime(prev => !prev)}
-              >
-                {showTotalTime ? 'Show Average Duration' : 'Show Total Time'}
-              </Button>
-            </div>
             <div className="h-[300px] relative">
-              {players?.sort((a, b) => {
-                if (showTotalTime) {
-                  return (b.stats.totalMatchTime || 0) - (a.stats.totalMatchTime || 0);
-                }
-                return (b.stats.averageGameLength || 0) - (a.stats.averageGameLength || 0);
-              }).map((player, i) => (
+              {players?.sort((a, b) => (b.stats.totalMatchTime || 0) - (a.stats.totalMatchTime || 0))
+                .map((player, i) => (
                 <div 
                   key={player.id}
                   className="flex items-center gap-2 mb-2"
-                  title={showTotalTime ? 
-                    `Total playing time: ${player.stats.totalMatchTime} hours` : 
-                    `Average game length: ${player.stats.averageGameLength} minutes\nBased on 90-minute daily sessions`
-                  }
+                  title={`Total playing time: ${player.stats.totalMatchTime} hours\nBased on 90-minute daily sessions`}
                 >
                   <div className="w-24 truncate">{player.name}</div>
                   <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-primary transition-all duration-500"
                       style={{ 
-                        width: `${showTotalTime ? 
-                          (player.stats.totalMatchTime / Math.max(...players.map(p => p.stats.totalMatchTime || 0))) * 100 :
-                          (player.stats.averageGameLength / Math.max(...players.map(p => p.stats.averageGameLength || 0))) * 100
-                        }%` 
+                        width: `${(player.stats.totalMatchTime / Math.max(...players.map(p => p.stats.totalMatchTime || 0))) * 100}%` 
                       }}
                     />
                   </div>
                   <div className="w-20 text-right">
-                    {showTotalTime ? 
-                      `${player.stats.totalMatchTime}h` :
-                      `${player.stats.averageGameLength}m`
-                    }
+                    {player.stats.totalMatchTime}h
                   </div>
                 </div>
               ))}

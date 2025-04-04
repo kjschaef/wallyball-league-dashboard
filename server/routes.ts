@@ -66,9 +66,8 @@ export function registerRoutes(app: Express): Server {
           { won: 0, lost: 0, totalMatchTime: 0, totalGames: 0 }
         );
 
-        // Calculate average game length and convert total time to hours
-        stats.averageGameLength = stats.totalGames > 0 ? Math.round((stats.totalMatchTime / stats.totalGames)) : 0;
-        stats.totalMatchTime = Math.round(stats.totalMatchTime / 60); // Convert to hours
+        // Convert total time to hours
+        stats.totalMatchTime = Math.round(stats.totalMatchTime / 60);
 
         // Add matches with win/loss info to player data
         const processedMatches = playerMatches.map((match) => {
