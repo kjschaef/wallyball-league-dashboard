@@ -106,7 +106,11 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/players", async (req, res) => {
     try {
       console.log("Creating new player:", req.body);
-      const newPlayer = await db.insert(players).values(req.body).returning();
+      const playerData = {
+        ...req.body,
+        startYear: new Date().getFullYear()
+      };
+      const newPlayer = await db.insert(players).values(playerData).returning();
       console.log("Player created:", newPlayer[0]);
       res.json(newPlayer[0]);
     } catch (error) {
