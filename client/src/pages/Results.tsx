@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
@@ -289,7 +288,7 @@ export default function Results() {
                 new Date(a.date).getTime() - new Date(b.date).getTime()
               )
             };
-            
+
             return (
               <PlayerCard
                 key={player.id}
@@ -300,39 +299,6 @@ export default function Results() {
             );
           })}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Total Playing Time</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="min-h-[400px] relative pb-4">
-              {players?.sort((a, b) => (b.stats.totalMatchTime || 0) - (a.stats.totalMatchTime || 0))
-                .map((player, i) => (
-                <div 
-                  key={player.id}
-                  className="flex items-center gap-2 mb-2"
-                  title={`Total playing time: ${player.stats.totalMatchTime} hours\nBased on 90-minute daily sessions`}
-                >
-                  <div className="w-24 truncate">{player.name}</div>
-                  <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary transition-all duration-500"
-                      style={{ 
-                        width: `${(player.stats.totalMatchTime / Math.max(...players.map(p => p.stats.totalMatchTime || 0))) * 100}%` 
-                      }}
-                    />
-                  </div>
-                  <div className="w-20 text-right">
-                    {player.stats.totalMatchTime}h
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -375,6 +341,39 @@ export default function Results() {
                 👑
               </div>
               <span className="text-sm">Perfect Game Victory</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Total Playing Time</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="min-h-[400px] relative pb-4">
+              {players?.sort((a, b) => (b.stats.totalMatchTime || 0) - (a.stats.totalMatchTime || 0))
+                .map((player, i) => (
+                <div 
+                  key={player.id}
+                  className="flex items-center gap-2 mb-2"
+                  title={`Total playing time: ${player.stats.totalMatchTime} hours\nBased on 90-minute daily sessions`}
+                >
+                  <div className="w-24 truncate">{player.name}</div>
+                  <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary transition-all duration-500"
+                      style={{ 
+                        width: `${(player.stats.totalMatchTime / Math.max(...players.map(p => p.stats.totalMatchTime || 0))) * 100}%` 
+                      }}
+                    />
+                  </div>
+                  <div className="w-20 text-right">
+                    {player.stats.totalMatchTime}h
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </CardContent>
