@@ -7,8 +7,8 @@ export function Navbar() {
 
   const navItems = [
     { href: "/", label: "Dashboard" },
-    { href: "/players", label: "Players" },
-    { href: "/record", label: "Record Match" },
+    { href: "/history", label: "Games" },
+    { href: "/results", label: "Results" },
   ];
 
   return (
