@@ -1,43 +1,43 @@
-# Average Game Length Feature Specification
+
+# Player Game Time Feature Specification
 
 ## Overview
-Add player-specific average game length statistics to display the typical duration of matches for each player.
+Display player-specific total game time statistics based on daily match sessions.
 
 ## Technical Requirements
 
 ### Data Model
 - Use existing match data from the database
 - Calculate based on fixed 90 minute daily session duration
-- Formula: `(90 minutes / total_games_played_that_day) * total_games_played`
+- Total time calculated as: 90 minutes per unique day played
 
 ### API Changes
-1. Extend `/api/players` endpoint to include:
-   - `averageGameLength`: number (in minutes)
+1. Update `/api/players` endpoint to include:
    - `totalMatchTime`: number (in hours)
 
 ### Frontend Implementation
-1. Add to PlayerCard component:
-   - Display average game length in minutes
+1. Update PlayerCard component:
+   - Remove average game length display
    - Show total playing time in hours
    - Include within existing stats section
 
-2. Add to Results page:
-   - New "Game Duration Stats" section with bar chart visualization
-   - Toggle switch between "Average Game Duration" and "Total Playing Time"
+2. Update Results page:
+   - Rename "Game Duration Stats" section to "Total Playing Time"
+   - Remove toggle switch for average duration
+   - Show only total time bar chart
    - Responsive chart layout that adjusts to screen width
    - Color-coded bars matching player colors from other charts
 
 ### UI/UX Requirements
-- Display format: "Avg. Game: XX mins"
-- Round to nearest minute
-- Include tooltip explaining calculation method
+- Display format: "Total Time: XX hours"
+- Include tooltip explaining "90-minute daily session" calculation
 - Bar chart requirements:
-  - Y-axis: Minutes for average duration, Hours for total time
+  - Y-axis: Hours of total time
   - X-axis: Player names
   - Tooltips showing exact values
-  - Bars sorted by duration/time in descending order
+  - Bars sorted by total time in descending order
   - Consistent color scheme with existing charts
-  - Smooth transition animation when toggling views
+  - Smooth transition animation when updating
 
 ## Implementation Steps
 
@@ -47,19 +47,15 @@ Add player-specific average game length statistics to display the typical durati
 For each player:
   1. Group matches by date
   2. For each unique date:
-     - Count total games played that day
      - Add 90 minutes to total time (one session per day)
   3. Calculate final stats:
      totalMatchTime = sum of all daily sessions (in hours)
-     totalGames = sum of all games across all days
-     averageGameLength = (totalMatchTime * 60) / totalGames (in minutes)
 ```
 
 ### Data Structures
 
 ```
 PlayerStats {
-  averageGameLength: number (minutes)
   totalMatchTime: number (hours)
   totalGames: number
 }
@@ -75,12 +71,11 @@ Match {
 ### Frontend Display
 
 ```
-- Display average game length rounded to nearest minute
 - Show total playing time in hours
 - Include tooltip explaining "90-minute daily session" calculation
 ```
 
 ## Success Criteria
-- Accurate calculation of average game length based on daily sessions
+- Accurate calculation of total playing time based on daily sessions
 - Consistent display across all player cards
 - Clear and understandable presentation of time statistics
