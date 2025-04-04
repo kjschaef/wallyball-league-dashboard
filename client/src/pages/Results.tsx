@@ -307,7 +307,7 @@ export default function Results() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="h-[300px] relative">
+            <div className="min-h-[400px] relative pb-4">
               {players?.sort((a, b) => (b.stats.totalMatchTime || 0) - (a.stats.totalMatchTime || 0))
                 .map((player, i) => (
                 <div 
