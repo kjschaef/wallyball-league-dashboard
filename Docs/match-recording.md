@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Match Recording feature enables users to document volleyball matches, including player participation and game outcomes. This feature is fundamental to the platform as it provides the data foundation for all statistics, trends, and achievements.
+The Match Recording feature enables users to document wallyball matches, including player participation and game outcomes. This feature is fundamental to the platform as it provides the data foundation for all statistics, trends, and achievements.
 
 ## Key Features
 

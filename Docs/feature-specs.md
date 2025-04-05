@@ -1,8 +1,9 @@
+
 # Feature Specifications
 
 ## Overview
 
-This document provides detailed specifications for the key features of the Volleyball League Management Platform.
+This document provides detailed specifications for the key features of the Wallyball League Management Platform.
 
 ## Player Management
 
@@ -36,7 +37,7 @@ The Player Management feature allows users to create, view, edit, and delete pla
 
 ### Description
 
-The Match Recording feature allows users to record volleyball match results, including players on each team and the number of games won by each team.
+The Match Recording feature allows users to record wallyball match results, including players on each team and the number of games won by each team.
 
 ### Requirements
 

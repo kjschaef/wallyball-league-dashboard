@@ -1,8 +1,9 @@
+
 # Getting Started Guide
 
 ## Overview
 
-This guide provides instructions for setting up, running, and developing the Volleyball League Management Platform.
+This guide provides instructions for setting up, running, and developing the Wallyball League Management Platform.
 
 ## Prerequisites
 
@@ -19,7 +20,7 @@ Before you begin, ensure you have the following:
 
 ```bash
 git clone <repository-url>
-cd volleyball-league-platform
+cd wallyball-league-platform
 ```
 
 ### 2. Install Dependencies
@@ -33,7 +34,7 @@ npm install
 Create a PostgreSQL database and set the connection string in a `.env` file:
 
 ```
-DATABASE_URL=postgres://username:password@localhost:5432/volleyball_db
+DATABASE_URL=postgres://username:password@localhost:5432/wallyball_db
 ```
 
 ### 4. Initialize the Database
