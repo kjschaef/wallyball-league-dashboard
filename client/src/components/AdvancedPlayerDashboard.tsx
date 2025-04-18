@@ -209,63 +209,6 @@ export function AdvancedPlayerDashboard() {
   
   return (
     <div className="space-y-6">
-      {/* Player selector card */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Player Selection</CardTitle>
-          <CardDescription>Select players to analyze across all visualizations</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Primary Player</label>
-              <Select 
-                value={selectedPlayerId?.toString() || ""}
-                onValueChange={(value) => setSelectedPlayerId(Number(value))}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select primary player" />
-                </SelectTrigger>
-                <SelectContent>
-                  {players.map((player) => (
-                    <SelectItem key={player.id} value={player.id.toString()}>
-                      {player.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Used in all visualizations
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Secondary Player (for comparison)</label>
-              <Select 
-                value={comparisonPlayerId?.toString() || ""}
-                onValueChange={(value) => setComparisonPlayerId(Number(value))}
-                disabled={!selectedPlayerId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={selectedPlayerId ? "Select secondary player" : "Select primary player first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {players
-                    .filter(p => p.id !== selectedPlayerId)
-                    .map((player) => (
-                      <SelectItem key={player.id} value={player.id.toString()}>
-                        {player.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Used for head-to-head analysis
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PlayerPerformanceRadar />
         
@@ -300,6 +243,63 @@ export function AdvancedPlayerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Player selector card for the trend analysis and head-to-head sections */}
+      <Card className="mb-6 bg-muted/50 border-dashed">
+        <CardHeader className="pb-4">
+          <CardTitle>Player Comparison Settings</CardTitle>
+          <CardDescription>Select players for the analysis charts below</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Primary Player</label>
+              <Select 
+                value={selectedPlayerId?.toString() || ""}
+                onValueChange={(value) => setSelectedPlayerId(Number(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select primary player" />
+                </SelectTrigger>
+                <SelectContent>
+                  {players.map((player) => (
+                    <SelectItem key={player.id} value={player.id.toString()}>
+                      {player.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Used for trends and head-to-head analysis
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Secondary Player (for comparison)</label>
+              <Select 
+                value={comparisonPlayerId?.toString() || ""}
+                onValueChange={(value) => setComparisonPlayerId(Number(value))}
+                disabled={!selectedPlayerId}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={selectedPlayerId ? "Select secondary player" : "Select primary player first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {players
+                    .filter(p => p.id !== selectedPlayerId)
+                    .map((player) => (
+                      <SelectItem key={player.id} value={player.id.toString()}>
+                        {player.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Used only for head-to-head analysis
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
