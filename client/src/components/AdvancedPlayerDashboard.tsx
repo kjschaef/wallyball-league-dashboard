@@ -209,6 +209,63 @@ export function AdvancedPlayerDashboard() {
   
   return (
     <div className="space-y-6">
+      {/* Player selector card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Player Selection</CardTitle>
+          <CardDescription>Select players to analyze across all visualizations</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Primary Player</label>
+              <Select 
+                value={selectedPlayerId?.toString() || ""}
+                onValueChange={(value) => setSelectedPlayerId(Number(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select primary player" />
+                </SelectTrigger>
+                <SelectContent>
+                  {players.map((player) => (
+                    <SelectItem key={player.id} value={player.id.toString()}>
+                      {player.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Used in all visualizations
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Secondary Player (for comparison)</label>
+              <Select 
+                value={comparisonPlayerId?.toString() || ""}
+                onValueChange={(value) => setComparisonPlayerId(Number(value))}
+                disabled={!selectedPlayerId}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={selectedPlayerId ? "Select secondary player" : "Select primary player first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {players
+                    .filter(p => p.id !== selectedPlayerId)
+                    .map((player) => (
+                      <SelectItem key={player.id} value={player.id.toString()}>
+                        {player.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Used for head-to-head analysis
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PlayerPerformanceRadar />
         
@@ -252,121 +309,87 @@ export function AdvancedPlayerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Select Player</label>
-                  <Select 
-                    value={selectedPlayerId?.toString() || ""}
-                    onValueChange={(value) => setSelectedPlayerId(Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select player" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {players.map((player) => (
-                        <SelectItem key={player.id} value={player.id.toString()}>
-                          {player.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Compare With</label>
-                  <Select 
-                    value={comparisonPlayerId?.toString() || ""}
-                    onValueChange={(value) => setComparisonPlayerId(Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select player" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {players
-                        .filter(p => p.id !== selectedPlayerId)
-                        .map((player) => (
-                          <SelectItem key={player.id} value={player.id.toString()}>
-                            {player.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              {selectedPlayerId && comparisonPlayerId ? (
+                <>
+                  {headToHeadStats ? (
+                    <div className="mt-4">
+                      <h3 className="text-lg font-medium mb-4">
+                        {headToHeadStats.player1Name} vs {headToHeadStats.player2Name}
+                      </h3>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground">Playing Together</h4>
+                            <p className="text-2xl font-bold">
+                              {headToHeadStats.matchesWith > 0 
+                                ? `${headToHeadStats.winsWith}W - ${headToHeadStats.matchesWith - headToHeadStats.winsWith}L` 
+                                : "No games together"}
+                            </p>
+                            {headToHeadStats.matchesWith > 0 && (
+                              <p className="text-sm text-muted-foreground">
+                                {Math.round(headToHeadStats.winRateWith)}% Win Rate
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground">Playing Against</h4>
+                            <p className="text-2xl font-bold">
+                              {headToHeadStats.matchesAgainst > 0 
+                                ? `${headToHeadStats.winsAgainst}W - ${headToHeadStats.matchesAgainst - headToHeadStats.winsAgainst}L` 
+                                : "No games against each other"}
+                            </p>
+                            {headToHeadStats.matchesAgainst > 0 && (
+                              <p className="text-sm text-muted-foreground">
+                                {Math.round(headToHeadStats.winRateAgainst)}% Win Rate
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
-              {headToHeadStats ? (
-                <div className="mt-4">
-                  <h3 className="text-lg font-medium mb-4">
-                    {headToHeadStats.player1Name} vs {headToHeadStats.player2Name}
-                  </h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground">Playing Together</h4>
-                        <p className="text-2xl font-bold">
-                          {headToHeadStats.matchesWith > 0 
-                            ? `${headToHeadStats.winsWith}W - ${headToHeadStats.matchesWith - headToHeadStats.winsWith}L` 
-                            : "No games together"}
-                        </p>
-                        {headToHeadStats.matchesWith > 0 && (
-                          <p className="text-sm text-muted-foreground">
-                            {Math.round(headToHeadStats.winRateWith)}% Win Rate
-                          </p>
-                        )}
+                      <div className="mt-6">
+                        <div className="h-60">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={[
+                                {
+                                  type: "Together",
+                                  winRate: Math.round(headToHeadStats.winRateWith),
+                                  matches: headToHeadStats.matchesWith,
+                                },
+                                {
+                                  type: "Against",
+                                  winRate: Math.round(headToHeadStats.winRateAgainst),
+                                  matches: headToHeadStats.matchesAgainst,
+                                },
+                              ]}
+                              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="type" />
+                              <YAxis yAxisId="left" orientation="left" stroke="#8884d8" domain={[0, 100]} label={{ value: 'Win %', angle: -90, position: 'insideLeft' }} />
+                              <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" label={{ value: 'Games', angle: 90, position: 'insideRight' }} />
+                              <Tooltip />
+                              <Legend />
+                              <Bar yAxisId="left" dataKey="winRate" name="Win Rate %" fill="#8884d8" />
+                              <Bar yAxisId="right" dataKey="matches" name="Total Games" fill="#82ca9d" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground">Playing Against</h4>
-                        <p className="text-2xl font-bold">
-                          {headToHeadStats.matchesAgainst > 0 
-                            ? `${headToHeadStats.winsAgainst}W - ${headToHeadStats.matchesAgainst - headToHeadStats.winsAgainst}L` 
-                            : "No games against each other"}
-                        </p>
-                        {headToHeadStats.matchesAgainst > 0 && (
-                          <p className="text-sm text-muted-foreground">
-                            {Math.round(headToHeadStats.winRateAgainst)}% Win Rate
-                          </p>
-                        )}
-                      </div>
+                  ) : (
+                    <div className="h-60 flex items-center justify-center text-muted-foreground">
+                      No matches found between these players
                     </div>
-                  </div>
-
-                  <div className="mt-6">
-                    <div className="h-60">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={[
-                            {
-                              type: "Together",
-                              winRate: Math.round(headToHeadStats.winRateWith),
-                              matches: headToHeadStats.matchesWith,
-                            },
-                            {
-                              type: "Against",
-                              winRate: Math.round(headToHeadStats.winRateAgainst),
-                              matches: headToHeadStats.matchesAgainst,
-                            },
-                          ]}
-                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="type" />
-                          <YAxis yAxisId="left" orientation="left" stroke="#8884d8" domain={[0, 100]} label={{ value: 'Win %', angle: -90, position: 'insideLeft' }} />
-                          <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" label={{ value: 'Games', angle: 90, position: 'insideRight' }} />
-                          <Tooltip />
-                          <Legend />
-                          <Bar yAxisId="left" dataKey="winRate" name="Win Rate %" fill="#8884d8" />
-                          <Bar yAxisId="right" dataKey="matches" name="Total Games" fill="#82ca9d" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
+                  )}
+                </>
               ) : (
-                <div className="h-40 flex items-center justify-center text-muted-foreground">
-                  {selectedPlayerId && comparisonPlayerId
-                    ? "No matches found between these players"
-                    : "Select two players to view head-to-head statistics"}
+                <div className="h-60 flex flex-col items-center justify-center text-muted-foreground">
+                  <p>Select both primary and secondary players above</p>
+                  <p className="text-sm">to view head-to-head statistics</p>
                 </div>
               )}
             </div>
@@ -380,25 +403,6 @@ export function AdvancedPlayerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Select Player</label>
-                <Select 
-                  value={selectedPlayerId?.toString() || ""}
-                  onValueChange={(value) => setSelectedPlayerId(Number(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select player" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {players.map((player) => (
-                      <SelectItem key={player.id} value={player.id.toString()}>
-                        {player.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               {selectedPlayerId ? (
                 <div className="h-60">
                   <ResponsiveContainer width="100%" height="100%">
@@ -422,8 +426,9 @@ export function AdvancedPlayerDashboard() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-60 flex items-center justify-center text-muted-foreground">
-                  Select a player to view performance trends
+                <div className="h-60 flex flex-col items-center justify-center text-muted-foreground">
+                  <p>Select a primary player above</p>
+                  <p className="text-sm">to view performance trends</p>
                 </div>
               )}
             </div>

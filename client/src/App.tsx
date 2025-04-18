@@ -18,7 +18,7 @@ function App() {
           <Route path="/history" component={GameHistory} />
           <Route path="/results" component={Results} />
           <Route path="/analytics" component={PlayerAnalytics} />
-          <Route path="/players" component={Players} />
+          <Route path="/players" component={Dashboard} />
         </Switch>
       </main>
     </div>

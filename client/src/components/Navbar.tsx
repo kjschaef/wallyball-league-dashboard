@@ -10,7 +10,6 @@ export function Navbar() {
     { href: "/history", label: "Games" },
     { href: "/results", label: "Results" },
     { href: "/analytics", label: "Analytics" },
-    { href: "/players", label: "Players" },
   ];
 
   return (
