@@ -264,7 +264,7 @@ export function PlayerPerformanceRadar() {
   };
 
   return (
-    <Card className={expandedView ? "col-span-2" : ""}>
+    <Card className={`${expandedView ? "col-span-2" : ""} border-4 border-primary rounded-xl`}>
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
