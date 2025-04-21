@@ -287,7 +287,7 @@ export function PlayerPerformanceRadar() {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-6">
-            <div className="border-2 border-primary rounded-lg p-4">
+            <div className="border border-primary rounded-lg p-4">
               <h3 className="text-lg font-medium mb-2">Select Players (max 3)</h3>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-h-48 overflow-y-auto">
                 {players
