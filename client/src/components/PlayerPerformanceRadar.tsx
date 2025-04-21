@@ -167,42 +167,56 @@ const performanceMetrics: PerformanceMetric[] = [
     scale: [0, 100],
   },
   {
-    name: "endurance",
-    displayName: "Endurance",
-    description: "Player's ability to maintain performance in longer match sessions",
+    name: "adaptability",
+    displayName: "Matchup Adaptability",
+    description: "Player's ability to perform well with different teammates",
     calculate: (player) => {
-      const { stats } = player;
-      if (!stats || !stats.totalMatchTime || stats.totalMatchTime === 0) return 0;
+      const { matches } = player;
+      if (!matches || matches.length < 3) return 50; // Neutral if not enough matches
       
-      // Group matches by day
-      const matchesByDay = new Map();
-      player.matches.forEach(match => {
-        const date = new Date(match.date).toDateString();
-        if (!matchesByDay.has(date)) {
-          matchesByDay.set(date, { matches: [], wins: 0, total: 0 });
-        }
-        const dayData = matchesByDay.get(date);
-        dayData.matches.push(match);
-        if (match.won) dayData.wins++;
-        dayData.total++;
+      // Track unique teammates and performance with each
+      const teammatePerformance = new Map();
+      
+      matches.forEach(match => {
+        const isTeamOne = [match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId].includes(player.id);
+        const teammates = isTeamOne 
+          ? [match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId]
+          : [match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId];
+        
+        // Record performance with each teammate
+        teammates.forEach(teammateId => {
+          if (teammateId && teammateId !== player.id) {
+            if (!teammatePerformance.has(teammateId)) {
+              teammatePerformance.set(teammateId, { wins: 0, total: 0 });
+            }
+            const stats = teammatePerformance.get(teammateId);
+            stats.total++;
+            if ((isTeamOne && match.teamOneGamesWon > match.teamTwoGamesWon) ||
+                (!isTeamOne && match.teamTwoGamesWon > match.teamOneGamesWon)) {
+              stats.wins++;
+            }
+          }
+        });
       });
       
-      // Calculate average daily session performance ratio
-      let totalSessionScore = 0;
-      let totalSessions = 0;
+      // Calculate average win rate across different teammates
+      let totalWinRate = 0;
+      let uniqueTeammates = 0;
       
-      matchesByDay.forEach(day => {
-        if (day.total >= 3) { // Only consider meaningful sessions with at least 3 games
-          const sessionScore = day.wins / day.total;
-          totalSessionScore += sessionScore;
-          totalSessions++;
+      teammatePerformance.forEach(stats => {
+        if (stats.total >= 2) { // Only consider teammates played with multiple times
+          totalWinRate += (stats.wins / stats.total);
+          uniqueTeammates++;
         }
       });
       
-      if (totalSessions === 0) return 50; // Neutral if not enough data
+      if (uniqueTeammates === 0) return 50; // Neutral if no recurring teammates
       
-      // Map to 0-100 scale
-      return (totalSessionScore / totalSessions) * 100;
+      // Score combines win rate and number of different teammates
+      const averageWinRate = (totalWinRate / uniqueTeammates) * 100;
+      const teammateVariety = Math.min(100, (uniqueTeammates / 5) * 100); // Max score at 5+ teammates
+      
+      return (averageWinRate * 0.7) + (teammateVariety * 0.3); // 70% win rate, 30% variety
     },
     scale: [0, 100],
   }
