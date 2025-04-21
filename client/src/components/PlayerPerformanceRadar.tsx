@@ -166,60 +166,7 @@ const performanceMetrics: PerformanceMetric[] = [
     },
     scale: [0, 100],
   },
-  {
-    name: "adaptability",
-    displayName: "Matchup Adaptability",
-    description: "Player's ability to perform well with different teammates",
-    calculate: (player) => {
-      const { matches } = player;
-      if (!matches || matches.length < 3) return 50; // Neutral if not enough matches
-      
-      // Track unique teammates and performance with each
-      const teammatePerformance = new Map();
-      
-      matches.forEach(match => {
-        const isTeamOne = [match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId].includes(player.id);
-        const teammates = isTeamOne 
-          ? [match.teamOnePlayerOneId, match.teamOnePlayerTwoId, match.teamOnePlayerThreeId]
-          : [match.teamTwoPlayerOneId, match.teamTwoPlayerTwoId, match.teamTwoPlayerThreeId];
-        
-        // Record performance with each teammate
-        teammates.forEach(teammateId => {
-          if (teammateId && teammateId !== player.id) {
-            if (!teammatePerformance.has(teammateId)) {
-              teammatePerformance.set(teammateId, { wins: 0, total: 0 });
-            }
-            const stats = teammatePerformance.get(teammateId);
-            stats.total++;
-            if ((isTeamOne && match.teamOneGamesWon > match.teamTwoGamesWon) ||
-                (!isTeamOne && match.teamTwoGamesWon > match.teamOneGamesWon)) {
-              stats.wins++;
-            }
-          }
-        });
-      });
-      
-      // Calculate average win rate across different teammates
-      let totalWinRate = 0;
-      let uniqueTeammates = 0;
-      
-      teammatePerformance.forEach(stats => {
-        if (stats.total >= 2) { // Only consider teammates played with multiple times
-          totalWinRate += (stats.wins / stats.total);
-          uniqueTeammates++;
-        }
-      });
-      
-      if (uniqueTeammates === 0) return 50; // Neutral if no recurring teammates
-      
-      // Score combines win rate and number of different teammates
-      const averageWinRate = (totalWinRate / uniqueTeammates) * 100;
-      const teammateVariety = Math.min(100, (uniqueTeammates / 5) * 100); // Max score at 5+ teammates
-      
-      return (averageWinRate * 0.7) + (teammateVariety * 0.3); // 70% win rate, 30% variety
-    },
-    scale: [0, 100],
-  }
+  
 ];
 
 export function PlayerPerformanceRadar() {
