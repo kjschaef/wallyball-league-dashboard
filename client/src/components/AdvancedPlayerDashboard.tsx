@@ -87,7 +87,7 @@ export function AdvancedPlayerDashboard() {
   // Calculate percentile rankings
   const getPlayerPercentileRank = (playerId: number, metric: 'winRate' | 'gamesPlayed' | 'activity') => {
     if (!playerId || players.length === 0) return "N/A";
-    
+
     const playerValues = players.map(player => {
       if (metric === 'winRate') {
         const { penalizedWinRate } = calculatePenalizedWinPercentage(player);
@@ -106,44 +106,44 @@ export function AdvancedPlayerDashboard() {
       }
       return { id: player.id, value: 0 };
     });
-    
+
     // Sort by value descending
     playerValues.sort((a, b) => b.value - a.value);
-    
+
     // Find player's rank
     const playerRank = playerValues.findIndex(p => p.id === playerId) + 1;
-    
+
     // Calculate percentile (higher rank = better percentile)
     const percentile = 100 - ((playerRank - 1) / playerValues.length) * 100;
-    
+
     return `${Math.round(percentile)}%`;
   };
 
   // Generate head-to-head statistics between players
   const getHeadToHeadStats = (): HeadToHeadStats | null => {
     if (!selectedPlayerId || !comparisonPlayerId || players.length < 2) return null;
-    
+
     const player1 = players.find(p => p.id === selectedPlayerId);
     const player2 = players.find(p => p.id === comparisonPlayerId);
-    
+
     if (!player1 || !player2) return null;
-    
+
     // Find matches where both players participated
     const relevantMatches = player1.matches.filter(match1 => {
       return player2.matches.some(match2 => match2.id === match1.id);
     });
-    
+
     let matchesWith = 0;
     let winsWith = 0;
     let matchesAgainst = 0;
     let winsAgainst = 0;
-    
+
     relevantMatches.forEach(match => {
       const player2Match = player2.matches.find(m => m.id === match.id);
       if (!player2Match) return;
-      
+
       const sameTeam = match.isTeamOne === player2Match.isTeamOne;
-      
+
       if (sameTeam) {
         matchesWith++;
         if (match.won) winsWith++;
@@ -152,7 +152,7 @@ export function AdvancedPlayerDashboard() {
         if (match.won) winsAgainst++;
       }
     });
-    
+
     return {
       player1Id: player1.id,
       player2Id: player2.id,
@@ -170,15 +170,15 @@ export function AdvancedPlayerDashboard() {
   // Calculate performance metrics for a player over time
   const getPerformanceOverTime = (playerId: number | null) => {
     if (!playerId) return [];
-    
+
     const player = players.find(p => p.id === playerId);
     if (!player || !player.matches || player.matches.length === 0) return [];
-    
+
     // Group matches by month
     const matchesByMonth = player.matches.reduce((acc, match) => {
       const date = new Date(match.date);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      
+
       if (!acc[monthKey]) {
         acc[monthKey] = {
           month: monthKey,
@@ -188,30 +188,30 @@ export function AdvancedPlayerDashboard() {
           winRate: 0,
         };
       }
-      
+
       if (match.won) {
         acc[monthKey].wins++;
       } else {
         acc[monthKey].losses++;
       }
-      
+
       acc[monthKey].totalGames++;
       acc[monthKey].winRate = (acc[monthKey].wins / acc[monthKey].totalGames) * 100;
-      
+
       return acc;
     }, {} as Record<string, any>);
-    
+
     // Convert to array and sort by month
     return Object.values(matchesByMonth).sort((a, b) => a.month.localeCompare(b.month));
   };
 
   const headToHeadStats = getHeadToHeadStats();
-  
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PlayerPerformanceRadar />
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Player Rankings & Percentiles</CardTitle>
@@ -244,6 +244,7 @@ export function AdvancedPlayerDashboard() {
         </Card>
       </div>
 
+      <div className="border-4 border-primary rounded-xl p-6"> {/* Added border div */}
       {/* Player selector card for the trend analysis and head-to-head sections */}
       <Card className="mb-6 bg-muted/50 border-dashed">
         <CardHeader className="pb-4">
@@ -435,6 +436,7 @@ export function AdvancedPlayerDashboard() {
           </CardContent>
         </Card>
       </div>
+      </div> {/* closing border div */}
     </div>
   );
 }
