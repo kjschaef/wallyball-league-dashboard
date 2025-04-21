@@ -212,36 +212,7 @@ export function AdvancedPlayerDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PlayerPerformanceRadar />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Player Rankings & Percentiles</CardTitle>
-            <CardDescription>See how players rank compared to others in the league</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Rank</TableHead>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Win Rate</TableHead>
-                    <TableHead>Percentile</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {topPlayers.map((player, index) => (
-                    <TableRow key={player.id}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>{player.name}</TableCell>
-                      <TableCell>{Math.round(player.penalizedWinRate)}%</TableCell>
-                      <TableCell>{getPlayerPercentileRank(player.id, 'winRate')}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        
       </div>
 
       <div className="border-4 border-primary rounded-xl p-6"> {/* Added border div */}
