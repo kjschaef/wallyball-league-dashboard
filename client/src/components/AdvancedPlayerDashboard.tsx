@@ -209,13 +209,11 @@ export function AdvancedPlayerDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <PlayerPerformanceRadar />
-
-        
       </div>
 
-      <div className="border-4 border-primary rounded-xl p-6"> {/* Added border div */}
+      <div className="border-4 border-primary rounded-xl p-6">
       {/* Player selector card for the trend analysis and head-to-head sections */}
       <Card className="mb-6 bg-muted/50 border-dashed">
         <CardHeader className="pb-4">
@@ -223,8 +221,8 @@ export function AdvancedPlayerDashboard() {
           <CardDescription>Select players for the analysis charts below</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="md:col-span-1 lg:col-span-2">
               <label className="text-sm font-medium mb-2 block">Primary Player</label>
               <Select 
                 value={selectedPlayerId?.toString() || ""}
@@ -245,7 +243,7 @@ export function AdvancedPlayerDashboard() {
                 Used for trends and head-to-head analysis
               </p>
             </div>
-            <div>
+            <div className="md:col-span-1 lg:col-span-2">
               <label className="text-sm font-medium mb-2 block">Secondary Player (for comparison)</label>
               <Select 
                 value={comparisonPlayerId?.toString() || ""}
@@ -273,8 +271,8 @@ export function AdvancedPlayerDashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="h-full">
           <CardHeader>
             <CardTitle>Head-to-Head Analysis</CardTitle>
             <CardDescription>Compare performance when playing with or against another player</CardDescription>
@@ -322,7 +320,7 @@ export function AdvancedPlayerDashboard() {
                       </div>
 
                       <div className="mt-6">
-                        <div className="h-60">
+                        <div className="h-72">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                               data={[
@@ -353,13 +351,13 @@ export function AdvancedPlayerDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <div className="h-60 flex items-center justify-center text-muted-foreground">
+                    <div className="h-72 flex items-center justify-center text-muted-foreground">
                       No matches found between these players
                     </div>
                   )}
                 </>
               ) : (
-                <div className="h-60 flex flex-col items-center justify-center text-muted-foreground">
+                <div className="h-72 flex flex-col items-center justify-center text-muted-foreground">
                   <p>Select both primary and secondary players above</p>
                   <p className="text-sm">to view head-to-head statistics</p>
                 </div>
@@ -368,7 +366,7 @@ export function AdvancedPlayerDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="h-full">
           <CardHeader>
             <CardTitle>Performance Trends</CardTitle>
             <CardDescription>Track performance changes over time</CardDescription>
@@ -376,11 +374,11 @@ export function AdvancedPlayerDashboard() {
           <CardContent>
             <div className="space-y-6">
               {selectedPlayerId ? (
-                <div className="h-60">
+                <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
                       data={getPerformanceOverTime(selectedPlayerId)}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                      margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
@@ -398,7 +396,7 @@ export function AdvancedPlayerDashboard() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-60 flex flex-col items-center justify-center text-muted-foreground">
+                <div className="h-72 flex flex-col items-center justify-center text-muted-foreground">
                   <p>Select a primary player above</p>
                   <p className="text-sm">to view performance trends</p>
                 </div>

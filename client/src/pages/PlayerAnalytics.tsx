@@ -75,7 +75,7 @@ export default function PlayerAnalytics() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Advanced Player Analytics</h1>
@@ -87,7 +87,7 @@ export default function PlayerAnalytics() {
         </Button>
       </div>
 
-      <div id="analytics-content">
+      <div id="analytics-content" className="w-full">
         <AdvancedPlayerDashboard />
       </div>
     </div>
