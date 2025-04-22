@@ -225,19 +225,20 @@ export function PlayerPerformanceRadar() {
   };
 
   return (
-    <Card className={`${expandedView ? "col-span-2 lg:col-span-4" : ""} border-4 border-primary rounded-xl max-w-[2000px] mx-auto`}>
-      <CardHeader>
-        <div className="flex justify-between items-center">
+    <Card className={`${expandedView ? "col-span-full" : "col-span-1"} border-4 border-primary rounded-xl w-full`}>
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <CardTitle>Player Performance Analysis</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl sm:text-2xl">Player Performance Analysis</CardTitle>
+            <CardDescription className="mt-1">
               Compare players across multiple performance metrics
             </CardDescription>
           </div>
-          <div className="flex space-x-2">
+          <div className="w-full sm:w-auto">
             <Button 
               variant="outline" 
               size="sm" 
+              className="w-full sm:w-auto"
               onClick={() => setExpandedView(!expandedView)}
             >
               {expandedView ? "Compact View" : "Expanded View"}
@@ -245,9 +246,9 @@ export function PlayerPerformanceRadar() {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div className={`space-y-6 ${expandedView ? 'md:col-span-2 xl:col-span-1' : ''}`}>
+      <CardContent className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <div className={`space-y-4 sm:space-y-6 ${expandedView ? 'lg:col-span-1' : ''} order-1 lg:order-none`}>
             <div className="bg-muted/50 border border-dashed rounded-lg p-4">
               <h3 className="text-lg font-medium mb-2">Select Players (max 3)</h3>
               <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2">
@@ -309,9 +310,9 @@ export function PlayerPerformanceRadar() {
             </div>
           </div>
 
-          <div className={`${expandedView ? "md:col-span-2" : ""} col-span-1`}>
+          <div className={`${expandedView ? "lg:col-span-1 xl:col-span-2" : ""} col-span-1 order-2 lg:order-none min-h-[350px] sm:min-h-[400px] xl:min-h-[500px]`}>
             {selectedPlayers.length > 0 ? (
-              <div className="h-[400px] md:h-[500px]">
+              <div className="h-full w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart 
                     outerRadius={90} 
