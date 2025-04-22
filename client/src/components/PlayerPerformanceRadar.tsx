@@ -250,26 +250,28 @@ export function PlayerPerformanceRadar() {
           <div className="space-y-6">
             <div className="bg-muted/50 border border-dashed rounded-lg p-4">
               <h3 className="text-lg font-medium mb-2">Select Players (max 3)</h3>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-h-48 overflow-y-auto">
+              <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2">
                 {players
                   .sort((a, b) => {
                     // Sort by most games played
                     return (b.matches?.length || 0) - (a.matches?.length || 0);
                   })
                   .map((player, index) => (
-                    <div key={player.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`player-${player.id}`} 
-                        checked={selectedPlayers.includes(player.id)}
-                        onCheckedChange={() => handlePlayerToggle(player.id)}
-                        style={{
-                          backgroundColor: selectedPlayers.includes(player.id) 
-                            ? playerColors[selectedPlayers.indexOf(player.id)] 
-                            : undefined
-                        }}
-                      />
-                      <Label htmlFor={`player-${player.id}`}>{player.name}</Label>
-                      <span className="text-xs text-muted-foreground">
+                    <div key={player.id} className="flex items-center justify-between bg-muted/30 rounded-md px-2 py-1">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id={`player-${player.id}`} 
+                          checked={selectedPlayers.includes(player.id)}
+                          onCheckedChange={() => handlePlayerToggle(player.id)}
+                          style={{
+                            backgroundColor: selectedPlayers.includes(player.id) 
+                              ? playerColors[selectedPlayers.indexOf(player.id)] 
+                              : undefined
+                          }}
+                        />
+                        <Label className="text-sm" htmlFor={`player-${player.id}`}>{player.name}</Label>
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
                         ({player.matches?.length || 0} games)
                       </span>
                     </div>
