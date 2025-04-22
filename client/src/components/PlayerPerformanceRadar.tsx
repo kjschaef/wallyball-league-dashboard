@@ -251,15 +251,15 @@ export function PlayerPerformanceRadar() {
           <div className="space-y-4 sm:space-y-6 lg:col-span-1 order-1 lg:order-none">
             <div className="bg-muted/50 border border-dashed rounded-lg p-4">
               <h3 className="text-lg font-medium mb-2">Select Players (max 3)</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2">
                 {players
                   .sort((a, b) => {
                     // Sort by most games played
                     return (b.matches?.length || 0) - (a.matches?.length || 0);
                   })
                   .map((player, index) => (
-                    <div key={player.id} className="flex items-center justify-between bg-muted/30 rounded-md px-2 py-1">
-                      <div className="flex items-center gap-2">
+                    <div key={player.id} className="flex items-center bg-muted/30 rounded-md px-2 py-1.5">
+                      <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                         <Checkbox 
                           id={`player-${player.id}`} 
                           checked={selectedPlayers.includes(player.id)}
@@ -269,11 +269,12 @@ export function PlayerPerformanceRadar() {
                               ? playerColors[selectedPlayers.indexOf(player.id)] 
                               : undefined
                           }}
+                          className="flex-shrink-0"
                         />
-                        <Label className="text-sm" htmlFor={`player-${player.id}`}>{player.name}</Label>
+                        <Label className="text-sm truncate" htmlFor={`player-${player.id}`}>{player.name}</Label>
                       </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        ({player.matches?.length || 0} games)
+                      <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0 ml-1">
+                        ({player.matches?.length || 0})
                       </span>
                     </div>
                   ))}
