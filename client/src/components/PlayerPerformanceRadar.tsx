@@ -251,31 +251,36 @@ export function PlayerPerformanceRadar() {
           <div className="space-y-4 sm:space-y-6 lg:col-span-1 order-1 lg:order-none">
             <div className="bg-muted/50 border border-dashed rounded-lg p-4">
               <h3 className="text-lg font-medium mb-2">Select Players (max 3)</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
                 {players
                   .sort((a, b) => {
                     // Sort by most games played
                     return (b.matches?.length || 0) - (a.matches?.length || 0);
                   })
                   .map((player, index) => (
-                    <div key={player.id} className="flex items-center bg-muted/30 rounded-md px-2 py-1.5">
-                      <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-                        <Checkbox 
-                          id={`player-${player.id}`} 
-                          checked={selectedPlayers.includes(player.id)}
-                          onCheckedChange={() => handlePlayerToggle(player.id)}
-                          style={{
-                            backgroundColor: selectedPlayers.includes(player.id) 
-                              ? playerColors[selectedPlayers.indexOf(player.id)] 
-                              : undefined
-                          }}
-                          className="flex-shrink-0"
-                        />
-                        <Label className="text-sm truncate" htmlFor={`player-${player.id}`}>{player.name}</Label>
+                    <div key={player.id} className="flex items-center bg-muted/30 rounded-md p-2">
+                      <Checkbox 
+                        id={`player-${player.id}`} 
+                        checked={selectedPlayers.includes(player.id)}
+                        onCheckedChange={() => handlePlayerToggle(player.id)}
+                        style={{
+                          backgroundColor: selectedPlayers.includes(player.id) 
+                            ? playerColors[selectedPlayers.indexOf(player.id)] 
+                            : undefined
+                        }}
+                        className="flex-shrink-0 mr-2"
+                      />
+                      <div className="flex justify-between w-full min-w-0">
+                        <Label 
+                          className="text-sm font-medium truncate mr-1" 
+                          htmlFor={`player-${player.id}`}
+                        >
+                          {player.name}
+                        </Label>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                          ({player.matches?.length || 0})
+                        </span>
                       </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0 ml-1">
-                        ({player.matches?.length || 0})
-                      </span>
                     </div>
                   ))}
               </div>
