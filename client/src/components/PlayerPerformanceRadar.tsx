@@ -225,7 +225,7 @@ export function PlayerPerformanceRadar() {
   };
 
   return (
-    <Card className={`${expandedView ? "col-span-2" : ""} border-4 border-primary rounded-xl`}>
+    <Card className={`${expandedView ? "col-span-2 lg:col-span-4" : ""} border-4 border-primary rounded-xl max-w-[2000px] mx-auto`}>
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
@@ -246,7 +246,7 @@ export function PlayerPerformanceRadar() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`grid ${expandedView ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'} gap-6`}>
           <div className="space-y-6">
             <div className="bg-muted/50 border border-dashed rounded-lg p-4">
               <h3 className="text-lg font-medium mb-2">Select Players (max 3)</h3>
