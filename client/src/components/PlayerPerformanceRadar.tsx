@@ -251,7 +251,7 @@ export function PlayerPerformanceRadar() {
           <div className="space-y-4 sm:space-y-6 lg:col-span-1 order-1 lg:order-none">
             <div className="bg-muted/50 border border-dashed rounded-lg p-4">
               <h3 className="text-lg font-medium mb-2">Select Players (max 3)</h3>
-              <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
                 {players
                   .sort((a, b) => {
                     // Sort by most games played
