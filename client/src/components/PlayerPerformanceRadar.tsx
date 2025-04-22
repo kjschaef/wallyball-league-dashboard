@@ -270,16 +270,13 @@ export function PlayerPerformanceRadar() {
                         }}
                         className="flex-shrink-0 mr-2"
                       />
-                      <div className="flex justify-between w-full min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <Label 
-                          className="text-sm font-medium truncate mr-1" 
+                          className="text-sm font-medium block w-full" 
                           htmlFor={`player-${player.id}`}
                         >
-                          {player.name}
+                          {player.name} <span className="text-xs text-muted-foreground">({player.matches?.length || 0})</span>
                         </Label>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
-                          ({player.matches?.length || 0})
-                        </span>
                       </div>
                     </div>
                   ))}
