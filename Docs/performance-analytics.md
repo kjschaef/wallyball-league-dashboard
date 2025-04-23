@@ -2,73 +2,144 @@
 
 ## Overview
 
-The Performance Analytics feature provides data visualization and analysis tools for tracking player and team performance over time. It enables users to identify trends, compare performance metrics, and gain insights into volleyball match outcomes.
+The Performance Analytics feature provides comprehensive data visualization and analysis tools for tracking player and team performance over time. It enables users to identify trends, compare performance metrics, and gain deep insights into volleyball match outcomes through multiple visualization types and analytical approaches.
 
 ## Key Features
 
 1. **Performance Trend Visualization**
    - Win percentage trends over time
-   - Total wins tracking
+   - Total wins tracking 
    - Weekly or cumulative data views
    - Inactivity penalty visualization
 
-2. **Filtering Options**
-   - Recent vs. all-time data views
-   - Metric selection (win percentage, total wins)
-   - Weekly averages vs. daily data points
+2. **Player Performance Radar**
+   - Multi-dimensional player comparison
+   - Customizable performance metrics
+   - Interactive radar chart visualization
+   - Up to 3-player simultaneous comparison
 
-3. **Export Capabilities**
+3. **Head-to-Head Analysis**
+   - Compare two players' performances when playing together vs. against each other
+   - Win/loss records for different player combinations
+   - Win rate calculations for different team compositions
+
+4. **Advanced Performance Metrics**
+   - Win Rate (with inactivity penalty)
+   - Consistency (streak analysis)
+   - Improvement (recent vs. historical performance)
+   - Play Volume (participation frequency)
+
+5. **Export Capabilities**
    - Dashboard export as image
    - Performance chart sharing
 
-4. **Team Analytics**
-   - Best performing teams identification
-   - Common team matchup analysis
-   - Season statistics summaries
-
 ## Technical Implementation
 
-### Performance Trend Component
+### Performance Radar Component
 
-The PerformanceTrend component is the core implementation of the performance analytics feature. It calculates and displays performance metrics over time for all players.
-
-Key implementation aspects:
+The PlayerPerformanceRadar component allows multi-dimensional comparison of players across several key performance metrics:
 
 ```typescript
-export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
-  const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
-  const [showAllData, setShowAllData] = useState(false);
+export function PlayerPerformanceRadar() {
+  const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
+  const [metrics, setMetrics] = useState<string[]>(performanceMetrics.map(m => m.name));
+  const [expandedView, setExpandedView] = useState(false);
   
-  // Data fetching and processing
-  // ...
-
-  // Calculate player statistics for each time period
-  // Apply inactivity penalties for missing data periods
-  // Generate chart data for selected metrics
+  // Prepare data for the radar chart
+  const radarData = metrics.map(metricName => {
+    const metric = performanceMetrics.find(m => m.name === metricName);
+    if (!metric) return null;
+    
+    const dataPoint: Record<string, any> = { 
+      metric: metric.displayName,
+      fullMark: 100,
+    };
+    
+    players
+      .filter(player => selectedPlayers.includes(player.id))
+      .forEach(player => {
+        const value = metric.calculate(player, players);
+        dataPoint[player.name] = value;
+      });
+    
+    return dataPoint;
+  }).filter(Boolean);
   
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{/* Metric title */}</CardTitle>
-        <div className="flex flex-col gap-2">
-          {/* Toggle controls for metric and time range */}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[400px] w-full">
-          <ResponsiveContainer>
-            <LineChart data={chartData}>
-              {/* Chart components */}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  // Component rendering with RadarChart from recharts
 }
 ```
 
-### Inactivity Calculation
+### Performance Metrics Implementation
+
+The application calculates several advanced metrics for player performance:
+
+```typescript
+const performanceMetrics: PerformanceMetric[] = [
+  {
+    name: "winRate",
+    displayName: "Win Rate",
+    description: "Percentage of games won, adjusted for inactivity",
+    calculate: (player) => {
+      const { penalizedWinRate } = calculatePenalizedWinPercentage(player);
+      return penalizedWinRate;
+    },
+    scale: [0, 100],
+  },
+  {
+    name: "consistency",
+    displayName: "Consistency",
+    description: "Measure of how consistently a player performs across games",
+    calculate: (player) => {
+      // Streak analysis calculation
+      // Higher score = fewer changes between winning and losing
+    },
+    scale: [0, 100],
+  },
+  {
+    name: "improvement",
+    displayName: "Improvement",
+    description: "How much a player has improved recently compared to their historical performance",
+    calculate: (player) => {
+      // Compare recent performance to historical performance
+      // Map to 0-100 scale: 0 = decline, 50 = neutral, 100 = improvement
+    },
+    scale: [0, 100],
+  },
+  {
+    name: "volume",
+    displayName: "Play Volume",
+    description: "How frequently a player participates in games relative to other players",
+    calculate: (player, allPlayers) => {
+      // Calculate normalized score based on match participation
+    },
+    scale: [0, 100],
+  },
+];
+```
+
+### Head-to-Head Analysis
+
+The AdvancedPlayerDashboard component includes detailed head-to-head analysis:
+
+```typescript
+// Calculate head-to-head statistics between two players
+const getHeadToHeadStats = () => {
+  if (!selectedPlayerId || !comparisonPlayerId) return null;
+  
+  const player1 = players.find(p => p.id === selectedPlayerId);
+  const player2 = players.find(p => p.id === comparisonPlayerId);
+  
+  // Find matches where both players participated
+  const relevantMatches = player1.matches.filter(match1 => {
+    return player2.matches.some(match2 => match2.id === match1.id);
+  });
+  
+  // Calculate statistics for when they played on same team vs. opposite teams
+  // Return win rates, win-loss records, and other metrics
+};
+```
+
+### Inactivity Penalty System
 
 Performance analytics incorporates inactivity penalties to provide a more accurate representation of player performance:
 
@@ -104,7 +175,7 @@ const shareAsImage = async () => {
   let originalWidth = '';
   try {
     setIsExporting(true);
-    const element = document.getElementById('dashboard-content');
+    const element = document.getElementById('analytics-content');
     if (!element) return;
 
     // Save original width and get computed height
@@ -124,20 +195,7 @@ const shareAsImage = async () => {
     });
 
     // Download the image
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = `volleyball-dashboard-${format(new Date(), 'yyyy-MM-dd')}.png`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-        toast({
-          title: "Image downloaded successfully",
-          variant: "success",
-        });
-      }
-    }, 'image/png');
+    // ...
   } catch (error) {
     console.error('Error creating image:', error);
   } finally {
@@ -152,36 +210,48 @@ const shareAsImage = async () => {
 
 The performance analytics feature uses several visualization components:
 
-1. **Line Charts**
+1. **Radar Charts**
+   - Multi-dimensional comparison of player metrics
+   - Interactive selection of metrics and players
+   - Tooltips with detailed performance information
+   - Expandable view for detailed analysis
+
+2. **Line Charts**
    - Displays win percentage or total wins over time
    - Color-coded player lines
    - Interactive tooltips with detailed information
    - Responsive design for all screen sizes
 
-2. **Team Performance Cards**
-   - Shows win/loss records for team compositions
-   - Highlights top-performing teams
-   - Filters teams by minimum game threshold
+3. **Team Performance Analysis**
+   - Shows win/loss records for various team combinations
+   - Head-to-head performance metrics
+   - Win rate comparisons for playing with vs. against specific players
 
-3. **Season Statistics**
-   - Total matches played
-   - Total games played
-   - Average games per match
+4. **Monthly Performance Trends**
+   - Month-by-month performance tracking
+   - Win rate visualization over time
+   - Detection of improvement or decline in performance
 
 ## UI Interactions
 
 The performance analytics interface provides these user interactions:
 
-1. **Metric Selection**
-   - Toggle between win percentage and total wins
-   - Switch between recent data and all-time data
+1. **Player Selection**
+   - Select up to 3 players for radar chart comparison
+   - Select primary and comparison players for head-to-head analysis
+   - Filter by most active players
 
-2. **Tooltip Information**
-   - Hover over data points to see detailed metrics
+2. **Metric Configuration**
+   - Toggle different performance metrics on/off
+   - View detailed descriptions of each metric via info tooltips
+   - Switch between expanded and compact views
+
+3. **Data Interpretation**
+   - Hover over chart elements to see detailed metrics
    - View inactivity penalty information when applicable
-   - See exact dates and values
+   - Compare raw and adjusted performance values
 
-3. **Data Export**
+4. **Data Export**
    - Click "Share as Image" to download dashboard as PNG
    - Generated image includes all visualization components
 
@@ -191,6 +261,7 @@ The performance analytics interface provides these user interactions:
    - Apply inactivity penalties to prevent misleading statistics
    - Use consistent calculation methods across the application
    - Clearly indicate data sources and filtering
+   - Provide sufficient context for performance metrics
 
 2. **Visual Design**
    - Consistent color coding for players
@@ -202,3 +273,4 @@ The performance analytics interface provides these user interactions:
    - Efficient data processing
    - Memoization of expensive calculations
    - Responsive UI during export operations
+   - Limit simultaneous comparisons to maintain clarity
