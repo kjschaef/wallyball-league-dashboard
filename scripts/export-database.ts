@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { db } from '../db/index.js';
-import { players, matches, achievements, playerAchievements } from '../db/schema.js';
+import { db } from '../db';
+import { players, matches, achievements, playerAchievements } from '../db/schema';
 
 // Get directory name in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -15,10 +15,10 @@ if (!fs.existsSync(exportDir)) {
 }
 
 // Convert data to CSV string
-function jsonToCSV(data, headers) {
+function jsonToCSV(data: any[], headers: string[]): string {
   if (data.length === 0) return headers.join(',') + '\n';
   
-  const csvRows = [];
+  const csvRows: string[] = [];
   
   // Add the headers
   csvRows.push(headers.join(','));
@@ -49,7 +49,7 @@ function jsonToCSV(data, headers) {
 }
 
 // Write data to a CSV file
-function writeToCSV(data, filename, headers) {
+function writeToCSV(data: any[], filename: string, headers: string[]): void {
   const csvData = jsonToCSV(data, headers);
   const filePath = path.join(exportDir, `${filename}.csv`);
   
@@ -57,7 +57,7 @@ function writeToCSV(data, filename, headers) {
   console.log(`Exported ${data.length} records to ${filePath}`);
 }
 
-async function exportTables() {
+async function exportTables(): Promise<void> {
   try {
     console.log('Starting database export...');
     

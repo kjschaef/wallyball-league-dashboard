@@ -1,0 +1,7 @@
+id,name,description,icon,condition
+19,First Game,Play your first volleyball game,Medal,games_played >= 1
+20,Regular Player,Play 10 or more games,Trophy,games_played >= 10
+21,Winner,Win 5 or more games,Star,games_won >= 5
+22,Team Player,Play with 5 different teammates,Users,unique_teammates >= 5
+23,Perfect Game,Win a game without losing any points,Crown,perfect_games >= 1
+24,Champion,Maintain a 70% or higher win rate,Target,win_rate >= 0.7
