@@ -1,5 +1,6 @@
 
-import { drizzle } from "drizzle-orm/neon-serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import * as schema from "./schema";
 
@@ -17,9 +18,11 @@ export function getDatabase(overrideUrl?: string) {
     throw new Error(`Database URL must be set for ${env} environment`);
   }
 
-  return drizzle({
-    connection: dbUrl,
-    schema,
-    ws: ws,
-  });
+  if (env !== 'production') {
+    neonConfig.webSocketConstructor = ws;
+  }
+
+  const sql = neon(dbUrl);
+
+  return drizzle(sql, { schema });
 }
