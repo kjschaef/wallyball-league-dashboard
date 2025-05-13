@@ -35,3 +35,29 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to fetch matches" }, { status: 500 });
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const db = getDb();
+    const data = await request.json();
+    
+    const result = await db.insert(matches)
+      .values({
+        date: new Date(data.date),
+        teamOnePlayerOneId: data.teamOnePlayerOneId,
+        teamOnePlayerTwoId: data.teamOnePlayerTwoId,
+        teamOnePlayerThreeId: data.teamOnePlayerThreeId,
+        teamTwoPlayerOneId: data.teamTwoPlayerOneId,
+        teamTwoPlayerTwoId: data.teamTwoPlayerTwoId,
+        teamTwoPlayerThreeId: data.teamTwoPlayerThreeId,
+        teamOneGamesWon: data.teamOneGamesWon,
+        teamTwoGamesWon: data.teamTwoGamesWon
+      })
+      .returning();
+    
+    return NextResponse.json(result[0]);
+  } catch (error) {
+    console.error("Error creating match:", error);
+    return NextResponse.json({ error: "Failed to create match" }, { status: 500 });
+  }
+}
