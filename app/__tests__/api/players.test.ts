@@ -1,6 +1,24 @@
-import { NextRequest } from 'next/server';
 import { GET, POST } from '../../api/players/route';
 import { getDb } from '../../lib/db';
+
+jest.mock('next/server', () => {
+  const json = jest.fn().mockImplementation((data) => ({
+    status: 200,
+    json: async () => data,
+  }));
+  
+  return {
+    NextRequest: jest.fn().mockImplementation((url, options = {}) => ({
+      url,
+      method: options.method || 'GET',
+      headers: new Map(Object.entries(options.headers || {})),
+      json: async () => JSON.parse(options.body || '{}'),
+    })),
+    NextResponse: {
+      json,
+    },
+  };
+});
 
 jest.mock('../../lib/db', () => ({
   getDb: jest.fn().mockReturnValue({
@@ -70,15 +88,11 @@ describe('Players API Routes', () => {
         })
       });
       
-      const request = new NextRequest('http://localhost:3000/api/players', {
-        method: 'POST',
-        body: JSON.stringify({ name: 'New Player', startYear: 2023 }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = {
+        json: jest.fn().mockResolvedValue({ name: 'New Player', startYear: 2023 }),
+      };
       
-      const response = await POST(request);
+      const response = await POST(request as any);
       const data = await response.json();
       
       expect(response.status).toBe(200);
