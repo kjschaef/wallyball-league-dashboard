@@ -1,3 +1,4 @@
+
 module.exports = {
   testEnvironment: 'jsdom',
   moduleNameMapper: {
@@ -13,5 +14,9 @@ module.exports = {
   moduleDirectories: ['node_modules', '<rootDir>'],
   transformIgnorePatterns: [
     'node_modules/(?!(@tanstack|wouter)/)'
+  ],
+  testMatch: [
+    '**/__tests__/**/*.[jt]s?(x)',
+    '**/?(*.)+(spec|test).[jt]s?(x)'
   ]
 };
