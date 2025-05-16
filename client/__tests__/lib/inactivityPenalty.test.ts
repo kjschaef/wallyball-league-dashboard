@@ -24,6 +24,9 @@ describe('calculateInactivityPenalty', () => {
 
     const result = calculateInactivityPenalty(player);
 
+    // The function returns weeksInactive as the number of weeks after the grace period
+    // This test is for a player that played one week ago, which is within the 2-week grace period
+    // So the weeksInactive and penaltyPercentage should be 0
     expect(result.weeksInactive).toBe(0);
     expect(result.penaltyPercentage).toBe(0);
     expect(result.decayFactor).toBe(1);
