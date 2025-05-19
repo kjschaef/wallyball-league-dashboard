@@ -14,8 +14,8 @@ The Volleyball League Management Platform follows a modern full-stack JavaScript
 
 ### Backend Architecture
 
-- **Server**: Express.js running on Node.js
-- **API Layer**: RESTful API endpoints
+- **Framework**: Next.js API Routes
+- **API Layer**: RESTful API endpoints with Next.js Route Handlers
 - **Database Access**: Drizzle ORM for database operations
 
 ### Database Architecture
