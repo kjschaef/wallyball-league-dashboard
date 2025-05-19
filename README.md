@@ -14,7 +14,7 @@ A web application for tracking, analyzing, and visualizing player and team perfo
 ## Tech Stack
 
 - **Frontend**: React, Tailwind CSS, shadcn/ui, React Query
-- **Backend**: Express.js
+- **Backend**: Next.js API Routes
 - **Database**: PostgreSQL with Drizzle ORM
 - **Hosting**: Vercel with Neon PostgreSQL
 

@@ -81,10 +81,10 @@ npm run start
     - `/pages` - Page components
     - `/hooks` - Custom React hooks
     - `/lib` - Utility functions and configuration
-- `/server` - Express.js backend
-  - `routes.ts` - API route definitions
-  - `index.ts` - Server setup
-  - `vite.ts` - Development server configuration
+- `/app` - Next.js application
+  - `/api` - Next.js API routes
+  - `/components` - Shared components
+  - `/pages` - Page components
 - `/db` - Database related code
   - `schema.ts` - Database schema definitions
   - `config.ts` - Database configuration
