@@ -1,16 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Use proper configuration options for Next.js
   experimental: {
-    serverComponentsExternalPackages: ['drizzle-orm'],
+    serverActions: {
+      allowedOrigins: ["*"],
+    },
   },
+  // Added output: 'standalone' for better production builds
+  output: 'standalone',
 }
 
-export default nextConfig
+// Use CommonJS syntax for Next.js configuration when in the app directory
+module.exports = nextConfig
