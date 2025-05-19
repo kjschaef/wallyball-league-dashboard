@@ -1,5 +1,18 @@
-import Dashboard from "../client/src/pages/Dashboard";
-
 export default function Home() {
-  return <Dashboard />;
+  return (
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-4">Volleyball League Management</h1>
+      <p className="mb-4">Welcome to your volleyball league management platform!</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white p-4 rounded shadow">
+          <h2 className="text-xl font-semibold mb-2">Performance Tracking</h2>
+          <p>Track and analyze player and team performance data.</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow">
+          <h2 className="text-xl font-semibold mb-2">League Management</h2>
+          <p>Manage teams, players, and match schedules.</p>
+        </div>
+      </div>
+    </div>
+  );
 }

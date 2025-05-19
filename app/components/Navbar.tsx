@@ -1,42 +1,25 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "../lib/utils";
+import Link from 'next/link';
 
 export function Navbar() {
-  const pathname = usePathname();
-
-  const navItems = [
-    { href: "/", label: "Dashboard" },
-    { href: "/history", label: "Games" },
-    { href: "/results", label: "Results" },
-    { href: "/analytics", label: "Analytics" },
-  ];
-
   return (
-    <nav className="bg-primary text-primary-foreground shadow-md">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center h-16">
-          <Link href="/" className="font-bold text-lg text-primary-foreground">
-            Wallyball League
+    <nav className="bg-slate-800 text-white p-4">
+      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between">
+        <Link href="/" className="text-xl font-bold mb-2 sm:mb-0">
+          Volleyball League Manager
+        </Link>
+        <div className="flex space-x-4">
+          <Link href="/" className="hover:text-blue-300">
+            Dashboard
           </Link>
-          <div className="ml-8 flex space-x-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  pathname === item.href
-                    ? "bg-primary-foreground/20 text-primary-foreground"
-                    : "text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
+          <Link href="/players" className="hover:text-blue-300">
+            Players
+          </Link>
+          <Link href="/results" className="hover:text-blue-300">
+            Results
+          </Link>
+          <Link href="/analytics" className="hover:text-blue-300">
+            Analytics
+          </Link>
         </div>
       </div>
     </nav>

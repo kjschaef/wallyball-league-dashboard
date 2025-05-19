@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Updated the experimental config to use the correct property
+  // Use proper configuration options for Next.js
   experimental: {
-    serverExternalPackages: ['drizzle-orm'],
+    serverActions: true,
   },
   // Added output: 'standalone' for better production builds
   output: 'standalone',
