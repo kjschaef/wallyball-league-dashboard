@@ -3,7 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   // Use proper configuration options for Next.js
   experimental: {
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ["*"],
+    },
   },
   // Added output: 'standalone' for better production builds
   output: 'standalone',
