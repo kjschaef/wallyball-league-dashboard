@@ -17,6 +17,9 @@ export default function Home() {
       </div>
       
       <div className="flex flex-wrap gap-4">
+        <Link href="/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Dashboard
+        </Link>
         <Link href="/players" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
           Players
         </Link>
