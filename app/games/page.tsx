@@ -27,7 +27,7 @@ export default function GamesPage() {
 
   async function fetchPlayers() {
     try {
-      const response = await fetch('/api/players');
+      const response = await fetch('https://cfa-wally-stats.replit.app/api/players');
       if (!response.ok) {
         throw new Error('Failed to fetch players');
       }
@@ -36,27 +36,14 @@ export default function GamesPage() {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching players:', error);
-      
-      // For demo, create some mock players
-      const mockPlayers: Player[] = [
-        { id: 1, name: 'Troy' },
-        { id: 2, name: 'Nate' },
-        { id: 3, name: 'Lance' },
-        { id: 4, name: 'Shortt' },
-        { id: 5, name: 'Vamsi' },
-        { id: 6, name: 'Keith' },
-        { id: 7, name: 'Relly' },
-        { id: 8, name: 'Trevor' }
-      ];
-      
-      setPlayers(mockPlayers);
       setLoading(false);
+      alert('Error fetching player data. Please try again later.');
     }
   }
 
   async function fetchRecentMatches() {
     try {
-      const response = await fetch('/api/matches?limit=5');
+      const response = await fetch('https://cfa-wally-stats.replit.app/api/matches?limit=5');
       if (!response.ok) {
         throw new Error('Failed to fetch recent matches');
       }
@@ -64,36 +51,7 @@ export default function GamesPage() {
       setMatches(data);
     } catch (error) {
       console.error('Error fetching recent matches:', error);
-      
-      // For demo, create some mock matches
-      const mockMatches = [
-        {
-          id: 1,
-          date: '2023-05-15T18:30:00Z',
-          teamOnePlayers: ['Troy', 'Nate'],
-          teamTwoPlayers: ['Lance', 'Shortt'],
-          teamOneGamesWon: 3,
-          teamTwoGamesWon: 1
-        },
-        {
-          id: 2,
-          date: '2023-05-10T19:00:00Z',
-          teamOnePlayers: ['Vamsi', 'Keith'],
-          teamTwoPlayers: ['Relly', 'Trevor'],
-          teamOneGamesWon: 2,
-          teamTwoGamesWon: 3
-        },
-        {
-          id: 3,
-          date: '2023-05-05T18:00:00Z',
-          teamOnePlayers: ['Troy', 'Lance'],
-          teamTwoPlayers: ['Nate', 'Vamsi'],
-          teamOneGamesWon: 3,
-          teamTwoGamesWon: 2
-        }
-      ];
-      
-      setMatches(mockMatches);
+      alert('Error fetching recent matches. Please try again later.');
     }
   }
 

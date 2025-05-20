@@ -32,77 +32,20 @@ export default function PlayersPage() {
 
   async function fetchPlayers() {
     try {
-      const response = await fetch('/api/players');
+      // Fetch from the original API
+      const response = await fetch('https://cfa-wally-stats.replit.app/api/players');
       if (!response.ok) {
         throw new Error('Failed to fetch players');
       }
       const data = await response.json();
       
-      // For each player, fetch their matches
-      const playersWithMatches = await Promise.all(
-        data.map(async (player: Player) => {
-          // For demo purposes, we'll create mock match data
-          // In a real app, we would fetch this from the API
-          const matches = Array(Math.floor(Math.random() * 20) + 5)
-            .fill(null)
-            .map((_, i) => ({
-              won: Math.random() > 0.4,
-              date: new Date(2023, 0, i + 1).toISOString()
-            }));
-            
-          const won = matches.filter(m => m.won).length;
-          const lost = matches.length - won;
-          
-          return {
-            ...player,
-            matches,
-            stats: { won, lost }
-          };
-        })
-      );
-      
-      setPlayers(playersWithMatches);
+      setPlayers(data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching players:', error);
-      // For demo, create some mock players so UI isn't empty
-      const mockPlayers: ExtendedPlayer[] = [
-        {
-          id: 1,
-          name: 'Troy',
-          startYear: 2020,
-          createdAt: new Date(2020, 0, 1).toISOString(),
-          matches: Array(15).fill(null).map((_, i) => ({
-            won: Math.random() > 0.3,
-            date: new Date(2023, 0, i + 1).toISOString()
-          })),
-          stats: { won: 11, lost: 4 }
-        },
-        {
-          id: 2,
-          name: 'Nate',
-          startYear: 2019,
-          createdAt: new Date(2019, 0, 1).toISOString(),
-          matches: Array(25).fill(null).map((_, i) => ({
-            won: Math.random() > 0.4,
-            date: new Date(2023, 0, i + 1).toISOString()
-          })),
-          stats: { won: 14, lost: 11 }
-        },
-        {
-          id: 3,
-          name: 'Lance',
-          startYear: 2021,
-          createdAt: new Date(2021, 0, 1).toISOString(),
-          matches: Array(10).fill(null).map((_, i) => ({
-            won: Math.random() > 0.45,
-            date: new Date(2023, 0, i + 1).toISOString()
-          })),
-          stats: { won: 6, lost: 4 }
-        }
-      ];
-      setPlayers(mockPlayers);
       setLoading(false);
+      // Show error state instead of mock data
+      alert('Error fetching player data. Please try again later.');
     }
   }
 

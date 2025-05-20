@@ -17,7 +17,7 @@ export default function AnalyticsPage() {
 
   async function fetchPlayers() {
     try {
-      const response = await fetch('/api/players');
+      const response = await fetch('https://cfa-wally-stats.replit.app/api/players');
       if (!response.ok) {
         throw new Error('Failed to fetch players');
       }
@@ -33,13 +33,22 @@ export default function AnalyticsPage() {
     } catch (error) {
       console.error('Error fetching players:', error);
       setLoading(false);
+      alert('Error fetching player data. Please try again later.');
     }
   }
 
   async function fetchPlayerStats(playerId: number) {
-    // This function would fetch detailed stats for a specific player
-    // but for now we'll use the data we already have in the players array
-    return players.find(p => p.id === playerId);
+    try {
+      const response = await fetch(`https://cfa-wally-stats.replit.app/api/players/${playerId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch player stats');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching player stats:', error);
+      return players.find(p => p.id === playerId);
+    }
   }
 
   const handlePlayerChange = (playerId: number) => {

@@ -26,7 +26,7 @@ export default function ResultsPage() {
 
   async function fetchMatches() {
     try {
-      const response = await fetch('/api/matches');
+      const response = await fetch('https://cfa-wally-stats.replit.app/api/matches');
       if (!response.ok) {
         throw new Error('Failed to fetch matches');
       }
@@ -35,53 +35,8 @@ export default function ResultsPage() {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching matches:', error);
-      
-      // For demo, create some mock match data
-      const mockMatches: MatchResult[] = [
-        {
-          id: 1,
-          date: '2023-05-10T18:30:00Z',
-          teamOnePlayers: ['Troy', 'Nate'],
-          teamTwoPlayers: ['Lance', 'Shortt'],
-          teamOneGamesWon: 3,
-          teamTwoGamesWon: 1
-        },
-        {
-          id: 2,
-          date: '2023-05-05T19:00:00Z',
-          teamOnePlayers: ['Vamsi', 'Keith'],
-          teamTwoPlayers: ['Relly', 'Trevor'],
-          teamOneGamesWon: 2,
-          teamTwoGamesWon: 3
-        },
-        {
-          id: 3,
-          date: '2023-04-28T18:00:00Z',
-          teamOnePlayers: ['Prarie', 'Zach'],
-          teamTwoPlayers: ['Ambree', 'Smathers'],
-          teamOneGamesWon: 3,
-          teamTwoGamesWon: 2
-        },
-        {
-          id: 4,
-          date: '2023-04-20T17:30:00Z',
-          teamOnePlayers: ['Seth J.', 'Andrew Jarrett'],
-          teamTwoPlayers: ['Jonathan J.', 'Donna Rolt'],
-          teamOneGamesWon: 1,
-          teamTwoGamesWon: 3
-        },
-        {
-          id: 5,
-          date: '2023-04-15T18:30:00Z',
-          teamOnePlayers: ['Troy', 'Lance'],
-          teamTwoPlayers: ['Nate', 'Shortt'],
-          teamOneGamesWon: 2,
-          teamTwoGamesWon: 3
-        }
-      ];
-      
-      setMatches(mockMatches);
       setLoading(false);
+      alert('Error fetching match data. Please try again later.');
     }
   }
 

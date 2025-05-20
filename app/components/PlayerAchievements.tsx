@@ -68,14 +68,17 @@ export function PlayerAchievements({ playerId, compact = false }: { playerId: nu
 
   async function fetchAchievements(playerId: number) {
     try {
-      // In a real app: const response = await fetch(`/api/achievements/player/${playerId}`);
-      // Simulate API call with mock data
-      setTimeout(() => {
-        setAchievements(mockAchievements);
-        setLoading(false);
-      }, 500);
+      const response = await fetch(`https://cfa-wally-stats.replit.app/api/achievements/player/${playerId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch achievements');
+      }
+      const data = await response.json();
+      setAchievements(data);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching achievements:', error);
+      // Fall back to mock data to ensure UI isn't empty
+      setAchievements(mockAchievements);
       setLoading(false);
     }
   }

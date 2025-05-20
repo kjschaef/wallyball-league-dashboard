@@ -34,10 +34,25 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real application, this would fetch actual player performance data
-    // For now, using mock data
-    setData(formatData(mockPerformanceData));
-    setLoading(false);
+    // Fetch real performance data from the original site
+    const fetchPerformanceData = async () => {
+      try {
+        const response = await fetch('https://cfa-wally-stats.replit.app/api/trends');
+        if (!response.ok) {
+          throw new Error('Failed to fetch performance data');
+        }
+        const data = await response.json();
+        setData(formatData(data));
+      } catch (error) {
+        console.error('Error fetching performance data:', error);
+        // As fallback, use pre-formatted mock data
+        setData(formatData(mockPerformanceData));
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPerformanceData();
   }, []);
 
   // Format dates to be more readable

@@ -217,10 +217,56 @@ export function WinPercentageChart({
   const [chartTimeRange, setChartTimeRange] = useState<TimeRange>(timeRange);
 
   useEffect(() => {
-    // In a real app, you would fetch this data from an API
-    setPlayers(mockPlayers);
-    updateChartData();
-    setLoading(false);
+    // Fetch real data from the original site
+    const fetchChartData = async () => {
+      try {
+        const response = await fetch('https://cfa-wally-stats.replit.app/api/trends');
+        if (!response.ok) {
+          throw new Error('Failed to fetch chart data');
+        }
+        const data = await response.json();
+        
+        // Extract player information from the data
+        const uniquePlayers = Array.from(
+          new Set(data.flatMap((item: any) => 
+            Object.keys(item).filter(key => key !== 'date')
+          ))
+        ) as string[];
+        
+        const playerColors = uniquePlayers.map((name, index) => ({
+          id: index + 1,
+          name,
+          color: mockPlayers[index % mockPlayers.length].color // Reuse color scheme
+        }));
+        
+        setPlayers(playerColors);
+        
+        // Format data for the chart
+        const formattedData = data.map((item: any) => {
+          const result: Record<string, any> = { 
+            week: new Date(item.date).toLocaleDateString() 
+          };
+          
+          uniquePlayers.forEach(playerName => {
+            if (typeof playerName === 'string' && item[playerName] !== undefined) {
+              result[playerName] = item[playerName];
+            }
+          });
+          
+          return result;
+        });
+        
+        setData(formattedData);
+      } catch (error) {
+        console.error('Error fetching chart data:', error);
+        // Fallback to our existing updateChartData function with mock data
+        updateChartData();
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchChartData();
   }, [chartMetric, chartTimeRange]);
 
   const updateChartData = () => {

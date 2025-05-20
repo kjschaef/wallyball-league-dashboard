@@ -34,10 +34,50 @@ export function WinPercentageRankings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, you would fetch this data from an API
-    // For now, using mock data for visualization
-    setRankings(mockRankings);
-    setLoading(false);
+    // Fetch real rankings data from the original site
+    const fetchRankings = async () => {
+      try {
+        const response = await fetch('https://cfa-wally-stats.replit.app/api/players');
+        if (!response.ok) {
+          throw new Error('Failed to fetch player rankings');
+        }
+        
+        const players = await response.json();
+        
+        // Sort players by win percentage (highest first)
+        const sortedPlayers = [...players].sort((a, b) => {
+          const aTotal = a.stats.won + a.stats.lost;
+          const bTotal = b.stats.won + b.stats.lost;
+          
+          const aWinPercentage = aTotal > 0 ? (a.stats.won / aTotal) * 100 : 0;
+          const bWinPercentage = bTotal > 0 ? (b.stats.won / bTotal) * 100 : 0;
+          
+          return bWinPercentage - aWinPercentage;
+        });
+        
+        // Format for our rankings component
+        const formattedRankings = sortedPlayers.map(player => {
+          const total = player.stats.won + player.stats.lost;
+          const winPercentage = total > 0 ? (player.stats.won / total) * 100 : 0;
+          
+          return {
+            id: player.id,
+            name: player.name,
+            games: total,
+            winPercentage
+          };
+        });
+        
+        setRankings(formattedRankings);
+      } catch (error) {
+        console.error('Error fetching rankings:', error);
+        setRankings(mockRankings);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRankings();
   }, []);
 
   if (loading) {
