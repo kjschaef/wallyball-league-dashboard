@@ -1,14 +1,9 @@
+
 import { NextResponse } from "next/server";
-import { and, eq, gte, lte, or } from "drizzle-orm";
+import { and, eq, gte, lte, or, sql } from "drizzle-orm";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
 import { db } from "../../../db";
 import { matches } from "../../../db/schema";
-
-// Sample player colors for visualization
-const playerColors = [
-  '#FF6B6B', '#4E4EFF', '#62D962', '#FF7E67', '#BADA55',
-  '#FFD700', '#20B2AA', '#FF8C00', '#00CED1', '#FF69B4'
-];
 
 export async function GET(request: Request) {
   try {
@@ -19,91 +14,103 @@ export async function GET(request: Request) {
     
     const currentDate = new Date();
 
-    // Calculate date ranges based on period
-    let periods = [];
+    let trendsData = [];
     if (period === "weekly") {
-      // Get last 4 weeks
-      for (let i = 0; i < 4; i++) {
-        const weekStart = startOfWeek(subWeeks(currentDate, i));
-        const weekEnd = endOfWeek(subWeeks(currentDate, i));
-        periods.push({ start: weekStart, end: weekEnd });
-      }
+      const weekStart = startOfWeek(subWeeks(currentDate, 4));
+      const weekEnd = endOfWeek(currentDate);
+      
+      const query = playerId 
+        ? sql`
+            SELECT 
+              date_trunc('week', date) as period,
+              COUNT(*) as total_games,
+              SUM(CASE 
+                WHEN (team_one_player_one_id = ${playerId} OR 
+                     team_one_player_two_id = ${playerId} OR 
+                     team_one_player_three_id = ${playerId}) AND team_one_games_won > team_two_games_won THEN 1
+                WHEN (team_two_player_one_id = ${playerId} OR 
+                     team_two_player_two_id = ${playerId} OR 
+                     team_two_player_three_id = ${playerId}) AND team_two_games_won > team_one_games_won THEN 1
+                ELSE 0
+              END) as games_won
+            FROM matches
+            WHERE date >= ${weekStart} AND date <= ${weekEnd}
+            AND (
+              team_one_player_one_id = ${playerId} OR 
+              team_one_player_two_id = ${playerId} OR 
+              team_one_player_three_id = ${playerId} OR
+              team_two_player_one_id = ${playerId} OR 
+              team_two_player_two_id = ${playerId} OR 
+              team_two_player_three_id = ${playerId}
+            )
+            GROUP BY period
+            ORDER BY period DESC`
+        : sql`
+            SELECT 
+              date_trunc('week', date) as period,
+              COUNT(*) as total_games,
+              SUM(CASE WHEN team_one_games_won > team_two_games_won THEN 1 ELSE 0 END) as games_won
+            FROM matches
+            WHERE date >= ${weekStart} AND date <= ${weekEnd}
+            GROUP BY period
+            ORDER BY period DESC`;
+
+      const results = await db.execute(query);
+      
+      trendsData = results.map(row => ({
+        date: row.period,
+        winRate: row.total_games > 0 ? (row.games_won / row.total_games) * 100 : 0
+      }));
     } else {
-      // Get last 3 months
-      for (let i = 0; i < 3; i++) {
-        const monthStart = startOfMonth(subMonths(currentDate, i));
-        const monthEnd = endOfMonth(subMonths(currentDate, i));
-        periods.push({ start: monthStart, end: monthEnd });
-      }
+      // Monthly data
+      const monthStart = startOfMonth(subMonths(currentDate, 3));
+      const monthEnd = endOfMonth(currentDate);
+      
+      const query = playerId
+        ? sql`
+            SELECT 
+              date_trunc('month', date) as period,
+              COUNT(*) as total_games,
+              SUM(CASE 
+                WHEN (team_one_player_one_id = ${playerId} OR 
+                     team_one_player_two_id = ${playerId} OR 
+                     team_one_player_three_id = ${playerId}) AND team_one_games_won > team_two_games_won THEN 1
+                WHEN (team_two_player_one_id = ${playerId} OR 
+                     team_two_player_two_id = ${playerId} OR 
+                     team_two_player_three_id = ${playerId}) AND team_two_games_won > team_one_games_won THEN 1
+                ELSE 0
+              END) as games_won
+            FROM matches
+            WHERE date >= ${monthStart} AND date <= ${monthEnd}
+            AND (
+              team_one_player_one_id = ${playerId} OR 
+              team_one_player_two_id = ${playerId} OR 
+              team_one_player_three_id = ${playerId} OR
+              team_two_player_one_id = ${playerId} OR 
+              team_two_player_two_id = ${playerId} OR 
+              team_two_player_three_id = ${playerId}
+            )
+            GROUP BY period
+            ORDER BY period DESC`
+        : sql`
+            SELECT 
+              date_trunc('month', date) as period,
+              COUNT(*) as total_games,
+              SUM(CASE WHEN team_one_games_won > team_two_games_won THEN 1 ELSE 0 END) as games_won
+            FROM matches
+            WHERE date >= ${monthStart} AND date <= ${monthEnd}
+            GROUP BY period
+            ORDER BY period DESC`;
+
+      const results = await db.execute(query);
+      
+      trendsData = results.map(row => ({
+        date: row.period,
+        winRate: row.total_games > 0 ? (row.games_won / row.total_games) * 100 : 0
+      }));
     }
 
-    // Get performance data for each period
-    const trendsData = await Promise.all(
-      periods.map(async ({ start, end }) => {
-        // Create base conditions for date range
-        let conditions = and(
-          gte(matches.date, start),
-          lte(matches.date, end)
-        );
-
-        // Add player filter if specified
-        if (playerId) {
-          conditions = and(
-            conditions,
-            or(
-              eq(matches.teamOnePlayerOneId, playerId),
-              eq(matches.teamOnePlayerTwoId, playerId),
-              eq(matches.teamOnePlayerThreeId, playerId),
-              eq(matches.teamTwoPlayerOneId, playerId),
-              eq(matches.teamTwoPlayerTwoId, playerId),
-              eq(matches.teamTwoPlayerThreeId, playerId)
-            )
-          );
-        }
-
-        const periodGames = await db
-          .select()
-          .from(matches)
-          .where(conditions);
-
-        // Calculate performance metrics
-        const stats = periodGames.reduce(
-          (acc, game) => {
-            if (playerId) {
-              const isTeamOne =
-                game.teamOnePlayerOneId === playerId ||
-                game.teamOnePlayerTwoId === playerId ||
-                game.teamOnePlayerThreeId === playerId;
-
-              const gamesWon = isTeamOne ? game.teamOneGamesWon : game.teamTwoGamesWon;
-              const gamesLost = isTeamOne ? game.teamTwoGamesWon : game.teamOneGamesWon;
-
-              return {
-                gamesWon: acc.gamesWon + gamesWon,
-                gamesLost: acc.gamesLost + gamesLost,
-                totalGames: acc.totalGames + 1,
-              };
-            }
-
-            // Team-wide stats if no player specified
-            return {
-              gamesWon: acc.gamesWon + game.teamOneGamesWon + game.teamTwoGamesWon,
-              gamesLost: acc.gamesLost + game.teamTwoGamesWon + game.teamOneGamesWon,
-              totalGames: acc.totalGames + 1,
-            };
-          },
-          { gamesWon: 0, gamesLost: 0, totalGames: 0 }
-        );
-
-        return {
-          period: start.toISOString(),
-          ...stats,
-          winRate: stats.totalGames > 0 ? (stats.gamesWon / (stats.gamesWon + stats.gamesLost)) * 100 : 0,
-        };
-      })
-    );
-
-    return NextResponse.json(trendsData.reverse()); // Most recent first
+    return NextResponse.json(trendsData);
   } catch (error) {
     console.error("Error fetching performance trends:", error);
     return NextResponse.json(
