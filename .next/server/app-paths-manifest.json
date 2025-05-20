@@ -1,8 +1,6 @@
 {
   "/api/trends/route": "app/api/trends/route.js",
   "/api/players/route": "app/api/players/route.js",
-  "/api/matches/route": "app/api/matches/route.js",
-  "/api/achievements/player/[playerId]/route": "app/api/achievements/player/[playerId]/route.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/results/page": "app/results/page.js",
   "/analytics/page": "app/analytics/page.js",
