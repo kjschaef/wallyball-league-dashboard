@@ -255,11 +255,18 @@ export function WinPercentageChart({
         
         // Format data for the chart
         const formattedData = apiData.map((item: any) => {
-          if (!item || typeof item !== 'object' || !item.date) {
+          if (!item || typeof item !== 'object') {
             return null; // Skip invalid data points
           }
           
-          const date = new Date(item.date).toLocaleDateString();
+          // Check if we have date or period field
+          const dateField = item.date || item.period;
+          if (!dateField) {
+            return null;
+          }
+          
+          // Format date for display
+          const date = new Date(dateField).toLocaleDateString();
           const result: Record<string, any> = { week: date };
           
           playerNames.forEach(name => {
