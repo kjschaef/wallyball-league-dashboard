@@ -1,4 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import { and, eq, gte, lte, or } from "drizzle-orm";
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
+import { db } from "../../../db";
+import { matches } from "../../../db/schema";
 
 // Sample player colors for visualization
 const playerColors = [
@@ -6,90 +10,103 @@ const playerColors = [
   '#FFD700', '#20B2AA', '#FF8C00', '#00CED1', '#FF69B4'
 ];
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Fetch players to get win percentage data
-    const playersResponse = await fetch('https://cfa-wally-stats.replit.app/api/players', {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      cache: 'no-store'
-    });
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get("period") || "weekly";
+    const playerIdParam = searchParams.get("playerId");
+    const playerId = playerIdParam ? parseInt(playerIdParam) : undefined;
+    
+    const currentDate = new Date();
 
-    if (!playersResponse.ok) {
-      throw new Error(`Failed to fetch players: ${playersResponse.status}`);
+    // Calculate date ranges based on period
+    let periods = [];
+    if (period === "weekly") {
+      // Get last 4 weeks
+      for (let i = 0; i < 4; i++) {
+        const weekStart = startOfWeek(subWeeks(currentDate, i));
+        const weekEnd = endOfWeek(subWeeks(currentDate, i));
+        periods.push({ start: weekStart, end: weekEnd });
+      }
+    } else {
+      // Get last 3 months
+      for (let i = 0; i < 3; i++) {
+        const monthStart = startOfMonth(subMonths(currentDate, i));
+        const monthEnd = endOfMonth(subMonths(currentDate, i));
+        periods.push({ start: monthStart, end: monthEnd });
+      }
     }
 
-    const players = await playersResponse.json();
-    
-    // Filter active players with games
-    const activePlayers = players
-      .filter((player: any) => {
-        const totalGames = player.stats?.won + player.stats?.lost;
-        return totalGames > 0;
-      })
-      .map((player: any) => {
-        const totalGames = player.stats.won + player.stats.lost;
-        const winPercentage = Math.round((player.stats.won / totalGames) * 100);
-        return {
-          id: player.id,
-          name: player.name,
-          winPercentage,
-          totalGames
-        };
-      });
-    
-    // Sort by win percentage (highest first) and take top 5
-    const topPlayers = activePlayers
-      .sort((a: any, b: any) => b.winPercentage - a.winPercentage)
-      .slice(0, 5);
-      
-    // Create weekly data points for our chart (simulating a month of data)
-    const weeks = [
-      "Week of Apr 28",
-      "Week of May 05", 
-      "Week of May 12", 
-      "Week of May 19"
-    ];
-    
-    // Create chart data points
-    const trendData = weeks.map((week, weekIndex) => {
-      // Start with the week label
-      const dataPoint: any = { week };
-      
-      // Add each player's win percentage with slight variations to show trends
-      topPlayers.forEach((player: any) => {
-        // Create realistic variations to show trends
-        // Earlier weeks slightly lower, most recent week exact win %
-        const weekEffect = (weekIndex / (weeks.length - 1)); // 0 to 1 factor
-        const basePercentage = player.winPercentage - 10 + (weekEffect * 10);
-        
-        // Add slight random variance (±3%)
-        const variance = Math.floor(Math.random() * 6) - 3;
-        
-        // Ensure win percentage stays within 0-100%
-        dataPoint[player.name] = Math.min(
-          100, 
-          Math.max(0, Math.round(basePercentage + variance))
+    // Get performance data for each period
+    const trendsData = await Promise.all(
+      periods.map(async ({ start, end }) => {
+        const whereConditions = [
+          gte(matches.date, start),
+          lte(matches.date, end),
+        ];
+
+        // Add player filter if specified
+        if (playerId) {
+          whereConditions.push(
+            or(
+              eq(matches.teamOnePlayerOneId, playerId),
+              eq(matches.teamOnePlayerTwoId, playerId),
+              eq(matches.teamOnePlayerThreeId, playerId),
+              eq(matches.teamTwoPlayerOneId, playerId),
+              eq(matches.teamTwoPlayerTwoId, playerId),
+              eq(matches.teamTwoPlayerThreeId, playerId)
+            )
+          );
+        }
+
+        const periodGames = await db
+          .select()
+          .from(matches)
+          .where(and(...whereConditions));
+
+        // Calculate performance metrics
+        const stats = periodGames.reduce(
+          (acc, game) => {
+            if (playerId) {
+              const isTeamOne =
+                game.teamOnePlayerOneId === playerId ||
+                game.teamOnePlayerTwoId === playerId ||
+                game.teamOnePlayerThreeId === playerId;
+
+              const gamesWon = isTeamOne ? game.teamOneGamesWon : game.teamTwoGamesWon;
+              const gamesLost = isTeamOne ? game.teamTwoGamesWon : game.teamOneGamesWon;
+
+              return {
+                gamesWon: acc.gamesWon + gamesWon,
+                gamesLost: acc.gamesLost + gamesLost,
+                totalGames: acc.totalGames + 1,
+              };
+            }
+
+            // Team-wide stats if no player specified
+            return {
+              gamesWon: acc.gamesWon + game.teamOneGamesWon + game.teamTwoGamesWon,
+              gamesLost: acc.gamesLost + game.teamTwoGamesWon + game.teamOneGamesWon,
+              totalGames: acc.totalGames + 1,
+            };
+          },
+          { gamesWon: 0, gamesLost: 0, totalGames: 0 }
         );
-      });
-      
-      return dataPoint;
-    });
-    
-    return NextResponse.json(trendData);
+
+        return {
+          period: start.toISOString(),
+          ...stats,
+          winRate: stats.totalGames > 0 ? (stats.gamesWon / (stats.gamesWon + stats.gamesLost)) * 100 : 0,
+        };
+      })
+    );
+
+    return NextResponse.json(trendsData.reverse()); // Most recent first
   } catch (error) {
-    console.error('Error in trends API:', error);
-    
-    // Create a minimal dataset if API fails
-    const fallbackData = [
-      {
-        week: "Week of May 19",
-        "Player 1": 60,
-        "Player 2": 55,
-        "Player 3": 50
-      }
-    ];
-    
-    return NextResponse.json(fallbackData);
+    console.error("Error fetching performance trends:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch performance trends" },
+      { status: 500 }
+    );
   }
 }
