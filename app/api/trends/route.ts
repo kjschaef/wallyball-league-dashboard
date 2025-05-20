@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq, gte, lte, or } from "drizzle-orm";
+import { and, eq, gte, lte, or, SQL } from "drizzle-orm";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
 import { db } from "../../../db";
 import { matches } from "../../../db/schema";
@@ -40,14 +40,16 @@ export async function GET(request: Request) {
     // Get performance data for each period
     const trendsData = await Promise.all(
       periods.map(async ({ start, end }) => {
-        const whereConditions = [
+        // Create base conditions for date range
+        let conditions = and(
           gte(matches.date, start),
-          lte(matches.date, end),
-        ];
+          lte(matches.date, end)
+        );
 
         // Add player filter if specified
         if (playerId) {
-          whereConditions.push(
+          conditions = and(
+            conditions,
             or(
               eq(matches.teamOnePlayerOneId, playerId),
               eq(matches.teamOnePlayerTwoId, playerId),
@@ -62,7 +64,7 @@ export async function GET(request: Request) {
         const periodGames = await db
           .select()
           .from(matches)
-          .where(and(...whereConditions));
+          .where(conditions);
 
         // Calculate performance metrics
         const stats = periodGames.reduce(
