@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq, gte, lte, or, SQL } from "drizzle-orm";
+import { and, eq, gte, lte, or } from "drizzle-orm";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
 import { db } from "../../../db";
 import { matches } from "../../../db/schema";
