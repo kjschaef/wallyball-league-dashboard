@@ -43,23 +43,29 @@ export async function GET(
   request: Request,
   { params }: { params: { playerId: string } }
 ) {
-  const playerId = parseInt(params.playerId);
-
-  if (isNaN(playerId)) {
-    return NextResponse.json(
-      { error: 'Invalid player ID' },
-      { status: 400 }
-    );
-  }
-
   try {
+    const playerId = parseInt(params.playerId);
+
+    if (isNaN(playerId)) {
+      return NextResponse.json(
+        { error: 'Invalid player ID' },
+        { status: 400 }
+      );
+    }
+
+    // Return the mock achievements directly for now since the original API
+    // appears to be returning HTML instead of JSON
+    return NextResponse.json(mockAchievements);
+    
+    // This code can be uncommented if the original API is fixed in the future
+    /*
     // Server-side fetch from the original site
     const response = await fetch(`https://cfa-wally-stats.replit.app/api/achievements/player/${playerId}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
       },
-      cache: 'no-store' // Disable caching for now
+      cache: 'no-store'
     });
 
     if (!response.ok) {
@@ -68,8 +74,9 @@ export async function GET(
 
     const data = await response.json();
     return NextResponse.json(data);
+    */
   } catch (error) {
-    console.error(`Error fetching achievements for player ${playerId}:`, error);
+    console.error(`Error in achievements API:`, error);
     // Return mock achievements as fallback
     return NextResponse.json(mockAchievements);
   }

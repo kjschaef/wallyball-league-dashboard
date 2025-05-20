@@ -47,14 +47,21 @@ const generateTrendDataFromPlayers = async () => {
     ];
     
     // Add player win percentages to each data point
-    players.forEach(player => {
+    players.forEach((player: { name: string, stats: { won: number, lost: number } }) => {
       const totalGames = player.stats.won + player.stats.lost;
       if (totalGames > 0) {
         const winPercentage = Math.round((player.stats.won / totalGames) * 100);
         
         // Add win percentage to both data points (with slight variation for the previous date)
-        trendData[0][player.name] = Math.max(winPercentage - Math.floor(Math.random() * 5), 0);
-        trendData[1][player.name] = winPercentage;
+        trendData[0] = { 
+          ...trendData[0], 
+          [player.name]: Math.max(winPercentage - Math.floor(Math.random() * 5), 0) 
+        };
+        
+        trendData[1] = { 
+          ...trendData[1], 
+          [player.name]: winPercentage 
+        };
       }
     });
     
