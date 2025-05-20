@@ -37,7 +37,7 @@ export function WinPercentageRankings() {
     // Fetch real rankings data from the original site
     const fetchRankings = async () => {
       try {
-        const response = await fetch('https://cfa-wally-stats.replit.app/api/players');
+        const response = await fetch('/api/players');
         if (!response.ok) {
           throw new Error('Failed to fetch player rankings');
         }
