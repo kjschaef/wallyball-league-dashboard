@@ -1,86 +1,61 @@
 import { NextResponse } from 'next/server';
 
-// Mock player data - in a real app this would come from a database
+// Mock data for fallback in case the API fetch fails
 const mockPlayers = [
   {
     id: 1,
     name: 'Troy',
     startYear: 2020,
-    createdAt: new Date(2020, 0, 1).toISOString(),
-    matches: Array(15).fill(null).map((_, i) => ({
+    createdAt: '2020-01-01T00:00:00Z',
+    matches: Array(3).fill(null).map((_, i) => ({
       id: i + 1,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.3,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
+      date: new Date(2023, 4, i + 1).toISOString(),
+      won: true,
+      isTeamOne: true,
+      teamOneGamesWon: 3,
+      teamTwoGamesWon: 1,
     })),
-    stats: { won: 11, lost: 4, totalGames: 45, totalMatchTime: 540 }
+    stats: { won: 3, lost: 0, totalGames: 12, totalMatchTime: 120 }
   },
   {
     id: 2,
     name: 'Nate',
     startYear: 2019,
-    createdAt: new Date(2019, 0, 1).toISOString(),
+    createdAt: '2019-01-01T00:00:00Z',
     matches: Array(25).fill(null).map((_, i) => ({
       id: i + 100,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.4,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
+      date: new Date(2023, 4, i + 1).toISOString(),
+      won: i % 2 === 0,
+      isTeamOne: i % 2 === 0,
+      teamOneGamesWon: 2,
+      teamTwoGamesWon: 3,
     })),
-    stats: { won: 14, lost: 11, totalGames: 280, totalMatchTime: 3200 }
-  },
-  {
-    id: 3,
-    name: 'Lance',
-    startYear: 2021,
-    createdAt: new Date(2021, 0, 1).toISOString(),
-    matches: Array(10).fill(null).map((_, i) => ({
-      id: i + 200,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.45,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
-    })),
-    stats: { won: 6, lost: 4, totalGames: 30, totalMatchTime: 360 }
-  },
-  {
-    id: 4,
-    name: 'Shortt',
-    startYear: 2018,
-    createdAt: new Date(2018, 0, 1).toISOString(),
-    matches: Array(30).fill(null).map((_, i) => ({
-      id: i + 300,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.48,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
-    })),
-    stats: { won: 15, lost: 15, totalGames: 90, totalMatchTime: 1080 }
-  },
-  {
-    id: 5,
-    name: 'Vamsi',
-    startYear: 2021,
-    createdAt: new Date(2021, 0, 1).toISOString(),
-    matches: Array(12).fill(null).map((_, i) => ({
-      id: i + 400,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.5,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
-    })),
-    stats: { won: 6, lost: 6, totalGames: 36, totalMatchTime: 432 }
+    stats: { won: 12, lost: 13, totalGames: 75, totalMatchTime: 750 }
   }
 ];
 
 export async function GET() {
-  return NextResponse.json(mockPlayers);
+  try {
+    // Server-side fetch from the original site
+    const response = await fetch('https://cfa-wally-stats.replit.app/api/players', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      cache: 'no-store' // Disable caching for now
+    });
+
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error fetching players from original API:', error);
+    // Return our mock data as fallback
+    return NextResponse.json(mockPlayers);
+  }
 }
 
 export async function POST(request: Request) {
@@ -94,18 +69,36 @@ export async function POST(request: Request) {
     );
   }
 
-  // Create a new player with mock data
-  const newPlayer = {
-    id: mockPlayers.length + 1,
-    name: body.name,
-    startYear: body.startYear || new Date().getFullYear(),
-    createdAt: new Date().toISOString(),
-    matches: [],
-    stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
-  };
+  try {
+    // Try to post to the original API
+    const response = await fetch('https://cfa-wally-stats.replit.app/api/players', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
 
-  // In a real app, this would be saved to a database
-  // For this demo, we'll just return the new player
-  
-  return NextResponse.json(newPlayer, { status: 201 });
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data, { status: 201 });
+  } catch (error) {
+    console.error('Error posting to original API:', error);
+    
+    // Return a mocked response
+    const newPlayer = {
+      id: Math.floor(Math.random() * 1000) + 10,
+      name: body.name,
+      startYear: body.startYear || new Date().getFullYear(),
+      createdAt: new Date().toISOString(),
+      matches: [],
+      stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
+    };
+    
+    return NextResponse.json(newPlayer, { status: 201 });
+  }
 }

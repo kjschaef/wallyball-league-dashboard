@@ -68,7 +68,7 @@ export function PlayerAchievements({ playerId, compact = false }: { playerId: nu
 
   async function fetchAchievements(playerId: number) {
     try {
-      const response = await fetch(`https://cfa-wally-stats.replit.app/api/achievements/player/${playerId}`);
+      const response = await fetch(`/api/achievements/player/${playerId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch achievements');
       }

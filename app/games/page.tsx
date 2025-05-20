@@ -27,7 +27,7 @@ export default function GamesPage() {
 
   async function fetchPlayers() {
     try {
-      const response = await fetch('https://cfa-wally-stats.replit.app/api/players');
+      const response = await fetch('/api/players');
       if (!response.ok) {
         throw new Error('Failed to fetch players');
       }
@@ -43,7 +43,7 @@ export default function GamesPage() {
 
   async function fetchRecentMatches() {
     try {
-      const response = await fetch('https://cfa-wally-stats.replit.app/api/matches?limit=5');
+      const response = await fetch('/api/matches?limit=5');
       if (!response.ok) {
         throw new Error('Failed to fetch recent matches');
       }

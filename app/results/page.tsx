@@ -26,7 +26,7 @@ export default function ResultsPage() {
 
   async function fetchMatches() {
     try {
-      const response = await fetch('https://cfa-wally-stats.replit.app/api/matches');
+      const response = await fetch('/api/matches');
       if (!response.ok) {
         throw new Error('Failed to fetch matches');
       }

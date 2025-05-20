@@ -17,7 +17,7 @@ export default function AnalyticsPage() {
 
   async function fetchPlayers() {
     try {
-      const response = await fetch('https://cfa-wally-stats.replit.app/api/players');
+      const response = await fetch('/api/players');
       if (!response.ok) {
         throw new Error('Failed to fetch players');
       }
@@ -39,7 +39,7 @@ export default function AnalyticsPage() {
 
   async function fetchPlayerStats(playerId: number) {
     try {
-      const response = await fetch(`https://cfa-wally-stats.replit.app/api/players/${playerId}`);
+      const response = await fetch(`/api/players/${playerId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch player stats');
       }

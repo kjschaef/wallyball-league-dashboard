@@ -220,7 +220,7 @@ export function WinPercentageChart({
     // Fetch real data from the original site
     const fetchChartData = async () => {
       try {
-        const response = await fetch('https://cfa-wally-stats.replit.app/api/trends');
+        const response = await fetch('/api/trends');
         if (!response.ok) {
           throw new Error('Failed to fetch chart data');
         }

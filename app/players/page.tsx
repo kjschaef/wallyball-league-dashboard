@@ -32,8 +32,8 @@ export default function PlayersPage() {
 
   async function fetchPlayers() {
     try {
-      // Fetch from the original API
-      const response = await fetch('https://cfa-wally-stats.replit.app/api/players');
+      // Use our own API endpoint which forwards to the original site
+      const response = await fetch('/api/players');
       if (!response.ok) {
         throw new Error('Failed to fetch players');
       }
@@ -44,7 +44,6 @@ export default function PlayersPage() {
     } catch (error) {
       console.error('Error fetching players:', error);
       setLoading(false);
-      // Show error state instead of mock data
       alert('Error fetching player data. Please try again later.');
     }
   }
