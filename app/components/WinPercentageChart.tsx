@@ -224,16 +224,28 @@ export function WinPercentageChart({
         if (!response.ok) {
           throw new Error('Failed to fetch chart data');
         }
-        const data = await response.json();
+        const apiData = await response.json();
+        
+        // Type guard to ensure we have an array of objects
+        if (!Array.isArray(apiData)) {
+          throw new Error('Expected array data from API');
+        }
         
         // Extract player information from the data
-        const uniquePlayers = Array.from(
-          new Set(data.flatMap((item: any) => 
-            Object.keys(item).filter(key => key !== 'date')
-          ))
-        ) as string[];
+        const playerNames: string[] = [];
         
-        const playerColors = uniquePlayers.map((name, index) => ({
+        // Safely extract player names
+        apiData.forEach((dataPoint: any) => {
+          if (dataPoint && typeof dataPoint === 'object') {
+            Object.keys(dataPoint).forEach(key => {
+              if (key !== 'date' && !playerNames.includes(key)) {
+                playerNames.push(key);
+              }
+            });
+          }
+        });
+        
+        const playerColors = playerNames.map((name, index) => ({
           id: index + 1,
           name,
           color: mockPlayers[index % mockPlayers.length].color // Reuse color scheme
@@ -242,19 +254,23 @@ export function WinPercentageChart({
         setPlayers(playerColors);
         
         // Format data for the chart
-        const formattedData = data.map((item: any) => {
-          const result: Record<string, any> = { 
-            week: new Date(item.date).toLocaleDateString() 
-          };
+        const formattedData = apiData.map((item: any) => {
+          if (!item || typeof item !== 'object' || !item.date) {
+            return null; // Skip invalid data points
+          }
           
-          uniquePlayers.forEach(playerName => {
-            if (typeof playerName === 'string' && item[playerName] !== undefined) {
-              result[playerName] = item[playerName];
+          const date = new Date(item.date).toLocaleDateString();
+          const result: Record<string, any> = { week: date };
+          
+          playerNames.forEach(name => {
+            // Type-safe check for property existence
+            if (Object.prototype.hasOwnProperty.call(item, name)) {
+              result[name] = item[name];
             }
           });
           
           return result;
-        });
+        }).filter(Boolean);
         
         setData(formattedData);
       } catch (error) {
