@@ -11,18 +11,21 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { format, parseISO } from 'date-fns';
 
-// Mock data for visualization purposes
-const mockPerformanceData = [
-  { date: '2023-01-01', winRate: 40 },
-  { date: '2023-01-15', winRate: 45 },
-  { date: '2023-02-01', winRate: 52 },
-  { date: '2023-02-15', winRate: 48 },
-  { date: '2023-03-01', winRate: 55 },
-  { date: '2023-03-15', winRate: 58 },
-  { date: '2023-04-01', winRate: 60 },
-  { date: '2023-04-15', winRate: 57 },
-  { date: '2023-05-01', winRate: 62 }
+const COLORS = [
+  "#FF6B6B", // Coral Red
+  "#4ECDC4", // Turquoise
+  "#FFD93D", // Sun Yellow
+  "#6C5CE7", // Deep Purple
+  "#A8E6CF", // Mint Green
+  "#FF8B94", // Light Pink
+  "#45B7D1", // Sky Blue
+  "#98CE00", // Lime Green
+  "#FF71CE", // Hot Pink
+  "#01CDFE", // Electric Blue
+  "#05FFA1", // Neon Green
+  "#B967FF", // Bright Purple
 ];
 
 interface PerformanceTrendProps {
@@ -30,68 +33,207 @@ interface PerformanceTrendProps {
 }
 
 export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
-  const [data, setData] = useState<any[]>([]);
+  const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
+  const [showAllData, setShowAllData] = useState(false);
+  const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState<any[]>([]);
 
+  // Fetch players data
   useEffect(() => {
-    // Fetch performance data from our API
-    const fetchPerformanceData = async () => {
+    const fetchPlayers = async () => {
       try {
-        const response = await fetch('/api/trends');
+        const response = await fetch('/api/players');
         if (!response.ok) {
-          throw new Error('Failed to fetch performance data');
+          throw new Error('Failed to fetch player data');
         }
         const data = await response.json();
-        setData(formatData(data));
+        setPlayers(data);
       } catch (error) {
-        console.error('Error fetching performance data:', error);
-        // As fallback, use pre-formatted mock data
-        setData(formatData(mockPerformanceData));
+        console.error('Error fetching player data:', error);
+        setPlayers([]);
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchPerformanceData();
+
+    fetchPlayers();
   }, []);
 
-  // Format dates to be more readable
-  const formatData = (rawData: any[]) => {
-    return rawData.map(item => ({
-      ...item,
-      date: new Date(item.date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-      })
-    }));
-  };
+  // Process data when players or metric changes
+  useEffect(() => {
+    if (!players.length) return;
+    
+    // Process player data to calculate performance metrics
+    const playerStats = players.map((player) => {
+      const dailyStats = new Map();
+      let cumulativeWins = 0;
+      let cumulativeTotalGames = 0;
+      let daysPlayed = new Set();
+      
+      // Sort matches by date
+      const sortedMatches = [...(player.matches || [])].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+
+      sortedMatches.forEach((match) => {
+        const date = format(new Date(match.date), "yyyy-MM-dd");
+        const won = match.won || false;
+        
+        cumulativeWins += won ? 1 : 0;
+        cumulativeTotalGames += 1;
+        daysPlayed.add(date);
+        
+        // Calculate win percentage
+        const winPercentage = cumulativeTotalGames > 0 
+          ? (cumulativeWins / cumulativeTotalGames) * 100 
+          : 0;
+          
+        dailyStats.set(date, { 
+          winPercentage: winPercentage,
+          totalWins: cumulativeWins 
+        });
+      });
+
+      return {
+        id: player.id,
+        name: player.name,
+        dailyStats,
+      };
+    });
+
+    // Get all unique dates
+    const allDates = new Set<string>();
+    playerStats.forEach((player) => {
+      player.dailyStats.forEach((_, date) => allDates.add(date));
+    });
+
+    // Generate chart data based on dates
+    let newChartData;
+    if (showAllData) {
+      newChartData = Array.from(allDates)
+        .sort()
+        .map(date => {
+          const dataPoint: any = { date };
+          playerStats.forEach(player => {
+            const stats = player.dailyStats.get(date);
+            if (stats) {
+              dataPoint[player.name] = stats[metric];
+            }
+          });
+          return dataPoint;
+        });
+    } else {
+      // Show only the last 4 data points
+      newChartData = Array.from(allDates)
+        .sort()
+        .slice(-4)
+        .map(date => {
+          const dataPoint: any = { date };
+          playerStats.forEach(player => {
+            const stats = player.dailyStats.get(date);
+            if (stats) {
+              dataPoint[player.name] = stats[metric];
+            }
+          });
+          return dataPoint;
+        });
+    }
+
+    setChartData(newChartData);
+  }, [players, metric, showAllData]);
 
   if (loading) {
-    return <div className="flex justify-center py-10">Loading performance data...</div>;
+    return (
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="h-[300px] flex items-center justify-center">
+          Loading player data...
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={data}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-          <Tooltip formatter={(value) => [`${value}%`, 'Win Rate']} />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="winRate"
-            stroke="#4E4EFF"
-            activeDot={{ r: 8 }}
-            name="Win Rate"
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex space-x-2">
+          <button 
+            className={`${metric === 'winPercentage' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
+            onClick={() => setMetric('winPercentage')}
+          >
+            Win %
+          </button>
+          <button 
+            className={`${metric === 'totalWins' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
+            onClick={() => setMetric('totalWins')}
+          >
+            Total Wins
+          </button>
+        </div>
+        <div className="flex space-x-2">
+          <button 
+            className={`${!showAllData ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
+            onClick={() => setShowAllData(false)}
+          >
+            Recent
+          </button>
+          <button 
+            className={`${showAllData ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
+            onClick={() => setShowAllData(true)}
+          >
+            All Data
+          </button>
+        </div>
+      </div>
+      
+      <div className="h-[400px] w-full">
+        <ResponsiveContainer>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(date) => {
+                try {
+                  return format(parseISO(date), "MMM d");
+                } catch (e) {
+                  return date;
+                }
+              }}
+            />
+            <YAxis
+              domain={metric === 'winPercentage' ? [0, 100] : [0, 'auto']}
+              tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
+            />
+            <Tooltip
+              labelFormatter={(date) => {
+                try {
+                  return format(parseISO(date as string), "MMM d, yyyy");
+                } catch (e) {
+                  return date;
+                }
+              }}
+              formatter={(value: number, name: string) => {
+                const formattedValue = Number(value.toFixed(1));
+                return [
+                  metric === 'winPercentage' ? `${formattedValue}%` : formattedValue,
+                  name
+                ];
+              }}
+            />
+            <Legend />
+            {players.map((player, index) => (
+              <Line
+                key={player.id}
+                type="monotone"
+                dataKey={player.name}
+                stroke={COLORS[index % COLORS.length]}
+                activeDot={{ r: 8 }}
+                dot={{ r: 4 }}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

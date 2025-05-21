@@ -11,11 +11,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/api/trends/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/trends/route.js"
-    ],
     "/api/players/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
