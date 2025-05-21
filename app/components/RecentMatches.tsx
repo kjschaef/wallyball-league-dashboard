@@ -19,12 +19,15 @@ export function RecentMatches() {
   useEffect(() => {
     const fetchRecentMatches = async () => {
       try {
-        const response = await fetch('/api/matches?limit=5');
+        const response = await fetch('/api/matches?limit=10');
         if (!response.ok) {
           throw new Error('Failed to fetch recent matches');
         }
         const data = await response.json();
-        setMatches(data);
+        
+        // Filter to only show matches from the last day
+        const lastDayMatches = filterLastDayMatches(data);
+        setMatches(lastDayMatches);
       } catch (error) {
         console.error('Error fetching recent matches:', error);
         setMatches([]);
@@ -36,6 +39,18 @@ export function RecentMatches() {
     fetchRecentMatches();
   }, []);
 
+  // Filter matches to only include those from the last 24 hours
+  const filterLastDayMatches = (matches: Match[]): Match[] => {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    return matches.filter(match => {
+      const matchDate = new Date(match.date);
+      return matchDate >= yesterday;
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-10">
@@ -44,9 +59,20 @@ export function RecentMatches() {
     );
   }
 
+  if (matches.length === 0) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-medium text-gray-800">Today's Matches</h2>
+        <div className="text-center py-4 text-gray-500">
+          No matches found in the last 24 hours.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-medium text-gray-800">Recent Matches</h2>
+      <h2 className="text-xl font-medium text-gray-800">Today's Matches</h2>
       <GameHistory games={matches} />
     </div>
   );
