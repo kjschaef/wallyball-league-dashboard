@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { calculateInactivityPenalty } from '../lib/utils';
 import { PlayerAchievements } from './PlayerAchievements';
-import { calculatePenalizedWinPercentage } from '../lib/utils';
 
 interface Player {
   id: number;
@@ -14,164 +14,215 @@ interface Player {
 interface PlayerCardProps {
   player: Player & { 
     matches: Array<{ won: boolean, date: string }>, 
-    stats: { won: number, lost: number } 
+    stats: { won: number, lost: number, totalMatchTime?: number } 
   };
   onEdit?: (player: Player) => void;
   onDelete?: (id: number) => void;
 }
 
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState(player.name);
-  const [editStartYear, setEditStartYear] = useState<number | undefined>(
-    player.startYear || undefined
-  );
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editedName, setEditedName] = useState(player.name);
+  const [editedStartYear, setEditedStartYear] = useState(player.startYear?.toString() || '');
 
-  // Calculate win percentage
-  const totalGames = player.stats.won + player.stats.lost;
-  const rawWinPercentage = totalGames > 0 
-    ? (player.stats.won / totalGames) * 100 
-    : 0;
+  const { stats, matches } = player;
+  const total = stats.won + stats.lost;
   
-  // Get penalized win percentage, accounting for inactivity
-  const penalizedWinPercentage = calculatePenalizedWinPercentage(player);
+  // Ensure we're working with matches in order (oldest first)
+  const sortedPlayer = {
+    ...player,
+    matches: [...player.matches].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    )
+  };
   
-  // Generate a streak description
-  const getStreakText = () => {
-    if (!player.matches || player.matches.length === 0) return 'No matches played';
-    
-    const recentMatches = [...player.matches].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    ).slice(0, 5);
-    
-    let streak = 1;
-    const isWinningStreak = recentMatches[0].won;
-    
-    for (let i = 1; i < recentMatches.length; i++) {
-      if (recentMatches[i].won === isWinningStreak) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-    
-    if (streak === 1) return 'No current streak';
-    return isWinningStreak ? `${streak} win streak` : `${streak} loss streak`;
-  };
+  // Calculate inactivity penalty using the utility function
+  const { 
+    weeksInactive, 
+    penaltyPercentage: inactivityPenalty,
+    decayFactor,
+    lastMatch
+  } = calculateInactivityPenalty(sortedPlayer);
+  
+  // Apply decay factor to win percentage
+  const winRateBase = total > 0 ? Math.round((stats.won / total) * 100) : 0;
+  const winRate = weeksInactive > 0 
+    ? Math.round(winRateBase * decayFactor) 
+    : winRateBase;
+  
+  // Count unique days on which matches were played
+  const uniqueDays = new Set(
+    matches.map(match => new Date(match.date).toLocaleDateString())
+  ).size;
+  
+  // Calculate wins per day
+  const winsPerDay = uniqueDays > 0 
+    ? ((stats.won / uniqueDays) * decayFactor).toFixed(1)
+    : "0.0";
 
-  const handleSaveEdit = () => {
-    if (onEdit) {
-      onEdit({
-        ...player,
-        name: editName,
-        startYear: editStartYear || null
-      });
-    }
-    setIsEditing(false);
-  };
+  const yearsPlayed = player.startYear 
+    ? new Date().getFullYear() - player.startYear 
+    : null;
 
-  const handleCancelEdit = () => {
-    setEditName(player.name);
-    setEditStartYear(player.startYear || undefined);
-    setIsEditing(false);
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const updatedPlayer = {
+      ...player,
+      name: editedName,
+      startYear: editedStartYear ? parseInt(editedStartYear) : null,
+    };
+    if (onEdit) onEdit(updatedPlayer);
+    setShowEditDialog(false);
   };
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      {/* Card Header */}
-      <div className="bg-gray-800 text-white p-4">
-        {isEditing ? (
-          <div className="space-y-2">
-            <input
-              type="text"
-              className="w-full p-2 border rounded text-gray-800"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-            />
-            <div className="flex items-center">
-              <label className="text-sm mr-2">Start Year:</label>
-              <input
-                type="number"
-                className="w-full p-2 border rounded text-gray-800"
-                value={editStartYear || ''}
-                onChange={(e) => setEditStartYear(e.target.value ? parseInt(e.target.value) : undefined)}
-                min="1900"
-                max={new Date().getFullYear()}
-              />
-            </div>
-            <div className="flex justify-end space-x-2 mt-2">
-              <button
-                onClick={handleCancelEdit}
-                className="px-2 py-1 bg-gray-600 text-white rounded text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                className="px-2 py-1 bg-blue-600 text-white rounded text-sm"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex justify-between items-center">
+      <div className="p-5">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-3">
             <h3 className="text-lg font-bold">{player.name}</h3>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="p-1 text-gray-300 hover:text-white"
-                aria-label="Edit player"
-              >
-                ✏️
-              </button>
-              {onDelete && (
-                <button
-                  onClick={() => onDelete(player.id)}
-                  className="p-1 text-gray-300 hover:text-white"
-                  aria-label="Delete player"
-                >
-                  🗑️
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Card Body */}
-      <div className="p-4">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <h4 className="text-sm text-gray-500">Win Rate</h4>
-            <p className="text-xl font-bold">{rawWinPercentage.toFixed(1)}%</p>
-            {penalizedWinPercentage !== rawWinPercentage && (
-              <p className="text-xs text-gray-500">
-                Adjusted: {penalizedWinPercentage.toFixed(1)}%
-              </p>
+            {yearsPlayed !== null && (
+              <span className="text-sm text-gray-500">
+                Years played: {yearsPlayed}
+              </span>
             )}
           </div>
-          <div>
-            <h4 className="text-sm text-gray-500">Record</h4>
-            <p className="text-xl font-bold">
-              {player.stats.won} - {player.stats.lost}
-            </p>
-          </div>
-          <div>
-            <h4 className="text-sm text-gray-500">Matches</h4>
-            <p className="text-xl font-bold">{totalGames}</p>
-          </div>
-          <div>
-            <h4 className="text-sm text-gray-500">Streak</h4>
-            <p className="text-lg font-medium">{getStreakText()}</p>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => onEdit ? onEdit(player) : setShowEditDialog(true)}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Edit player"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Are you sure you want to delete ${player.name}?`)) {
+                  onDelete && onDelete(player.id);
+                }
+              }}
+              className="text-red-500 hover:text-red-700"
+              aria-label="Delete player"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           </div>
         </div>
 
-        {/* Achievements Section */}
-        <div>
-          <h4 className="text-sm text-gray-500 mb-2">Achievements</h4>
-          <PlayerAchievements playerId={player.id} compact={true} />
+        {showEditDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">Edit Player</h2>
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    required
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="startYear" className="block text-sm font-medium text-gray-700">Start Year</label>
+                  <input
+                    id="startYear"
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    value={editedStartYear}
+                    onChange={(e) => setEditedStartYear(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowEditDialog(false)}
+                    className="w-full py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Update
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <div className="text-left">
+                  <span className="text-sm text-gray-500 block">Record</span>
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium">
+                      <span className="text-green-600">{stats.won}</span>
+                      {" - "}
+                      <span className="text-red-600">{stats.lost}</span>
+                    </span>
+                    <span className="text-xs text-gray-500 mt-1">
+                      {total} games
+                    </span>
+                  </div>
+                </div>
+                {stats.totalMatchTime !== undefined && (
+                  <div className="text-left">
+                    <span className="text-sm text-gray-500 block">Total Playing Time</span>
+                    <div 
+                      className="flex items-start gap-2"
+                      title="Based on 90-minute daily sessions"
+                    >
+                      <span className="font-medium">
+                        {stats.totalMatchTime} hours
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Achievements as small icons */}
+            <div className="flex flex-wrap gap-1">
+              <PlayerAchievements playerId={player.id} compact />
+            </div>
+          </div>
+
+          <div className="text-right">
+            <span className="text-sm text-gray-500 block mb-1">Win Percentage</span>
+            <span className={`text-3xl font-bold ${
+              winRate >= 60 ? 'text-green-600' : 
+              winRate >= 45 ? 'text-yellow-600' : 
+              'text-red-600'
+            }`}>{winRate}%</span>
+            {weeksInactive > 0 && inactivityPenalty > 0 && (
+              <div className="text-xs text-red-500 mt-1">
+                Actual: {winRateBase}% (-{Math.round(inactivityPenalty * 100)}% inactive)
+              </div>
+            )}
+            <div className="w-full bg-gray-200 mt-2 rounded-full h-2.5">
+              <div 
+                className={`h-2.5 rounded-full ${
+                  winRate >= 60 ? 'bg-green-600' : 
+                  winRate >= 45 ? 'bg-yellow-600' : 
+                  'bg-red-600'
+                }`} 
+                style={{ width: `${Math.min(100, Math.max(0, winRate))}%` }}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
