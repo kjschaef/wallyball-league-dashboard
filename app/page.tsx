@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { PerformanceTrend } from './components/PerformanceTrend';
 import { WinPercentageRankings } from './components/WinPercentageRankings';
+import { RecentMatches } from './components/RecentMatches';
 
 export default function DashboardPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -43,6 +44,10 @@ export default function DashboardPage() {
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-xl font-medium mb-4 text-gray-800">Win Percentage Rankings</h2>
         <WinPercentageRankings />
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow">
+        <RecentMatches />
       </div>
     </div>
   );
