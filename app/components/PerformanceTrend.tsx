@@ -34,10 +34,10 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch real performance data from the original site
+    // Fetch performance data from our API
     const fetchPerformanceData = async () => {
       try {
-        const response = await fetch('https://cfa-wally-stats.replit.app/api/trends');
+        const response = await fetch('/api/trends');
         if (!response.ok) {
           throw new Error('Failed to fetch performance data');
         }

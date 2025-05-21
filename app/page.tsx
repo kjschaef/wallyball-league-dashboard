@@ -2,15 +2,19 @@
 'use client';
 
 import { useState } from 'react';
-import { WinPercentageChart } from './components/WinPercentageChart';
+import { PerformanceTrend } from './components/PerformanceTrend';
 import { WinPercentageRankings } from './components/WinPercentageRankings';
 
 export default function DashboardPage() {
-  const [chartMetric, setChartMetric] = useState<'winPercentage' | 'totalGames'>('winPercentage');
-  const [timeRange, setTimeRange] = useState<'recent' | 'allData'>('recent');
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleExportImage = () => {
-    alert('Export functionality would capture the dashboard as an image');
+    setIsExporting(true);
+    // In a real implementation, this would trigger image export
+    setTimeout(() => {
+      setIsExporting(false);
+      alert('Export functionality would capture the dashboard as an image');
+    }, 500);
   };
 
   return (
@@ -30,41 +34,10 @@ export default function DashboardPage() {
 
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-medium text-gray-800">Win Percentage</h2>
-          <div className="flex space-x-2">
-            <button 
-              className={`${chartMetric === 'winPercentage' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
-              onClick={() => setChartMetric('winPercentage')}
-            >
-              Win %
-            </button>
-            <button 
-              className={`${chartMetric === 'totalGames' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
-              onClick={() => setChartMetric('totalGames')}
-            >
-              Total
-            </button>
-          </div>
+          <h2 className="text-xl font-medium text-gray-800">Performance Trend</h2>
         </div>
         
-        <div className="mt-2 mb-4">
-          <div className="flex space-x-2 justify-end">
-            <button 
-              className={`${timeRange === 'recent' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
-              onClick={() => setTimeRange('recent')}
-            >
-              Recent
-            </button>
-            <button 
-              className={`${timeRange === 'allData' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
-              onClick={() => setTimeRange('allData')}
-            >
-              All Data
-            </button>
-          </div>
-        </div>
-
-        <WinPercentageChart metricType={chartMetric} timeRange={timeRange} />
+        <PerformanceTrend isExporting={isExporting} />
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow">
