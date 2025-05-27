@@ -5,13 +5,12 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ["*"],
     },
+    typedRoutes: false,
   },
   typescript: {
-    // This will allow the build to proceed even if there are type errors
     ignoreBuildErrors: false,
   },
   eslint: {
-    // This will allow the build to proceed even if there are ESLint errors
     ignoreDuringBuilds: false,
   },
 }
