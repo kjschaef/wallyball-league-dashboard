@@ -1,0 +1,119 @@
+[19:48:47.449] Running build in Washington, D.C., USA (East) – iad1
+[19:48:47.449] Build machine configuration: 2 cores, 8 GB
+[19:48:47.473] Cloning github.com/kjschaef/wallyball-league-dashboard (Branch: main, Commit: abd4643)
+[19:48:47.662] Previous build caches not available
+[19:48:52.954] Cloning completed: 5.480s
+[19:48:53.377] Running "vercel build"
+[19:48:53.820] Vercel CLI 42.1.1
+[19:48:54.131] Running "install" command: `npm install`...
+[19:48:57.853] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[19:48:59.435] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[19:49:00.227] npm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead
+[19:49:00.778] npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+[19:49:01.827] npm warn deprecated @humanwhocodes/config-array@0.11.14: Use @eslint/config-array instead
+[19:49:01.859] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[19:49:01.890] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+[19:49:01.891] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[19:49:02.447] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[19:49:02.580] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[19:49:02.773] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[19:49:02.852] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[19:49:03.078] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[19:49:07.259] npm warn deprecated eslint@8.57.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+[19:49:18.143] 
+[19:49:18.143] added 1024 packages, and audited 1025 packages in 24s
+[19:49:18.144] 
+[19:49:18.144] 197 packages are looking for funding
+[19:49:18.144]   run `npm fund` for details
+[19:49:18.180] 
+[19:49:18.180] 9 moderate severity vulnerabilities
+[19:49:18.180] 
+[19:49:18.181] To address issues that do not require attention, run:
+[19:49:18.181]   npm audit fix
+[19:49:18.182] 
+[19:49:18.182] To address all issues (including breaking changes), run:
+[19:49:18.185]   npm audit fix --force
+[19:49:18.185] 
+[19:49:18.185] Run `npm audit` for details.
+[19:49:18.264] Detected Next.js version: 15.3.2
+[19:49:18.266] Running "npm run build"
+[19:49:18.508] 
+[19:49:18.512] > volleyball-league-management-next@0.1.0 build
+[19:49:18.512] > next build
+[19:49:18.512] 
+[19:49:19.129] Attention: Next.js now collects completely anonymous telemetry regarding usage.
+[19:49:19.130] This information is used to shape Next.js' roadmap and prioritize features.
+[19:49:19.130] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[19:49:19.130] https://nextjs.org/telemetry
+[19:49:19.131] 
+[19:49:19.198]    ▲ Next.js 15.3.2
+[19:49:19.199] 
+[19:49:19.254]    Creating an optimized production build ...
+[19:49:37.484]  ✓ Compiled successfully in 15.0s
+[19:49:37.490]    Linting and checking validity of types ...
+[19:49:48.479] 
+[19:49:48.480] Failed to compile.
+[19:49:48.480] 
+[19:49:48.480] ./app/analytics/page.tsx
+[19:49:48.480] 9:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.481] 16:6  Warning: React Hook useEffect has a missing dependency: 'fetchPlayers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+[19:49:48.481] 40:18  Warning: 'fetchPlayerStats' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.481] 
+[19:49:48.481] ./app/api/games/route.ts
+[19:49:48.481] 2:10  Warning: 'eq' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.481] 
+[19:49:48.481] ./app/api/trends/route.ts
+[19:49:48.482] 3:10  Warning: 'startOfWeek' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.482] 3:23  Warning: 'endOfWeek' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.482] 3:34  Warning: 'startOfMonth' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.482] 3:48  Warning: 'endOfMonth' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.482] 3:60  Warning: 'subMonths' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.482] 3:71  Warning: 'subWeeks' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.482] 
+[19:49:48.482] ./app/components/GameHistory.tsx
+[19:49:48.482] 61:15  Error: Visible, non-interactive elements with click handlers must have at least one keyboard listener.  jsx-a11y/click-events-have-key-events
+[19:49:48.483] 61:15  Error: Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element.  jsx-a11y/no-static-element-interactions
+[19:49:48.483] 
+[19:49:48.483] ./app/components/PerformanceTrend.tsx
+[19:49:48.483] 35:36  Warning: 'isExporting' is assigned a value but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+[19:49:48.483] 38:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.483] 40:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.483] 72:11  Error: 'daysPlayed' is never reassigned. Use 'const' instead.  prefer-const
+[19:49:48.483] 117:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.483] 132:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.483] 198:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.483] 211:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.483] 
+[19:49:48.483] ./app/components/PlayerCard.tsx
+[19:49:48.483] 63:9  Warning: 'winsPerDay' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.483] 107:19  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+[19:49:48.483] 
+[19:49:48.483] ./app/components/PlayerPerformanceRadar.tsx
+[19:49:48.483] 20:18  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.484] 110:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.484] 
+[19:49:48.484] ./app/components/WinPercentageRankings.tsx
+[19:49:48.484] 33:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.484] 
+[19:49:48.484] ./app/games/page.tsx
+[19:49:48.484] 19:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.484] 140:9  Warning: 'getPlayerName' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:49:48.484] 187:17  Error: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:49:48.484] 212:17  Error: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:49:48.484] 
+[19:49:48.484] ./app/players/page.tsx
+[19:49:48.484] 187:17  Error: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:49:48.484] 199:17  Error: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:49:48.487] 
+[19:49:48.487] ./app/results/page.tsx
+[19:49:48.487] 78:11  Error: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:49:48.487] 90:11  Error: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:49:48.487] 101:11  Error: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:49:48.487] 
+[19:49:48.490] ./lib/utils.ts
+[19:49:48.490] 42:33  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:49:48.491] 
+[19:49:48.491] info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[19:49:48.514] Error: Command "npm run build" exited with 1
+[19:49:48.884] 
+[19:49:52.252] Exiting build container
