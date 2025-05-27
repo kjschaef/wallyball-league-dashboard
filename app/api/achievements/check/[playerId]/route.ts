@@ -49,7 +49,7 @@ export async function POST(
         gamesWon: acc.gamesWon + gamesWon,
         gamesLost: acc.gamesLost + gamesLost,
         perfectGames: acc.perfectGames + (gamesWon > 0 && gamesLost === 0 ? 1 : 0),
-        uniqueTeammates: new Set([...acc.uniqueTeammates, ...teammates])
+        uniqueTeammates: new Set([...Array.from(acc.uniqueTeammates), ...Array.from(teammates)])
       };
     }, {
       gamesPlayed: 0,
