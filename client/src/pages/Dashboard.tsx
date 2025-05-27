@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -54,25 +54,28 @@ export default function Dashboard() {
 
   const { data: matches = [] } = useQuery({
     queryKey: ["/api/matches"],
-    onSuccess: (data) => {
-      console.log("🎯 Matches API data:", data);
-      console.log("🎯 Total matches:", data?.length || 0);
-      if (data?.length > 0) {
-        console.log("🎯 Sample match:", data[0]);
-      }
-    }
   });
 
   const { data: players = [] } = useQuery({
     queryKey: ["/api/players"],
-    onSuccess: (data) => {
-      console.log("👥 Players API data:", data);
-      console.log("👥 Total players:", data?.length || 0);
-      if (data?.length > 0) {
-        console.log("👥 Sample player:", data[0]);
-      }
-    }
   });
+
+  // Log API data when it changes
+  React.useEffect(() => {
+    if (matches.length > 0) {
+      console.log("🎯 Matches API data:", matches);
+      console.log("🎯 Total matches:", matches.length);
+      console.log("🎯 Sample match:", matches[0]);
+    }
+  }, [matches]);
+
+  React.useEffect(() => {
+    if (players.length > 0) {
+      console.log("👥 Players API data:", players);
+      console.log("👥 Total players:", players.length);
+      console.log("👥 Sample player:", players[0]);
+    }
+  }, [players]);
 
   const gameForm = useForm<GameFormData>({
     resolver: zodResolver(gameFormSchema),
