@@ -203,7 +203,12 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Matches - {mostRecentDayWithGames ? format(new Date(mostRecentDayWithGames), "MMM d, yyyy") : "No matches"}</CardTitle>
+            <CardTitle>
+              {mostRecentDayWithGames 
+                ? `Last Games Played - ${format(new Date(mostRecentDayWithGames), "MMM d, yyyy")}`
+                : "No Recent Matches"
+              }
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {filteredMatches.length === 0 ? (
