@@ -54,10 +54,24 @@ export default function Dashboard() {
 
   const { data: matches = [] } = useQuery({
     queryKey: ["/api/matches"],
+    onSuccess: (data) => {
+      console.log("🎯 Matches API data:", data);
+      console.log("🎯 Total matches:", data?.length || 0);
+      if (data?.length > 0) {
+        console.log("🎯 Sample match:", data[0]);
+      }
+    }
   });
 
   const { data: players = [] } = useQuery({
     queryKey: ["/api/players"],
+    onSuccess: (data) => {
+      console.log("👥 Players API data:", data);
+      console.log("👥 Total players:", data?.length || 0);
+      if (data?.length > 0) {
+        console.log("👥 Sample player:", data[0]);
+      }
+    }
   });
 
   const gameForm = useForm<GameFormData>({
@@ -124,6 +138,11 @@ export default function Dashboard() {
   const mostRecentDayWithGames = recentMatches.length > 0 ? new Date(recentMatches[0].date).toDateString() : null;
 
   const filteredMatches = recentMatches.filter(match => new Date(match.date).toDateString() === mostRecentDayWithGames).slice(0,5);
+
+  // Log the filtering process
+  console.log("🔍 Recent matches (sorted):", recentMatches);
+  console.log("🔍 Most recent day with games:", mostRecentDayWithGames);
+  console.log("🔍 Filtered matches for display:", filteredMatches);
 
 
   const shareAsImage = async () => {
