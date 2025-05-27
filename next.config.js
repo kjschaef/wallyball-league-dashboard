@@ -1,15 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Use proper configuration options for Next.js
   experimental: {
     serverActions: {
       allowedOrigins: ["*"],
     },
   },
-  // Added output: 'standalone' for better production builds
-  output: 'standalone',
+  typescript: {
+    // This will allow the build to proceed even if there are type errors
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    // This will allow the build to proceed even if there are ESLint errors
+    ignoreDuringBuilds: false,
+  },
 }
 
-// Use CommonJS syntax for Next.js configuration when in the app directory
 module.exports = nextConfig
