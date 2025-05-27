@@ -1,0 +1,122 @@
+[19:55:19.813] Running build in Washington, D.C., USA (East) – iad1
+[19:55:19.814] Build machine configuration: 2 cores, 8 GB
+[19:55:19.845] Cloning github.com/kjschaef/wallyball-league-dashboard (Branch: main, Commit: 44c5c1a)
+[19:55:21.802] Cloning completed: 1.956s
+[19:55:22.544] Restored build cache from previous deployment (CwddsRcZpZaE2VTFAPjGJ3JLm5Kt)
+[19:55:23.307] Running "vercel build"
+[19:55:23.743] Vercel CLI 42.1.1
+[19:55:24.248] Running "install" command: `npm install`...
+[19:55:27.144] 
+[19:55:27.145] up to date, audited 1025 packages in 3s
+[19:55:27.146] 
+[19:55:27.146] 197 packages are looking for funding
+[19:55:27.146]   run `npm fund` for details
+[19:55:27.193] 
+[19:55:27.193] 9 moderate severity vulnerabilities
+[19:55:27.193] 
+[19:55:27.193] To address issues that do not require attention, run:
+[19:55:27.193]   npm audit fix
+[19:55:27.193] 
+[19:55:27.193] To address all issues (including breaking changes), run:
+[19:55:27.194]   npm audit fix --force
+[19:55:27.194] 
+[19:55:27.194] Run `npm audit` for details.
+[19:55:27.229] Detected Next.js version: 15.3.2
+[19:55:27.230] Running "npm run build"
+[19:55:27.350] 
+[19:55:27.351] > volleyball-league-management-next@0.1.0 build
+[19:55:27.351] > next build
+[19:55:27.351] 
+[19:55:28.176]    ▲ Next.js 15.3.2
+[19:55:28.177] 
+[19:55:28.247]    Creating an optimized production build ...
+[19:55:37.406]  ✓ Compiled successfully in 5.0s
+[19:55:37.412]    Linting and checking validity of types ...
+[19:55:48.980] 
+[19:55:48.981] ./app/analytics/page.tsx
+[19:55:48.981] 9:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.981] 16:6  Warning: React Hook useEffect has a missing dependency: 'fetchPlayers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+[19:55:48.981] 40:18  Warning: 'fetchPlayerStats' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.981] 
+[19:55:48.981] ./app/api/games/route.ts
+[19:55:48.981] 2:10  Warning: 'eq' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.981] 
+[19:55:48.981] ./app/api/trends/route.ts
+[19:55:48.981] 3:10  Warning: 'startOfWeek' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.982] 3:23  Warning: 'endOfWeek' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.982] 3:34  Warning: 'startOfMonth' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.982] 3:48  Warning: 'endOfMonth' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.982] 3:60  Warning: 'subMonths' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.982] 3:71  Warning: 'subWeeks' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.982] 
+[19:55:48.983] ./app/components/PerformanceTrend.tsx
+[19:55:48.983] 35:36  Warning: 'isExporting' is assigned a value but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+[19:55:48.983] 38:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.983] 40:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.983] 117:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.983] 132:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.983] 198:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.983] 211:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.984] 
+[19:55:48.984] ./app/components/PlayerCard.tsx
+[19:55:48.984] 63:9  Warning: 'winsPerDay' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.984] 
+[19:55:48.984] ./app/components/PlayerPerformanceRadar.tsx
+[19:55:48.984] 20:18  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.984] 110:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.985] 
+[19:55:48.985] ./app/components/WinPercentageRankings.tsx
+[19:55:48.985] 33:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.985] 
+[19:55:48.985] ./app/games/page.tsx
+[19:55:48.985] 19:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.985] 140:9  Warning: 'getPlayerName' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:55:48.985] 
+[19:55:48.986] ./lib/utils.ts
+[19:55:48.986] 42:33  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:55:48.986] 
+[19:55:48.986] info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[19:55:49.330]    Collecting page data ...
+[19:55:51.845]    Generating static pages (0/13) ...
+[19:55:52.884]    Generating static pages (3/13) 
+[19:55:52.885]    Generating static pages (6/13) 
+[19:55:52.943]    Generating static pages (9/13) 
+[19:55:52.944]  ✓ Generating static pages (13/13)
+[19:55:53.301]    Finalizing page optimization ...
+[19:55:53.305]    Collecting build traces ...
+[19:55:59.555] 
+[19:55:59.566] Route (app)                                 Size  First Load JS
+[19:55:59.567] ┌ ○ /                                    3.53 kB         218 kB
+[19:55:59.568] ├ ○ /_not-found                            986 B         103 kB
+[19:55:59.569] ├ ○ /analytics                             10 kB         224 kB
+[19:55:59.569] ├ ƒ /api/achievements/check/[playerId]     160 B         102 kB
+[19:55:59.569] ├ ƒ /api/achievements/player/[playerId]    160 B         102 kB
+[19:55:59.572] ├ ƒ /api/games                             160 B         102 kB
+[19:55:59.572] ├ ƒ /api/games/[id]                        160 B         102 kB
+[19:55:59.572] ├ ƒ /api/matches                           160 B         102 kB
+[19:55:59.572] ├ ƒ /api/matches/[id]                      160 B         102 kB
+[19:55:59.572] ├ ƒ /api/players                           160 B         102 kB
+[19:55:59.572] ├ ƒ /api/players/[id]                      160 B         102 kB
+[19:55:59.573] ├ ƒ /api/trends                            160 B         102 kB
+[19:55:59.573] ├ ○ /dashboard                             160 B         102 kB
+[19:55:59.573] ├ ○ /games                               1.87 kB         103 kB
+[19:55:59.573] ├ ○ /players                             3.76 kB         105 kB
+[19:55:59.573] └ ○ /results                             1.76 kB         103 kB
+[19:55:59.573] + First Load JS shared by all             102 kB
+[19:55:59.573]   ├ chunks/4bd1b696-da577f8f00a31b48.js  53.2 kB
+[19:55:59.573]   ├ chunks/684-cae058ddd8921e0b.js       46.4 kB
+[19:55:59.573]   └ other shared chunks (total)          1.97 kB
+[19:55:59.573] 
+[19:55:59.573] 
+[19:55:59.574] ○  (Static)   prerendered as static content
+[19:55:59.574] ƒ  (Dynamic)  server-rendered on demand
+[19:55:59.574] 
+[19:55:59.727] Traced Next.js server files in: 89.762ms
+[19:55:59.847] Created all serverless functions in: 118.713ms
+[19:55:59.857] Collected static files (public/, static/, .next/static): 6.342ms
+[19:55:59.920] Build Completed in /vercel/output [36s]
+[19:55:59.999] Deploying outputs...
+[19:56:04.380] 
+[19:56:04.705] Deployment completed
+[19:56:26.390] Uploading build cache [236.20 MB]...
+[19:56:29.417] Build cache uploaded: 3.032s

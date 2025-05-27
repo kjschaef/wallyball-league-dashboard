@@ -1,6 +1,5 @@
 
 import { NextResponse } from "next/server";
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subWeeks } from "date-fns";
 
 // Mock data for API response
 const mockTrendsData = [

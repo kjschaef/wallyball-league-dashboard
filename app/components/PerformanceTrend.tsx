@@ -32,7 +32,7 @@ interface PerformanceTrendProps {
   isExporting?: boolean;
 }
 
-export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
+export function PerformanceTrend({ isExporting: _isExporting = false }: PerformanceTrendProps) {
   const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
   const [showAllData, setShowAllData] = useState(false);
   const [players, setPlayers] = useState<any[]>([]);

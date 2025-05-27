@@ -6,14 +6,14 @@ import { PlayerPerformanceRadar } from '../components/PlayerPerformanceRadar';
 import { PlayerAchievements } from '../components/PlayerAchievements';
 
 export default function AnalyticsPage() {
-  const [players, setPlayers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<Array<{id: number; name: string}>>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch players when component mounts
     fetchPlayers();
-  }, []);
+  }, [fetchPlayers]);
 
   async function fetchPlayers() {
     try {
@@ -37,19 +37,7 @@ export default function AnalyticsPage() {
     }
   }
 
-  async function fetchPlayerStats(playerId: number) {
-    try {
-      const response = await fetch(`/api/players/${playerId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch player stats');
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching player stats:', error);
-      return players.find(p => p.id === playerId);
-    }
-  }
+
 
   const handlePlayerChange = (playerId: number) => {
     setSelectedPlayer(playerId);
