@@ -88,10 +88,11 @@ export default function ResultsPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="from-date" className="block text-sm font-medium text-gray-700 mb-1">
             From Date
           </label>
           <input
+            id="from-date"
             type="date"
             className="w-full p-2 border rounded"
             value={startDate}
@@ -99,10 +100,11 @@ export default function ResultsPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="to-date" className="block text-sm font-medium text-gray-700 mb-1">
             To Date
           </label>
           <input
+            id="to-date"
             type="date"
             className="w-full p-2 border rounded"
             value={endDate}
