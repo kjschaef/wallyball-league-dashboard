@@ -104,7 +104,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             <button
               onClick={() => {
                 if (confirm(`Are you sure you want to delete ${player.name}?`)) {
-                  onDelete && onDelete(player.id);
+                  onDelete?.(player.id);
                 }
               }}
               className="text-red-500 hover:text-red-700"

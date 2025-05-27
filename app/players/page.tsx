@@ -184,10 +184,11 @@ export default function PlayersPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="player-name" className="block text-sm font-medium text-gray-700 mb-1">
                   Name
                 </label>
                 <input
+                  id="player-name"
                   type="text"
                   className="w-full p-2 border rounded"
                   value={newPlayerName}
@@ -196,10 +197,11 @@ export default function PlayersPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="start-year" className="block text-sm font-medium text-gray-700 mb-1">
                   Start Year (optional)
                 </label>
                 <input
+                  id="start-year"
                   type="number"
                   className="w-full p-2 border rounded"
                   value={newPlayerStartYear || ''}

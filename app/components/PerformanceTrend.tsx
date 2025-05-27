@@ -69,7 +69,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
       const dailyStats = new Map();
       let cumulativeWins = 0;
       let cumulativeTotalGames = 0;
-      let daysPlayed = new Set();
+      const daysPlayed = new Set();
       
       // Sort matches by date
       const sortedMatches = [...(player.matches || [])].sort(

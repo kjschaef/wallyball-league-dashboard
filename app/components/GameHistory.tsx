@@ -61,6 +61,9 @@ export function GameHistory({ games }: GameHistoryProps) {
               <div
                 className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
                 onClick={() => toggleGameExpansion(game.id)}
+                onKeyDown={(e) => e.key === 'Enter' && toggleGameExpansion(game.id)}
+                tabIndex={0}
+                role="button"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <span className="text-sm text-gray-500">

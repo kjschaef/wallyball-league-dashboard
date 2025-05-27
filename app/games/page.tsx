@@ -184,10 +184,11 @@ export default function GamesPage() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="team1-score" className="block text-sm font-medium text-gray-700 mb-1">
                   Games Won
                 </label>
                 <input
+                  id="team1-score"
                   type="number"
                   min="0"
                   max="5"
@@ -209,10 +210,11 @@ export default function GamesPage() {
               />
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="team2-score" className="block text-sm font-medium text-gray-700 mb-1">
                   Games Won
                 </label>
                 <input
+                  id="team2-score"
                   type="number"
                   min="0"
                   max="5"
