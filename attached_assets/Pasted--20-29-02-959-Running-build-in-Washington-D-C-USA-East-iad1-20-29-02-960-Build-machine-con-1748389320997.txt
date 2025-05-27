@@ -1,0 +1,70 @@
+[20:29:02.959] Running build in Washington, D.C., USA (East) – iad1
+[20:29:02.960] Build machine configuration: 2 cores, 8 GB
+[20:29:03.063] Cloning github.com/kjschaef/wallyball-league-dashboard (Branch: main, Commit: 7fb6de6)
+[20:29:04.370] Previous build caches not available
+[20:29:20.229] Cloning completed: 17.166s
+[20:29:21.341] Running "vercel build"
+[20:29:22.419] Vercel CLI 42.1.1
+[20:29:23.186] Running "install" command: `npm install`...
+[20:29:31.499] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[20:29:34.363] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[20:29:35.935] npm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead
+[20:29:37.659] npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+[20:29:38.610] npm warn deprecated @humanwhocodes/config-array@0.11.14: Use @eslint/config-array instead
+[20:29:38.760] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+[20:29:38.762] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[20:29:38.802] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[20:29:39.207] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[20:29:39.380] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[20:29:39.384] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[20:29:39.447] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[20:29:39.614] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[20:29:43.204] npm warn deprecated eslint@8.57.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+[20:30:01.151] 
+[20:30:01.152] added 974 packages, and audited 975 packages in 37s
+[20:30:01.152] 
+[20:30:01.152] 177 packages are looking for funding
+[20:30:01.156]   run `npm fund` for details
+[20:30:01.186] 
+[20:30:01.187] 9 moderate severity vulnerabilities
+[20:30:01.187] 
+[20:30:01.187] To address issues that do not require attention, run:
+[20:30:01.187]   npm audit fix
+[20:30:01.188] 
+[20:30:01.188] To address all issues (including breaking changes), run:
+[20:30:01.188]   npm audit fix --force
+[20:30:01.188] 
+[20:30:01.188] Run `npm audit` for details.
+[20:30:01.244] Detected Next.js version: 15.3.2
+[20:30:01.245] Running "npm run build"
+[20:30:01.358] 
+[20:30:01.358] > volleyball-league-management-next@0.1.0 build
+[20:30:01.358] > next build
+[20:30:01.358] 
+[20:30:01.954] Attention: Next.js now collects completely anonymous telemetry regarding usage.
+[20:30:01.955] This information is used to shape Next.js' roadmap and prioritize features.
+[20:30:01.955] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[20:30:01.956] https://nextjs.org/telemetry
+[20:30:01.956] 
+[20:30:02.013]    ▲ Next.js 15.3.2
+[20:30:02.013] 
+[20:30:02.079]    Creating an optimized production build ...
+[20:30:19.168]  ✓ Compiled successfully in 13.0s
+[20:30:19.173]    Linting and checking validity of types ...
+[20:30:19.516]  ⨯ ESLint: Failed to load plugin '@typescript-eslint' declared in '.eslintrc.cjs': Cannot find module '@typescript-eslint/eslint-plugin' Require stack: - /vercel/path0/__placeholder__.js Referenced from: /vercel/path0/.eslintrc.cjs
+[20:30:24.897] Failed to compile.
+[20:30:24.897] 
+[20:30:24.897] ./app/api/achievements/check/[playerId]/route.ts:52:38
+[20:30:24.897] Type error: Type 'Set<unknown>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+[20:30:24.897] 
+[20:30:24.897] [0m [90m 50 |[39m         gamesLost[33m:[39m acc[33m.[39mgamesLost [33m+[39m gamesLost[33m,[39m[0m
+[20:30:24.897] [0m [90m 51 |[39m         perfectGames[33m:[39m acc[33m.[39mperfectGames [33m+[39m (gamesWon [33m>[39m [35m0[39m [33m&&[39m gamesLost [33m===[39m [35m0[39m [33m?[39m [35m1[39m [33m:[39m [35m0[39m)[33m,[39m[0m
+[20:30:24.898] [0m[31m[1m>[22m[39m[90m 52 |[39m         uniqueTeammates[33m:[39m [36mnew[39m [33mSet[39m([[33m...[39macc[33m.[39muniqueTeammates[33m,[39m [33m...[39mteammates])[0m
+[20:30:24.898] [0m [90m    |[39m                                      [31m[1m^[22m[39m[0m
+[20:30:24.898] [0m [90m 53 |[39m       }[33m;[39m[0m
+[20:30:24.898] [0m [90m 54 |[39m     }[33m,[39m {[0m
+[20:30:24.898] [0m [90m 55 |[39m       gamesPlayed[33m:[39m [35m0[39m[33m,[39m[0m
+[20:30:24.920] Next.js build worker exited with code: 1 and signal: null
+[20:30:24.942] Error: Command "npm run build" exited with 1
+[20:30:26.304] 
+[20:30:29.579] Exiting build container
