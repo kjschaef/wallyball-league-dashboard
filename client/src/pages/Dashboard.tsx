@@ -121,9 +121,9 @@ export default function Dashboard() {
   const recentMatches = [...matches]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const mostRecentDayWithGames = recentMatches.length > 0 ? new Date(recentMatches[0].date).toLocaleDateString() : null;
+  const mostRecentDayWithGames = recentMatches.length > 0 ? new Date(recentMatches[0].date).toDateString() : null;
 
-  const filteredMatches = recentMatches.filter(match => new Date(match.date).toLocaleDateString() === mostRecentDayWithGames).slice(0,5);
+  const filteredMatches = recentMatches.filter(match => new Date(match.date).toDateString() === mostRecentDayWithGames).slice(0,5);
 
 
   const shareAsImage = async () => {
