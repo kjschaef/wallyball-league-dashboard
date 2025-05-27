@@ -25,7 +25,7 @@ export function RecentMatches() {
         }
         const data = await response.json();
         
-        // Filter to only show matches from the last day
+        // Filter to only show matches from the most recent day with games
         const lastDayMatches = filterLastDayMatches(data);
         setMatches(lastDayMatches);
       } catch (error) {
@@ -39,16 +39,22 @@ export function RecentMatches() {
     fetchRecentMatches();
   }, []);
 
-  // Filter matches to only include those from the last 24 hours
+  // Filter matches to only include those from the most recent day with games
   const filterLastDayMatches = (matches: Match[]): Match[] => {
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    return matches.filter(match => {
-      const matchDate = new Date(match.date);
-      return matchDate >= yesterday;
-    });
+    if (matches.length === 0) return [];
+    
+    // Sort matches by date (most recent first)
+    const sortedMatches = [...matches].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    
+    // Get the most recent date
+    const mostRecentDate = new Date(sortedMatches[0].date).toDateString();
+    
+    // Return all matches from that most recent day
+    return sortedMatches.filter(match => 
+      new Date(match.date).toDateString() === mostRecentDate
+    );
   };
 
   if (loading) {
@@ -59,12 +65,21 @@ export function RecentMatches() {
     );
   }
 
+  // Get the date of the matches for the title
+  const matchDate = matches.length > 0 ? new Date(matches[0].date) : null;
+  const titleDate = matchDate ? matchDate.toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  }) : '';
+
   if (matches.length === 0) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-medium text-gray-800">Today's Matches</h2>
+        <h2 className="text-xl font-medium text-gray-800">Recent Matches</h2>
         <div className="text-center py-4 text-gray-500">
-          No matches found in the last 24 hours.
+          No matches found.
         </div>
       </div>
     );
@@ -72,7 +87,9 @@ export function RecentMatches() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-medium text-gray-800">Today's Matches</h2>
+      <h2 className="text-xl font-medium text-gray-800">
+        Last Games Played - {titleDate}
+      </h2>
       <GameHistory games={matches} />
     </div>
   );
