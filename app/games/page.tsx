@@ -16,7 +16,7 @@ export default function GamesPage() {
   const [teamTwoPlayers, setTeamTwoPlayers] = useState<number[]>([]);
   const [teamOneScore, setTeamOneScore] = useState<number>(0);
   const [teamTwoScore, setTeamTwoScore] = useState<number>(0);
-  const [matches, setMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<Array<{id: number; date: string; teamOnePlayers: string[]; teamTwoPlayers: string[]; teamOneGamesWon: number; teamTwoGamesWon: number}>>([]);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -136,8 +136,8 @@ export default function GamesPage() {
     }
   };
 
-  // Get player names by IDs
-  const getPlayerName = (id: number) => {
+  // Get player names by IDs (currently unused but kept for future features)
+  const _getPlayerName = (id: number) => {
     const player = players.find(p => p.id === id);
     return player ? player.name : 'Unknown';
   };

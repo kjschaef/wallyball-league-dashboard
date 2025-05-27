@@ -35,9 +35,9 @@ interface PerformanceTrendProps {
 export function PerformanceTrend({ isExporting: _isExporting = false }: PerformanceTrendProps) {
   const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
   const [showAllData, setShowAllData] = useState(false);
-  const [players, setPlayers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<Array<{id: number; name: string; matches: Array<{date: string; won: boolean}>}>>([]);
   const [loading, setLoading] = useState(true);
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<Array<{date: string; [key: string]: unknown}>>([]);
 
   // Fetch players data
   useEffect(() => {
@@ -129,7 +129,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
         .sort()
         .slice(-4)
         .map(date => {
-          const dataPoint: any = { date };
+          const dataPoint: {date: string; [key: string]: unknown} = { date };
           playerStats.forEach(player => {
             const stats = player.dailyStats.get(date);
             if (stats) {

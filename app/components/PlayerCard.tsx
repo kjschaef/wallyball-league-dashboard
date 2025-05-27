@@ -59,8 +59,8 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     matches.map(match => new Date(match.date).toLocaleDateString())
   ).size;
   
-  // Calculate wins per day
-  const winsPerDay = uniqueDays > 0 
+  // Calculate wins per day (currently unused but kept for future features)
+  const _winsPerDay = uniqueDays > 0 
     ? ((stats.won / uniqueDays) * decayFactor).toFixed(1)
     : "0.0";
 

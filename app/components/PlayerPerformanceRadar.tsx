@@ -17,7 +17,7 @@ interface ExtendedPlayer {
   name: string;
   matches: Array<{ won: boolean; date: string }>;
   stats: { won: number; lost: number; totalGames: number; totalMatchTime: number };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Define metrics for radar chart
