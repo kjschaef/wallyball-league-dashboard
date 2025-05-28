@@ -1,83 +1,7 @@
 import { NextResponse } from 'next/server';
-
-// Mock player data - in a real app this would come from a database
-const mockPlayers = [
-  {
-    id: 1,
-    name: 'Troy',
-    startYear: 2020,
-    createdAt: new Date(2020, 0, 1).toISOString(),
-    matches: Array(15).fill(null).map((_, i) => ({
-      id: i + 1,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.3,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
-    })),
-    stats: { won: 11, lost: 4, totalGames: 45, totalMatchTime: 540 }
-  },
-  {
-    id: 2,
-    name: 'Nate',
-    startYear: 2019,
-    createdAt: new Date(2019, 0, 1).toISOString(),
-    matches: Array(25).fill(null).map((_, i) => ({
-      id: i + 100,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.4,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
-    })),
-    stats: { won: 14, lost: 11, totalGames: 280, totalMatchTime: 3200 }
-  },
-  {
-    id: 3,
-    name: 'Lance',
-    startYear: 2021,
-    createdAt: new Date(2021, 0, 1).toISOString(),
-    matches: Array(10).fill(null).map((_, i) => ({
-      id: i + 200,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.45,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
-    })),
-    stats: { won: 6, lost: 4, totalGames: 30, totalMatchTime: 360 }
-  },
-  {
-    id: 4,
-    name: 'Shortt',
-    startYear: 2018,
-    createdAt: new Date(2018, 0, 1).toISOString(),
-    matches: Array(30).fill(null).map((_, i) => ({
-      id: i + 300,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.48,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
-    })),
-    stats: { won: 15, lost: 15, totalGames: 90, totalMatchTime: 1080 }
-  },
-  {
-    id: 5,
-    name: 'Vamsi',
-    startYear: 2021,
-    createdAt: new Date(2021, 0, 1).toISOString(),
-    matches: Array(12).fill(null).map((_, i) => ({
-      id: i + 400,
-      date: new Date(2023, 0, i + 1).toISOString(),
-      won: Math.random() > 0.5,
-      isTeamOne: Math.random() > 0.5,
-      teamOneGamesWon: Math.floor(Math.random() * 3) + 1,
-      teamTwoGamesWon: Math.floor(Math.random() * 3) + 1,
-    })),
-    stats: { won: 6, lost: 6, totalGames: 36, totalMatchTime: 432 }
-  }
-];
+import { db } from '../../../../db';
+import { players, matches } from '../../../../db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function GET(
   request: Request,
@@ -92,16 +16,80 @@ export async function GET(
     );
   }
 
-  const player = mockPlayers.find(p => p.id === playerId);
+  try {
+    // Fetch the specific player
+    const player = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+    
+    if (player.length === 0) {
+      return NextResponse.json(
+        { error: 'Player not found' },
+        { status: 404 }
+      );
+    }
 
-  if (!player) {
+    // Fetch all matches to find this player's matches
+    const allMatches = await db.select().from(matches);
+    
+    // Find matches where this player participated
+    const playerMatches = allMatches.filter(match => 
+      match.teamOnePlayerOneId === playerId ||
+      match.teamOnePlayerTwoId === playerId ||
+      match.teamOnePlayerThreeId === playerId ||
+      match.teamTwoPlayerOneId === playerId ||
+      match.teamTwoPlayerTwoId === playerId ||
+      match.teamTwoPlayerThreeId === playerId
+    );
+    
+    // Process matches to determine wins/losses for this player
+    const processedMatches = playerMatches.map(match => {
+      const isTeamOne = match.teamOnePlayerOneId === playerId || 
+                       match.teamOnePlayerTwoId === playerId || 
+                       match.teamOnePlayerThreeId === playerId;
+      
+      const won = isTeamOne 
+        ? match.teamOneGamesWon > match.teamTwoGamesWon
+        : match.teamTwoGamesWon > match.teamOneGamesWon;
+      
+      return {
+        id: match.id,
+        date: match.date?.toISOString() || new Date().toISOString(),
+        won,
+        isTeamOne,
+        teamOneGamesWon: match.teamOneGamesWon,
+        teamTwoGamesWon: match.teamTwoGamesWon
+      };
+    });
+    
+    // Calculate statistics
+    const won = processedMatches.filter(match => match.won).length;
+    const lost = processedMatches.filter(match => !match.won).length;
+    const totalGames = processedMatches.reduce((total, match) => 
+      total + match.teamOneGamesWon + match.teamTwoGamesWon, 0
+    );
+    const totalMatchTime = processedMatches.length * 40; // Estimate 40 minutes per match
+    
+    const playerWithStats = {
+      id: player[0].id,
+      name: player[0].name,
+      startYear: player[0].startYear,
+      createdAt: player[0].createdAt?.toISOString() || null,
+      matches: processedMatches,
+      stats: {
+        won,
+        lost,
+        totalGames,
+        totalMatchTime
+      }
+    };
+
+    return NextResponse.json(playerWithStats);
+  } catch (error) {
+    console.error('Error fetching player:', error);
     return NextResponse.json(
-      { error: 'Player not found' },
-      { status: 404 }
+      { error: 'Failed to fetch player' },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json(player);
 }
 
 export async function PUT(
@@ -109,8 +97,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const playerId = parseInt(params.id);
-  const body = await request.json();
-
+  
   if (isNaN(playerId)) {
     return NextResponse.json(
       { error: 'Invalid player ID' },
@@ -118,25 +105,45 @@ export async function PUT(
     );
   }
 
-  const playerIndex = mockPlayers.findIndex(p => p.id === playerId);
+  try {
+    const body = await request.json();
+    
+    // Validation
+    if (body.name && body.name.trim() === '') {
+      return NextResponse.json(
+        { error: 'Player name cannot be empty' },
+        { status: 400 }
+      );
+    }
 
-  if (playerIndex === -1) {
+    // Check if player exists
+    const existingPlayer = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+    
+    if (existingPlayer.length === 0) {
+      return NextResponse.json(
+        { error: 'Player not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update player in database
+    const updatedPlayer = await db
+      .update(players)
+      .set({
+        name: body.name?.trim() || existingPlayer[0].name,
+        startYear: body.startYear !== undefined ? body.startYear : existingPlayer[0].startYear
+      })
+      .where(eq(players.id, playerId))
+      .returning();
+
+    return NextResponse.json(updatedPlayer[0]);
+  } catch (error) {
+    console.error('Error updating player:', error);
     return NextResponse.json(
-      { error: 'Player not found' },
-      { status: 404 }
+      { error: 'Failed to update player' },
+      { status: 500 }
     );
   }
-
-  // Update player data
-  const updatedPlayer = {
-    ...mockPlayers[playerIndex],
-    name: body.name || mockPlayers[playerIndex].name,
-    startYear: body.startYear !== undefined ? body.startYear : mockPlayers[playerIndex].startYear
-  };
-
-  // In a real app, this would update the database
-  // For this demo, we'll just return the updated player
-  return NextResponse.json(updatedPlayer);
 }
 
 export async function DELETE(
@@ -152,16 +159,47 @@ export async function DELETE(
     );
   }
 
-  const playerIndex = mockPlayers.findIndex(p => p.id === playerId);
+  try {
+    // Check if player exists
+    const existingPlayer = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+    
+    if (existingPlayer.length === 0) {
+      return NextResponse.json(
+        { error: 'Player not found' },
+        { status: 404 }
+      );
+    }
 
-  if (playerIndex === -1) {
+    // Delete all matches involving this player first (to maintain referential integrity)
+    await db.delete(matches).where(
+      eq(matches.teamOnePlayerOneId, playerId)
+    );
+    await db.delete(matches).where(
+      eq(matches.teamOnePlayerTwoId, playerId)
+    );
+    await db.delete(matches).where(
+      eq(matches.teamOnePlayerThreeId, playerId)
+    );
+    await db.delete(matches).where(
+      eq(matches.teamTwoPlayerOneId, playerId)
+    );
+    await db.delete(matches).where(
+      eq(matches.teamTwoPlayerTwoId, playerId)
+    );
+    await db.delete(matches).where(
+      eq(matches.teamTwoPlayerThreeId, playerId)
+    );
+
+    // Delete the player
+    await db.delete(players).where(eq(players.id, playerId));
+
+    // Return 204 No Content as per API documentation
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error('Error deleting player:', error);
     return NextResponse.json(
-      { error: 'Player not found' },
-      { status: 404 }
+      { error: 'Failed to delete player' },
+      { status: 500 }
     );
   }
-
-  // In a real app, this would delete from the database
-  // For this demo, we'll just return a success message
-  return NextResponse.json({ message: 'Player deleted successfully' });
 }

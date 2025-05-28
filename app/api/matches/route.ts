@@ -1,124 +1,144 @@
 import { NextResponse } from 'next/server';
-
-// Mock match data as fallback in case the API fetch fails
-const mockMatches = [
-  {
-    id: 1,
-    date: '2023-05-10T18:30:00Z',
-    teamOnePlayers: ['Troy', 'Nate'],
-    teamTwoPlayers: ['Lance', 'Shortt'],
-    teamOneGamesWon: 3,
-    teamTwoGamesWon: 1
-  },
-  {
-    id: 2,
-    date: '2023-05-05T19:00:00Z',
-    teamOnePlayers: ['Vamsi', 'Keith'],
-    teamTwoPlayers: ['Relly', 'Trevor'],
-    teamOneGamesWon: 2,
-    teamTwoGamesWon: 3
-  }
-];
+import { db } from '../../../db';
+import { matches, players } from '../../../db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = searchParams.get('limit');
   
   try {
-    // Server-side fetch from the original site
-    let url = 'https://cfa-wally-stats.replit.app/api/matches';
+    // Fetch matches from database
+    let allMatches;
     
-    // If limit parameter is provided, pass it along
-    if (limit) {
-      url += `?limit=${limit}`;
-    }
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-      cache: 'no-store' // Disable caching for now
-    });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error fetching matches from original API:', error);
-    
-    // Apply filtering to mock data based on the request
-    let matches = [...mockMatches];
-  
-    // Sort by date (newest first)
-    matches.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-    
-    // Apply limit if provided
     if (limit) {
       const limitNum = parseInt(limit);
       if (!isNaN(limitNum) && limitNum > 0) {
-        matches = matches.slice(0, limitNum);
+        allMatches = await db.select().from(matches).orderBy(desc(matches.date)).limit(limitNum);
+      } else {
+        allMatches = await db.select().from(matches).orderBy(desc(matches.date));
       }
+    } else {
+      allMatches = await db.select().from(matches).orderBy(desc(matches.date));
     }
     
-    // Return our mock data as fallback
-    return NextResponse.json(matches);
+    // Get all players to map IDs to names
+    const allPlayers = await db.select().from(players);
+    const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
+    
+    // Process matches to include player names
+    const processedMatches = allMatches.map(match => {
+      const teamOnePlayers = [
+        match.teamOnePlayerOneId && playerMap.get(match.teamOnePlayerOneId),
+        match.teamOnePlayerTwoId && playerMap.get(match.teamOnePlayerTwoId),
+        match.teamOnePlayerThreeId && playerMap.get(match.teamOnePlayerThreeId)
+      ].filter(Boolean);
+      
+      const teamTwoPlayers = [
+        match.teamTwoPlayerOneId && playerMap.get(match.teamTwoPlayerOneId),
+        match.teamTwoPlayerTwoId && playerMap.get(match.teamTwoPlayerTwoId),
+        match.teamTwoPlayerThreeId && playerMap.get(match.teamTwoPlayerThreeId)
+      ].filter(Boolean);
+      
+      return {
+        id: match.id,
+        teamOnePlayerOneId: match.teamOnePlayerOneId,
+        teamOnePlayerTwoId: match.teamOnePlayerTwoId,
+        teamOnePlayerThreeId: match.teamOnePlayerThreeId,
+        teamTwoPlayerOneId: match.teamTwoPlayerOneId,
+        teamTwoPlayerTwoId: match.teamTwoPlayerTwoId,
+        teamTwoPlayerThreeId: match.teamTwoPlayerThreeId,
+        teamOneGamesWon: match.teamOneGamesWon,
+        teamTwoGamesWon: match.teamTwoGamesWon,
+        date: match.date?.toISOString() || new Date().toISOString(),
+        teamOnePlayers,
+        teamTwoPlayers
+      };
+    });
+    
+    return NextResponse.json(processedMatches);
+  } catch (error) {
+    console.error('Error fetching matches:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch matches' },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  
-  // Simple validation
-  if (!body.teamOnePlayers || !body.teamTwoPlayers) {
-    return NextResponse.json(
-      { error: 'Team players are required' },
-      { status: 400 }
-    );
-  }
-
-  if (body.teamOneGamesWon === undefined || body.teamTwoGamesWon === undefined) {
-    return NextResponse.json(
-      { error: 'Game scores are required' },
-      { status: 400 }
-    );
-  }
-
   try {
-    // Try to post to the original API
-    const response = await fetch('https://cfa-wally-stats.replit.app/api/matches', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
+    const body = await request.json();
+    
+    // Validation for the documented API format
+    if (body.teamOnePlayerOneId === undefined || body.teamTwoPlayerOneId === undefined) {
+      return NextResponse.json(
+        { error: 'At least one player per team is required' },
+        { status: 400 }
+      );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    console.error('Error posting to original API:', error);
+    if (body.teamOneGamesWon === undefined || body.teamTwoGamesWon === undefined) {
+      return NextResponse.json(
+        { error: 'Game scores are required' },
+        { status: 400 }
+      );
+    }
+
+    // Create new match in database
+    const newMatch = await db
+      .insert(matches)
+      .values({
+        teamOnePlayerOneId: body.teamOnePlayerOneId,
+        teamOnePlayerTwoId: body.teamOnePlayerTwoId || null,
+        teamOnePlayerThreeId: body.teamOnePlayerThreeId || null,
+        teamTwoPlayerOneId: body.teamTwoPlayerOneId,
+        teamTwoPlayerTwoId: body.teamTwoPlayerTwoId || null,
+        teamTwoPlayerThreeId: body.teamTwoPlayerThreeId || null,
+        teamOneGamesWon: body.teamOneGamesWon,
+        teamTwoGamesWon: body.teamTwoGamesWon,
+        date: body.date ? new Date(body.date) : new Date()
+      })
+      .returning();
+
+    // Get player names for the response
+    const allPlayers = await db.select().from(players);
+    const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
     
-    // Return a mocked response
-    const newMatch = {
-      id: Math.floor(Math.random() * 1000) + 10,
-      date: body.date || new Date().toISOString(),
-      teamOnePlayers: body.teamOnePlayers,
-      teamTwoPlayers: body.teamTwoPlayers,
-      teamOneGamesWon: body.teamOneGamesWon,
-      teamTwoGamesWon: body.teamTwoGamesWon
+    const match = newMatch[0];
+    const teamOnePlayers = [
+      match.teamOnePlayerOneId && playerMap.get(match.teamOnePlayerOneId),
+      match.teamOnePlayerTwoId && playerMap.get(match.teamOnePlayerTwoId),
+      match.teamOnePlayerThreeId && playerMap.get(match.teamOnePlayerThreeId)
+    ].filter(Boolean);
+    
+    const teamTwoPlayers = [
+      match.teamTwoPlayerOneId && playerMap.get(match.teamTwoPlayerOneId),
+      match.teamTwoPlayerTwoId && playerMap.get(match.teamTwoPlayerTwoId),
+      match.teamTwoPlayerThreeId && playerMap.get(match.teamTwoPlayerThreeId)
+    ].filter(Boolean);
+    
+    const responseMatch = {
+      id: match.id,
+      teamOnePlayerOneId: match.teamOnePlayerOneId,
+      teamOnePlayerTwoId: match.teamOnePlayerTwoId,
+      teamOnePlayerThreeId: match.teamOnePlayerThreeId,
+      teamTwoPlayerOneId: match.teamTwoPlayerOneId,
+      teamTwoPlayerTwoId: match.teamTwoPlayerTwoId,
+      teamTwoPlayerThreeId: match.teamTwoPlayerThreeId,
+      teamOneGamesWon: match.teamOneGamesWon,
+      teamTwoGamesWon: match.teamTwoGamesWon,
+      date: match.date?.toISOString() || new Date().toISOString(),
+      teamOnePlayers,
+      teamTwoPlayers
     };
     
-    return NextResponse.json(newMatch, { status: 201 });
+    return NextResponse.json(responseMatch, { status: 201 });
+  } catch (error) {
+    console.error('Error creating match:', error);
+    return NextResponse.json(
+      { error: 'Failed to create match' },
+      { status: 500 }
+    );
   }
 }

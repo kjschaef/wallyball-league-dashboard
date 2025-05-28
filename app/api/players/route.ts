@@ -1,104 +1,119 @@
 import { NextResponse } from 'next/server';
-
-// Mock data for fallback in case the API fetch fails
-const mockPlayers = [
-  {
-    id: 1,
-    name: 'Troy',
-    startYear: 2020,
-    createdAt: '2020-01-01T00:00:00Z',
-    matches: Array(3).fill(null).map((_, i) => ({
-      id: i + 1,
-      date: new Date(2023, 4, i + 1).toISOString(),
-      won: true,
-      isTeamOne: true,
-      teamOneGamesWon: 3,
-      teamTwoGamesWon: 1,
-    })),
-    stats: { won: 3, lost: 0, totalGames: 12, totalMatchTime: 120 }
-  },
-  {
-    id: 2,
-    name: 'Nate',
-    startYear: 2019,
-    createdAt: '2019-01-01T00:00:00Z',
-    matches: Array(25).fill(null).map((_, i) => ({
-      id: i + 100,
-      date: new Date(2023, 4, i + 1).toISOString(),
-      won: i % 2 === 0,
-      isTeamOne: i % 2 === 0,
-      teamOneGamesWon: 2,
-      teamTwoGamesWon: 3,
-    })),
-    stats: { won: 12, lost: 13, totalGames: 75, totalMatchTime: 750 }
-  }
-];
+import { db } from '../../../db';
+import { players, matches } from '../../../db/schema';
+import { eq, or, and } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    // Server-side fetch from the original site
-    const response = await fetch('https://cfa-wally-stats.replit.app/api/players', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-      cache: 'no-store' // Disable caching for now
+    // Fetch all players from database
+    const allPlayers = await db.select().from(players);
+    
+    // Fetch all matches to calculate statistics
+    const allMatches = await db.select().from(matches);
+    
+    // Process each player to include matches and statistics
+    const playersWithStats = allPlayers.map(player => {
+      // Find matches where this player participated
+      const playerMatches = allMatches.filter(match => 
+        match.teamOnePlayerOneId === player.id ||
+        match.teamOnePlayerTwoId === player.id ||
+        match.teamOnePlayerThreeId === player.id ||
+        match.teamTwoPlayerOneId === player.id ||
+        match.teamTwoPlayerTwoId === player.id ||
+        match.teamTwoPlayerThreeId === player.id
+      );
+      
+      // Process matches to determine wins/losses for this player
+      const processedMatches = playerMatches.map(match => {
+        const isTeamOne = match.teamOnePlayerOneId === player.id || 
+                         match.teamOnePlayerTwoId === player.id || 
+                         match.teamOnePlayerThreeId === player.id;
+        
+        const won = isTeamOne 
+          ? match.teamOneGamesWon > match.teamTwoGamesWon
+          : match.teamTwoGamesWon > match.teamOneGamesWon;
+        
+        return {
+          id: match.id,
+          date: match.date?.toISOString() || new Date().toISOString(),
+          won,
+          isTeamOne,
+          teamOneGamesWon: match.teamOneGamesWon,
+          teamTwoGamesWon: match.teamTwoGamesWon
+        };
+      });
+      
+      // Calculate statistics
+      const won = processedMatches.filter(match => match.won).length;
+      const lost = processedMatches.filter(match => !match.won).length;
+      const totalGames = processedMatches.reduce((total, match) => 
+        total + match.teamOneGamesWon + match.teamTwoGamesWon, 0
+      );
+      const totalMatchTime = processedMatches.length * 40; // Estimate 40 minutes per match
+      
+      return {
+        id: player.id,
+        name: player.name,
+        startYear: player.startYear,
+        createdAt: player.createdAt?.toISOString() || null,
+        matches: processedMatches,
+        stats: {
+          won,
+          lost,
+          totalGames,
+          totalMatchTime
+        }
+      };
     });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data);
+    
+    return NextResponse.json(playersWithStats);
   } catch (error) {
-    console.error('Error fetching players from original API:', error);
-    // Return our mock data as fallback
-    return NextResponse.json(mockPlayers);
+    console.error('Error fetching players:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch players' },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  
-  // Simple validation
-  if (!body.name || body.name.trim() === '') {
-    return NextResponse.json(
-      { error: 'Player name is required' },
-      { status: 400 }
-    );
-  }
-
   try {
-    // Try to post to the original API
-    const response = await fetch('https://cfa-wally-stats.replit.app/api/players', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
+    const body = await request.json();
+    
+    // Validation
+    if (!body.name || body.name.trim() === '') {
+      return NextResponse.json(
+        { error: 'Player name is required' },
+        { status: 400 }
+      );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    console.error('Error posting to original API:', error);
-    
-    // Return a mocked response
-    const newPlayer = {
-      id: Math.floor(Math.random() * 1000) + 10,
-      name: body.name,
-      startYear: body.startYear || new Date().getFullYear(),
-      createdAt: new Date().toISOString(),
+    // Create new player in database
+    const newPlayer = await db
+      .insert(players)
+      .values({
+        name: body.name.trim(),
+        startYear: body.startYear || new Date().getFullYear(),
+        createdAt: new Date()
+      })
+      .returning();
+
+    // Return the new player with empty matches and stats
+    const playerWithStats = {
+      id: newPlayer[0].id,
+      name: newPlayer[0].name,
+      startYear: newPlayer[0].startYear,
+      createdAt: newPlayer[0].createdAt?.toISOString() || null,
       matches: [],
       stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
     };
     
-    return NextResponse.json(newPlayer, { status: 201 });
+    return NextResponse.json(playerWithStats, { status: 201 });
+  } catch (error) {
+    console.error('Error creating player:', error);
+    return NextResponse.json(
+      { error: 'Failed to create player' },
+      { status: 500 }
+    );
   }
 }
