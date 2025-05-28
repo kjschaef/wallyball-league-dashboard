@@ -68,10 +68,16 @@ export function WinPercentageRankings() {
           };
         });
         
-        setRankings(formattedRankings);
+        setRankings(formattedRankings.map(ranking => ({
+          ...ranking,
+          matches: ranking.games
+        })));
       } catch (error) {
         console.error('Error fetching rankings:', error);
-        setRankings(mockRankings);
+        setRankings(mockRankings.map(ranking => ({
+          ...ranking,
+          matches: ranking.games
+        })));
       } finally {
         setLoading(false);
       }
@@ -93,7 +99,7 @@ export function WinPercentageRankings() {
           </div>
           <div className="ml-8">
             <h3 className="font-semibold text-gray-800">{player.name}</h3>
-            <p className="text-xs text-gray-500">{player.games} games played</p>
+            <p className="text-xs text-gray-500">{player.matches} games played</p>
           </div>
           <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
             <div 
