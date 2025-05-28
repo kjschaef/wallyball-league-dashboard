@@ -1,45 +1,49 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../db';
-import { players, matches } from '../../../db/schema';
-import { eq, or, and } from 'drizzle-orm';
+import { neon } from '@neondatabase/serverless';
 
 export async function GET() {
   try {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
+    
     // Fetch all players from database
-    const allPlayers = await db.select().from(players);
+    const allPlayers = await sql`SELECT * FROM players ORDER BY created_at DESC`;
     
     // Fetch all matches to calculate statistics
-    const allMatches = await db.select().from(matches);
+    const allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
     
     // Process each player to include matches and statistics
     const playersWithStats = allPlayers.map(player => {
       // Find matches where this player participated
       const playerMatches = allMatches.filter(match => 
-        match.teamOnePlayerOneId === player.id ||
-        match.teamOnePlayerTwoId === player.id ||
-        match.teamOnePlayerThreeId === player.id ||
-        match.teamTwoPlayerOneId === player.id ||
-        match.teamTwoPlayerTwoId === player.id ||
-        match.teamTwoPlayerThreeId === player.id
+        match.team_one_player_one_id === player.id ||
+        match.team_one_player_two_id === player.id ||
+        match.team_one_player_three_id === player.id ||
+        match.team_two_player_one_id === player.id ||
+        match.team_two_player_two_id === player.id ||
+        match.team_two_player_three_id === player.id
       );
       
       // Process matches to determine wins/losses for this player
       const processedMatches = playerMatches.map(match => {
-        const isTeamOne = match.teamOnePlayerOneId === player.id || 
-                         match.teamOnePlayerTwoId === player.id || 
-                         match.teamOnePlayerThreeId === player.id;
+        const isTeamOne = match.team_one_player_one_id === player.id || 
+                         match.team_one_player_two_id === player.id || 
+                         match.team_one_player_three_id === player.id;
         
         const won = isTeamOne 
-          ? match.teamOneGamesWon > match.teamTwoGamesWon
-          : match.teamTwoGamesWon > match.teamOneGamesWon;
+          ? match.team_one_games_won > match.team_two_games_won
+          : match.team_two_games_won > match.team_one_games_won;
         
         return {
           id: match.id,
-          date: match.date?.toISOString() || new Date().toISOString(),
+          date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
           won,
           isTeamOne,
-          teamOneGamesWon: match.teamOneGamesWon,
-          teamTwoGamesWon: match.teamTwoGamesWon
+          teamOneGamesWon: match.team_one_games_won,
+          teamTwoGamesWon: match.team_two_games_won
         };
       });
       
@@ -54,8 +58,8 @@ export async function GET() {
       return {
         id: player.id,
         name: player.name,
-        startYear: player.startYear,
-        createdAt: player.createdAt?.toISOString() || null,
+        startYear: player.start_year,
+        createdAt: player.created_at ? new Date(player.created_at).toISOString() : null,
         matches: processedMatches,
         stats: {
           won,
@@ -88,22 +92,27 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
+
     // Create new player in database
-    const newPlayer = await db
-      .insert(players)
-      .values({
-        name: body.name.trim(),
-        startYear: body.startYear || new Date().getFullYear(),
-        createdAt: new Date()
-      })
-      .returning();
+    const newPlayers = await sql`
+      INSERT INTO players (name, start_year, created_at)
+      VALUES (${body.name.trim()}, ${body.startYear || new Date().getFullYear()}, NOW())
+      RETURNING *
+    `;
+
+    const newPlayer = newPlayers[0];
 
     // Return the new player with empty matches and stats
     const playerWithStats = {
-      id: newPlayer[0].id,
-      name: newPlayer[0].name,
-      startYear: newPlayer[0].startYear,
-      createdAt: newPlayer[0].createdAt?.toISOString() || null,
+      id: newPlayer.id,
+      name: newPlayer.name,
+      startYear: newPlayer.start_year,
+      createdAt: new Date(newPlayer.created_at).toISOString(),
       matches: [],
       stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
     };
