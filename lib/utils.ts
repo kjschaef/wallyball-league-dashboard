@@ -39,7 +39,7 @@ export function calculateInactivityPenalty(player: PlayerWithMatches) {
     : (player.createdAt ? new Date(player.createdAt) : new Date(now));
   
   // Add logging to debug
-  const playerName = (player as any).name || 'Unknown';
+  const playerName = (player as {name?: string}).name || 'Unknown';
   console.log(`Player: ${playerName}, Last activity: ${lastMatch.toISOString()}`);
   
   // Calculate inactivity time in milliseconds

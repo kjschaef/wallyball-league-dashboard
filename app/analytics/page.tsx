@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PerformanceTrend } from '../components/PerformanceTrend';
 import { PlayerPerformanceRadar } from '../components/PlayerPerformanceRadar';
 import { PlayerAchievements } from '../components/PlayerAchievements';
@@ -10,12 +10,7 @@ export default function AnalyticsPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Fetch players when component mounts
-    fetchPlayers();
-  }, [fetchPlayers]);
-
-  async function fetchPlayers() {
+  const fetchPlayers = useCallback(async () => {
     try {
       const response = await fetch('/api/players');
       if (!response.ok) {
@@ -35,7 +30,11 @@ export default function AnalyticsPage() {
       setLoading(false);
       alert('Error fetching player data. Please try again later.');
     }
-  }
+  }, [selectedPlayer]);
+
+  useEffect(() => {
+    fetchPlayers();
+  }, [fetchPlayers]);
 
 
 

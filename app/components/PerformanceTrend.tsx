@@ -129,7 +129,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
         .sort()
         .slice(-4)
         .map(date => {
-          const dataPoint: {date: string; [key: string]: unknown} = { date };
+          const dataPoint: {date: string; [key: string]: number | string} = { date };
           playerStats.forEach(player => {
             const stats = player.dailyStats.get(date);
             if (stats) {

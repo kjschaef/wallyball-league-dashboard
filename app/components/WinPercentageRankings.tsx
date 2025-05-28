@@ -30,7 +30,7 @@ const getBarWidth = (percentage: number) => {
 };
 
 export function WinPercentageRankings() {
-  const [rankings, setRankings] = useState<any[]>([]);
+  const [rankings, setRankings] = useState<Array<{id: number; name: string; winPercentage: number; matches: number}>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

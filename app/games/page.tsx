@@ -136,11 +136,7 @@ export default function GamesPage() {
     }
   };
 
-  // Get player names by IDs (currently unused but kept for future features)
-  const _getPlayerName = (id: number) => {
-    const player = players.find(p => p.id === id);
-    return player ? player.name : 'Unknown';
-  };
+
 
   // Format date to be more readable
   const formatDate = (dateString: string) => {
