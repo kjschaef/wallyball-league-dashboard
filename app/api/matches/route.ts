@@ -1,56 +1,60 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../db';
-import { matches, players } from '../../../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { neon } from '@neondatabase/serverless';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = searchParams.get('limit');
   
   try {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
+    
     // Fetch matches from database
     let allMatches;
     
     if (limit) {
       const limitNum = parseInt(limit);
       if (!isNaN(limitNum) && limitNum > 0) {
-        allMatches = await db.select().from(matches).orderBy(desc(matches.date)).limit(limitNum);
+        allMatches = await sql`SELECT * FROM matches ORDER BY date DESC LIMIT ${limitNum}`;
       } else {
-        allMatches = await db.select().from(matches).orderBy(desc(matches.date));
+        allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
       }
     } else {
-      allMatches = await db.select().from(matches).orderBy(desc(matches.date));
+      allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
     }
     
     // Get all players to map IDs to names
-    const allPlayers = await db.select().from(players);
+    const allPlayers = await sql`SELECT * FROM players`;
     const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
     
     // Process matches to include player names
     const processedMatches = allMatches.map(match => {
       const teamOnePlayers = [
-        match.teamOnePlayerOneId && playerMap.get(match.teamOnePlayerOneId),
-        match.teamOnePlayerTwoId && playerMap.get(match.teamOnePlayerTwoId),
-        match.teamOnePlayerThreeId && playerMap.get(match.teamOnePlayerThreeId)
+        match.team_one_player_one_id && playerMap.get(match.team_one_player_one_id),
+        match.team_one_player_two_id && playerMap.get(match.team_one_player_two_id),
+        match.team_one_player_three_id && playerMap.get(match.team_one_player_three_id)
       ].filter(Boolean);
       
       const teamTwoPlayers = [
-        match.teamTwoPlayerOneId && playerMap.get(match.teamTwoPlayerOneId),
-        match.teamTwoPlayerTwoId && playerMap.get(match.teamTwoPlayerTwoId),
-        match.teamTwoPlayerThreeId && playerMap.get(match.teamTwoPlayerThreeId)
+        match.team_two_player_one_id && playerMap.get(match.team_two_player_one_id),
+        match.team_two_player_two_id && playerMap.get(match.team_two_player_two_id),
+        match.team_two_player_three_id && playerMap.get(match.team_two_player_three_id)
       ].filter(Boolean);
       
       return {
         id: match.id,
-        teamOnePlayerOneId: match.teamOnePlayerOneId,
-        teamOnePlayerTwoId: match.teamOnePlayerTwoId,
-        teamOnePlayerThreeId: match.teamOnePlayerThreeId,
-        teamTwoPlayerOneId: match.teamTwoPlayerOneId,
-        teamTwoPlayerTwoId: match.teamTwoPlayerTwoId,
-        teamTwoPlayerThreeId: match.teamTwoPlayerThreeId,
-        teamOneGamesWon: match.teamOneGamesWon,
-        teamTwoGamesWon: match.teamTwoGamesWon,
-        date: match.date?.toISOString() || new Date().toISOString(),
+        teamOnePlayerOneId: match.team_one_player_one_id,
+        teamOnePlayerTwoId: match.team_one_player_two_id,
+        teamOnePlayerThreeId: match.team_one_player_three_id,
+        teamTwoPlayerOneId: match.team_two_player_one_id,
+        teamTwoPlayerTwoId: match.team_two_player_two_id,
+        teamTwoPlayerThreeId: match.team_two_player_three_id,
+        teamOneGamesWon: match.team_one_games_won,
+        teamTwoGamesWon: match.team_two_games_won,
+        date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
         teamOnePlayers,
         teamTwoPlayers
       };
@@ -85,50 +89,55 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
+
     // Create new match in database
-    const newMatch = await db
-      .insert(matches)
-      .values({
-        teamOnePlayerOneId: body.teamOnePlayerOneId,
-        teamOnePlayerTwoId: body.teamOnePlayerTwoId || null,
-        teamOnePlayerThreeId: body.teamOnePlayerThreeId || null,
-        teamTwoPlayerOneId: body.teamTwoPlayerOneId,
-        teamTwoPlayerTwoId: body.teamTwoPlayerTwoId || null,
-        teamTwoPlayerThreeId: body.teamTwoPlayerThreeId || null,
-        teamOneGamesWon: body.teamOneGamesWon,
-        teamTwoGamesWon: body.teamTwoGamesWon,
-        date: body.date ? new Date(body.date) : new Date()
-      })
-      .returning();
+    const newMatches = await sql`
+      INSERT INTO matches (
+        team_one_player_one_id, team_one_player_two_id, team_one_player_three_id,
+        team_two_player_one_id, team_two_player_two_id, team_two_player_three_id,
+        team_one_games_won, team_two_games_won, date
+      )
+      VALUES (
+        ${body.teamOnePlayerOneId}, ${body.teamOnePlayerTwoId || null}, ${body.teamOnePlayerThreeId || null},
+        ${body.teamTwoPlayerOneId}, ${body.teamTwoPlayerTwoId || null}, ${body.teamTwoPlayerThreeId || null},
+        ${body.teamOneGamesWon}, ${body.teamTwoGamesWon}, ${body.date ? new Date(body.date) : new Date()}
+      )
+      RETURNING *
+    `;
 
     // Get player names for the response
-    const allPlayers = await db.select().from(players);
+    const allPlayers = await sql`SELECT * FROM players`;
     const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
     
-    const match = newMatch[0];
+    const match = newMatches[0];
     const teamOnePlayers = [
-      match.teamOnePlayerOneId && playerMap.get(match.teamOnePlayerOneId),
-      match.teamOnePlayerTwoId && playerMap.get(match.teamOnePlayerTwoId),
-      match.teamOnePlayerThreeId && playerMap.get(match.teamOnePlayerThreeId)
+      match.team_one_player_one_id && playerMap.get(match.team_one_player_one_id),
+      match.team_one_player_two_id && playerMap.get(match.team_one_player_two_id),
+      match.team_one_player_three_id && playerMap.get(match.team_one_player_three_id)
     ].filter(Boolean);
     
     const teamTwoPlayers = [
-      match.teamTwoPlayerOneId && playerMap.get(match.teamTwoPlayerOneId),
-      match.teamTwoPlayerTwoId && playerMap.get(match.teamTwoPlayerTwoId),
-      match.teamTwoPlayerThreeId && playerMap.get(match.teamTwoPlayerThreeId)
+      match.team_two_player_one_id && playerMap.get(match.team_two_player_one_id),
+      match.team_two_player_two_id && playerMap.get(match.team_two_player_two_id),
+      match.team_two_player_three_id && playerMap.get(match.team_two_player_three_id)
     ].filter(Boolean);
     
     const responseMatch = {
       id: match.id,
-      teamOnePlayerOneId: match.teamOnePlayerOneId,
-      teamOnePlayerTwoId: match.teamOnePlayerTwoId,
-      teamOnePlayerThreeId: match.teamOnePlayerThreeId,
-      teamTwoPlayerOneId: match.teamTwoPlayerOneId,
-      teamTwoPlayerTwoId: match.teamTwoPlayerTwoId,
-      teamTwoPlayerThreeId: match.teamTwoPlayerThreeId,
-      teamOneGamesWon: match.teamOneGamesWon,
-      teamTwoGamesWon: match.teamTwoGamesWon,
-      date: match.date?.toISOString() || new Date().toISOString(),
+      teamOnePlayerOneId: match.team_one_player_one_id,
+      teamOnePlayerTwoId: match.team_one_player_two_id,
+      teamOnePlayerThreeId: match.team_one_player_three_id,
+      teamTwoPlayerOneId: match.team_two_player_one_id,
+      teamTwoPlayerTwoId: match.team_two_player_two_id,
+      teamTwoPlayerThreeId: match.team_two_player_three_id,
+      teamOneGamesWon: match.team_one_games_won,
+      teamTwoGamesWon: match.team_two_games_won,
+      date: new Date(match.date).toISOString(),
       teamOnePlayers,
       teamTwoPlayers
     };
