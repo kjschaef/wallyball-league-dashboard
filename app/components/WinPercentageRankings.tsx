@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { calculatePenalizedWinPercentage } from '../lib/utils';
 
 // Mock data for the rankings as shown in the screenshot
 const mockRankings = [
@@ -44,27 +45,28 @@ export function WinPercentageRankings() {
         
         const players = await response.json();
         
-        // Sort players by win percentage (highest first)
+        // Sort players by penalized win percentage (highest first)
         const sortedPlayers = [...players].sort((a, b) => {
-          const aTotal = a.stats.won + a.stats.lost;
-          const bTotal = b.stats.won + b.stats.lost;
+          // Calculate win percentages with inactivity penalty applied
+          const { penalizedWinRate: aWinRate } = calculatePenalizedWinPercentage(a);
+          const { penalizedWinRate: bWinRate } = calculatePenalizedWinPercentage(b);
           
-          const aWinPercentage = aTotal > 0 ? (a.stats.won / aTotal) * 100 : 0;
-          const bWinPercentage = bTotal > 0 ? (b.stats.won / bTotal) * 100 : 0;
-          
-          return bWinPercentage - aWinPercentage;
+          // Sort by penalized win percentage (highest first)
+          return bWinRate - aWinRate;
         });
         
         // Format for our rankings component
         const formattedRankings = sortedPlayers.map(player => {
           const total = player.stats.won + player.stats.lost;
-          const winPercentage = total > 0 ? (player.stats.won / total) * 100 : 0;
+          const { penalizedWinRate, penaltyPercentage } = calculatePenalizedWinPercentage(player);
           
           return {
             id: player.id,
             name: player.name,
             games: total,
-            winPercentage
+            winPercentage: penalizedWinRate,
+            hasInactivityPenalty: penaltyPercentage > 0,
+            penaltyPercentage: Math.round(penaltyPercentage * 100)
           };
         });
         

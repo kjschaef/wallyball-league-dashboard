@@ -21,9 +21,7 @@ export interface PlayerWithMatches {
  * @returns Object with inactivity details
  */
 export function calculateInactivityPenalty(player: PlayerWithMatches) {
-  // Use Date.now to be consistent with test mocking
-  const now = Date.now();
-  const today = new Date(now);
+  const today = new Date();
   const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
   const maxPenalty = 0.5; // 50% maximum penalty
   const penaltyPerWeek = 0.05; // 5% penalty per week after grace period
@@ -36,14 +34,10 @@ export function calculateInactivityPenalty(player: PlayerWithMatches) {
   // Get the last match date or creation date if no matches
   const lastMatch = sortedMatches.length > 0 
     ? new Date(sortedMatches[sortedMatches.length - 1].date) 
-    : (player.createdAt ? new Date(player.createdAt) : new Date(now));
-  
-  // Add logging to debug
-  const playerName = (player as {name?: string}).name || 'Unknown';
-  console.log(`Player: ${playerName}, Last activity: ${lastMatch.toISOString()}`);
+    : (player.createdAt ? new Date(player.createdAt) : new Date());
   
   // Calculate inactivity time in milliseconds
-  const inactiveTime = now - lastMatch.getTime();
+  const inactiveTime = today.getTime() - lastMatch.getTime();
   
   // Calculate excess inactive time (after 2-week grace period)
   const excessInactiveTime = Math.max(0, inactiveTime - twoWeeksInMs);
@@ -53,13 +47,6 @@ export function calculateInactivityPenalty(player: PlayerWithMatches) {
   
   // Calculate penalty (5% per week after grace period, up to 50%)
   const penaltyPercentage = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
-  
-  // For weekly view logs - include the total inactive time in weeks
-  const totalWeeksInactive = Math.floor(inactiveTime / (7 * 24 * 60 * 60 * 1000));
-  if (playerName && playerName !== 'Unknown') {
-    const weekOf = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 5);
-    console.log(`Weekly view - ${playerName} on week of ${weekOf.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${totalWeeksInactive} days since activity, penalty: ${Math.round(penaltyPercentage * 100)}%`);
-  }
   
   return {
     lastMatch,

@@ -21,49 +21,38 @@ export interface PlayerWithMatches {
  * @returns Object with inactivity details
  */
 export function calculateInactivityPenalty(player: PlayerWithMatches) {
-  const now = new Date();
-  let lastMatchDate = new Date(0); // Jan 1, 1970
+  const today = new Date();
+  const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
+  const maxPenalty = 0.5; // 50% maximum penalty
+  const penaltyPerWeek = 0.05; // 5% penalty per week after grace period
   
-  // Find the most recent match date
-  if (player.matches && player.matches.length > 0) {
-    const dates = player.matches.map(match => new Date(match.date));
-    lastMatchDate = new Date(Math.max(...dates.map(date => date.getTime())));
-  }
+  // Make sure matches are in chronological order (oldest first)
+  const sortedMatches = player.matches ? 
+    [...player.matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) : 
+    [];
   
-  // If no matches, use createdAt date
-  if (lastMatchDate.getTime() === 0 && player.createdAt) {
-    lastMatchDate = new Date(player.createdAt);
-  }
+  // Get the last match date or creation date if no matches
+  const lastMatch = sortedMatches.length > 0 
+    ? new Date(sortedMatches[sortedMatches.length - 1].date) 
+    : (player.createdAt ? new Date(player.createdAt) : new Date());
   
-  // If neither matches nor createdAt, return no penalty
-  if (lastMatchDate.getTime() === 0) {
-    return { 
-      daysSinceLastMatch: 0,
-      penalty: 0,
-      hasInactivityPenalty: false
-    };
-  }
+  // Calculate inactivity time in milliseconds
+  const inactiveTime = today.getTime() - lastMatch.getTime();
   
-  // Calculate days since last match
-  const daysSinceLastMatch = Math.floor((now.getTime() - lastMatchDate.getTime()) / (1000 * 60 * 60 * 24));
+  // Calculate excess inactive time (after 2-week grace period)
+  const excessInactiveTime = Math.max(0, inactiveTime - twoWeeksInMs);
   
-  // No penalty for first 14 days (2 weeks)
-  if (daysSinceLastMatch <= 14) {
-    return {
-      daysSinceLastMatch,
-      penalty: 0,
-      hasInactivityPenalty: false
-    };
-  }
+  // Calculate weeks inactive beyond grace period
+  const weeksInactive = Math.floor(excessInactiveTime / (7 * 24 * 60 * 60 * 1000));
   
-  // 5% penalty per week after first 2 weeks, up to 50%
-  const weeksInactive = Math.floor((daysSinceLastMatch - 14) / 7);
-  const penalty = Math.min(weeksInactive * 5, 50);
+  // Calculate penalty (5% per week after grace period, up to 50%)
+  const penaltyPercentage = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
   
   return {
-    daysSinceLastMatch,
-    penalty,
-    hasInactivityPenalty: penalty > 0
+    lastMatch,
+    weeksInactive,
+    penaltyPercentage,
+    decayFactor: 1 - penaltyPercentage
   };
 }
 
@@ -71,36 +60,23 @@ export function calculateInactivityPenalty(player: PlayerWithMatches) {
  * Calculate the win percentage with inactivity penalty applied
  * 
  * @param player Player object with matches, stats and createdAt
- * @returns Penalized win percentage
+ * @returns Object with win percentage details
  */
 export function calculatePenalizedWinPercentage(player: PlayerWithMatches & { 
-  stats?: { won: number, lost: number } 
+  stats: { won: number, lost: number } 
 }) {
-  // If no stats, return 0
-  if (!player.stats) {
-    return 0;
-  }
+  // Calculate base win percentage
+  const total = player.stats.won + player.stats.lost;
+  const baseWinRate = total > 0 ? (player.stats.won / total) * 100 : 0;
   
-  const { won, lost } = player.stats;
-  const totalGames = won + lost;
+  // Apply inactivity penalty
+  const { penaltyPercentage, decayFactor } = calculateInactivityPenalty(player);
+  const penalizedWinRate = baseWinRate * decayFactor;
   
-  // If no games played, return 0
-  if (totalGames === 0) {
-    return 0;
-  }
-  
-  // Calculate raw win percentage
-  const rawWinPercentage = (won / totalGames) * 100;
-  
-  // Get inactivity penalty
-  const { penalty, hasInactivityPenalty } = calculateInactivityPenalty(player);
-  
-  if (!hasInactivityPenalty) {
-    return rawWinPercentage;
-  }
-  
-  // Apply penalty - this reduces the win percentage by the penalty percentage
-  const penalizedWinPercentage = rawWinPercentage * (1 - (penalty / 100));
-  
-  return penalizedWinPercentage;
+  return {
+    baseWinRate,
+    penalizedWinRate,
+    penaltyPercentage,
+    decayFactor
+  };
 }
