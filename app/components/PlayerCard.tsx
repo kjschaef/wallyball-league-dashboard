@@ -38,15 +38,12 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   
   // Calculate inactivity penalty using the utility function
   const { 
-    daysSinceLastMatch, 
-    penalty,
-    hasInactivityPenalty
+    weeksInactive, 
+    penaltyPercentage,
+    decayFactor
   } = calculateInactivityPenalty(sortedPlayer);
   
-  // Calculate penalty values
-  const weeksInactive = Math.floor((daysSinceLastMatch - 14) / 7);
-  const inactivityPenalty = penalty / 100;
-  const decayFactor = 1 - inactivityPenalty;
+  const hasInactivityPenalty = penaltyPercentage > 0;
   
   // Apply decay factor to win percentage
   const winRateBase = total > 0 ? Math.round((stats.won / total) * 100) : 0;
@@ -208,9 +205,9 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               winRate >= 45 ? 'text-yellow-600' : 
               'text-red-600'
             }`}>{winRate}%</span>
-            {weeksInactive > 0 && inactivityPenalty > 0 && (
+            {weeksInactive > 0 && hasInactivityPenalty && (
               <div className="text-xs text-red-500 mt-1">
-                Actual: {winRateBase}% (-{Math.round(inactivityPenalty * 100)}% inactive)
+                Actual: {winRateBase}% (-{Math.round(penaltyPercentage * 100)}% inactive)
               </div>
             )}
             <div className="w-full bg-gray-200 mt-2 rounded-full h-2.5">

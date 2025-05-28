@@ -58,7 +58,9 @@ export function WinPercentageRankings() {
         // Format for our rankings component
         const formattedRankings = sortedPlayers.map(player => {
           const total = player.stats.won + player.stats.lost;
-          const { penalizedWinRate, penaltyPercentage } = calculatePenalizedWinPercentage(player);
+          const penaltyData = calculatePenalizedWinPercentage(player);
+          const penalizedWinRate = typeof penaltyData === 'number' ? penaltyData : penaltyData.penalizedWinRate;
+          const penaltyPercentage = typeof penaltyData === 'number' ? 0 : penaltyData.penaltyPercentage;
           
           return {
             id: player.id,
