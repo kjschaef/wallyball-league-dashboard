@@ -106,28 +106,28 @@ export function WinPercentageRankings() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-      {rankings.map((player, index) => (
-        <div key={player.id} className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-sm transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-3">
-              <div className="bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold text-gray-700">
-                {index + 1}
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">{player.name}</h3>
-                <p className="text-xs text-gray-500">{player.matches} games played</p>
-              </div>
+    <div className="space-y-2">
+      {rankings.slice(0, 15).map((player, index) => (
+        <div key={player.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+          <div className="flex items-center space-x-3">
+            <div className="text-sm font-medium text-gray-500 w-6">
+              {index + 1}.
             </div>
-            <div className="text-right">
-              <div className="text-lg font-bold text-gray-900">
-                {player.winPercentage.toFixed(1)}%
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-gray-900 text-sm">{player.name}</span>
+                {player.hasInactivityPenalty && (
+                  <span className="text-xs text-orange-600 font-medium">
+                    ({player.penaltyPercentage}% inactive penalty)
+                  </span>
+                )}
               </div>
-              {player.hasInactivityPenalty && (
-                <div className="text-xs text-orange-600 font-medium">
-                  -{player.penaltyPercentage}% inactive
-                </div>
-              )}
+              <div className="text-xs text-gray-500">{player.matches} games played</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm font-bold text-gray-900">
+              {player.winPercentage.toFixed(1)}%
             </div>
           </div>
         </div>

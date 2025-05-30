@@ -230,8 +230,10 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
                 type="monotone"
                 dataKey={player.name}
                 stroke={COLORS[index % COLORS.length]}
-                activeDot={{ r: 8 }}
-                dot={{ r: 4 }}
+                strokeWidth={2}
+                activeDot={{ r: 6 }}
+                dot={false}
+                connectNulls={true}
               />
             ))}
           </LineChart>
