@@ -16,18 +16,25 @@ const mockRankings = [
   { id: 10, name: 'Ambree', games: 8, winPercentage: 39.1 }
 ];
 
-// Define color for the ranking bars based on win percentage
-const getColorForPercentage = (percentage: number) => {
-  if (percentage >= 55) return 'bg-green-500';
-  if (percentage >= 50) return 'bg-blue-500'; 
-  if (percentage >= 45) return 'bg-yellow-500';
-  if (percentage >= 40) return 'bg-orange-500';
-  return 'bg-red-500';
-};
+// Chart colors to match the line chart
+const CHART_COLORS = [
+  "#FF6B6B", // Coral Red
+  "#4ECDC4", // Turquoise
+  "#FFD93D", // Sun Yellow
+  "#6C5CE7", // Deep Purple
+  "#A8E6CF", // Mint Green
+  "#FF8B94", // Light Pink
+  "#45B7D1", // Sky Blue
+  "#98CE00", // Lime Green
+  "#FF71CE", // Hot Pink
+  "#01CDFE", // Electric Blue
+  "#05FFA1", // Neon Green
+  "#B967FF", // Bright Purple
+];
 
-// Get width for the progress bar
-const getBarWidth = (percentage: number) => {
-  return `${Math.max(percentage, 5)}%`;
+// Get player color based on their index in the rankings
+const getPlayerColor = (index: number) => {
+  return CHART_COLORS[index % CHART_COLORS.length];
 };
 
 export function WinPercentageRankings() {
@@ -115,7 +122,12 @@ export function WinPercentageRankings() {
                 {index + 1}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="font-medium text-gray-900 text-xs truncate">{player.name}</div>
+                <div 
+                  className="font-medium text-xs truncate" 
+                  style={{ color: getPlayerColor(index) }}
+                >
+                  {player.name}
+                </div>
                 <div className="text-xs text-gray-500">{player.matches} games</div>
               </div>
             </div>
