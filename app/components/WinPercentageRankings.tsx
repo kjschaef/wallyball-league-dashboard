@@ -32,9 +32,11 @@ const CHART_COLORS = [
   "#B967FF", // Bright Purple
 ];
 
-// Get player color based on their index in the rankings
-const getPlayerColor = (index: number) => {
-  return CHART_COLORS[index % CHART_COLORS.length];
+// Get player color based on their name (consistent with chart)
+const getPlayerColor = (playerName: string, allPlayers: string[]) => {
+  // Find the index of this player in the original players array (same order as chart)
+  const originalIndex = allPlayers.indexOf(playerName);
+  return originalIndex >= 0 ? CHART_COLORS[originalIndex % CHART_COLORS.length] : CHART_COLORS[0];
 };
 
 export function WinPercentageRankings() {
@@ -48,6 +50,7 @@ export function WinPercentageRankings() {
   }>>([]);
   const [loading, setLoading] = useState(true);
   const [recentMatchPlayers, setRecentMatchPlayers] = useState<string[]>([]);
+  const [originalPlayerOrder, setOriginalPlayerOrder] = useState<string[]>([]);
 
   useEffect(() => {
     // Fetch real rankings data and recent matches
@@ -60,6 +63,9 @@ export function WinPercentageRankings() {
         }
         
         const players = await playersResponse.json();
+        
+        // Store original player order for consistent color assignment
+        setOriginalPlayerOrder(players.map((p: any) => p.name));
         
         // Fetch recent matches
         const matchesResponse = await fetch('/api/matches?limit=10');
@@ -146,8 +152,9 @@ export function WinPercentageRankings() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2">
       {rankings.slice(0, 16).map((player, index) => {
         const isInRecentMatch = recentMatchPlayers.includes(player.name);
+        const playerColor = getPlayerColor(player.name, originalPlayerOrder);
         const borderStyle = isInRecentMatch 
-          ? { borderColor: getPlayerColor(index), borderWidth: '2px' }
+          ? { borderColor: playerColor, borderWidth: '2px' }
           : {};
         
         return (
@@ -164,7 +171,7 @@ export function WinPercentageRankings() {
                 <div className="min-w-0 flex-1">
                   <div 
                     className="font-medium text-xs truncate" 
-                    style={{ color: getPlayerColor(index) }}
+                    style={{ color: playerColor }}
                   >
                     {player.name}
                   </div>
