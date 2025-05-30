@@ -19,9 +19,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Wallyball Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Win Percentage</h1>
         <button 
           onClick={handleExportImage}
           className="text-sm text-gray-600 flex items-center hover:text-gray-900"
@@ -33,20 +33,30 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-medium text-gray-800">Performance Trend</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left column - Chart */}
+        <div className="lg:col-span-3">
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <PerformanceTrend isExporting={isExporting} />
+          </div>
         </div>
-        
-        <PerformanceTrend isExporting={isExporting} />
+
+        {/* Right column - Rankings sidebar */}
+        <div className="lg:col-span-1">
+          <div className="bg-white p-4 rounded-lg border border-gray-200 h-full">
+            <div className="space-y-3">
+              <div className="text-sm text-gray-600 mb-4">
+                May 18, 2025
+              </div>
+              <div className="space-y-2">
+                <WinPercentageRankings />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-medium mb-4 text-gray-800">Win Percentage Rankings</h2>
-        <WinPercentageRankings />
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow">
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
         <RecentMatches />
       </div>
     </div>

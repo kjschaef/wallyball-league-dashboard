@@ -108,37 +108,40 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
       player.dailyStats.forEach((_, date) => allDates.add(date));
     });
 
-    // Generate chart data based on dates
-    let newChartData;
-    if (showAllData) {
-      newChartData = Array.from(allDates)
-        .sort()
-        .map(date => {
-          const dataPoint: any = { date };
-          playerStats.forEach(player => {
-            const stats = player.dailyStats.get(date);
-            if (stats) {
-              dataPoint[player.name] = stats[metric];
+    // Generate chart data with contiguous lines
+    const sortedDates = Array.from(allDates).sort();
+    const dateRange = showAllData ? sortedDates : sortedDates.slice(-4);
+    
+    // Create contiguous data by filling in missing values
+    const newChartData = dateRange.map(date => {
+      const dataPoint: any = { date };
+      
+      playerStats.forEach(player => {
+        const stats = player.dailyStats.get(date);
+        if (stats) {
+          dataPoint[player.name] = stats[metric];
+        } else {
+          // Find the last known value for this player before this date
+          const previousDates = sortedDates.filter(d => d < date);
+          let lastKnownValue = null;
+          
+          for (let i = previousDates.length - 1; i >= 0; i--) {
+            const prevStats = player.dailyStats.get(previousDates[i]);
+            if (prevStats) {
+              lastKnownValue = prevStats[metric];
+              break;
             }
-          });
-          return dataPoint;
-        });
-    } else {
-      // Show only the last 4 data points
-      newChartData = Array.from(allDates)
-        .sort()
-        .slice(-4)
-        .map(date => {
-          const dataPoint: {date: string; [key: string]: number | string} = { date };
-          playerStats.forEach(player => {
-            const stats = player.dailyStats.get(date);
-            if (stats) {
-              dataPoint[player.name] = stats[metric];
-            }
-          });
-          return dataPoint;
-        });
-    }
+          }
+          
+          // Use last known value to create contiguous line
+          if (lastKnownValue !== null) {
+            dataPoint[player.name] = lastKnownValue;
+          }
+        }
+      });
+      
+      return dataPoint;
+    });
 
     setChartData(newChartData);
   }, [players, metric, showAllData]);
