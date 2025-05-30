@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -56,7 +56,7 @@ export function FloatingActionButton({
     <div className="fixed bottom-6 right-6">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="lg" className="h-14 w-14 rounded-full">
+          <Button size="lg" className="h-14 w-14 rounded-full" data-testid="fab-trigger">
             <Plus className="h-6 w-6" />
           </Button>
         </DropdownMenuTrigger>
