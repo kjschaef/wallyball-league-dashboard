@@ -47,17 +47,45 @@ export function WinPercentageRankings() {
     penaltyPercentage?: number;
   }>>([]);
   const [loading, setLoading] = useState(true);
+  const [recentMatchPlayers, setRecentMatchPlayers] = useState<string[]>([]);
 
   useEffect(() => {
-    // Fetch real rankings data from the original site
-    const fetchRankings = async () => {
+    // Fetch real rankings data and recent matches
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/players');
-        if (!response.ok) {
+        // Fetch players
+        const playersResponse = await fetch('/api/players');
+        if (!playersResponse.ok) {
           throw new Error('Failed to fetch player rankings');
         }
         
-        const players = await response.json();
+        const players = await playersResponse.json();
+        
+        // Fetch recent matches
+        const matchesResponse = await fetch('/api/matches?limit=10');
+        let recentPlayers: string[] = [];
+        
+        if (matchesResponse.ok) {
+          const matches = await matchesResponse.json();
+          // Get the most recent day's matches
+          if (matches.length > 0) {
+            const sortedMatches = [...matches].sort((a, b) => 
+              new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+            const mostRecentDate = new Date(sortedMatches[0].date).toDateString();
+            const lastDayMatches = sortedMatches.filter(match => 
+              new Date(match.date).toDateString() === mostRecentDate
+            );
+            
+            // Extract all player names from recent matches
+            recentPlayers = lastDayMatches.reduce((acc, match) => {
+              return [...acc, ...match.teamOnePlayers, ...match.teamTwoPlayers];
+            }, [] as string[]);
+            recentPlayers = Array.from(new Set(recentPlayers)); // Remove duplicates
+          }
+        }
+        
+        setRecentMatchPlayers(recentPlayers);
         
         // Sort players by penalized win percentage (highest first)
         const sortedPlayers = [...players].sort((a, b) => {
@@ -95,17 +123,19 @@ export function WinPercentageRankings() {
           penaltyPercentage: ranking.penaltyPercentage
         })));
       } catch (error) {
-        console.error('Error fetching rankings:', error);
+        console.error('Error fetching data:', error);
         setRankings(mockRankings.map(ranking => ({
           ...ranking,
-          matches: ranking.games
+          matches: ranking.games,
+          hasInactivityPenalty: false,
+          penaltyPercentage: 0
         })));
       } finally {
         setLoading(false);
       }
     };
     
-    fetchRankings();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -114,36 +144,47 @@ export function WinPercentageRankings() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2">
-      {rankings.slice(0, 16).map((player, index) => (
-        <div key={player.id} className="bg-white border border-gray-200 rounded-lg p-2.5 hover:shadow-sm transition-shadow min-w-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 min-w-0 flex-1">
-              <div className="bg-gray-100 rounded-full w-4 h-4 flex items-center justify-center text-xs font-medium text-gray-700 flex-shrink-0">
-                {index + 1}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div 
-                  className="font-medium text-xs truncate" 
-                  style={{ color: getPlayerColor(index) }}
-                >
-                  {player.name}
+      {rankings.slice(0, 16).map((player, index) => {
+        const isInRecentMatch = recentMatchPlayers.includes(player.name);
+        const borderStyle = isInRecentMatch 
+          ? { borderColor: getPlayerColor(index), borderWidth: '2px' }
+          : {};
+        
+        return (
+          <div 
+            key={player.id} 
+            className="bg-white border border-gray-200 rounded-lg p-2.5 hover:shadow-sm transition-shadow min-w-0"
+            style={borderStyle}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
+                <div className="bg-gray-100 rounded-full w-4 h-4 flex items-center justify-center text-xs font-medium text-gray-700 flex-shrink-0">
+                  {index + 1}
                 </div>
-                <div className="text-xs text-gray-500">{player.matches} games</div>
-              </div>
-            </div>
-            <div className="text-right flex-shrink-0 ml-2">
-              <div className="text-xs font-bold text-gray-900">
-                {player.winPercentage.toFixed(1)}%
-              </div>
-              {player.hasInactivityPenalty && (
-                <div className="text-xs text-orange-600 font-medium">
-                  -{player.penaltyPercentage}%
+                <div className="min-w-0 flex-1">
+                  <div 
+                    className="font-medium text-xs truncate" 
+                    style={{ color: getPlayerColor(index) }}
+                  >
+                    {player.name}
+                  </div>
+                  <div className="text-xs text-gray-500">{player.matches} games</div>
                 </div>
-              )}
+              </div>
+              <div className="text-right flex-shrink-0 ml-2">
+                <div className="text-xs font-bold text-gray-900">
+                  {player.winPercentage.toFixed(1)}%
+                </div>
+                {player.hasInactivityPenalty && (
+                  <div className="text-xs text-orange-600 font-medium">
+                    -{player.penaltyPercentage}%
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
