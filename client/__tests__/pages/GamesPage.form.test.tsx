@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 // Adjust the import path to correctly point to the App Router page
 // This might require a path alias in jest.config.cjs or a relative path
-import GamesPage from '../../../app/games/page'; 
+import GamesPage from '../../../app/games/page';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock fetch for fetchRecentMatches
@@ -59,7 +59,7 @@ describe('GamesPage - Absence of New Match Form', () => {
     await waitFor(() => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
-    
+
     await waitFor(() => {
         expect(screen.getByRole('heading', { name: /Recent Matches/i, level: 2 })).toBeVisible();
     });
@@ -76,7 +76,7 @@ describe('GamesPage - Absence of New Match Form', () => {
     // The original form's submit button was "Record Match". The FAB has a "Record Match" menu item.
     // The dialog that opens from FAB has a "Record Game" title and a "Record Game" submit button.
     // So, checking for a button with "Record Match" text that is NOT part of a menu should be specific enough.
-    
+
     // To be more specific, let's check for a form structure or labels associated with the old form.
     const teamOneLabel = screen.queryByText(/Team 1/i); // This was a heading for team selection
     const gamesWonLabel = screen.queryByLabelText(/Games Won/i); // This was a label for score inputs

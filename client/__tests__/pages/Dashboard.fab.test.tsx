@@ -77,7 +77,7 @@ describe('Dashboard FAB and Dialog', () => {
 
     // Now, find the menuitem within that menu.
     const recordMatchOption = await screen.findByText(/record match/i, { selector: '[role="menuitem"]' });
-    
+
     expect(recordMatchOption).toBeInTheDocument();
     expect(recordMatchOption).toHaveAttribute('role', 'menuitem');
     await userEvent.click(recordMatchOption);
@@ -88,7 +88,7 @@ describe('Dashboard FAB and Dialog', () => {
       // DialogTitle is typically a heading role
       expect(screen.getByRole('heading', { name: /record game/i, level: 2 })).toBeVisible();
     });
-    
+
     // Optionally, check for some other unique content if the title is too generic
     expect(screen.getByText(/Enter the game details including teams, scores, and date./i)).toBeVisible();
   });
