@@ -33,16 +33,16 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left column - Chart */}
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 gap-6">
+        {/* Chart */}
+        <div>
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <PerformanceTrend isExporting={isExporting} />
           </div>
         </div>
 
-        {/* Right column - Rankings sidebar */}
-        <div className="lg:col-span-1">
+        {/* Rankings */}
+        <div>
           <div className="bg-white p-4 rounded-lg border border-gray-200 h-full">
             <div className="space-y-3">
               <div className="text-sm text-gray-600 mb-4">
