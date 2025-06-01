@@ -51,7 +51,6 @@
     "available-typed-arrays": "^1.0.7",
     "axe-core": "^4.10.3",
     "axobject-query": "^4.1.0",
-    "babel-jest": "^29.7.0",
     "babel-plugin-istanbul": "^6.1.1",
     "babel-plugin-jest-hoist": "^29.6.3",
     "babel-plugin-polyfill-corejs2": "^0.4.13",
@@ -332,7 +331,6 @@
     "jest-diff": "^29.7.0",
     "jest-docblock": "^29.7.0",
     "jest-each": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
     "jest-environment-node": "^29.7.0",
     "jest-fetch-mock": "^3.0.3",
     "jest-get-type": "^29.6.3",
@@ -671,10 +669,26 @@
     "yargs-parser": "^21.1.1",
     "yn": "^3.1.1",
     "yocto-queue": "^0.1.0",
-    "yoctocolors-cjs": "^2.1.2",
-    "zod": "^3.24.4"
+    "yoctocolors-cjs": "^2.1.2"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
+    "@hookform/resolvers": "^5.0.1",
+    "@radix-ui/react-alert-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-popover": "^1.1.14",
+    "@radix-ui/react-toggle-group": "^1.1.10",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "babel-jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.0.0-beta.3",
+    "zod": "^3.25.39"
+  }
 }
