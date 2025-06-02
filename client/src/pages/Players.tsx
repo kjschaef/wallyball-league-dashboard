@@ -1,18 +1,18 @@
 
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { PlayerCard } from "@/components/PlayerCard";
-import { Button } from "@/components/ui/button";
+import { PlayerCard } from "../components/PlayerCard"; // Relative path
+import { Button } from "../components/ui/button"; // Relative path
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { calculatePenalizedWinPercentage } from "@/lib/utils";
+} from "../components/ui/dialog"; // Relative path
+import { Input } from "../components/ui/input"; // Relative path
+import { Label } from "../components/ui/label"; // Relative path
+import { useToast } from "../hooks/use-toast"; // Relative path
+import { calculatePenalizedWinPercentage } from "../lib/utils"; // Relative path
 import type { Player } from "@db/schema";
 
 // Extended player type that includes the data we receive from the API

@@ -1,23 +1,23 @@
-
+import React from 'react';
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Button } from "./ui/button"; // Relative path
+import { Label } from "./ui/label"; // Relative path
+import { Input } from "./ui/input"; // Relative path
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "./ui/dialog"; // Relative path
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "./ui/dropdown-menu"; // Relative path
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "../hooks/use-toast"; // Relative path
 
 interface FloatingActionButtonProps {
   onRecordGame: () => void;
@@ -56,7 +56,7 @@ export function FloatingActionButton({
     <div className="fixed bottom-6 right-6">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="lg" className="h-14 w-14 rounded-full">
+          <Button size="lg" className="h-14 w-14 rounded-full" data-testid="fab-trigger">
             <Plus className="h-6 w-6" />
           </Button>
         </DropdownMenuTrigger>

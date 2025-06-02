@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "./ui/button"; // Relative path
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"; // Relative path
 import {
   LineChart,
   Line,
@@ -19,8 +19,8 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { cn, calculateInactivityPenalty } from "@/lib/utils";
+} from "./ui/card"; // Relative path
+import { cn, calculateInactivityPenalty } from "../lib/utils"; // Relative path
 
 const COLORS = [
   "#FF6B6B", // Coral Red
@@ -49,7 +49,7 @@ interface PlayerMatch {
 }
 
 export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps) {
-  const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
+  const [metric, setMetric] = useState<'winPercentage' | 'totalWins' | 'winsPerDay'>('winPercentage'); // Added 'winsPerDay'
   const [showAllData, setShowAllData] = useState(false);
   const { data: players } = useQuery<any[]>({
     queryKey: ["/api/players"],
@@ -101,7 +101,7 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     const dailyStats = new Map();
     let cumulativeWins = 0;
     let cumulativeTotalGames = 0;
-    let daysPlayed = new Set();
+    const daysPlayed = new Set(); // Changed let to const
     const isRecent = recentPlayerIds.has(player.id);
 
     // Sort matches by date
@@ -319,28 +319,31 @@ export function PerformanceTrend({ isExporting = false }: PerformanceTrendProps)
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>
-          {metric === 'winPercentage' ? 'Win Percentage' : 
-           metric === 'winsPerDay' ? 'Wins Per Day Played' : 
-           'Total Wins'}
+          {metric === 'winPercentage' ? 'Win Percentage' :
+           metric === 'totalWins' ? 'Total Wins' :
+           'Wins Per Day Played'}
         </CardTitle>
         <div className="flex flex-col gap-2">
           <ToggleGroup
             type="single"
             value={metric}
-            onValueChange={(value) => value && setMetric(value as 'winPercentage' | 'winsPerDay' | 'totalWins')}
-            className="border rounded-lg w-[270px]"
+            onValueChange={(value: string) => value && setMetric(value as 'winPercentage' | 'totalWins' | 'winsPerDay')}
+            className="border rounded-lg w-[auto]" // Adjusted width for 3 items
           >
             <ToggleGroupItem value="winPercentage" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
               Win %
             </ToggleGroupItem>
+            <ToggleGroupItem value="winsPerDay" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white"> {/* Added Wins Per Day */}
+              Wins/Day
+            </ToggleGroupItem>
             <ToggleGroupItem value="totalWins" className="px-2 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">
-              Total
+              Total Wins
             </ToggleGroupItem>
           </ToggleGroup>
           <ToggleGroup
             type="single"
             value={showAllData ? "all" : "recent"}
-            onValueChange={(value) => setShowAllData(value === "all")}
+            onValueChange={(value: string) => setShowAllData(value === "all")}
             className="border rounded-lg w-[200px]"
           >
             <ToggleGroupItem value="recent" className="px-3 h-9 flex-1 data-[state=on]:bg-black data-[state=on]:text-white">

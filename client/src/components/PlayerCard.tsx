@@ -1,16 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"; // Relative
+import { Button } from "./ui/button"; // Relative
 import { Trash2, Edit } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect from previous diff attempt, keeping it
 import { startOfWeek, subWeeks } from "date-fns";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+} from "./ui/dialog"; // Relative
+import { Label } from "./ui/label"; // Relative
+import { Input } from "./ui/input"; // Relative
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,18 +21,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { PlayerAchievements } from "./PlayerAchievements";
+} from "./ui/alert-dialog"; // Relative
+import { PlayerAchievements } from "./PlayerAchievements"; // Already relative
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { calculateInactivityPenalty } from "@/lib/utils";
-import React from "react";
+import { useToast } from "../hooks/use-toast"; // Relative
+import { calculateInactivityPenalty } from "../lib/utils"; // Relative
+import React from "react"; // Already present
 import type { Player } from "@db/schema";
 
 interface PlayerCardProps {
   player: Player & { 
     matches: Array<{ won: boolean, date: string }>, 
-    stats: { won: number, lost: number } 
+    stats: { won: number, lost: number, totalMatchTime?: number } // Added totalMatchTime
   };
   onEdit?: (player: Player) => void;
   onDelete?: (id: number) => void;

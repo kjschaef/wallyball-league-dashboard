@@ -6,14 +6,14 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
+} from "./ui/card"; // Changed to relative path
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "./ui/select"; // Changed to relative path
 import {
   Table,
   TableBody,
@@ -21,9 +21,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { calculatePenalizedWinPercentage } from "@/lib/utils";
+} from "./ui/table"; // Changed to relative path
+import { Button } from "./ui/button"; // Changed to relative path
+import { calculatePenalizedWinPercentage } from "../lib/utils"; // Changed to relative path
 import { PlayerPerformanceRadar } from "./PlayerPerformanceRadar";
 import type { Player } from "@db/schema";
 import {
@@ -226,7 +226,7 @@ export function AdvancedPlayerDashboard() {
               <label className="text-sm font-medium mb-2 block">Primary Player</label>
               <Select 
                 value={selectedPlayerId?.toString() || ""}
-                onValueChange={(value) => setSelectedPlayerId(Number(value))}
+                onValueChange={(value: string) => setSelectedPlayerId(Number(value))}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select primary player" />
@@ -247,7 +247,7 @@ export function AdvancedPlayerDashboard() {
               <label className="text-sm font-medium mb-2 block">Secondary Player (for comparison)</label>
               <Select 
                 value={comparisonPlayerId?.toString() || ""}
-                onValueChange={(value) => setComparisonPlayerId(Number(value))}
+                onValueChange={(value: string) => setComparisonPlayerId(Number(value))}
                 disabled={!selectedPlayerId}
               >
                 <SelectTrigger className="w-full">

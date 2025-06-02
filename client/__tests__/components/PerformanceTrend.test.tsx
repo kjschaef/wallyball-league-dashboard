@@ -18,11 +18,15 @@ const createWrapper = () => {
     },
   });
   
-  return ({ children }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  function TestQueryClientProvider({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    );
+  }
+  TestQueryClientProvider.displayName = "TestQueryClientProvider";
+  return TestQueryClientProvider;
 };
 
 describe('PerformanceTrend', () => {

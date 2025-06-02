@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { AdvancedPlayerDashboard } from "@/components/AdvancedPlayerDashboard";
-import { Button } from "@/components/ui/button";
+import { AdvancedPlayerDashboard } from "../components/AdvancedPlayerDashboard"; // Relative path
+import { Button } from "../components/ui/button"; // Relative path
 import { Share2 } from "lucide-react";
 import html2canvas from "html2canvas";
-import { format } from "date-fns";
+import { useToast } from "../hooks/use-toast"; // Relative path
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns"; // Added missing import
 
 export default function PlayerAnalytics() {
   const [isExporting, setIsExporting] = useState(false);

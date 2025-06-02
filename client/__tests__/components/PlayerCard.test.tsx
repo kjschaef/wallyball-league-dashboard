@@ -15,8 +15,12 @@ jest.mock('../../../client/src/hooks/use-toast', () => ({
   }),
 }));
 
+function MockPlayerAchievements() {
+  return <div data-testid="player-achievements">Achievements</div>;
+}
+MockPlayerAchievements.displayName = "MockPlayerAchievements";
 jest.mock('../../../client/src/components/PlayerAchievements', () => ({
-  PlayerAchievements: () => <div data-testid="player-achievements">Achievements</div>,
+  PlayerAchievements: MockPlayerAchievements,
 }));
 
 const createWrapper = () => {
@@ -28,11 +32,15 @@ const createWrapper = () => {
     },
   });
   
-  return ({ children }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  function TestQueryClientProvider({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    );
+  }
+  TestQueryClientProvider.displayName = "TestQueryClientProvider";
+  return TestQueryClientProvider;
 };
 
 describe('PlayerCard', () => {

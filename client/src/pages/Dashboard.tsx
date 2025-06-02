@@ -3,18 +3,18 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { FloatingActionButton } from "@/components/FloatingActionButton";
+import { FloatingActionButton } from "../components/FloatingActionButton"; // Relative path
 import { Calendar as CalendarIcon, Share2, Plus, Minus, Trophy, Percent, Award } from "lucide-react";
 import html2canvas from "html2canvas";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button"; // Relative path
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { StatCard } from "@/components/StatCard";
+} from "../components/ui/dialog"; // Relative path
+import { StatCard } from "../components/StatCard"; // Relative path
 import {
   Form,
   FormControl,
@@ -22,18 +22,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Player } from "@db/schema";
-import { PlayerSelector } from "@/components/PlayerSelector";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+} from "../components/ui/form"; // Relative path
+import { Input } from "../components/ui/input"; // Relative path
+import { useToast } from "../hooks/use-toast"; // Relative path
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"; // Relative path
+import type { Player, Match } from "@db/schema"; // Added Match
+import { PlayerSelector } from "../components/PlayerSelector"; // Relative path
+import { Popover, PopoverTrigger, PopoverContent } from "../components/ui/popover"; // Relative path
+import { Calendar } from "../components/ui/calendar"; // Relative path
 import { format } from 'date-fns';
-import { cn } from "@/lib/utils";
-import { PerformanceTrend } from "@/components/PerformanceTrend";
-import { DailyWins } from "@/components/DailyWins";
+import { cn } from "../lib/utils"; // Relative path
+import { PerformanceTrend } from "../components/PerformanceTrend"; // Relative path
+import { DailyWins } from "../components/DailyWins"; // Relative path
 
 const gameFormSchema = z.object({
   teamOnePlayers: z.array(z.number()).min(1, "At least one player is required").max(3),
@@ -52,11 +52,11 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const [isExporting, setIsExporting] = useState(false); // Added state for export
 
-  const { data: matches = [] } = useQuery({
+  const { data: matches = [] } = useQuery<Match[]>({ // Typed query
     queryKey: ["/api/matches"],
   });
 
-  const { data: players = [] } = useQuery({
+  const { data: players = [] } = useQuery<Player[]>({ // Typed query
     queryKey: ["/api/players"],
   });
 
@@ -136,11 +136,15 @@ export default function Dashboard() {
 
   // Get last 5 matches, filtered to most recent day with games
   const recentMatches = [...matches]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => {
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return dateB - dateA;
+    });
 
-  const mostRecentDayWithGames = recentMatches.length > 0 ? new Date(recentMatches[0].date).toDateString() : null;
+  const mostRecentDayWithGames = recentMatches.length > 0 && recentMatches[0].date ? new Date(recentMatches[0].date).toDateString() : null;
 
-  const filteredMatches = recentMatches.filter(match => new Date(match.date).toDateString() === mostRecentDayWithGames).slice(0,5);
+  const filteredMatches = recentMatches.filter(match => match.date && new Date(match.date).toDateString() === mostRecentDayWithGames).slice(0,5);
 
   // Log the filtering process
   console.log("🔍 Recent matches (sorted):", recentMatches);

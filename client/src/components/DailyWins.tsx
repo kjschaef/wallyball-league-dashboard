@@ -1,15 +1,15 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { useToast } from "../hooks/use-toast";
+import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
+import { Calendar } from "./ui/calendar";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Minus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils"; // Corrected relative path
 
 export function DailyWins() {
   const { toast } = useToast();
@@ -61,7 +61,7 @@ export function DailyWins() {
     const newLosses = Object.entries(wins).reduce((acc, [playerId, wonStr]) => {
       if (wonStr === "") return acc;
       const playerWins = parseInt(wonStr) || 0;
-      acc[playerId] = Math.max(0, totalGames - playerWins);
+      acc[Number(playerId)] = Math.max(0, totalGames - playerWins); // Convert playerId to number
       return acc;
     }, {} as { [key: number]: number });
 
@@ -90,7 +90,7 @@ export function DailyWins() {
       await mutation.mutateAsync({
         playerId: parseInt(playerId),
         won: parseInt(won),
-        lost: calculatedLosses[playerId] || 0,
+        lost: calculatedLosses[Number(playerId)] || 0, // Convert playerId to number
       });
     }
   };

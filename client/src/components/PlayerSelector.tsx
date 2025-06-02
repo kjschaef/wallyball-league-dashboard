@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import React from 'react';
+import { cn } from "../lib/utils"; // Relative path
+import { Button } from "./ui/button"; // Relative path
+import { ScrollArea } from "./ui/scroll-area"; // Relative path
 import type { Player } from "@db/schema";
 
 interface PlayerSelectorProps {
