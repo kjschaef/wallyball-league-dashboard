@@ -2,20 +2,20 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { cn } from "../lib/utils"; // Corrected relative path
+import { Button } from "./ui/button"; // Relative path
+import { Calendar } from "./ui/calendar"; // Relative path
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "./ui/popover"; // Relative path
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "./ui/card"; // Relative path
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,10 +26,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+} from "./ui/alert-dialog"; // Relative path
+import { useToast } from "../hooks/use-toast"; // Relative path
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Game } from "@db/schema";
+import type { Match } from "@db/schema"; // Changed Game to Match
 
 interface GameHistoryProps {
   games: Array<{

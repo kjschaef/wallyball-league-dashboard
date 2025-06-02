@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { GameHistory } from '../../../client/src/components/GameHistory';
 
-jest.mock('../../../client/src/components/GameHistory', () => ({
-  GameHistory: ({ games }) => (
+function MockGameHistory({ games }) {
+  return (
     <div data-testid="game-history">
       {games.map(game => (
         <div key={game.id}>
@@ -33,7 +33,12 @@ jest.mock('../../../client/src/components/GameHistory', () => ({
       <button>Filter by date</button>
       <div role="dialog" style={{ display: 'none' }}></div>
     </div>
-  )
+  );
+}
+MockGameHistory.displayName = "MockGameHistory";
+
+jest.mock('../../../client/src/components/GameHistory', () => ({
+  GameHistory: MockGameHistory
 }));
 
 jest.mock('@/hooks/use-toast', () => ({
@@ -51,11 +56,15 @@ const createWrapper = () => {
     },
   });
   
-  return ({ children }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  function TestQueryClientProvider({ children }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    );
+  }
+  TestQueryClientProvider.displayName = "TestQueryClientProvider";
+  return TestQueryClientProvider;
 };
 
 describe('GameHistory', () => {

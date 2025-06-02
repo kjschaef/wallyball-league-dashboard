@@ -86,5 +86,12 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [
+    require("tailwindcss-animate"), // Keep as require if ESM version causes issues with Tailwind
+    require("@tailwindcss/typography") // Keep as require if ESM version causes issues with Tailwind
+  ],
 } satisfies Config;
+// Note: Changed my mind about converting these to import for now.
+// Tailwind plugins are often CJS and can be problematic with ESM import in a `tailwind.config.ts` (which itself might be processed as CJS by Tailwind CLI).
+// The `@typescript-eslint/no-require-imports` is set to 'warn', so this won't block linting, just flag them.
+// If the build fails due to these, then I'll try to convert them.

@@ -5,7 +5,7 @@ import GameHistory from "./pages/GameHistory";
 import Results from "./pages/Results";
 import PlayerAnalytics from "./pages/PlayerAnalytics";
 import Players from "./pages/Players";
-import { Button } from "@/components/ui/button";
+import { Button } from "./components/ui/button"; // Changed to relative path
 import { Link } from "wouter";
 
 function App() {

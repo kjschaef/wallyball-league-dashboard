@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from "../components/ui/card"; // Relative path
+import { Button } from "../components/ui/button"; // Relative path
 import {
   Form,
   FormControl,
@@ -12,16 +12,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "../components/ui/form"; // Relative path
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+} from "../components/ui/select"; // Relative path
+import { Input } from "../components/ui/input"; // Relative path
+import { useToast } from "../hooks/use-toast"; // Relative path
 import { Plus, Minus } from "lucide-react";
 
 const formSchema = z.object({
@@ -72,13 +72,13 @@ export default function RecordMatch() {
     mutation.mutate(values);
   };
 
-  const incrementField = (field: keyof FormData) => {
-    const currentValue = form.getValues(field);
+  const incrementField = (field: 'won' | 'lost') => {
+    const currentValue = Number(form.getValues(field));
     form.setValue(field, currentValue + 1);
   };
 
-  const decrementField = (field: keyof FormData) => {
-    const currentValue = form.getValues(field);
+  const decrementField = (field: 'won' | 'lost') => {
+    const currentValue = Number(form.getValues(field));
     form.setValue(field, Math.max(0, currentValue - 1));
   };
 

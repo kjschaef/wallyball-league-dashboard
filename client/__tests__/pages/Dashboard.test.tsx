@@ -10,36 +10,46 @@ jest.mock('../../../client/src/hooks/use-toast', () => ({
   }),
 }));
 
+function MockPerformanceTrend() {
+  return <div data-testid="performance-trend">Performance Trend</div>;
+}
+MockPerformanceTrend.displayName = "MockPerformanceTrend";
 jest.mock('../../../client/src/components/PerformanceTrend', () => ({
-  PerformanceTrend: () => <div data-testid="performance-trend">Performance Trend</div>,
+  PerformanceTrend: MockPerformanceTrend,
 }));
 
+function MockDailyWins() {
+  return <div data-testid="daily-wins">Daily Wins</div>;
+}
+MockDailyWins.displayName = "MockDailyWins";
 jest.mock('../../../client/src/components/DailyWins', () => ({
-  DailyWins: () => <div data-testid="daily-wins">Daily Wins</div>,
+  DailyWins: MockDailyWins,
 }));
 
-jest.mock('../../../client/src/components/FloatingActionButton', () => {
-  const mockOnActionClick = jest.fn();
-  
-  return {
-    FloatingActionButton: jest.fn(props => {
-      if (props.onActionClick) {
-        mockOnActionClick.mockImplementation(props.onActionClick);
-      }
-      
-      return <div data-testid="fab">FAB</div>;
-    }),
-    __mockOnActionClick: mockOnActionClick
-  };
-});
+const mockOnActionClickFab = jest.fn();
+function MockFloatingActionButton(props: any) {
+  if (props.onActionClick) {
+    mockOnActionClickFab.mockImplementation(props.onActionClick);
+  }
+  return <div data-testid="fab">FAB</div>;
+}
+MockFloatingActionButton.displayName = "MockFloatingActionButton";
+jest.mock('../../../client/src/components/FloatingActionButton', () => ({
+  FloatingActionButton: MockFloatingActionButton,
+  __mockOnActionClick: mockOnActionClickFab // Export the mock function for tests to use
+}));
 
-jest.mock('../../../client/src/components/PlayerSelector', () => ({
-  PlayerSelector: ({ onSelect, selectedPlayers }) => (
+function MockPlayerSelector({ onSelect, selectedPlayers }: { onSelect: (id: number) => void; selectedPlayers: number[] }) {
+  return (
     <div data-testid="player-selector">
       <button onClick={() => onSelect(1)}>Select Player 1</button>
       <div data-testid="selected-players">{selectedPlayers?.join(',') || ''}</div>
     </div>
-  ),
+  );
+}
+MockPlayerSelector.displayName = "MockPlayerSelector";
+jest.mock('../../../client/src/components/PlayerSelector', () => ({
+  PlayerSelector: MockPlayerSelector,
 }));
 
 const createWrapper = () => {
@@ -51,11 +61,15 @@ const createWrapper = () => {
     },
   });
   
-  return ({ children }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  function TestQueryClientProvider({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    );
+  }
+  TestQueryClientProvider.displayName = "TestQueryClientProvider";
+  return TestQueryClientProvider;
 };
 
 describe('Dashboard', () => {

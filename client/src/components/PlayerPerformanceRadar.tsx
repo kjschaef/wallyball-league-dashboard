@@ -6,14 +6,14 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
+} from "./ui/card"; // Relative
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "./ui/select"; // Relative
 import {
   Radar,
   RadarChart,
@@ -24,17 +24,17 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { calculateInactivityPenalty, calculatePenalizedWinPercentage } from "@/lib/utils";
+import { calculateInactivityPenalty, calculatePenalizedWinPercentage } from "../lib/utils"; // Relative
 import type { Player } from "@db/schema";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Checkbox } from "./ui/checkbox"; // Relative
+import { Label } from "./ui/label"; // Relative
+import { Button } from "./ui/button"; // Relative
 import { InfoIcon } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "./ui/popover"; // Relative
 
 interface ExtendedPlayer {
   id: number;

@@ -40,12 +40,14 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "client/**/*.ts",
+    "client/**/*.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "client",
+    // "client", // Allow client directory to be included for ESLint type-aware linting
     ".next"
   ]
 }

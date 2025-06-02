@@ -1,22 +1,21 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useQuery, useMutation, useQueryClient as useAppQueryClient } from "@tanstack/react-query"; // Renamed to avoid conflict
+import { Button } from "../components/ui/button"; // Relative path
 import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+} from "../components/ui/dialog"; // Relative path
+import { Label } from "../components/ui/label"; // Relative path
+import { Input } from "../components/ui/input"; // Relative path
 import type { Player } from "@db/schema";
-import { PlayerCard } from "@/components/PlayerCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlayerCard } from "../components/PlayerCard"; // Relative path
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"; // Relative path
 import { startOfYear, endOfYear } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
-import { calculatePenalizedWinPercentage } from "@/lib/utils";
-import cn from 'classnames';
-import { queryClient } from '@/lib/queryClient';
+import { useToast } from "../hooks/use-toast"; // Relative path
+import { calculatePenalizedWinPercentage, cn } from "../lib/utils"; // Relative path, added cn
+// Removed import for queryClient as it's initialized locally or passed via props usually
 
 interface MatchResult {
   id: number;
@@ -45,7 +44,7 @@ export default function Results() {
     queryKey: ["/api/players"],
   });
 
-  const queryClient = useQueryClient();
+  const queryClient = useAppQueryClient(); // Changed to renamed import
   const { toast } = useToast();
 
   const updateMutation = useMutation({
