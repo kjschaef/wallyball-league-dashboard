@@ -48,7 +48,8 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const matchId = parseInt(params.id);
+  const resolvedParams = await params;
+  const matchId = parseInt(resolvedParams.id);
 
   if (isNaN(matchId)) {
     return NextResponse.json(
@@ -73,7 +74,8 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const matchId = parseInt(params.id);
+  const resolvedParams = await params;
+  const matchId = parseInt(resolvedParams.id);
   const body = await request.json();
 
   if (isNaN(matchId)) {
@@ -110,7 +112,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const matchId = parseInt(params.id);
+  const resolvedParams = await params;
+  const matchId = parseInt(resolvedParams.id);
 
   if (isNaN(matchId)) {
     return NextResponse.json(
