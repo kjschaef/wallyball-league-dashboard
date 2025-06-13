@@ -1,48 +1,6 @@
-import { NextResponse } from 'next/server';
 
-// Mock match data - in a real app this would come from a database
-const mockMatches = [
-  {
-    id: 1,
-    date: '2023-05-10T18:30:00Z',
-    teamOnePlayers: ['Troy', 'Nate'],
-    teamTwoPlayers: ['Lance', 'Shortt'],
-    teamOneGamesWon: 3,
-    teamTwoGamesWon: 1
-  },
-  {
-    id: 2,
-    date: '2023-05-05T19:00:00Z',
-    teamOnePlayers: ['Vamsi', 'Keith'],
-    teamTwoPlayers: ['Relly', 'Trevor'],
-    teamOneGamesWon: 2,
-    teamTwoGamesWon: 3
-  },
-  {
-    id: 3,
-    date: '2023-04-28T18:00:00Z',
-    teamOnePlayers: ['Prarie', 'Zach'],
-    teamTwoPlayers: ['Ambree', 'Smathers'],
-    teamOneGamesWon: 3,
-    teamTwoGamesWon: 2
-  },
-  {
-    id: 4,
-    date: '2023-04-20T17:30:00Z',
-    teamOnePlayers: ['Seth J.', 'Andrew Jarrett'],
-    teamTwoPlayers: ['Jonathan J.', 'Donna Rolt'],
-    teamOneGamesWon: 1,
-    teamTwoGamesWon: 3
-  },
-  {
-    id: 5,
-    date: '2023-04-15T18:30:00Z',
-    teamOnePlayers: ['Troy', 'Lance'],
-    teamTwoPlayers: ['Nate', 'Shortt'],
-    teamOneGamesWon: 2,
-    teamTwoGamesWon: 3
-  }
-];
+import { NextResponse } from 'next/server';
+import { neon } from '@neondatabase/serverless';
 
 export async function GET(
   request: Request,
@@ -58,16 +16,63 @@ export async function GET(
     );
   }
 
-  const match = mockMatches.find(m => m.id === matchId);
+  try {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
+    
+    // Get the specific match
+    const matches = await sql`SELECT * FROM matches WHERE id = ${matchId}`;
+    
+    if (matches.length === 0) {
+      return NextResponse.json(
+        { error: 'Match not found' },
+        { status: 404 }
+      );
+    }
+    
+    // Get all players to map IDs to names
+    const allPlayers = await sql`SELECT * FROM players`;
+    const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
+    
+    const match = matches[0];
+    const teamOnePlayers = [
+      match.team_one_player_one_id && playerMap.get(match.team_one_player_one_id),
+      match.team_one_player_two_id && playerMap.get(match.team_one_player_two_id),
+      match.team_one_player_three_id && playerMap.get(match.team_one_player_three_id)
+    ].filter(Boolean);
+    
+    const teamTwoPlayers = [
+      match.team_two_player_one_id && playerMap.get(match.team_two_player_one_id),
+      match.team_two_player_two_id && playerMap.get(match.team_two_player_two_id),
+      match.team_two_player_three_id && playerMap.get(match.team_two_player_three_id)
+    ].filter(Boolean);
+    
+    const processedMatch = {
+      id: match.id,
+      teamOnePlayerOneId: match.team_one_player_one_id,
+      teamOnePlayerTwoId: match.team_one_player_two_id,
+      teamOnePlayerThreeId: match.team_one_player_three_id,
+      teamTwoPlayerOneId: match.team_two_player_one_id,
+      teamTwoPlayerTwoId: match.team_two_player_two_id,
+      teamTwoPlayerThreeId: match.team_two_player_three_id,
+      teamOneGamesWon: match.team_one_games_won,
+      teamTwoGamesWon: match.team_two_games_won,
+      date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
+      teamOnePlayers,
+      teamTwoPlayers
+    };
 
-  if (!match) {
+    return NextResponse.json(processedMatch);
+  } catch (error) {
+    console.error('Error fetching match:', error);
     return NextResponse.json(
-      { error: 'Match not found' },
-      { status: 404 }
+      { error: 'Failed to fetch match' },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json(match);
 }
 
 export async function PUT(
@@ -85,27 +90,79 @@ export async function PUT(
     );
   }
 
-  const matchIndex = mockMatches.findIndex(m => m.id === matchId);
+  try {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
 
-  if (matchIndex === -1) {
+    // Check if match exists
+    const existingMatches = await sql`SELECT * FROM matches WHERE id = ${matchId}`;
+    
+    if (existingMatches.length === 0) {
+      return NextResponse.json(
+        { error: 'Match not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update match in database
+    const updatedMatches = await sql`
+      UPDATE matches 
+      SET 
+        team_one_player_one_id = ${body.teamOnePlayerOneId || existingMatches[0].team_one_player_one_id},
+        team_one_player_two_id = ${body.teamOnePlayerTwoId || existingMatches[0].team_one_player_two_id},
+        team_one_player_three_id = ${body.teamOnePlayerThreeId || existingMatches[0].team_one_player_three_id},
+        team_two_player_one_id = ${body.teamTwoPlayerOneId || existingMatches[0].team_two_player_one_id},
+        team_two_player_two_id = ${body.teamTwoPlayerTwoId || existingMatches[0].team_two_player_two_id},
+        team_two_player_three_id = ${body.teamTwoPlayerThreeId || existingMatches[0].team_two_player_three_id},
+        team_one_games_won = ${body.teamOneGamesWon !== undefined ? body.teamOneGamesWon : existingMatches[0].team_one_games_won},
+        team_two_games_won = ${body.teamTwoGamesWon !== undefined ? body.teamTwoGamesWon : existingMatches[0].team_two_games_won}
+      WHERE id = ${matchId}
+      RETURNING *
+    `;
+
+    // Get player names for the response
+    const allPlayers = await sql`SELECT * FROM players`;
+    const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
+    
+    const match = updatedMatches[0];
+    const teamOnePlayers = [
+      match.team_one_player_one_id && playerMap.get(match.team_one_player_one_id),
+      match.team_one_player_two_id && playerMap.get(match.team_one_player_two_id),
+      match.team_one_player_three_id && playerMap.get(match.team_one_player_three_id)
+    ].filter(Boolean);
+    
+    const teamTwoPlayers = [
+      match.team_two_player_one_id && playerMap.get(match.team_two_player_one_id),
+      match.team_two_player_two_id && playerMap.get(match.team_two_player_two_id),
+      match.team_two_player_three_id && playerMap.get(match.team_two_player_three_id)
+    ].filter(Boolean);
+    
+    const responseMatch = {
+      id: match.id,
+      teamOnePlayerOneId: match.team_one_player_one_id,
+      teamOnePlayerTwoId: match.team_one_player_two_id,
+      teamOnePlayerThreeId: match.team_one_player_three_id,
+      teamTwoPlayerOneId: match.team_two_player_one_id,
+      teamTwoPlayerTwoId: match.team_two_player_two_id,
+      teamTwoPlayerThreeId: match.team_two_player_three_id,
+      teamOneGamesWon: match.team_one_games_won,
+      teamTwoGamesWon: match.team_two_games_won,
+      date: new Date(match.date).toISOString(),
+      teamOnePlayers,
+      teamTwoPlayers
+    };
+
+    return NextResponse.json(responseMatch);
+  } catch (error) {
+    console.error('Error updating match:', error);
     return NextResponse.json(
-      { error: 'Match not found' },
-      { status: 404 }
+      { error: 'Failed to update match' },
+      { status: 500 }
     );
   }
-
-  // Update match data
-  const updatedMatch = {
-    ...mockMatches[matchIndex],
-    teamOnePlayers: body.teamOnePlayers || mockMatches[matchIndex].teamOnePlayers,
-    teamTwoPlayers: body.teamTwoPlayers || mockMatches[matchIndex].teamTwoPlayers,
-    teamOneGamesWon: body.teamOneGamesWon !== undefined ? body.teamOneGamesWon : mockMatches[matchIndex].teamOneGamesWon,
-    teamTwoGamesWon: body.teamTwoGamesWon !== undefined ? body.teamTwoGamesWon : mockMatches[matchIndex].teamTwoGamesWon
-  };
-
-  // In a real app, this would update the database
-  // For this demo, we'll just return the updated match
-  return NextResponse.json(updatedMatch);
 }
 
 export async function DELETE(
@@ -122,16 +179,32 @@ export async function DELETE(
     );
   }
 
-  const matchIndex = mockMatches.findIndex(m => m.id === matchId);
+  try {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
 
-  if (matchIndex === -1) {
+    // Check if match exists
+    const existingMatches = await sql`SELECT * FROM matches WHERE id = ${matchId}`;
+    
+    if (existingMatches.length === 0) {
+      return NextResponse.json(
+        { error: 'Match not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete match from database
+    await sql`DELETE FROM matches WHERE id = ${matchId}`;
+
+    return NextResponse.json({ message: 'Match deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting match:', error);
     return NextResponse.json(
-      { error: 'Match not found' },
-      { status: 404 }
+      { error: 'Failed to delete match' },
+      { status: 500 }
     );
   }
-
-  // In a real app, this would delete from the database
-  // For this demo, we'll just return a success message
-  return NextResponse.json({ message: 'Match deleted successfully' });
 }
