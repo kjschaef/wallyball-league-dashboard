@@ -16,7 +16,7 @@ export function Navbar() {
         <Link href="/" className="font-bold text-lg">
           Wallyball League
         </Link>
-        
+
         <div className="flex space-x-1">
           <Link 
             href="/dashboard" 
@@ -29,12 +29,6 @@ export function Navbar() {
             className={`px-3 py-2 rounded ${isActive('/games') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
           >
             Games
-          </Link>
-          <Link 
-            href="/results" 
-            className={`px-3 py-2 rounded ${isActive('/results') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
-          >
-            Results
           </Link>
           <Link 
             href="/analytics" 
