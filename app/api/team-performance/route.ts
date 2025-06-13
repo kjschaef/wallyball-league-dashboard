@@ -1,0 +1,127 @@
+import { NextResponse } from 'next/server';
+import { db } from '../../../db';
+import { matches, players } from '../../../db/schema';
+
+interface TeamStats {
+  playerIds: number[];
+  players: string[];
+  matchWins: number;
+  matchLosses: number;
+  totalMatches: number;
+  gameWins: number;
+  gameLosses: number;
+  totalGames: number;
+}
+
+export async function GET() {
+  try {
+    // Get all matches with player data
+    const allMatches = await db
+      .select({
+        id: matches.id,
+        teamOnePlayerIds: matches.teamOnePlayerIds,
+        teamTwoPlayerIds: matches.teamTwoPlayerIds,
+        teamOneGamesWon: matches.teamOneGamesWon,
+        teamTwoGamesWon: matches.teamTwoGamesWon,
+      })
+      .from(matches);
+
+    // Get all players to map IDs to names
+    const allPlayers = await db.select().from(players);
+    const playerMap = new Map(allPlayers.map((p: any) => [p.id, p.name]));
+
+    // Track team combinations and their performance
+    const teamStats = new Map<string, TeamStats>();
+
+    for (const match of allMatches) {
+      const teamOneIds = match.teamOnePlayerIds;
+      const teamTwoIds = match.teamTwoPlayerIds;
+      
+      // Create sorted team keys for consistent identification
+      const teamOneKey = [...teamOneIds].sort((a: number, b: number) => a - b).join(',');
+      const teamTwoKey = [...teamTwoIds].sort((a: number, b: number) => a - b).join(',');
+      
+      // Get player names and sort them
+      const teamOnePlayers = teamOneIds.map((id: number) => playerMap.get(id) || 'Unknown').sort();
+      const teamTwoPlayers = teamTwoIds.map((id: number) => playerMap.get(id) || 'Unknown').sort();
+
+      // Initialize team stats if not exists
+      if (!teamStats.has(teamOneKey)) {
+        teamStats.set(teamOneKey, {
+          playerIds: teamOneIds,
+          players: teamOnePlayers,
+          matchWins: 0,
+          matchLosses: 0,
+          totalMatches: 0,
+          gameWins: 0,
+          gameLosses: 0,
+          totalGames: 0
+        });
+      }
+      
+      if (!teamStats.has(teamTwoKey)) {
+        teamStats.set(teamTwoKey, {
+          playerIds: teamTwoIds,
+          players: teamTwoPlayers,
+          matchWins: 0,
+          matchLosses: 0,
+          totalMatches: 0,
+          gameWins: 0,
+          gameLosses: 0,
+          totalGames: 0
+        });
+      }
+
+      // Update stats based on match result
+      const teamOneStats = teamStats.get(teamOneKey)!;
+      const teamTwoStats = teamStats.get(teamTwoKey)!;
+
+      // Track match wins/losses (best of X games)
+      if (match.teamOneGamesWon > match.teamTwoGamesWon) {
+        teamOneStats.matchWins++;
+        teamTwoStats.matchLosses++;
+      } else if (match.teamTwoGamesWon > match.teamOneGamesWon) {
+        teamTwoStats.matchWins++;
+        teamOneStats.matchLosses++;
+      }
+      // Ties don't count as match wins or losses
+
+      // Track individual game wins/losses
+      teamOneStats.gameWins += match.teamOneGamesWon;
+      teamOneStats.gameLosses += match.teamTwoGamesWon;
+      teamTwoStats.gameWins += match.teamTwoGamesWon;
+      teamTwoStats.gameLosses += match.teamOneGamesWon;
+
+      // Track totals
+      teamOneStats.totalMatches++;
+      teamTwoStats.totalMatches++;
+      teamOneStats.totalGames += (match.teamOneGamesWon + match.teamTwoGamesWon);
+      teamTwoStats.totalGames += (match.teamOneGamesWon + match.teamTwoGamesWon);
+    }
+
+    // Convert to array and calculate win percentages
+    const teamPerformanceArray = Array.from(teamStats.entries()).map(([key, stats], index) => ({
+      id: index + 1,
+      players: stats.players,
+      wins: stats.matchWins,
+      losses: stats.matchLosses,
+      totalGames: stats.totalMatches,
+      winPercentage: stats.totalMatches > 0 ? Number(((stats.matchWins / stats.totalMatches) * 100).toFixed(1)) : 0,
+      // Additional detailed stats
+      gameWins: stats.gameWins,
+      gameLosses: stats.gameLosses,
+      totalIndividualGames: stats.totalGames,
+      gameWinPercentage: stats.totalGames > 0 ? Number(((stats.gameWins / stats.totalGames) * 100).toFixed(1)) : 0
+    }))
+    .sort((a, b) => b.winPercentage - a.winPercentage); // Sort by win percentage descending
+
+    return NextResponse.json(teamPerformanceArray);
+    
+  } catch (error) {
+    console.error('Error fetching team performance:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch team performance data' },
+      { status: 500 }
+    );
+  }
+}
