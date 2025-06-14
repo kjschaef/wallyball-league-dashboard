@@ -19,8 +19,12 @@ export async function GET() {
     const allMatches = await db
       .select({
         id: matches.id,
-        teamOnePlayerIds: matches.teamOnePlayerIds,
-        teamTwoPlayerIds: matches.teamTwoPlayerIds,
+        teamOnePlayerOneId: matches.teamOnePlayerOneId,
+        teamOnePlayerTwoId: matches.teamOnePlayerTwoId,
+        teamOnePlayerThreeId: matches.teamOnePlayerThreeId,
+        teamTwoPlayerOneId: matches.teamTwoPlayerOneId,
+        teamTwoPlayerTwoId: matches.teamTwoPlayerTwoId,
+        teamTwoPlayerThreeId: matches.teamTwoPlayerThreeId,
         teamOneGamesWon: matches.teamOneGamesWon,
         teamTwoGamesWon: matches.teamTwoGamesWon,
       })
@@ -34,8 +38,18 @@ export async function GET() {
     const teamStats = new Map<string, TeamStats>();
 
     for (const match of allMatches) {
-      const teamOneIds = match.teamOnePlayerIds;
-      const teamTwoIds = match.teamTwoPlayerIds;
+      // Extract player IDs for each team, filtering out nulls
+      const teamOneIds = [
+        match.teamOnePlayerOneId,
+        match.teamOnePlayerTwoId,
+        match.teamOnePlayerThreeId
+      ].filter((id): id is number => id !== null);
+      
+      const teamTwoIds = [
+        match.teamTwoPlayerOneId,
+        match.teamTwoPlayerTwoId,
+        match.teamTwoPlayerThreeId
+      ].filter((id): id is number => id !== null);
       
       // Create sorted team keys for consistent identification
       const teamOneKey = [...teamOneIds].sort((a: number, b: number) => a - b).join(',');
