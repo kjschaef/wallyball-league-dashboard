@@ -31,6 +31,12 @@ export function Navbar() {
             Games
           </Link>
           <Link 
+            href="/results" 
+            className={`px-3 py-2 rounded ${isActive('/results') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+          >
+            Results
+          </Link>
+          <Link 
             href="/analytics" 
             className={`px-3 py-2 rounded ${isActive('/analytics') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
           >
