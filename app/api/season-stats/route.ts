@@ -15,7 +15,7 @@ export async function GET() {
     // Get total games and calculate average
     const gamesResult = await db
       .select({
-        totalGames: sql<number>`sum(team_one_games_won + team_two_games_won)`,
+        totalGames: sql<number>`sum(${matches.teamOneGamesWon} + ${matches.teamTwoGamesWon})`,
       })
       .from(matches);
 
