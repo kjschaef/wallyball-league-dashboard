@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../db';
-import { matches, players } from '../../../db/schema';
+import { neon } from "@neondatabase/serverless";
 
 interface TeamStats {
   playerIds: number[];
@@ -15,23 +14,25 @@ interface TeamStats {
 
 export async function GET() {
   try {
+    const sql = neon(process.env.DATABASE_URL!);
+    
     // Get all matches with player data
-    const allMatches = await db
-      .select({
-        id: matches.id,
-        teamOnePlayerOneId: matches.teamOnePlayerOneId,
-        teamOnePlayerTwoId: matches.teamOnePlayerTwoId,
-        teamOnePlayerThreeId: matches.teamOnePlayerThreeId,
-        teamTwoPlayerOneId: matches.teamTwoPlayerOneId,
-        teamTwoPlayerTwoId: matches.teamTwoPlayerTwoId,
-        teamTwoPlayerThreeId: matches.teamTwoPlayerThreeId,
-        teamOneGamesWon: matches.teamOneGamesWon,
-        teamTwoGamesWon: matches.teamTwoGamesWon,
-      })
-      .from(matches);
+    const allMatches = await sql`
+      SELECT 
+        id,
+        team_one_player_one_id,
+        team_one_player_two_id, 
+        team_one_player_three_id,
+        team_two_player_one_id,
+        team_two_player_two_id,
+        team_two_player_three_id,
+        team_one_games_won,
+        team_two_games_won
+      FROM matches
+    `;
 
     // Get all players to map IDs to names
-    const allPlayers = await db.select().from(players);
+    const allPlayers = await sql`SELECT id, name FROM players`;
     const playerMap = new Map(allPlayers.map((p: any) => [p.id, p.name]));
 
     // Track team combinations and their performance
