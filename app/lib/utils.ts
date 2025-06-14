@@ -5,28 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function calculatePenalizedWinPercentage(
-  winPercentage: number,
-  lastMatchDate?: string | Date,
-  currentDate = new Date()
-): number {
-  if (!lastMatchDate) return winPercentage;
-  
-  const lastMatch = new Date(lastMatchDate);
-  const daysSinceLastMatch = Math.floor(
-    (currentDate.getTime() - lastMatch.getTime()) / (1000 * 60 * 60 * 24)
-  );
-  
-  // Apply penalty after 7 days of inactivity
-  if (daysSinceLastMatch > 7) {
-    const weeksInactive = Math.floor(daysSinceLastMatch / 7);
-    const penaltyPercentage = Math.min(weeksInactive * 2, 20); // Max 20% penalty
-    return Math.max(0, winPercentage - penaltyPercentage);
-  }
-  
-  return winPercentage;
-}
-
 /**
  * Interface for the player object needed for inactivity calculation
  */
