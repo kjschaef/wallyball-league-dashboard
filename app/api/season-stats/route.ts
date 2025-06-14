@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../db';
 import { matches } from '../../../db/schema';
-import { sql } from 'drizzle-orm';
+import { count, sum } from 'drizzle-orm';
 
 export async function GET() {
   try {
     // Get total matches count
     const totalMatchesResult = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count() })
       .from(matches);
     
     const totalMatches = Number(totalMatchesResult[0]?.count) || 0;
@@ -15,11 +15,14 @@ export async function GET() {
     // Get total games and calculate average
     const gamesResult = await db
       .select({
-        totalGames: sql<number>`sum(${matches.teamOneGamesWon} + ${matches.teamTwoGamesWon})`,
+        totalGames: sum(matches.teamOneGamesWon),
+        totalGamesTwo: sum(matches.teamTwoGamesWon),
       })
       .from(matches);
 
-    const totalGames = Number(gamesResult[0]?.totalGames) || 0;
+    const teamOneTotal = Number(gamesResult[0]?.totalGames) || 0;
+    const teamTwoTotal = Number(gamesResult[0]?.totalGamesTwo) || 0;
+    const totalGames = teamOneTotal + teamTwoTotal;
     const avgGamesPerMatch = totalMatches > 0 ? Number((totalGames / totalMatches).toFixed(1)) : 0;
 
     return NextResponse.json({

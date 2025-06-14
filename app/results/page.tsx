@@ -110,7 +110,7 @@ function BestPerformingTeams({ teams, minGames }: { teams: TeamPerformance[] | n
     );
   }
 
-  const qualifiedTeams = teams
+  const qualifiedTeams = (teams || [])
     .filter(team => team.totalGames >= minGames)
     .sort((a, b) => b.winPercentage - a.winPercentage);
 
