@@ -41,15 +41,15 @@ export async function GET() {
     for (const match of allMatches) {
       // Extract player IDs for each team, filtering out nulls
       const teamOneIds = [
-        match.teamOnePlayerOneId,
-        match.teamOnePlayerTwoId,
-        match.teamOnePlayerThreeId
+        match.team_one_player_one_id,
+        match.team_one_player_two_id,
+        match.team_one_player_three_id
       ].filter((id): id is number => id !== null);
       
       const teamTwoIds = [
-        match.teamTwoPlayerOneId,
-        match.teamTwoPlayerTwoId,
-        match.teamTwoPlayerThreeId
+        match.team_two_player_one_id,
+        match.team_two_player_two_id,
+        match.team_two_player_three_id
       ].filter((id): id is number => id !== null);
       
       // Create sorted team keys for consistent identification
@@ -92,26 +92,26 @@ export async function GET() {
       const teamTwoStats = teamStats.get(teamTwoKey)!;
 
       // Track match wins/losses (best of X games)
-      if (match.teamOneGamesWon > match.teamTwoGamesWon) {
+      if (match.team_one_games_won > match.team_two_games_won) {
         teamOneStats.matchWins++;
         teamTwoStats.matchLosses++;
-      } else if (match.teamTwoGamesWon > match.teamOneGamesWon) {
+      } else if (match.team_two_games_won > match.team_one_games_won) {
         teamTwoStats.matchWins++;
         teamOneStats.matchLosses++;
       }
       // Ties don't count as match wins or losses
 
       // Track individual game wins/losses
-      teamOneStats.gameWins += match.teamOneGamesWon;
-      teamOneStats.gameLosses += match.teamTwoGamesWon;
-      teamTwoStats.gameWins += match.teamTwoGamesWon;
-      teamTwoStats.gameLosses += match.teamOneGamesWon;
+      teamOneStats.gameWins += match.team_one_games_won;
+      teamOneStats.gameLosses += match.team_two_games_won;
+      teamTwoStats.gameWins += match.team_two_games_won;
+      teamTwoStats.gameLosses += match.team_one_games_won;
 
       // Track totals
       teamOneStats.totalMatches++;
       teamTwoStats.totalMatches++;
-      teamOneStats.totalGames += (match.teamOneGamesWon + match.teamTwoGamesWon);
-      teamTwoStats.totalGames += (match.teamOneGamesWon + match.teamTwoGamesWon);
+      teamOneStats.totalGames += (match.team_one_games_won + match.team_two_games_won);
+      teamTwoStats.totalGames += (match.team_one_games_won + match.team_two_games_won);
     }
 
     // Convert to array and calculate win percentages
