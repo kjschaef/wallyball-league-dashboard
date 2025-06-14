@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PerformanceTrend } from './components/PerformanceTrend';
 import { WinPercentageRankings } from './components/WinPercentageRankings';
 import { RecentMatches } from './components/RecentMatches';
+import { BestPerformingTeams } from './components/BestPerformingTeams';
 
 export default function DashboardPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -140,6 +141,10 @@ export default function DashboardPage() {
 
       <div className="bg-white p-6 rounded-lg border border-gray-200">
         <RecentMatches />
+      </div>
+
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <BestPerformingTeams minGames={6} />
       </div>
 
       <FloatingActionButton 
