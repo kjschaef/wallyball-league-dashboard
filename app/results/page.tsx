@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import { PlayerCards } from "../components/PlayerCards";
 
 interface SeasonStats {
   totalMatches: number;
@@ -186,6 +187,8 @@ export default function ResultsPage() {
       <SeasonStatistics stats={seasonStats || null} />
 
       <BestPerformingTeams teams={teamPerformance || null} minGames={6} />
+
+      <PlayerCards />
     </div>
   );
 }
