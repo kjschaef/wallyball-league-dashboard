@@ -35,8 +35,11 @@ async function debugParkerHodnett() {
     const hodnettOnTeamOne = [match.team_one_player_one_id, match.team_one_player_two_id, match.team_one_player_three_id].includes(54);
     
     let result = '';
+    let teamSide = '';
+    
     if (parkerOnTeamOne && hodnettOnTeamOne) {
       // Both on team one
+      teamSide = 'Team One';
       if (match.team_one_games_won > match.team_two_games_won) {
         wins++;
         result = 'WIN';
@@ -48,7 +51,8 @@ async function debugParkerHodnett() {
         result = 'TIE';
       }
     } else {
-      // Both on team two
+      // Both on team two  
+      teamSide = 'Team Two';
       if (match.team_two_games_won > match.team_one_games_won) {
         wins++;
         result = 'WIN';
@@ -61,7 +65,7 @@ async function debugParkerHodnett() {
       }
     }
     
-    console.log(`Match ${match.id}: ${match.team_one_games_won}-${match.team_two_games_won} = ${result}`);
+    console.log(`Match ${match.id}: ${match.team_one_games_won}-${match.team_two_games_won} (${teamSide}) = ${result}`);
   });
   
   console.log('==========================================');

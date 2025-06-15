@@ -102,16 +102,16 @@ export async function GET() {
       // Ties don't count as match wins or losses
 
       // Track individual game wins/losses
-      teamOneStats.gameWins += match.team_one_games_won;
-      teamOneStats.gameLosses += match.team_two_games_won;
-      teamTwoStats.gameWins += match.team_two_games_won;
-      teamTwoStats.gameLosses += match.team_one_games_won;
+      teamOneStats.gameWins += match.team_one_games_won || 0;
+      teamOneStats.gameLosses += match.team_two_games_won || 0;
+      teamTwoStats.gameWins += match.team_two_games_won || 0;
+      teamTwoStats.gameLosses += match.team_one_games_won || 0;
 
       // Track totals
       teamOneStats.totalMatches++;
       teamTwoStats.totalMatches++;
-      teamOneStats.totalGames += (match.team_one_games_won + match.team_two_games_won);
-      teamTwoStats.totalGames += (match.team_one_games_won + match.team_two_games_won);
+      teamOneStats.totalGames += (match.team_one_games_won || 0) + (match.team_two_games_won || 0);
+      teamTwoStats.totalGames += (match.team_one_games_won || 0) + (match.team_two_games_won || 0);
     }
 
     // Convert to array and calculate win percentages
