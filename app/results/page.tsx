@@ -1,7 +1,12 @@
-'use client';
+"use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 
 interface SeasonStats {
   totalMatches: number;
@@ -70,33 +75,42 @@ function SeasonStatistics({ stats }: { stats: SeasonStats | null }) {
   );
 }
 
-function BestPerformingTeams({ teams, minGames }: { teams: TeamPerformance[] | null; minGames: number }) {
+function BestPerformingTeams({
+  teams,
+  minGames,
+}: {
+  teams: TeamPerformance[] | null;
+  minGames: number;
+}) {
   const formatTeamName = (players: string[]): string => {
     if (players.length <= 2) {
-      return players.join(' and ');
+      return players.join(" and ");
     }
     const lastPlayer = players[players.length - 1];
     const otherPlayers = players.slice(0, -1);
-    return `${otherPlayers.join(', ')} and ${lastPlayer}`;
+    return `${otherPlayers.join(", ")} and ${lastPlayer}`;
   };
 
   const getWinPercentageColor = (percentage: number): string => {
-    if (percentage >= 85) return 'text-green-600';
-    if (percentage >= 75) return 'text-green-500';
-    if (percentage >= 65) return 'text-yellow-600';
-    return 'text-red-500';
+    if (percentage >= 85) return "text-green-600";
+    if (percentage >= 75) return "text-green-500";
+    if (percentage >= 65) return "text-yellow-600";
+    return "text-red-500";
   };
 
   if (!teams) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Best Performing Teams (Min. {minGames} Games)</CardTitle>
+          <CardTitle>Best Performing Teams (Min. {minGames} Matches)</CardTitle>
         </CardHeader>
         <CardContent>
           <div data-testid="loading-teams" className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex justify-between items-center p-4 bg-gray-50 rounded">
+              <div
+                key={i}
+                className="flex justify-between items-center p-4 bg-gray-50 rounded"
+              >
                 <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
                 <div className="flex items-center gap-4">
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
@@ -111,7 +125,7 @@ function BestPerformingTeams({ teams, minGames }: { teams: TeamPerformance[] | n
   }
 
   const qualifiedTeams = (teams || [])
-    .filter(team => team.totalGames >= minGames)
+    .filter((team) => team.totalGames >= minGames)
     .sort((a, b) => b.winPercentage - a.winPercentage);
 
   return (
@@ -127,8 +141,8 @@ function BestPerformingTeams({ teams, minGames }: { teams: TeamPerformance[] | n
         ) : (
           <div className="space-y-3">
             {qualifiedTeams.map((team) => (
-              <div 
-                key={team.id} 
+              <div
+                key={team.id}
                 data-testid="team-row"
                 className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
@@ -139,7 +153,9 @@ function BestPerformingTeams({ teams, minGames }: { teams: TeamPerformance[] | n
                   <div className="text-sm text-gray-600">
                     {team.wins}W - {team.losses}L
                   </div>
-                  <div className={`text-sm font-semibold ${getWinPercentageColor(team.winPercentage)}`}>
+                  <div
+                    className={`text-sm font-semibold ${getWinPercentageColor(team.winPercentage)}`}
+                  >
                     {Math.round(team.winPercentage)}%
                   </div>
                 </div>
@@ -155,20 +171,20 @@ function BestPerformingTeams({ teams, minGames }: { teams: TeamPerformance[] | n
 export default function ResultsPage() {
   const { data: seasonStats } = useQuery<SeasonStats>({
     queryKey: ["/api/season-stats"],
-    queryFn: () => fetch("/api/season-stats").then(res => res.json()),
+    queryFn: () => fetch("/api/season-stats").then((res) => res.json()),
   });
 
   const { data: teamPerformance } = useQuery<TeamPerformance[]>({
     queryKey: ["/api/team-performance"],
-    queryFn: () => fetch("/api/team-performance").then(res => res.json()),
+    queryFn: () => fetch("/api/team-performance").then((res) => res.json()),
   });
 
   return (
     <div className="space-y-6 p-6">
       <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
-      
+
       <SeasonStatistics stats={seasonStats || null} />
-      
+
       <BestPerformingTeams teams={teamPerformance || null} minGames={6} />
     </div>
   );
