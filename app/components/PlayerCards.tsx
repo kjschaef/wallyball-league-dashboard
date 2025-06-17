@@ -23,13 +23,7 @@ interface PlayerStats {
   inactivityPenalty?: number;
 }
 
-function formatPlayingTime(minutes: number): string {
-  if (minutes < 60) {
-    return `${minutes} minutes`;
-  }
-  const hours = Math.floor(minutes / 60);
-  return `${hours} hour${hours !== 1 ? 's' : ''}`;
-}
+
 
 function getWinPercentageColor(percentage: number): string {
   if (percentage >= 60) return 'bg-green-500';
@@ -46,28 +40,28 @@ function PlayerCard({ player }: PlayerCardProps) {
   const hasInactivityPenalty = player.inactivityPenalty && player.inactivityPenalty > 0;
   
   return (
-    <Card className="relative p-4 bg-white border border-gray-200 hover:shadow-md transition-shadow">
+    <Card className="relative p-3 bg-white border border-gray-200 hover:shadow-md transition-shadow">
       {/* Header with name and years */}
-      <CardHeader className="p-0 pb-3">
+      <CardHeader className="p-0 pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900">
+          <CardTitle className="text-base font-semibold text-gray-900">
             {player.name}
           </CardTitle>
           <div className="flex gap-1">
             <button className="p-1 hover:bg-gray-100 rounded">
-              <Edit className="h-4 w-4 text-gray-500" />
+              <Edit className="h-3 w-3 text-gray-500" />
             </button>
             <button className="p-1 hover:bg-gray-100 rounded">
-              <Trash2 className="h-4 w-4 text-gray-500" />
+              <Trash2 className="h-3 w-3 text-gray-500" />
             </button>
           </div>
         </div>
-        <p className="text-sm text-gray-500">Years played: {player.yearsPlayed}</p>
+        <p className="text-xs text-gray-500">Years played: {player.yearsPlayed}</p>
       </CardHeader>
 
-      <CardContent className="p-0 space-y-4">
+      <CardContent className="p-0 space-y-3">
         {/* Record and Win Percentage */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-xs text-gray-500 mb-1">Record</p>
             <p className="text-sm font-medium text-green-600">
@@ -77,7 +71,7 @@ function PlayerCard({ player }: PlayerCardProps) {
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">Win Percentage</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-xl font-bold text-gray-900">
               {player.winPercentage}%
             </p>
             {hasInactivityPenalty && (
@@ -96,25 +90,12 @@ function PlayerCard({ player }: PlayerCardProps) {
           />
         </div>
 
-        {/* Total Playing Time */}
-        <div>
-          <p className="text-xs text-gray-500 mb-1">Total Playing Time</p>
-          <p className="text-sm font-medium text-gray-900">
-            {formatPlayingTime(player.totalPlayingTime)}
-          </p>
-        </div>
-
         {/* Streak */}
         <div>
           <p className="text-xs text-gray-500 mb-1">Streak</p>
           <p className="text-sm font-medium text-gray-900">
             {player.streak.count} {player.streak.count === 1 ? 'week' : 'weeks'}
           </p>
-        </div>
-
-        {/* Achievement placeholders - leaving empty as requested */}
-        <div className="flex gap-2 pt-2 border-t border-gray-100">
-          {/* Achievement icons would go here but were requested to be skipped */}
         </div>
       </CardContent>
     </Card>
