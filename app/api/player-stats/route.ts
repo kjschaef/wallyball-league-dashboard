@@ -129,13 +129,23 @@ export async function GET() {
           won,
           date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
           teamOneGamesWon: match.team_one_games_won,
-          teamTwoGamesWon: match.team_two_games_won
+          teamTwoGamesWon: match.team_two_games_won,
+          isTeamOne
         };
       });
       
-      // Calculate basic stats
-      const wins = processedMatches.filter(match => match.won).length;
-      const losses = processedMatches.filter(match => !match.won).length;
+      // Calculate games won/lost (not matches won/lost)
+      const gamesWon = processedMatches.reduce((total, match) => {
+        return total + (match.isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon);
+      }, 0);
+      
+      const gamesLost = processedMatches.reduce((total, match) => {
+        return total + (match.isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon);
+      }, 0);
+      
+      // Calculate match wins/losses for win percentage calculation
+      const matchWins = processedMatches.filter(match => match.won).length;
+      const matchLosses = processedMatches.filter(match => !match.won).length;
       const totalGames = processedMatches.reduce((total, match) => 
         total + match.teamOneGamesWon + match.teamTwoGamesWon, 0
       );
@@ -152,8 +162,8 @@ export async function GET() {
       // Calculate streak
       const streak = calculateStreak(processedMatches);
       
-      // Calculate win percentage and inactivity penalty
-      const actualWinPercentage = wins + losses > 0 ? (wins / (wins + losses)) * 100 : 0;
+      // Calculate win percentage and inactivity penalty (based on match wins/losses)
+      const actualWinPercentage = matchWins + matchLosses > 0 ? (matchWins / (matchWins + matchLosses)) * 100 : 0;
       const inactivityPenalty = calculateInactivityPenalty(processedMatches, player.created_at);
       const winPercentage = Math.max(0, actualWinPercentage - inactivityPenalty);
       
@@ -162,8 +172,8 @@ export async function GET() {
         name: player.name,
         yearsPlayed,
         record: {
-          wins,
-          losses,
+          wins: gamesWon,
+          losses: gamesLost,
           totalGames
         },
         winPercentage: Math.round(winPercentage),

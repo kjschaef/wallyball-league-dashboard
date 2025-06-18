@@ -92,7 +92,7 @@ function PlayerCard({ player }: PlayerCardProps) {
 
         {/* Streak */}
         <div>
-          <p className="text-xs text-gray-500 mb-1">Streak</p>
+          <p className="text-xs text-gray-500 mb-1">Longest Streak</p>
           <p className="text-sm font-medium text-gray-900">
             {player.streak.count} {player.streak.count === 1 ? 'week' : 'weeks'}
           </p>
