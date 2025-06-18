@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -39,9 +40,10 @@ function getWinPercentageColor(percentage: number): string {
 interface PlayerCardProps {
   player: PlayerStats;
   onEdit: (player: PlayerStats) => void;
+  onDelete: (playerId: number) => void;
 }
 
-function PlayerCard({ player, onEdit }: PlayerCardProps) {
+function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const showInactivityPenalty = player.inactivityPenalty && player.inactivityPenalty > 0;
   
   return (
@@ -59,9 +61,27 @@ function PlayerCard({ player, onEdit }: PlayerCardProps) {
             >
               <Edit className="h-3 w-3 text-gray-500" />
             </button>
-            <button className="p-1 hover:bg-gray-100 rounded">
-              <Trash2 className="h-3 w-3 text-gray-500" />
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="p-1 hover:bg-gray-100 rounded">
+                  <Trash2 className="h-3 w-3 text-gray-500" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Player</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete {player.name}? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(player.id)} className="bg-red-600 hover:bg-red-700">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
         <p className="text-xs text-gray-500">Years played: {player.yearsPlayed}</p>
