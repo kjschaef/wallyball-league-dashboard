@@ -36,7 +36,7 @@ interface PlayerCardProps {
 }
 
 function PlayerCard({ player }: PlayerCardProps) {
-  const hasInactivityPenalty = player.inactivityPenalty && player.inactivityPenalty > 0;
+  const showInactivityPenalty = player.inactivityPenalty && player.inactivityPenalty > 0;
   
   return (
     <Card className="relative p-3 bg-white border border-gray-200 hover:shadow-md transition-shadow">
@@ -73,11 +73,11 @@ function PlayerCard({ player }: PlayerCardProps) {
             <p className={`text-xl font-bold ${getWinPercentageColor(player.winPercentage)}`}>
               {player.winPercentage}%
             </p>
-            {hasInactivityPenalty && (
+            {showInactivityPenalty ? (
               <p className="text-xs text-red-500">
                 Actual: {player.actualWinPercentage}% (-{player.inactivityPenalty}% inactive)
               </p>
-            )}
+            ) : null}
           </div>
         </div>
 
