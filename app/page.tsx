@@ -8,6 +8,7 @@ import { RecentMatches } from './components/RecentMatches';
 export default function DashboardPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
+  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false); // Added state for Add Player modal
 
   const handleExportImage = () => {
     setIsExporting(true);
@@ -24,14 +25,52 @@ export default function DashboardPage() {
     setShowRecordMatchModal(false);
   };
 
-  const FloatingActionButton = ({ onRecordMatch }) => (
-    <button
-      onClick={onRecordMatch}
-      className="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-lg"
-    >
-      +
-    </button>
-  );
+  const handleAddPlayer = () => {
+    setShowAddPlayerModal(true); // Show the Add Player modal
+  };
+
+  const FloatingActionButton = ({ onRecordMatch, onAddPlayer }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleOpen = () => {
+      setIsOpen(!isOpen);
+    };
+
+    return (
+      <div className="relative">
+        <button
+          onClick={toggleOpen}
+          className="fixed bottom-6 right-6 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full shadow-lg"
+          style={{ width: '60px', height: '60px', fontSize: '24px', lineHeight: '1' }} // Adjusted for circular shape
+        >
+          +
+        </button>
+
+        {isOpen && (
+          <div className="absolute bottom-20 right-0 bg-white rounded-md shadow-xl overflow-hidden z-10">
+            <button
+              onClick={() => {
+                onAddPlayer();
+                setIsOpen(false);
+              }}
+              className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-48 text-left"
+            >
+              Add Player
+            </button>
+            <button
+              onClick={() => {
+                onRecordMatch();
+                setIsOpen(false);
+              }}
+              className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-48 text-left"
+            >
+              Record Match
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const RecordMatchModal = ({ isOpen, onClose, onSubmit }) => {
     const [player1, setPlayer1] = useState('');
@@ -100,6 +139,57 @@ export default function DashboardPage() {
     );
   };
 
+  // Add Player Modal Component
+  const AddPlayerModal = ({ isOpen, onClose, onSubmit }) => {
+    const [playerName, setPlayerName] = useState('');
+
+    if (!isOpen) return null;
+
+    const handleSubmit = () => {
+      onSubmit(playerName);
+    };
+
+    return (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="mt-3 text-center">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Add New Player</h3>
+            <div className="mt-2 px-7 py-3">
+              <input
+                type="text"
+                placeholder="Player Name"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+              />
+            </div>
+            <div className="items-center px-4 py-3">
+              <button
+                className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
+                onClick={handleSubmit}
+              >
+                Add Player
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 mt-2"
+                onClick={onClose}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+
+  const handleAddPlayerSubmit = (playerName) => {
+    // In a real implementation, this would handle adding the player
+    console.log('Player added:', playerName);
+    setShowAddPlayerModal(false);
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center border-b border-gray-200 pb-4">
@@ -143,13 +233,20 @@ export default function DashboardPage() {
       </div>
 
       <FloatingActionButton 
-        onRecordMatch={() => setShowRecordMatchModal(true)} 
-      />
+          onRecordMatch={() => setShowRecordMatchModal(true)}
+          onAddPlayer={handleAddPlayer}
+        />
 
       <RecordMatchModal 
         isOpen={showRecordMatchModal}
         onClose={() => setShowRecordMatchModal(false)}
         onSubmit={handleRecordMatch}
+      />
+
+       <AddPlayerModal // Add the AddPlayerModal here
+        isOpen={showAddPlayerModal}
+        onClose={() => setShowAddPlayerModal(false)}
+        onSubmit={handleAddPlayerSubmit}
       />
     </div>
   );
