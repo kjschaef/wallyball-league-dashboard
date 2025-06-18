@@ -162,8 +162,8 @@ export async function GET() {
       // Calculate streak
       const streak = calculateStreak(processedMatches);
       
-      // Calculate win percentage and inactivity penalty (based on match wins/losses)
-      const actualWinPercentage = matchWins + matchLosses > 0 ? (matchWins / (matchWins + matchLosses)) * 100 : 0;
+      // Calculate win percentage and inactivity penalty (based on games won/lost)
+      const actualWinPercentage = gamesWon + gamesLost > 0 ? (gamesWon / (gamesWon + gamesLost)) * 100 : 0;
       const inactivityPenalty = calculateInactivityPenalty(processedMatches, player.created_at);
       const winPercentage = Math.max(0, actualWinPercentage - inactivityPenalty);
       

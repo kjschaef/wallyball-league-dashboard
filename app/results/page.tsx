@@ -130,8 +130,8 @@ function BestPerformingTeams({
   }
 
   const qualifiedTeams = (teams || [])
-    .filter((team) => team.totalGames >= minGames)
-    .sort((a, b) => b.winPercentage - a.winPercentage)
+    .filter((team) => team.totalIndividualGames >= minGames)
+    .sort((a, b) => b.gameWinPercentage - a.gameWinPercentage)
     .slice(0, 5);
 
   return (
@@ -160,9 +160,9 @@ function BestPerformingTeams({
                     {team.gameWins}W - {team.gameLosses}L
                   </div>
                   <div
-                    className={`text-sm font-semibold ${getWinPercentageColor(team.winPercentage)}`}
+                    className={`text-sm font-semibold ${getWinPercentageColor(team.gameWinPercentage)}`}
                   >
-                    {Math.round(team.winPercentage)}%
+                    {Math.round(team.gameWinPercentage)}%
                   </div>
                 </div>
               </div>
