@@ -23,13 +23,10 @@ interface PlayerStats {
 function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type: 'wins' | 'losses'; count: number } {
   if (matches.length === 0) return { type: 'wins', count: 0 };
   
-  // Sort matches by date descending (most recent first)
-  const sortedMatches = matches.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  
   // Group matches by week (using ISO week format YYYY-MM-DD for Monday of each week)
   const matchesByWeek = new Set<string>();
   
-  for (const match of sortedMatches) {
+  for (const match of matches) {
     const matchDate = new Date(match.date);
     // Get Monday of the week containing this match
     const monday = new Date(matchDate);
@@ -42,32 +39,35 @@ function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type
     matchesByWeek.add(weekKey);
   }
   
-  // Convert to sorted array (most recent first)
-  const sortedWeeks = Array.from(matchesByWeek).sort((a, b) => b.localeCompare(a));
+  // Convert to sorted array (oldest first for streak calculation)
+  const sortedWeeks = Array.from(matchesByWeek).sort((a, b) => a.localeCompare(b));
   
   if (sortedWeeks.length === 0) return { type: 'wins', count: 0 };
+  if (sortedWeeks.length === 1) return { type: 'wins', count: 1 };
   
-  // Calculate consecutive weeks starting from the most recent week with activity
-  let consecutiveWeeks = 1; // Start with 1 since we have at least one week
-  const mostRecentWeek = new Date(sortedWeeks[0]);
+  // Find the longest consecutive streak of weeks
+  let maxStreak = 1;
+  let currentStreak = 1;
   
-  // Check each previous week
   for (let i = 1; i < sortedWeeks.length; i++) {
     const currentWeek = new Date(sortedWeeks[i]);
-    const expectedPreviousWeek = new Date(mostRecentWeek);
-    expectedPreviousWeek.setDate(expectedPreviousWeek.getDate() - (7 * i));
+    const previousWeek = new Date(sortedWeeks[i - 1]);
     
-    // Check if this week is exactly i weeks before the most recent week
-    if (currentWeek.getTime() === expectedPreviousWeek.getTime()) {
-      consecutiveWeeks++;
+    // Check if current week is exactly 7 days after previous week
+    const expectedCurrentWeek = new Date(previousWeek);
+    expectedCurrentWeek.setDate(expectedCurrentWeek.getDate() + 7);
+    
+    if (currentWeek.getTime() === expectedCurrentWeek.getTime()) {
+      currentStreak++;
+      maxStreak = Math.max(maxStreak, currentStreak);
     } else {
-      break;
+      currentStreak = 1; // Reset streak
     }
   }
   
   return {
     type: 'wins', // Always 'wins' since we're counting consecutive weeks of activity
-    count: consecutiveWeeks
+    count: maxStreak
   };
 }
 
