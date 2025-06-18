@@ -26,10 +26,9 @@ interface PlayerStats {
 
 
 function getWinPercentageColor(percentage: number): string {
-  if (percentage >= 60) return 'bg-green-500';
-  if (percentage >= 50) return 'bg-yellow-500';
-  if (percentage >= 40) return 'bg-orange-500';
-  return 'bg-red-500';
+  if (percentage > 54) return 'text-green-600';
+  if (percentage >= 40) return 'text-yellow-600';
+  return 'text-red-600';
 }
 
 interface PlayerCardProps {
@@ -71,7 +70,7 @@ function PlayerCard({ player }: PlayerCardProps) {
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">Win Percentage</p>
-            <p className="text-xl font-bold text-gray-900">
+            <p className={`text-xl font-bold ${getWinPercentageColor(player.winPercentage)}`}>
               {player.winPercentage}%
             </p>
             {hasInactivityPenalty && (
@@ -80,14 +79,6 @@ function PlayerCard({ player }: PlayerCardProps) {
               </p>
             )}
           </div>
-        </div>
-
-        {/* Win Percentage Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className={`h-2 rounded-full ${getWinPercentageColor(player.winPercentage)}`}
-            style={{ width: `${Math.min(player.winPercentage, 100)}%` }}
-          />
         </div>
 
         {/* Streak */}
