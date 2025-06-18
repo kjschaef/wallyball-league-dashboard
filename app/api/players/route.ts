@@ -126,3 +126,63 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    
+    // Validation
+    if (!body.id) {
+      return NextResponse.json(
+        { error: 'Player ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    if (!body.name || body.name.trim() === '') {
+      return NextResponse.json(
+        { error: 'Player name is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
+
+    // Update player in database
+    const updatedPlayers = await sql`
+      UPDATE players 
+      SET name = ${body.name.trim()}, start_year = ${body.startYear || null}
+      WHERE id = ${body.id}
+      RETURNING *
+    `;
+
+    if (updatedPlayers.length === 0) {
+      return NextResponse.json(
+        { error: 'Player not found' },
+        { status: 404 }
+      );
+    }
+
+    const updatedPlayer = updatedPlayers[0];
+
+    // Return the updated player
+    const playerWithStats = {
+      id: updatedPlayer.id,
+      name: updatedPlayer.name,
+      startYear: updatedPlayer.start_year,
+      createdAt: new Date(updatedPlayer.created_at).toISOString(),
+    };
+    
+    return NextResponse.json(playerWithStats);
+  } catch (error) {
+    console.error('Error updating player:', error);
+    return NextResponse.json(
+      { error: 'Failed to update player' },
+      { status: 500 }
+    );
+  }
+}

@@ -1,7 +1,12 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 import { Edit, Trash2 } from 'lucide-react';
 
 interface PlayerStats {
@@ -33,9 +38,10 @@ function getWinPercentageColor(percentage: number): string {
 
 interface PlayerCardProps {
   player: PlayerStats;
+  onEdit: (player: PlayerStats) => void;
 }
 
-function PlayerCard({ player }: PlayerCardProps) {
+function PlayerCard({ player, onEdit }: PlayerCardProps) {
   const showInactivityPenalty = player.inactivityPenalty && player.inactivityPenalty > 0;
   
   return (
@@ -47,7 +53,10 @@ function PlayerCard({ player }: PlayerCardProps) {
             {player.name}
           </CardTitle>
           <div className="flex gap-1">
-            <button className="p-1 hover:bg-gray-100 rounded">
+            <button 
+              className="p-1 hover:bg-gray-100 rounded"
+              onClick={() => onEdit(player)}
+            >
               <Edit className="h-3 w-3 text-gray-500" />
             </button>
             <button className="p-1 hover:bg-gray-100 rounded">
@@ -94,10 +103,57 @@ function PlayerCard({ player }: PlayerCardProps) {
 }
 
 export function PlayerCards() {
+  const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
   const { data: playerStats, isLoading, error } = useQuery<PlayerStats[]>({
     queryKey: ['/api/player-stats'],
     queryFn: () => fetch('/api/player-stats').then((res) => res.json()),
   });
+
+  const updatePlayerMutation = useMutation({
+    mutationFn: async (updatedPlayer: { id: number; name: string; startYear?: number | null }) => {
+      const response = await fetch('/api/players', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedPlayer),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update player');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/player-stats'] });
+      setIsEditDialogOpen(false);
+      setEditingPlayer(null);
+    },
+  });
+
+  const handleEditPlayer = (player: PlayerStats) => {
+    setEditingPlayer(player);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingPlayer) return;
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const startYear = formData.get('startYear') as string;
+
+    updatePlayerMutation.mutate({
+      id: editingPlayer.id,
+      name: name.trim(),
+      startYear: startYear ? parseInt(startYear) : null,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -155,9 +211,60 @@ export function PlayerCards() {
       <h2 className="text-2xl font-bold tracking-tight">Player Statistics</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {playerStats.map((player) => (
-          <PlayerCard key={player.id} player={player} />
+          <PlayerCard key={player.id} player={player} onEdit={handleEditPlayer} />
         ))}
       </div>
+
+      {/* Edit Player Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Player</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  required
+                  defaultValue={editingPlayer?.name || ''}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="startYear">Start Year</Label>
+                <Input
+                  id="startYear"
+                  name="startYear"
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  defaultValue={editingPlayer ? (new Date().getFullYear() - editingPlayer.yearsPlayed).toString() : ''}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => setIsEditDialogOpen(false)}
+                disabled={updatePlayerMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={updatePlayerMutation.isPending}
+              >
+                {updatePlayerMutation.isPending ? 'Updating...' : 'Update'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
