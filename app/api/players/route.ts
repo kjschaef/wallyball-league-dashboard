@@ -186,3 +186,64 @@ export async function PUT(request: Request) {
     );
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Player ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
+
+    // Check if player exists and has any matches
+    const playerMatches = await sql`
+      SELECT COUNT(*) as match_count 
+      FROM matches 
+      WHERE team_one_player_one_id = ${id} 
+         OR team_one_player_two_id = ${id} 
+         OR team_one_player_three_id = ${id}
+         OR team_two_player_one_id = ${id} 
+         OR team_two_player_two_id = ${id} 
+         OR team_two_player_three_id = ${id}
+    `;
+
+    if (playerMatches[0].match_count > 0) {
+      return NextResponse.json(
+        { error: 'Cannot delete player with existing match records' },
+        { status: 400 }
+      );
+    }
+
+    // Delete player from database
+    const deletedPlayers = await sql`
+      DELETE FROM players 
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (deletedPlayers.length === 0) {
+      return NextResponse.json(
+        { error: 'Player not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ message: 'Player deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting player:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete player' },
+      { status: 500 }
+    );
+  }
+}
