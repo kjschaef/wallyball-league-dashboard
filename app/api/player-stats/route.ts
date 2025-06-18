@@ -26,20 +26,48 @@ function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type
   // Sort matches by date descending (most recent first)
   const sortedMatches = matches.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
-  const mostRecentResult = sortedMatches[0].won;
-  let streakCount = 0;
+  // Group matches by week (using ISO week format YYYY-MM-DD for Monday of each week)
+  const matchesByWeek = new Set<string>();
   
   for (const match of sortedMatches) {
-    if (match.won === mostRecentResult) {
-      streakCount++;
+    const matchDate = new Date(match.date);
+    // Get Monday of the week containing this match
+    const monday = new Date(matchDate);
+    const dayOfWeek = matchDate.getDay();
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Handle Sunday (0) as 6 days from Monday
+    monday.setDate(matchDate.getDate() - daysToSubtract);
+    monday.setHours(0, 0, 0, 0);
+    
+    const weekKey = monday.toISOString().split('T')[0];
+    matchesByWeek.add(weekKey);
+  }
+  
+  // Convert to sorted array (most recent first)
+  const sortedWeeks = Array.from(matchesByWeek).sort((a, b) => b.localeCompare(a));
+  
+  if (sortedWeeks.length === 0) return { type: 'wins', count: 0 };
+  
+  // Calculate consecutive weeks starting from the most recent week with activity
+  let consecutiveWeeks = 1; // Start with 1 since we have at least one week
+  const mostRecentWeek = new Date(sortedWeeks[0]);
+  
+  // Check each previous week
+  for (let i = 1; i < sortedWeeks.length; i++) {
+    const currentWeek = new Date(sortedWeeks[i]);
+    const expectedPreviousWeek = new Date(mostRecentWeek);
+    expectedPreviousWeek.setDate(expectedPreviousWeek.getDate() - (7 * i));
+    
+    // Check if this week is exactly i weeks before the most recent week
+    if (currentWeek.getTime() === expectedPreviousWeek.getTime()) {
+      consecutiveWeeks++;
     } else {
       break;
     }
   }
   
   return {
-    type: mostRecentResult ? 'wins' : 'losses',
-    count: streakCount
+    type: 'wins', // Always 'wins' since we're counting consecutive weeks of activity
+    count: consecutiveWeeks
   };
 }
 

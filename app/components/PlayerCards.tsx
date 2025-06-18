@@ -94,7 +94,7 @@ function PlayerCard({ player }: PlayerCardProps) {
         <div>
           <p className="text-xs text-gray-500 mb-1">Streak</p>
           <p className="text-sm font-medium text-gray-900">
-            {player.streak.count} {player.streak.count === 1 ? 'week' : 'weeks'}
+            {player.streak.count} {player.streak.count === 1 ? 'week' : 'weeks'} active
           </p>
         </div>
       </CardContent>
