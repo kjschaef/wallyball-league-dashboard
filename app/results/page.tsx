@@ -22,6 +22,10 @@ interface TeamPerformance {
   losses: number;
   winPercentage: number;
   totalGames: number;
+  gameWins: number;
+  gameLosses: number;
+  totalIndividualGames: number;
+  gameWinPercentage: number;
 }
 
 function SeasonStatistics({ stats }: { stats: SeasonStats | null }) {
@@ -127,7 +131,8 @@ function BestPerformingTeams({
 
   const qualifiedTeams = (teams || [])
     .filter((team) => team.totalGames >= minGames)
-    .sort((a, b) => b.winPercentage - a.winPercentage);
+    .sort((a, b) => b.winPercentage - a.winPercentage)
+    .slice(0, 5);
 
   return (
     <Card>
@@ -152,7 +157,7 @@ function BestPerformingTeams({
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-sm text-gray-600">
-                    {team.wins}W - {team.losses}L
+                    {team.gameWins}W - {team.gameLosses}L
                   </div>
                   <div
                     className={`text-sm font-semibold ${getWinPercentageColor(team.winPercentage)}`}

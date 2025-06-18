@@ -26,7 +26,7 @@ interface PlayerStats {
 
 
 function getWinPercentageColor(percentage: number): string {
-  if (percentage > 54) return 'text-green-600';
+  if (percentage > 53) return 'text-green-600';
   if (percentage >= 40) return 'text-yellow-600';
   return 'text-red-600';
 }
@@ -63,8 +63,8 @@ function PlayerCard({ player }: PlayerCardProps) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-xs text-gray-500 mb-1">Record</p>
-            <p className="text-sm font-medium text-green-600">
-              {player.record.wins} - {player.record.losses}
+            <p className="text-sm font-medium">
+              <span className="text-green-600">{player.record.wins}</span> - <span className="text-red-600">{player.record.losses}</span>
             </p>
             <p className="text-xs text-gray-500">{player.record.totalGames} games</p>
           </div>
@@ -73,7 +73,7 @@ function PlayerCard({ player }: PlayerCardProps) {
             <p className={`text-xl font-bold ${getWinPercentageColor(player.winPercentage)}`}>
               {player.winPercentage}%
             </p>
-            {hasInactivityPenalty && (
+            {hasInactivityPenalty && player.inactivityPenalty && player.inactivityPenalty > 0 && (
               <p className="text-xs text-red-500">
                 Actual: {player.actualWinPercentage}% (-{player.inactivityPenalty}% inactive)
               </p>
