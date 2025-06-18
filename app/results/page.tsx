@@ -191,7 +191,7 @@ export default function ResultsPage() {
 
       <SeasonStatistics stats={seasonStats || null} />
 
-      <BestPerformingTeams teams={teamPerformance || null} minGames={6} />
+      <BestPerformingTeams teams={teamPerformance || null} minGames={10} />
 
       <PlayerCards />
     </div>
