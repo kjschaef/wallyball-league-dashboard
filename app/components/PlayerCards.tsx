@@ -155,9 +155,34 @@ export function PlayerCards() {
     },
   });
 
+  const deletePlayerMutation = useMutation({
+    mutationFn: async (playerId: number) => {
+      const response = await fetch(`/api/players?id=${playerId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete player');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/player-stats'] });
+    },
+    onError: (error: Error) => {
+      alert(`Error: ${error.message}`);
+    },
+  });
+
   const handleEditPlayer = (player: PlayerStats) => {
     setEditingPlayer(player);
     setIsEditDialogOpen(true);
+  };
+
+  const handleDeletePlayer = (playerId: number) => {
+    deletePlayerMutation.mutate(playerId);
   };
 
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -231,7 +256,7 @@ export function PlayerCards() {
       <h2 className="text-2xl font-bold tracking-tight">Player Statistics</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {playerStats.map((player) => (
-          <PlayerCard key={player.id} player={player} onEdit={handleEditPlayer} />
+          <PlayerCard key={player.id} player={player} onEdit={handleEditPlayer} onDelete={handleDeletePlayer} />
         ))}
       </div>
 
