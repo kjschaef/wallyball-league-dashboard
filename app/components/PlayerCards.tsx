@@ -73,7 +73,7 @@ function PlayerCard({ player }: PlayerCardProps) {
             <p className={`text-xl font-bold ${getWinPercentageColor(player.winPercentage)}`}>
               {player.winPercentage}%
             </p>
-            {hasInactivityPenalty && player.inactivityPenalty && player.inactivityPenalty > 0 && (
+            {hasInactivityPenalty && (
               <p className="text-xs text-red-500">
                 Actual: {player.actualWinPercentage}% (-{player.inactivityPenalty}% inactive)
               </p>

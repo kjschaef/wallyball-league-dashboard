@@ -154,7 +154,7 @@ export async function GET() {
       const createdAt = player.created_at ? new Date(player.created_at) : new Date();
       const startYear = player.start_year || createdAt.getFullYear();
       const currentYear = new Date().getFullYear();
-      const yearsPlayed = Math.max(1, currentYear - startYear + 1);
+      const yearsPlayed = Math.max(1, currentYear - startYear);
       
       // Calculate total playing time (estimate 40 minutes per match)
       const totalPlayingTime = processedMatches.length * 40;
