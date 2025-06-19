@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PerformanceTrend } from './components/PerformanceTrend';
 import { WinPercentageRankings } from './components/WinPercentageRankings';
 import { RecentMatches } from './components/RecentMatches';
+import { RecordMatchModal } from './components/RecordMatchModal';
 
 export default function DashboardPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -19,10 +20,30 @@ export default function DashboardPage() {
     }, 500);
   };
 
-  const handleRecordMatch = (matchData) => {
-    // In a real implementation, this would handle recording the match
-    console.log('Match recorded:', matchData);
-    setShowRecordMatchModal(false);
+  const handleRecordMatch = async (matchData) => {
+    try {
+      const response = await fetch('/api/matches', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(matchData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to record match');
+      }
+
+      const newMatch = await response.json();
+      console.log('Match recorded:', newMatch);
+      setShowRecordMatchModal(false);
+      
+      // Show success message
+      alert('Match recorded successfully!');
+    } catch (error) {
+      console.error('Error recording match:', error);
+      alert('Failed to record match. Please try again.');
+    }
   };
 
   const handleAddPlayer = () => {
@@ -73,72 +94,7 @@ export default function DashboardPage() {
     );
   };
 
-  const RecordMatchModal = ({ isOpen, onClose, onSubmit }) => {
-    const [player1, setPlayer1] = useState('');
-    const [player2, setPlayer2] = useState('');
-    const [score1, setScore1] = useState('');
-    const [score2, setScore2] = useState('');
 
-    if (!isOpen) return null;
-
-    const handleSubmit = () => {
-      onSubmit({ player1, player2, score1, score2 });
-    };
-
-    return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-          <div className="mt-3 text-center">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Record New Match</h3>
-            <div className="mt-2 px-7 py-3">
-              <input
-                type="text"
-                placeholder="Player 1"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
-                value={player1}
-                onChange={(e) => setPlayer1(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Player 2"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
-                value={player2}
-                onChange={(e) => setPlayer2(e.target.value)}
-              />
-              <input
-                type="number"
-                placeholder="Score 1"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
-                value={score1}
-                onChange={(e) => setScore1(e.target.value)}
-              />
-              <input
-                type="number"
-                placeholder="Score 2"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
-                value={score2}
-                onChange={(e) => setScore2(e.target.value)}
-              />
-            </div>
-            <div className="items-center px-4 py-3">
-              <button
-                className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
-                onClick={handleSubmit}
-              >
-                Record Match
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 mt-2"
-                onClick={onClose}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // Add Player Modal Component
   const AddPlayerModal = ({ isOpen, onClose, onSubmit }) => {
