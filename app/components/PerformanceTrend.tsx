@@ -225,6 +225,10 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
                   name
                 ];
               }}
+              itemSorter={(item) => {
+                // Sort by value in descending order (highest win% at top)
+                return -Number(item.value);
+              }}
             />
             <Legend />
             {players.map((player, index) => (
