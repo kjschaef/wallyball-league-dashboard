@@ -37,37 +37,38 @@ export default function DashboardPage() {
     };
 
     return (
-      <div className="relative">
-        <button
-          onClick={toggleOpen}
-          className="fixed bottom-6 right-6 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full shadow-lg"
-          style={{ width: '60px', height: '60px', fontSize: '24px', lineHeight: '1' }} // Adjusted for circular shape
-        >
-          +
-        </button>
-
-        {isOpen && (
-          <div className="absolute bottom-20 right-0 bg-white rounded-md shadow-xl overflow-hidden z-10">
-            <button
-              onClick={() => {
-                onAddPlayer();
-                setIsOpen(false);
-              }}
-              className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-48 text-left"
-            >
-              Add Player
-            </button>
-            <button
-              onClick={() => {
-                onRecordMatch();
-                setIsOpen(false);
-              }}
-              className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-48 text-left"
-            >
-              Record Match
-            </button>
-          </div>
-        )}
+      <div className="fixed bottom-6 right-6">
+        <div className="relative">
+          {isOpen && (
+            <div className="absolute bottom-16 right-0 bg-white rounded-md shadow-xl overflow-hidden z-10 min-w-48">
+              <button
+                onClick={() => {
+                  onAddPlayer();
+                  setIsOpen(false);
+                }}
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
+              >
+                Add Player
+              </button>
+              <button
+                onClick={() => {
+                  onRecordMatch();
+                  setIsOpen(false);
+                }}
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
+              >
+                Record Match
+              </button>
+            </div>
+          )}
+          <button
+            onClick={toggleOpen}
+            className="bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-full shadow-lg transition-colors"
+            style={{ width: '60px', height: '60px', fontSize: '24px', lineHeight: '1' }}
+          >
+            +
+          </button>
+        </div>
       </div>
     );
   };
@@ -141,53 +142,106 @@ export default function DashboardPage() {
 
   // Add Player Modal Component
   const AddPlayerModal = ({ isOpen, onClose, onSubmit }) => {
-    const [playerName, setPlayerName] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
 
-    const handleSubmit = () => {
-      onSubmit(playerName);
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      
+      const formData = new FormData(e.currentTarget);
+      const name = formData.get('name') as string;
+      const startYear = formData.get('startYear') as string;
+      
+      const playerData = {
+        name: name,
+        startYear: startYear ? parseInt(startYear) : null
+      };
+      
+      try {
+        await onSubmit(playerData);
+      } finally {
+        setIsSubmitting(false);
+      }
     };
 
     return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-          <div className="mt-3 text-center">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Add New Player</h3>
-            <div className="mt-2 px-7 py-3">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Add New Player</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
               <input
+                id="name"
+                name="name"
                 type="text"
-                placeholder="Player Name"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
+                required
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter player name"
               />
             </div>
-            <div className="items-center px-4 py-3">
-              <button
-                className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
-                onClick={handleSubmit}
-              >
-                Add Player
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 mt-2"
+            <div className="space-y-2">
+              <label htmlFor="startYear" className="block text-sm font-medium text-gray-700">Start Year (Optional)</label>
+              <input
+                id="startYear"
+                name="startYear"
+                type="number"
+                min="1900"
+                max="2100"
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., 2024"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button 
+                type="button" 
                 onClick={onClose}
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 Cancel
               </button>
+              <button 
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Adding...' : 'Add Player'}
+              </button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     );
   };
 
 
-  const handleAddPlayerSubmit = (playerName) => {
-    // In a real implementation, this would handle adding the player
-    console.log('Player added:', playerName);
-    setShowAddPlayerModal(false);
+  const handleAddPlayerSubmit = async (playerData) => {
+    try {
+      const response = await fetch('/api/players', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(playerData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add player');
+      }
+
+      const newPlayer = await response.json();
+      console.log('Player added:', newPlayer);
+      setShowAddPlayerModal(false);
+      
+      // Optionally show a success message
+      alert(`Player "${playerData.name}" has been added successfully!`);
+    } catch (error) {
+      console.error('Error adding player:', error);
+      alert('Failed to add player. Please try again.');
+    }
   };
 
   return (
