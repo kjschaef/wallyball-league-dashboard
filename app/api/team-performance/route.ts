@@ -33,7 +33,8 @@ export async function GET() {
 
     // Get all players to map IDs to names
     const allPlayers = await sql`SELECT id, name FROM players`;
-    const playerMap = new Map(allPlayers.map((p: { id: number; name: string }) => [p.id, p.name]));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const playerMap = new Map(allPlayers.map((p: any) => [p.id, p.name]));
 
     // Track team combinations and their performance
     const teamStats = new Map<string, TeamStats>();

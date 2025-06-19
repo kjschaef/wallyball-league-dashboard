@@ -114,6 +114,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
     
     // Create contiguous data by filling in missing values
     const newChartData = dateRange.map(date => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dataPoint: any = { date };
       
       playerStats.forEach(player => {
@@ -198,7 +199,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
               tickFormatter={(date) => {
                 try {
                   return format(parseISO(date), "MMM d");
-                } catch (e) {
+                } catch (_e) {
                   return date;
                 }
               }}
@@ -211,7 +212,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
               labelFormatter={(date) => {
                 try {
                   return format(parseISO(date as string), "MMM d, yyyy");
-                } catch (e) {
+                } catch (_e) {
                   return date;
                 }
               }}
