@@ -194,8 +194,8 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModal
             </div>
           </div>
 
-          {/* Teams */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Team One */}
+          <div className="space-y-8">
             <PlayerGrid
               players={players}
               selectedPlayers={teamOnePlayers}
@@ -204,19 +204,9 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModal
               title="Team One"
             />
             
-            <PlayerGrid
-              players={players}
-              selectedPlayers={teamTwoPlayers}
-              onPlayerToggle={handleTeamTwoPlayerToggle}
-              maxPlayers={3}
-              title="Team Two"
-            />
-          </div>
-
-          {/* Games Won */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-3">
-              <label htmlFor="team-one-score" className="block text-sm font-medium text-gray-700">Games Won</label>
+            {/* Team One Games Won - shown on narrow screens */}
+            <div className="md:hidden space-y-3">
+              <label htmlFor="team-one-score" className="block text-sm font-medium text-gray-700">Team One Games Won</label>
               <div className="flex items-center justify-center gap-4">
                 <button
                   type="button"
@@ -239,9 +229,21 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModal
                 </button>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-3">
-              <label htmlFor="team-two-score" className="block text-sm font-medium text-gray-700">Games Won</label>
+          {/* Team Two */}
+          <div className="space-y-8">
+            <PlayerGrid
+              players={players}
+              selectedPlayers={teamTwoPlayers}
+              onPlayerToggle={handleTeamTwoPlayerToggle}
+              maxPlayers={3}
+              title="Team Two"
+            />
+            
+            {/* Team Two Games Won - shown on narrow screens */}
+            <div className="md:hidden space-y-3">
+              <label htmlFor="team-two-score" className="block text-sm font-medium text-gray-700">Team Two Games Won</label>
               <div className="flex items-center justify-center gap-4">
                 <button
                   type="button"
@@ -253,6 +255,59 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModal
                 </button>
                 <div className="flex items-center justify-center w-16 h-12 bg-gray-50 rounded-lg">
                   <span id="team-two-score" className="text-xl font-semibold">{teamTwoGamesWon}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTeamTwoGamesWon(teamTwoGamesWon + 1)}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  aria-label="Increase team two games won"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Games Won - shown on wider screens */}
+          <div className="hidden md:grid grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <label htmlFor="team-one-score-desktop" className="block text-sm font-medium text-gray-700">Team One Games Won</label>
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setTeamOneGamesWon(Math.max(0, teamOneGamesWon - 1))}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  aria-label="Decrease team one games won"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <div className="flex items-center justify-center w-16 h-12 bg-gray-50 rounded-lg">
+                  <span id="team-one-score-desktop" className="text-xl font-semibold">{teamOneGamesWon}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTeamOneGamesWon(teamOneGamesWon + 1)}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  aria-label="Increase team one games won"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label htmlFor="team-two-score-desktop" className="block text-sm font-medium text-gray-700">Team Two Games Won</label>
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setTeamTwoGamesWon(Math.max(0, teamTwoGamesWon - 1))}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  aria-label="Decrease team two games won"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <div className="flex items-center justify-center w-16 h-12 bg-gray-50 rounded-lg">
+                  <span id="team-two-score-desktop" className="text-xl font-semibold">{teamTwoGamesWon}</span>
                 </div>
                 <button
                   type="button"
