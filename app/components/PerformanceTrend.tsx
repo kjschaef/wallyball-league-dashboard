@@ -199,6 +199,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
               tickFormatter={(date) => {
                 try {
                   return format(parseISO(date), "MMM d");
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (_e) {
                   return date;
                 }
@@ -212,6 +213,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
               labelFormatter={(date) => {
                 try {
                   return format(parseISO(date as string), "MMM d, yyyy");
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (_e) {
                   return date;
                 }

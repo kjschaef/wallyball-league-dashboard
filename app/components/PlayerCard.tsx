@@ -52,6 +52,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     : winRateBase;
   
   // Count unique days on which matches were played
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _uniqueDays = new Set(
     matches.map(match => new Date(match.date).toLocaleDateString())
   ).size;
