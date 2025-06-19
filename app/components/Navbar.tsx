@@ -36,12 +36,6 @@ export function Navbar() {
           >
             Results
           </Link>
-          <Link 
-            href="/analytics" 
-            className={`px-3 py-2 rounded ${isActive('/analytics') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
-          >
-            Analytics
-          </Link>
         </div>
       </div>
     </nav>
