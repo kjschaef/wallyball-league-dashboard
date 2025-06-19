@@ -16,7 +16,8 @@ interface Match {
 export default function GamesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [playerFilter, setPlayerFilter] = useState("");
 
   useEffect(() => {
@@ -63,12 +64,18 @@ export default function GamesPage() {
     return "tie";
   };
 
-  // Filter matches by date and player name
+  // Filter matches by date range and player name
   const filteredMatches = matches.filter((match) => {
-    // Date filter
-    if (dateFilter) {
-      const matchDate = new Date(match.date).toISOString().split("T")[0];
-      if (matchDate !== dateFilter) return false;
+    // Date range filter
+    const matchDate = new Date(match.date);
+    if (fromDate) {
+      const fromDateTime = new Date(fromDate);
+      if (matchDate < fromDateTime) return false;
+    }
+    if (toDate) {
+      const toDateTime = new Date(toDate);
+      toDateTime.setHours(23, 59, 59, 999); // Include the entire end date
+      if (matchDate > toDateTime) return false;
     }
     
     // Player filter
@@ -132,7 +139,7 @@ export default function GamesPage() {
               value={playerFilter}
               onChange={(e) => setPlayerFilter(e.target.value)}
               className="pl-10 pr-8 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48"
-              placeholder="Search by player name..."
+              placeholder="Player name"
             />
             {playerFilter && (
               <button
@@ -145,22 +152,30 @@ export default function GamesPage() {
             )}
           </div>
 
-          {/* Date Filter */}
+          {/* Date Range Filter */}
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-gray-500" />
             <input
               type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Filter by date"
+              placeholder="From date"
+            />
+            <span className="text-sm text-gray-500">to</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="To date"
             />
           </div>
         </div>
       </div>
 
       {/* Filter Summary */}
-      {(playerFilter || dateFilter) && (
+      {(playerFilter || fromDate || toDate) && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-gray-600">Active filters:</span>
           {playerFilter && (
@@ -174,11 +189,14 @@ export default function GamesPage() {
               </button>
             </span>
           )}
-          {dateFilter && (
+          {(fromDate || toDate) && (
             <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-md">
-              Date: {new Date(dateFilter).toLocaleDateString()}
+              Date: {fromDate && new Date(fromDate).toLocaleDateString()}{fromDate && toDate && ' - '}{toDate && new Date(toDate).toLocaleDateString()}
               <button
-                onClick={() => setDateFilter("")}
+                onClick={() => {
+                  setFromDate("");
+                  setToDate("");
+                }}
                 className="hover:bg-green-200 rounded-full p-0.5"
               >
                 <X className="h-3 w-3" />
