@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, Trash2 } from "lucide-react";
+import { Calendar, Trash2, Search, X } from "lucide-react";
 
 interface Match {
   id: number;
@@ -17,6 +17,7 @@ export default function GamesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState("");
+  const [playerFilter, setPlayerFilter] = useState("");
 
   useEffect(() => {
     fetchAllMatches();
@@ -62,11 +63,25 @@ export default function GamesPage() {
     return "tie";
   };
 
-  // Filter matches by date if filter is applied
+  // Filter matches by date and player name
   const filteredMatches = matches.filter((match) => {
-    if (!dateFilter) return true;
-    const matchDate = new Date(match.date).toISOString().split("T")[0];
-    return matchDate === dateFilter;
+    // Date filter
+    if (dateFilter) {
+      const matchDate = new Date(match.date).toISOString().split("T")[0];
+      if (matchDate !== dateFilter) return false;
+    }
+    
+    // Player filter
+    if (playerFilter) {
+      const searchTerm = playerFilter.toLowerCase();
+      const allPlayers = [...match.teamOnePlayers, ...match.teamTwoPlayers];
+      const hasPlayer = allPlayers.some(player => 
+        player.toLowerCase().includes(searchTerm)
+      );
+      if (!hasPlayer) return false;
+    }
+    
+    return true;
   });
 
   // Sort matches by date (most recent first)
@@ -104,22 +119,77 @@ export default function GamesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header with title and date filter */}
-      <div className="flex justify-between items-center">
+      {/* Header with title and filters */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Match History</h1>
 
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-gray-500" />
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Filter by date"
-          />
-          <span className="text-sm text-gray-500">Filter by date</span>
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Player Search Filter */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={playerFilter}
+              onChange={(e) => setPlayerFilter(e.target.value)}
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48"
+              placeholder="Search by player name..."
+            />
+            {playerFilter && (
+              <button
+                onClick={() => setPlayerFilter("")}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                title="Clear search"
+              >
+                <X className="h-3 w-3 text-gray-400" />
+              </button>
+            )}
+          </div>
+
+          {/* Date Filter */}
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-gray-500" />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Filter by date"
+            />
+          </div>
         </div>
       </div>
+
+      {/* Filter Summary */}
+      {(playerFilter || dateFilter) && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-gray-600">Active filters:</span>
+          {playerFilter && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md">
+              Player: "{playerFilter}"
+              <button
+                onClick={() => setPlayerFilter("")}
+                className="hover:bg-blue-200 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+          {dateFilter && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-md">
+              Date: {new Date(dateFilter).toLocaleDateString()}
+              <button
+                onClick={() => setDateFilter("")}
+                className="hover:bg-green-200 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+          <span className="text-gray-500">
+            ({sortedMatches.length} of {matches.length} matches)
+          </span>
+        </div>
+      )}
 
       {/* Match History List */}
       <div className="bg-white rounded-lg border">
