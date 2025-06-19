@@ -22,16 +22,30 @@ export default function DashboardPage() {
 
   const handleRecordMatch = async (matchData) => {
     try {
+      // Transform the array-based data to the API's expected format
+      const apiPayload = {
+        teamOnePlayerOneId: matchData.teamOnePlayers[0] || null,
+        teamOnePlayerTwoId: matchData.teamOnePlayers[1] || null,
+        teamOnePlayerThreeId: matchData.teamOnePlayers[2] || null,
+        teamTwoPlayerOneId: matchData.teamTwoPlayers[0] || null,
+        teamTwoPlayerTwoId: matchData.teamTwoPlayers[1] || null,
+        teamTwoPlayerThreeId: matchData.teamTwoPlayers[2] || null,
+        teamOneGamesWon: matchData.teamOneGamesWon,
+        teamTwoGamesWon: matchData.teamTwoGamesWon,
+        date: matchData.date
+      };
+
       const response = await fetch('/api/matches', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(matchData),
+        body: JSON.stringify(apiPayload),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to record match');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to record match');
       }
 
       const newMatch = await response.json();
@@ -42,7 +56,7 @@ export default function DashboardPage() {
       alert('Match recorded successfully!');
     } catch (error) {
       console.error('Error recording match:', error);
-      alert('Failed to record match. Please try again.');
+      alert(`Failed to record match: ${error.message}`);
     }
   };
 
