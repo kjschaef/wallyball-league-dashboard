@@ -95,7 +95,8 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModal
       if (response.ok) {
         const data = await response.json();
         // Sort players by total number of games played (matches), most active first
-        const sortedPlayers = data.sort((a, b) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sortedPlayers = data.sort((a: any, b: any) => {
           const aGamesPlayed = a.matches ? a.matches.length : 0;
           const bGamesPlayed = b.matches ? b.matches.length : 0;
           return bGamesPlayed - aGamesPlayed;
@@ -179,10 +180,11 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModal
         <form onSubmit={handleSubmit} className="p-6 space-y-8">
           {/* Date */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Date</label>
+            <label htmlFor="match-date" className="block text-sm font-medium text-gray-700">Date</label>
             <div className="relative">
               <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
+                id="match-date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}

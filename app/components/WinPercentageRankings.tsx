@@ -65,6 +65,7 @@ export function WinPercentageRankings() {
         const players = await playersResponse.json();
         
         // Store original player order for consistent color assignment
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setOriginalPlayerOrder(players.map((p: any) => p.name));
         
         // Fetch recent matches

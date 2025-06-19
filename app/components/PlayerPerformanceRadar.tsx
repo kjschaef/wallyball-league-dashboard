@@ -107,6 +107,7 @@ const performanceMetrics: PerformanceMetric[] = [
 
 export function PlayerPerformanceRadar() {
   const [player, setPlayer] = useState<ExtendedPlayer | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [radarData, setRadarData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
