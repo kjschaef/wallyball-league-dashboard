@@ -180,7 +180,7 @@ export default function GamesPage() {
           <span className="text-gray-600">Active filters:</span>
           {playerFilter && (
             <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md">
-              Player: "{playerFilter}"
+              Player: &quot;{playerFilter}&quot;
               <button
                 onClick={() => setPlayerFilter("")}
                 className="hover:bg-blue-200 rounded-full p-0.5"

@@ -33,7 +33,7 @@ export async function GET() {
 
     // Get all players to map IDs to names
     const allPlayers = await sql`SELECT id, name FROM players`;
-    const playerMap = new Map(allPlayers.map((p: any) => [p.id, p.name]));
+    const playerMap = new Map(allPlayers.map((p: { id: number; name: string }) => [p.id, p.name]));
 
     // Track team combinations and their performance
     const teamStats = new Map<string, TeamStats>();
@@ -115,7 +115,7 @@ export async function GET() {
     }
 
     // Convert to array and calculate win percentages
-    const teamPerformanceArray = Array.from(teamStats.entries()).map(([key, stats], index) => ({
+    const teamPerformanceArray = Array.from(teamStats.entries()).map(([_key, stats], index) => ({
       id: index + 1,
       players: stats.players,
       wins: stats.matchWins,

@@ -144,8 +144,8 @@ export async function GET() {
       }, 0);
       
       // Calculate match wins/losses for win percentage calculation
-      const matchWins = processedMatches.filter(match => match.won).length;
-      const matchLosses = processedMatches.filter(match => !match.won).length;
+      const _matchWins = processedMatches.filter(match => match.won).length;
+      const _matchLosses = processedMatches.filter(match => !match.won).length;
       const totalGames = processedMatches.reduce((total, match) => 
         total + match.teamOneGamesWon + match.teamTwoGamesWon, 0
       );
