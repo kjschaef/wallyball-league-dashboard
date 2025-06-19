@@ -94,7 +94,13 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModal
       const response = await fetch("/api/players");
       if (response.ok) {
         const data = await response.json();
-        setPlayers(data);
+        // Sort players by total number of games played (matches), most active first
+        const sortedPlayers = data.sort((a, b) => {
+          const aGamesPlayed = a.matches ? a.matches.length : 0;
+          const bGamesPlayed = b.matches ? b.matches.length : 0;
+          return bGamesPlayed - aGamesPlayed;
+        });
+        setPlayers(sortedPlayers);
       }
     } catch (error) {
       console.error("Error fetching players:", error);
