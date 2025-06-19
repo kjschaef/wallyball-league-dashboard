@@ -6,6 +6,19 @@ import { WinPercentageRankings } from './components/WinPercentageRankings';
 import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 
+interface MatchData {
+  teamOnePlayers: number[];
+  teamTwoPlayers: number[];
+  teamOneGamesWon: number;
+  teamTwoGamesWon: number;
+  date: string;
+}
+
+interface PlayerData {
+  name: string;
+  startYear: number | null;
+}
+
 export default function DashboardPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
@@ -20,7 +33,7 @@ export default function DashboardPage() {
     }, 500);
   };
 
-  const handleRecordMatch = async (matchData) => {
+  const handleRecordMatch = async (matchData: MatchData) => {
     try {
       // Transform the array-based data to the API's expected format
       const apiPayload = {
@@ -56,7 +69,7 @@ export default function DashboardPage() {
       alert('Match recorded successfully!');
     } catch (error) {
       console.error('Error recording match:', error);
-      alert(`Failed to record match: ${error.message}`);
+      alert(`Failed to record match: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -64,7 +77,7 @@ export default function DashboardPage() {
     setShowAddPlayerModal(true); // Show the Add Player modal
   };
 
-  const FloatingActionButton = ({ onRecordMatch, onAddPlayer }) => {
+  const FloatingActionButton = ({ onRecordMatch, onAddPlayer }: { onRecordMatch: () => void; onAddPlayer: () => void }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleOpen = () => {
@@ -111,7 +124,7 @@ export default function DashboardPage() {
 
 
   // Add Player Modal Component
-  const AddPlayerModal = ({ isOpen, onClose, onSubmit }) => {
+  const AddPlayerModal = ({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (data: PlayerData) => Promise<void> }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
@@ -188,7 +201,7 @@ export default function DashboardPage() {
   };
 
 
-  const handleAddPlayerSubmit = async (playerData) => {
+  const handleAddPlayerSubmit = async (playerData: PlayerData) => {
     try {
       const response = await fetch('/api/players', {
         method: 'POST',
