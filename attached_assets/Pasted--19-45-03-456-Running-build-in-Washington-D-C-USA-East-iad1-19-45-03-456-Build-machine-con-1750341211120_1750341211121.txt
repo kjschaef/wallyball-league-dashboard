@@ -1,0 +1,94 @@
+[19:45:03.456] Running build in Washington, D.C., USA (East) – iad1
+[19:45:03.456] Build machine configuration: 2 cores, 8 GB
+[19:45:03.472] Cloning github.com/kjschaef/wallyball-league-dashboard (Branch: main, Commit: 51ef104)
+[19:45:03.981] Cloning completed: 509.000ms
+[19:45:07.215] Restored build cache from previous deployment (CmxBVc5p6o96yQDNfVHFsN9A5Jv3)
+[19:45:08.365] Running "vercel build"
+[19:45:09.014] Vercel CLI 43.1.0
+[19:45:09.353] Running "install" command: `npm install`...
+[19:45:12.602] 
+[19:45:12.602] up to date, audited 1208 packages in 3s
+[19:45:12.603] 
+[19:45:12.603] 203 packages are looking for funding
+[19:45:12.603]   run `npm fund` for details
+[19:45:12.639] 
+[19:45:12.639] 10 vulnerabilities (1 low, 9 moderate)
+[19:45:12.640] 
+[19:45:12.640] To address issues that do not require attention, run:
+[19:45:12.640]   npm audit fix
+[19:45:12.640] 
+[19:45:12.640] To address all issues (including breaking changes), run:
+[19:45:12.641]   npm audit fix --force
+[19:45:12.641] 
+[19:45:12.641] Run `npm audit` for details.
+[19:45:12.672] Detected Next.js version: 15.3.2
+[19:45:12.673] Running "npm run build"
+[19:45:12.791] 
+[19:45:12.791] > volleyball-league-management-next@0.1.0 build
+[19:45:12.792] > next build
+[19:45:12.792] 
+[19:45:13.583]    ▲ Next.js 15.3.2
+[19:45:13.584] 
+[19:45:13.662]    Creating an optimized production build ...
+[19:45:14.677]    Disabled SWC as replacement for Babel because of custom Babel configuration "babel.config.js" https://nextjs.org/docs/messages/swc-disabled
+[19:45:15.678]    Using external babel configuration from /vercel/path0/babel.config.js
+[19:45:15.680]  ⚠ It looks like there is a custom Babel configuration that can be removed.
+[19:45:36.582]    Disabled SWC as replacement for Babel because of custom Babel configuration "babel.config.js" https://nextjs.org/docs/messages/swc-disabled
+[19:45:37.593]    Disabled SWC as replacement for Babel because of custom Babel configuration "babel.config.js" https://nextjs.org/docs/messages/swc-disabled
+[19:45:38.408]    Using external babel configuration from /vercel/path0/babel.config.js
+[19:45:38.409]  ⚠ It looks like there is a custom Babel configuration that can be removed.
+[19:46:01.824]  ✓ Compiled successfully in 44s
+[19:46:01.830]    Linting and checking validity of types ...
+[19:46:15.241] 
+[19:46:15.241] ./app/api/player-stats/route.ts
+[19:46:15.242] 147:13  Warning: 'matchWins' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:46:15.242] 148:13  Warning: 'matchLosses' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:46:15.242] 
+[19:46:15.242] ./app/api/team-performance/route.ts
+[19:46:15.242] 36:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:46:15.242] 118:72  Warning: 'key' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+[19:46:15.242] 
+[19:46:15.246] ./app/components/FloatingActionButton.tsx
+[19:46:15.248] 4:10  Warning: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:46:15.248] 
+[19:46:15.248] ./app/components/PerformanceTrend.tsx
+[19:46:15.248] 117:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:46:15.250] 201:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:46:15.250] 214:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:46:15.250] 
+[19:46:15.251] ./app/components/PlayerCard.tsx
+[19:46:15.251] 55:9  Warning: 'uniqueDays' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:46:15.251] 
+[19:46:15.251] ./app/components/PlayerPerformanceRadar.tsx
+[19:46:15.251] 110:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:46:15.251] 
+[19:46:15.251] ./app/components/RecordMatchModal.tsx
+[19:46:15.252] 185:13  Warning: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:46:15.252] 209:17  Warning: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:46:15.252] 222:17  Warning: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:46:15.252] 259:17  Warning: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:46:15.252] 272:17  Warning: A form label must be associated with a control.  jsx-a11y/label-has-associated-control
+[19:46:15.252] 
+[19:46:15.253] ./app/components/WinPercentageRankings.tsx
+[19:46:15.253] 68:48  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:46:15.253] 
+[19:46:15.253] ./app/components/ui/card.tsx
+[19:46:15.253] 35:3  Warning: Headings must have content and the content must be accessible by a screen reader.  jsx-a11y/heading-has-content
+[19:46:15.253] 
+[19:46:15.253] info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[19:46:20.262] Failed to compile.
+[19:46:20.263] 
+[19:46:20.263] ./app/page.tsx:21:30
+[19:46:20.263] Type error: Parameter 'matchData' implicitly has an 'any' type.
+[19:46:20.264] 
+[19:46:20.264] [0m [90m 19 |[39m   }[33m;[39m[0m
+[19:46:20.264] [0m [90m 20 |[39m[0m
+[19:46:20.264] [0m[31m[1m>[22m[39m[90m 21 |[39m   [36mconst[39m handleRecordMatch [33m=[39m (matchData) [33m=>[39m {[0m
+[19:46:20.264] [0m [90m    |[39m                              [31m[1m^[22m[39m[0m
+[19:46:20.264] [0m [90m 22 |[39m     [90m// In a real implementation, this would handle recording the match[39m[0m
+[19:46:20.267] [0m [90m 23 |[39m     console[33m.[39mlog([32m'Match recorded:'[39m[33m,[39m matchData)[33m;[39m[0m
+[19:46:20.267] [0m [90m 24 |[39m     setShowRecordMatchModal([36mfalse[39m)[33m;[39m[0m
+[19:46:20.300] Next.js build worker exited with code: 1 and signal: null
+[19:46:20.319] Error: Command "npm run build" exited with 1
+[19:46:20.723] 
+[19:46:23.882] Exiting build container
