@@ -67,49 +67,7 @@ export default function DashboardPage() {
     setShowAddPlayerModal(true); // Show the Add Player modal
   };
 
-  const FloatingActionButton = ({ onRecordMatch, onAddPlayer }: { onRecordMatch: () => void; onAddPlayer: () => void }) => {
-    const [isOpen, setIsOpen] = useState(false);
 
-    const toggleOpen = () => {
-      setIsOpen(!isOpen);
-    };
-
-    return (
-      <div className="fixed bottom-6 right-6">
-        <div className="relative">
-          {isOpen && (
-            <div className="absolute bottom-16 right-0 bg-white rounded-md shadow-xl overflow-hidden z-10 min-w-48">
-              <button
-                onClick={() => {
-                  onAddPlayer();
-                  setIsOpen(false);
-                }}
-                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
-              >
-                Add Player
-              </button>
-              <button
-                onClick={() => {
-                  onRecordMatch();
-                  setIsOpen(false);
-                }}
-                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
-              >
-                Record Match
-              </button>
-            </div>
-          )}
-          <button
-            onClick={toggleOpen}
-            className="bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-full shadow-lg transition-colors"
-            style={{ width: '60px', height: '60px', fontSize: '24px', lineHeight: '1' }}
-          >
-            +
-          </button>
-        </div>
-      </div>
-    );
-  };
 
 
 
@@ -140,48 +98,55 @@ export default function DashboardPage() {
     };
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Add New Player</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
+        <div className="cfa-card p-8 w-full max-w-md mx-4 animate-slide-up">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Add New Player</h2>
+            <p className="text-gray-600">Join our volleyball community</p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-900">Player Name</label>
               <input
                 id="name"
                 name="name"
                 type="text"
                 required
-                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter player name"
+                className="cfa-input"
+                placeholder="Enter full name"
               />
             </div>
+            
             <div className="space-y-2">
-              <label htmlFor="startYear" className="block text-sm font-medium text-gray-700">Start Year (Optional)</label>
+              <label htmlFor="startYear" className="block text-sm font-semibold text-gray-900">Start Year</label>
               <input
                 id="startYear"
                 name="startYear"
                 type="number"
                 min="1900"
                 max="2100"
-                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 2024"
+                className="cfa-input"
+                placeholder="e.g., 2024 (optional)"
               />
+              <p className="text-xs text-gray-500">When did this player join the league?</p>
             </div>
-            <div className="flex gap-2 pt-2">
+            
+            <div className="flex gap-3 pt-4">
               <button 
                 type="button" 
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="flex-1 cfa-button-secondary disabled:opacity-50"
               >
                 Cancel
               </button>
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="flex-1 cfa-button-primary disabled:opacity-50"
               >
-                {isSubmitting ? 'Adding...' : 'Add Player'}
+                {isSubmitting ? 'Adding Player...' : 'Add Player'}
               </button>
             </div>
           </form>
