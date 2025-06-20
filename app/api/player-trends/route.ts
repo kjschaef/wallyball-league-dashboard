@@ -79,6 +79,39 @@ export async function GET() {
         });
       });
       
+      // For inactive players, add a current data point showing their penalty
+      if (playerMatches.length > 0) {
+        const lastMatchDate = new Date(sortedMatches[sortedMatches.length - 1].date);
+        const today = new Date();
+        const daysSinceLastMatch = Math.floor((today.getTime() - lastMatchDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // If player hasn't played in over 14 days, add a current penalty data point
+        if (daysSinceLastMatch > 14) {
+          const weeksSinceLastMatch = Math.floor(daysSinceLastMatch / 7);
+          const gracePeriodWeeks = 2;
+          const penaltyWeeks = Math.max(0, weeksSinceLastMatch - gracePeriodWeeks);
+          const penaltyPerWeek = 5;
+          const maxPenalty = 50;
+          const currentPenalty = Math.min(maxPenalty, penaltyWeeks * penaltyPerWeek);
+          
+          // Get the last recorded stats
+          const lastStats = Array.from(dailyStats.values()).pop();
+          if (lastStats) {
+            const penalizedWinPercentage = Math.max(0, lastStats.rawWinPercentage - currentPenalty);
+            
+            // Add current date with penalty
+            const todayKey = today.toISOString().split('T')[0];
+            dailyStats.set(todayKey, {
+              winPercentage: penalizedWinPercentage,
+              rawWinPercentage: lastStats.rawWinPercentage,
+              totalWins: lastStats.totalWins,
+              totalGames: lastStats.totalGames,
+              inactivityPenalty: currentPenalty
+            });
+          }
+        }
+      }
+      
       return {
         id: player.id,
         name: player.name,
