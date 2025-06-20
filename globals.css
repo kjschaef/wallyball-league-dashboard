@@ -1,64 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Chick-fil-A Brand Colors */
-  --cfa-red: #E60026;
-  --cfa-red-dark: #C8001F;
-  --cfa-red-light: #FF1A4D;
-  --cfa-yellow: #FFC300;
-  --cfa-yellow-light: #FFD333;
-  --cfa-orange: #FF6B35;
-  --cfa-green: #00B140;
-  --cfa-blue: #0066CC;
-  
-  /* Neutral Colors */
-  --cfa-black: #000000;
-  --cfa-dark-gray: #333333;
-  --cfa-medium-gray: #666666;
-  --cfa-light-gray: #F5F5F5;
-  --cfa-white: #FFFFFF;
-  --cfa-cream: #FBF9F7;
+  /* True Chick-fil-A Colors */
+  --cfa-red: #e31837;
+  --cfa-red-hover: #cc1529;
+  --cfa-white: #ffffff;
+  --cfa-gray-100: #f8f8f8;
+  --cfa-gray-200: #e8e8e8;
+  --cfa-gray-300: #d1d1d1;
+  --cfa-gray-700: #4a4a4a;
+  --cfa-gray-900: #1a1a1a;
   
   /* CSS Custom Properties */
   --background: var(--cfa-white);
-  --foreground: var(--cfa-dark-gray);
+  --foreground: var(--cfa-gray-900);
   --card: var(--cfa-white);
-  --card-foreground: var(--cfa-dark-gray);
-  --popover: var(--cfa-white);
-  --popover-foreground: var(--cfa-dark-gray);
+  --card-foreground: var(--cfa-gray-900);
   --primary: var(--cfa-red);
   --primary-foreground: var(--cfa-white);
-  --secondary: var(--cfa-light-gray);
-  --secondary-foreground: var(--cfa-dark-gray);
-  --muted: var(--cfa-cream);
-  --muted-foreground: var(--cfa-medium-gray);
-  --accent: var(--cfa-yellow);
-  --accent-foreground: var(--cfa-dark-gray);
-  --destructive: var(--cfa-red);
-  --destructive-foreground: var(--cfa-white);
-  --border: #E5E5E5;
+  --secondary: var(--cfa-gray-100);
+  --secondary-foreground: var(--cfa-gray-900);
+  --muted: var(--cfa-gray-100);
+  --muted-foreground: var(--cfa-gray-700);
+  --border: var(--cfa-gray-200);
   --input: var(--cfa-white);
   --ring: var(--cfa-red);
-  --chart-1: var(--cfa-red);
-  --chart-2: var(--cfa-yellow);
-  --chart-3: var(--cfa-orange);
-  --chart-4: var(--cfa-green);
-  --chart-5: var(--cfa-blue);
-  --radius: 8px;
+  --radius: 6px;
 }
 
 * {
-  border-color: hsl(var(--border));
+  border-color: var(--border);
 }
 
 body {
-  background: var(--cfa-cream);
-  color: var(--cfa-dark-gray);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-feature-settings: "rlig" 1, "calt" 1;
+  background: var(--cfa-white);
+  color: var(--cfa-gray-900);
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -66,59 +46,27 @@ body {
 /* Chick-fil-A Style Components */
 @layer components {
   .cfa-button-primary {
-    @apply bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+    @apply bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-md transition-all duration-200 border-0;
+    background: linear-gradient(180deg, #e31837 0%, #cc1529 100%);
+  }
+  
+  .cfa-button-primary:hover {
+    background: linear-gradient(180deg, #cc1529 0%, #b31225 100%);
   }
   
   .cfa-button-secondary {
-    @apply bg-white hover:bg-gray-50 active:bg-gray-100 text-red-600 font-semibold px-6 py-3 rounded-lg border border-red-600 transition-all duration-200 shadow-sm hover:shadow-md;
+    @apply bg-white hover:bg-gray-50 text-gray-700 font-semibold px-6 py-3 rounded-md border border-gray-300 transition-all duration-200;
   }
   
   .cfa-card {
-    @apply bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100;
-  }
-  
-  .cfa-section-header {
-    @apply text-2xl md:text-3xl font-bold text-gray-900 mb-2;
-  }
-  
-  .cfa-section-subheader {
-    @apply text-lg text-gray-600 mb-8;
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm;
   }
   
   .cfa-nav-link {
-    @apply text-gray-700 hover:text-red-600 font-medium transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-gray-50;
-  }
-  
-  .cfa-badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
-  }
-  
-  .cfa-badge-success {
-    @apply bg-green-100 text-green-800;
-  }
-  
-  .cfa-badge-warning {
-    @apply bg-yellow-100 text-yellow-800;
-  }
-  
-  .cfa-badge-error {
-    @apply bg-red-100 text-red-800;
+    @apply text-gray-700 hover:text-red-600 font-medium transition-colors duration-200 px-3 py-2;
   }
   
   .cfa-input {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200;
-  }
-  
-  .cfa-gradient-bg {
-    background: linear-gradient(135deg, #FBF9F7 0%, #F5F5F5 100%);
-  }
-  
-  .cfa-red-gradient {
-    background: linear-gradient(135deg, #E60026 0%, #C8001F 100%);
-  }
-  
-  .cfa-hero-section {
-    @apply relative overflow-hidden py-16 md:py-24;
-    background: linear-gradient(135deg, #FBF9F7 0%, #FFFFFF 50%, #FFC300 100%);
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 bg-white;
   }
 }
