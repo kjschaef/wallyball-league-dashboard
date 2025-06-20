@@ -145,25 +145,30 @@ function BestPerformingTeams({
             No teams meet the minimum games requirement
           </p>
         ) : (
-          <div className="space-y-3">
-            {qualifiedTeams.map((team) => (
+          <div className="space-y-2">
+            {qualifiedTeams.map((team, index) => (
               <div
                 key={team.id}
                 data-testid="team-row"
-                className="flex justify-between items-center p-4 bg-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex justify-between items-center py-2 hover:bg-gray-50 transition-colors"
               >
-                <div className="font-medium text-gray-900">
-                  {formatTeamName(team.players)}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 w-4">
+                    {index + 1}.
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatTeamName(team.players)}
+                  </span>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-600">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600">
                     {team.gameWins}W - {team.gameLosses}L
-                  </div>
-                  <div
+                  </span>
+                  <span
                     className={`text-sm font-semibold ${getWinPercentageColor(team.gameWinPercentage)}`}
                   >
                     {Math.round(team.gameWinPercentage)}%
-                  </div>
+                  </span>
                 </div>
               </div>
             ))}
