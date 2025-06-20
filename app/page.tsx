@@ -218,97 +218,54 @@ export default function DashboardPage() {
   };
 
   return (
-    <>
-      <div className="min-h-screen bg-cfa-cream">
-        {/* Hero Section */}
-        <div className="cfa-hero-section">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4 animate-fade-in">
-                Volleyball League
-              </h1>
-              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto animate-slide-up">
-                Track performance, analyze trends, and celebrate victories with our comprehensive league management platform
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-                <button 
-                  onClick={() => setShowRecordMatchModal(true)}
-                  className="cfa-button-primary text-lg px-8 py-4"
-                >
-                  Record New Match
-                </button>
-                <button 
-                  onClick={() => setShowAddPlayerModal(true)}
-                  className="cfa-button-secondary text-lg px-8 py-4"
-                >
-                  Add Player
-                </button>
-              </div>
-            </div>
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center border-b border-gray-200 pb-4">
+        <h1 className="text-2xl font-bold text-gray-800">Win Percentage</h1>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        {/* Chart */}
+        <div>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <PerformanceTrend />
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          {/* Stats Overview */}
-          <div className="text-center mb-16">
-            <h2 className="cfa-section-header">Performance Overview</h2>
-            <p className="cfa-section-subheader">
-              Track your league's performance with real-time analytics and insights
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-            {/* Performance Trend Chart */}
-            <div className="lg:col-span-2">
-              <div className="cfa-card p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">Win Percentage Trends</h3>
-                  <span className="cfa-badge cfa-badge-success">Live Data</span>
-                </div>
-                <PerformanceTrend />
+        {/* Rankings */}
+        <div>
+          <div className="bg-white p-4 rounded-lg border border-gray-200 h-full">
+            <div className="space-y-3">
+              <div className="text-sm text-gray-600 mb-4">
+                May 18, 2025
               </div>
-            </div>
-
-            {/* Rankings */}
-            <div>
-              <div className="cfa-card p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">Current Rankings</h3>
-                  <span className="text-sm text-gray-500">Updated: June 20, 2025</span>
-                </div>
+              <div className="space-y-2">
                 <WinPercentageRankings />
               </div>
-            </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="mb-16">
-            <div className="text-center mb-8">
-              <h2 className="cfa-section-header">Recent Activity</h2>
-              <p className="cfa-section-subheader">
-                Stay up to date with the latest matches and results
-              </p>
-            </div>
-            <div className="cfa-card p-8">
-              <RecentMatches />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modals */}
-      <RecordMatchModal
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <RecentMatches />
+      </div>
+
+      <FloatingActionButton 
+          onRecordMatch={() => setShowRecordMatchModal(true)}
+          onAddPlayer={handleAddPlayer}
+        />
+
+      <RecordMatchModal 
         isOpen={showRecordMatchModal}
         onClose={() => setShowRecordMatchModal(false)}
         onSubmit={handleRecordMatch}
       />
 
-      <AddPlayerModal
+       <AddPlayerModal // Add the AddPlayerModal here
         isOpen={showAddPlayerModal}
         onClose={() => setShowAddPlayerModal(false)}
         onSubmit={handleAddPlayerSubmit}
       />
-    </>
+    </div>
   );
 }
