@@ -90,6 +90,12 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
     // matches now contains trend data with contextual penalty calculations
     const trendsData = matches as any[];
     
+    // Debug Trevor's data
+    const trevorData = trendsData.find(p => p.name.toLowerCase().includes('trevor'));
+    if (trevorData) {
+      console.log('Trevor trend data:', trevorData.name, trevorData.dailyStats);
+    }
+    
     // Get all unique dates from trends data
     const allDates = new Set<string>();
     trendsData.forEach(playerTrend => {
@@ -111,6 +117,10 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
         
         if (stats) {
           dataPoint[playerTrend.name] = stats[metric];
+          // Debug specific penalty values
+          if (playerTrend.name.toLowerCase().includes('trevor') && stats.inactivityPenalty > 0) {
+            console.log(`Trevor on ${date}: raw=${stats.rawWinPercentage}%, penalty=${stats.inactivityPenalty}%, final=${stats.winPercentage}%`);
+          }
         } else {
           // Find the last known value for this player before this date
           const previousDates = sortedDates.filter(d => d < date);
