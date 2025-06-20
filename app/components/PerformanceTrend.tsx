@@ -93,7 +93,9 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
     // Debug Trevor's data
     const trevorData = trendsData.find(p => p.name.toLowerCase().includes('trevor'));
     if (trevorData) {
-      console.log('Trevor trend data:', trevorData.name, trevorData.dailyStats);
+      console.log('Trevor trend data:', trevorData.name, Object.keys(trevorData.dailyStats).length, 'data points');
+      console.log('Trevor dates:', Object.keys(trevorData.dailyStats).sort());
+      console.log('Trevor full data:', trevorData.dailyStats);
     }
     
     // Get all unique dates from trends data

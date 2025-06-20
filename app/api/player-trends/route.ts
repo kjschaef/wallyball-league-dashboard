@@ -79,35 +79,60 @@ export async function GET() {
         });
       });
       
-      // For inactive players, add a current data point showing their penalty
+      // For inactive players, add synthetic weekly data points showing penalty progression
       if (playerMatches.length > 0) {
         const lastMatchDate = new Date(sortedMatches[sortedMatches.length - 1].date);
         const today = new Date();
         const daysSinceLastMatch = Math.floor((today.getTime() - lastMatchDate.getTime()) / (1000 * 60 * 60 * 24));
         
-        // If player hasn't played in over 14 days, add a current penalty data point
+        // If player hasn't played in over 14 days, add weekly penalty progression
         if (daysSinceLastMatch > 14) {
           const weeksSinceLastMatch = Math.floor(daysSinceLastMatch / 7);
           const gracePeriodWeeks = 2;
-          const penaltyWeeks = Math.max(0, weeksSinceLastMatch - gracePeriodWeeks);
           const penaltyPerWeek = 5;
           const maxPenalty = 50;
-          const currentPenalty = Math.min(maxPenalty, penaltyWeeks * penaltyPerWeek);
           
           // Get the last recorded stats
           const lastStats = Array.from(dailyStats.values()).pop();
           if (lastStats) {
-            const penalizedWinPercentage = Math.max(0, lastStats.rawWinPercentage - currentPenalty);
+            // Add a data point for each week of inactivity
+            for (let week = gracePeriodWeeks + 1; week <= weeksSinceLastMatch; week++) {
+              const penaltyWeeks = week - gracePeriodWeeks;
+              const weeklyPenalty = Math.min(maxPenalty, penaltyWeeks * penaltyPerWeek);
+              const penalizedWinPercentage = Math.max(0, lastStats.rawWinPercentage - weeklyPenalty);
+              
+              // Calculate the date for this week of inactivity
+              const weekDate = new Date(lastMatchDate);
+              weekDate.setDate(weekDate.getDate() + (week * 7));
+              
+              // Don't add future dates beyond today
+              if (weekDate <= today) {
+                const weekKey = weekDate.toISOString().split('T')[0];
+                dailyStats.set(weekKey, {
+                  winPercentage: penalizedWinPercentage,
+                  rawWinPercentage: lastStats.rawWinPercentage,
+                  totalWins: lastStats.totalWins,
+                  totalGames: lastStats.totalGames,
+                  inactivityPenalty: weeklyPenalty
+                });
+              }
+            }
             
-            // Add current date with penalty
+            // Add current date with final penalty if it's different from the last weekly point
+            const finalPenaltyWeeks = Math.max(0, weeksSinceLastMatch - gracePeriodWeeks);
+            const currentPenalty = Math.min(maxPenalty, finalPenaltyWeeks * penaltyPerWeek);
             const todayKey = today.toISOString().split('T')[0];
-            dailyStats.set(todayKey, {
-              winPercentage: penalizedWinPercentage,
-              rawWinPercentage: lastStats.rawWinPercentage,
-              totalWins: lastStats.totalWins,
-              totalGames: lastStats.totalGames,
-              inactivityPenalty: currentPenalty
-            });
+            
+            if (!dailyStats.has(todayKey)) {
+              const penalizedWinPercentage = Math.max(0, lastStats.rawWinPercentage - currentPenalty);
+              dailyStats.set(todayKey, {
+                winPercentage: penalizedWinPercentage,
+                rawWinPercentage: lastStats.rawWinPercentage,
+                totalWins: lastStats.totalWins,
+                totalGames: lastStats.totalGames,
+                inactivityPenalty: currentPenalty
+              });
+            }
           }
         }
       }
