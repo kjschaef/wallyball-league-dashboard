@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -49,11 +49,8 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
   const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
   const [showAllData, setShowAllData] = useState(false);
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
-  const [matches, setMatches] = useState<Array<{date: string; teamOnePlayers: string[]; teamTwoPlayers: string[]; teamOneGamesWon: number; teamTwoGamesWon: number}>>([]);
-  const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<Array<{date: string; [key: string]: unknown}>>([]);
-  const [playerData, setPlayerData] = useState<any[]>([]); // Added playerData state
-  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]); // Added selectedPlayers state
+  const [loading, setLoading] = useState(true);
 
   // Fetch player stats and historical trends with contextual penalties
   useEffect(() => {
@@ -72,165 +69,72 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
         const trendsData = await trendsResponse.json();
 
         setPlayerStats(statsData);
-        setMatches(trendsData);
+
+        // Process trends data
+        if (Array.isArray(trendsData) && trendsData.length > 0) {
+          // Get all unique dates from trends data
+          const allDates = new Set<string>();
+          trendsData.forEach((playerTrend: any) => {
+            if (playerTrend.dailyStats) {
+              Object.keys(playerTrend.dailyStats).forEach(date => {
+                allDates.add(date);
+              });
+            }
+          });
+
+          // Generate chart data
+          const sortedDates = Array.from(allDates).sort();
+          const dateRange = showAllData ? sortedDates : sortedDates.slice(-4);
+
+          const newChartData = dateRange.map(date => {
+            const dataPoint: any = { date };
+
+            trendsData.forEach((playerTrend: any) => {
+              if (playerTrend.dailyStats) {
+                const stats = playerTrend.dailyStats[date];
+
+                if (stats) {
+                  dataPoint[playerTrend.name] = stats[metric];
+                  // Debug specific penalty values
+                  if (playerTrend.name.toLowerCase().includes('trevor') && stats.inactivityPenalty > 0) {
+                    console.log(`Trevor on ${date}: raw=${stats.rawWinPercentage}%, penalty=${stats.inactivityPenalty}%, final=${stats.winPercentage}%`);
+                  }
+                } else {
+                  // Find the last known value for this player before this date
+                  const previousDates = sortedDates.filter(d => d < date);
+                  let lastKnownValue = null;
+
+                  for (let i = previousDates.length - 1; i >= 0; i--) {
+                    const prevStats = playerTrend.dailyStats[previousDates[i]];
+                    if (prevStats) {
+                      lastKnownValue = prevStats[metric];
+                      break;
+                    }
+                  }
+
+                  if (lastKnownValue !== null) {
+                    dataPoint[playerTrend.name] = lastKnownValue;
+                  }
+                }
+              }
+            });
+
+            return dataPoint;
+          });
+
+          setChartData(newChartData);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         setPlayerStats([]);
-        setMatches([]);
+        setChartData([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
-
-  // Process data when playerStats, matches (trends), or metric changes
-  useEffect(() => {
-    if (!playerStats.length || !matches.length) return;
-
-    // matches now contains trend data with contextual penalty calculations
-    const trendsData = matches as any[];
-
-    // Debug Trevor's data
-    const trevorData = trendsData.find(p => p.name.toLowerCase().includes('trevor'));
-    if (trevorData) {
-      console.log('Trevor trend data:', trevorData.name, Object.keys(trevorData.dailyStats).length, 'data points');
-      console.log('Trevor dates:', Object.keys(trevorData.dailyStats).sort());
-      console.log('Trevor full data:', trevorData.dailyStats);
-    }
-
-    // Get all unique dates from trends data
-    const allDates = new Set<string>();
-    trendsData.forEach(playerTrend => {
-      Object.keys(playerTrend.dailyStats).forEach(date => {
-        allDates.add(date);
-      });
-    });
-
-    // Generate chart data
-    const sortedDates = Array.from(allDates).sort();
-    const dateRange = showAllData ? sortedDates : sortedDates.slice(-4);
-
-    const newChartData = dateRange.map(date => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const dataPoint: any = { date };
-
-      trendsData.forEach(playerTrend => {
-        const stats = playerTrend.dailyStats[date];
-
-        if (stats) {
-          dataPoint[playerTrend.name] = stats[metric];
-          // Debug specific penalty values
-          if (playerTrend.name.toLowerCase().includes('trevor') && stats.inactivityPenalty > 0) {
-            console.log(`Trevor on ${date}: raw=${stats.rawWinPercentage}%, penalty=${stats.inactivityPenalty}%, final=${stats.winPercentage}%`);
-          }
-        } else {
-          // Find the last known value for this player before this date
-          const previousDates = sortedDates.filter(d => d < date);
-          let lastKnownValue = null;
-
-          for (let i = previousDates.length - 1; i >= 0; i--) {
-            const prevStats = playerTrend.dailyStats[previousDates[i]];
-            if (prevStats) {
-              lastKnownValue = prevStats[metric];
-              break;
-            }
-          }
-
-          if (lastKnownValue !== null) {
-            dataPoint[playerTrend.name] = lastKnownValue;
-          }
-        }
-      });
-
-      return dataPoint;
-    });
-
-    setChartData(newChartData);
-  }, [playerStats, matches, metric, showAllData]);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await fetch('/api/player-trends');
-        if (!response.ok) {
-          throw new Error('Failed to fetch player trends');
-        }
-        const data = await response.json();
-        // Ensure data is properly structured
-        if (Array.isArray(data)) {
-          setPlayerData(data);
-        } else {
-          console.error('Invalid data format received:', data);
-          setPlayerData([]);
-        }
-      } catch (error) {
-        console.error('Error fetching player trends:', error);
-        setPlayerData([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-    // Generate chart data with safe Map operations
-  const chartData = useMemo(() => {
-    if (!playerData || !Array.isArray(playerData) || playerData.length === 0) {
-      return [];
-    }
-
-    try {
-      // Create a Set to store all unique dates
-      const allDatesSet = new Set();
-
-      // Collect all dates from all players with safe property access
-      playerData.forEach(player => {
-        if (player && player.matches && Array.isArray(player.matches)) {
-          player.matches.forEach(match => {
-            if (match && match.date) {
-              allDatesSet.add(match.date);
-            }
-          });
-        }
-      });
-
-      // Convert to sorted array
-      const sortedDates = Array.from(allDatesSet).sort();
-
-      // Create chart data for each date
-      return sortedDates.map(date => {
-        const dataPoint = { date: format(parseISO(date), 'MMM dd') };
-
-        playerData.forEach((player) => {
-          if (player && player.name && selectedPlayers.includes(player.name)) {
-            // Calculate win percentage up to this date with safe operations
-            const matchesUpToDate = player.matches
-              ?.filter(match => match && match.date && match.date <= date)
-              ?.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-            if (matchesUpToDate && matchesUpToDate.length > 0) {
-              const wins = matchesUpToDate.reduce((sum, match) => {
-                return sum + (match.wins || 0);
-              }, 0);
-              const total = matchesUpToDate.reduce((sum, match) => {
-                return sum + (match.total || 0);
-              }, 0);
-              const winPercentage = total > 0 ? Math.round((wins / total) * 100) : 0;
-              dataPoint[player.name] = winPercentage;
-            }
-          }
-        });
-
-        return dataPoint;
-      });
-    } catch (error) {
-      console.error('Error generating chart data:', error);
-      return [];
-    }
-  }, [playerData, selectedPlayers]);
+  }, [metric, showAllData]);
 
   if (loading) {
     return (
@@ -284,7 +188,6 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
               tickFormatter={(date) => {
                 try {
                   return format(parseISO(date), "MMM d");
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (_e) {
                   return date;
                 }
@@ -298,7 +201,6 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
               labelFormatter={(date) => {
                 try {
                   return format(parseISO(date as string), "MMM d, yyyy");
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (_e) {
                   return date;
                 }
