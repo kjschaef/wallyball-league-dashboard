@@ -158,8 +158,12 @@ export async function GET() {
       const currentYear = new Date().getFullYear();
       const yearsPlayed = Math.max(1, currentYear - startYear);
       
-      // Calculate total playing time (estimate 40 minutes per match)
-      const totalPlayingTime = processedMatches.length * 40;
+      // Calculate total playing time (90 minutes per unique day played)
+      const uniqueDays = new Set(processedMatches.map(match => {
+        const date = new Date(match.date);
+        return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+      }));
+      const totalPlayingTime = Math.round((uniqueDays.size * 90) / 60); // Convert to hours
       
       // Calculate streak
       const streak = calculateStreak(processedMatches);

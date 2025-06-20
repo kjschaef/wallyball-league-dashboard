@@ -53,7 +53,6 @@ export async function GET() {
       const totalGames = processedMatches.reduce((total, match) => 
         total + match.teamOneGamesWon + match.teamTwoGamesWon, 0
       );
-      const totalMatchTime = processedMatches.length * 40; // Estimate 40 minutes per match
       
       return {
         id: player.id,
@@ -64,8 +63,7 @@ export async function GET() {
         stats: {
           won,
           lost,
-          totalGames,
-          totalMatchTime
+          totalGames
         }
       };
     });
