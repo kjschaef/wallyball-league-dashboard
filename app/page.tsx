@@ -67,7 +67,49 @@ export default function DashboardPage() {
     setShowAddPlayerModal(true); // Show the Add Player modal
   };
 
+  const FloatingActionButton = ({ onRecordMatch, onAddPlayer }: { onRecordMatch: () => void; onAddPlayer: () => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
 
+    const toggleOpen = () => {
+      setIsOpen(!isOpen);
+    };
+
+    return (
+      <div className="fixed bottom-6 right-6">
+        <div className="relative">
+          {isOpen && (
+            <div className="absolute bottom-16 right-0 bg-white rounded-md shadow-xl overflow-hidden z-10 min-w-48">
+              <button
+                onClick={() => {
+                  onAddPlayer();
+                  setIsOpen(false);
+                }}
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
+              >
+                Add Player
+              </button>
+              <button
+                onClick={() => {
+                  onRecordMatch();
+                  setIsOpen(false);
+                }}
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
+              >
+                Record Match
+              </button>
+            </div>
+          )}
+          <button
+            onClick={toggleOpen}
+            className="bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-full shadow-lg transition-colors"
+            style={{ width: '60px', height: '60px', fontSize: '24px', lineHeight: '1' }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+    );
+  };
 
 
 
@@ -99,48 +141,45 @@ export default function DashboardPage() {
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-        <div className="cfa-card p-6 w-full max-w-md mx-4">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Player</h2>
-          
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Add New Player</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-1">Player Name</label>
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
               <input
                 id="name"
                 name="name"
                 type="text"
                 required
-                className="cfa-input"
-                placeholder="Enter full name"
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter player name"
               />
             </div>
-            
-            <div>
-              <label htmlFor="startYear" className="block text-sm font-semibold text-gray-900 mb-1">Start Year (Optional)</label>
+            <div className="space-y-2">
+              <label htmlFor="startYear" className="block text-sm font-medium text-gray-700">Start Year (Optional)</label>
               <input
                 id="startYear"
                 name="startYear"
                 type="number"
                 min="1900"
                 max="2100"
-                className="cfa-input"
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., 2024"
               />
             </div>
-            
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-2 pt-2">
               <button 
                 type="button" 
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="flex-1 cfa-button-secondary disabled:opacity-50"
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 cfa-button-primary disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {isSubmitting ? 'Adding...' : 'Add Player'}
               </button>
@@ -180,57 +219,78 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-cfa-cream">
         {/* Hero Section */}
-        <div className="bg-white py-12 md:py-16">
-          <div className="max-w-6xl mx-auto px-4 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Volleyball League Dashboard
-            </h1>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Track performance and manage your volleyball league
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={() => setShowRecordMatchModal(true)}
-                className="cfa-button-primary"
-              >
-                Record Match
-              </button>
-              <button 
-                onClick={() => setShowAddPlayerModal(true)}
-                className="cfa-button-secondary"
-              >
-                Add Player
-              </button>
+        <div className="cfa-hero-section">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4 animate-fade-in">
+                Volleyball League
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto animate-slide-up">
+                Track performance, analyze trends, and celebrate victories with our comprehensive league management platform
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
+                <button 
+                  onClick={() => setShowRecordMatchModal(true)}
+                  className="cfa-button-primary text-lg px-8 py-4"
+                >
+                  Record New Match
+                </button>
+                <button 
+                  onClick={() => setShowAddPlayerModal(true)}
+                  className="cfa-button-secondary text-lg px-8 py-4"
+                >
+                  Add Player
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="bg-gray-50 py-12">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-              {/* Performance Trend Chart */}
-              <div className="lg:col-span-2">
-                <div className="cfa-card p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Win Percentage Trends</h3>
-                  <PerformanceTrend />
-                </div>
-              </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          {/* Stats Overview */}
+          <div className="text-center mb-16">
+            <h2 className="cfa-section-header">Performance Overview</h2>
+            <p className="cfa-section-subheader">
+              Track your league's performance with real-time analytics and insights
+            </p>
+          </div>
 
-              {/* Rankings */}
-              <div>
-                <div className="cfa-card p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Rankings</h3>
-                  <WinPercentageRankings />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            {/* Performance Trend Chart */}
+            <div className="lg:col-span-2">
+              <div className="cfa-card p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900">Win Percentage Trends</h3>
+                  <span className="cfa-badge cfa-badge-success">Live Data</span>
                 </div>
+                <PerformanceTrend />
               </div>
             </div>
 
-            {/* Recent Activity */}
-            <div className="cfa-card p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Matches</h3>
+            {/* Rankings */}
+            <div>
+              <div className="cfa-card p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900">Current Rankings</h3>
+                  <span className="text-sm text-gray-500">Updated: June 20, 2025</span>
+                </div>
+                <WinPercentageRankings />
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="mb-16">
+            <div className="text-center mb-8">
+              <h2 className="cfa-section-header">Recent Activity</h2>
+              <p className="cfa-section-subheader">
+                Stay up to date with the latest matches and results
+              </p>
+            </div>
+            <div className="cfa-card p-8">
               <RecentMatches />
             </div>
           </div>

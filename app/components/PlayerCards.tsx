@@ -47,74 +47,78 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const showInactivityPenalty = player.inactivityPenalty && player.inactivityPenalty > 0;
   
   return (
-    <div className="cfa-card p-6 relative animate-fade-in">
-      {/* Header with name and actions */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-bold text-gray-900">{player.name}</h3>
-          <p className="text-sm text-gray-600">Playing for {player.yearsPlayed} years</p>
+    <Card className="relative p-3 bg-white border border-gray-200 hover:shadow-md transition-shadow">
+      {/* Header with name and years */}
+      <CardHeader className="p-0 pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base font-semibold text-gray-900">
+            {player.name}
+          </CardTitle>
+          <div className="flex gap-1">
+            <button 
+              className="p-1 hover:bg-gray-100 rounded"
+              onClick={() => onEdit(player)}
+            >
+              <Edit className="h-3 w-3 text-gray-500" />
+            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="p-1 hover:bg-gray-100 rounded">
+                  <Trash2 className="h-3 w-3 text-gray-500" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Player</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete {player.name}? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(player.id)} className="bg-red-600 hover:bg-red-700">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button 
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            onClick={() => onEdit(player)}
-          >
-            <Edit className="h-4 w-4 text-gray-600" />
-          </button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button className="p-2 hover:bg-red-50 rounded-lg transition-colors duration-200">
-                <Trash2 className="h-4 w-4 text-red-600" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="cfa-card">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-xl font-bold text-gray-900">Delete Player</AlertDialogTitle>
-                <AlertDialogDescription className="text-gray-600">
-                  Are you sure you want to delete {player.name}? This action cannot be undone and will remove all their match history.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-3">
-                <AlertDialogCancel className="cfa-button-secondary">Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onDelete(player.id)} className="cfa-button-primary bg-red-600 hover:bg-red-700">
-                  Delete Player
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
+        <p className="text-xs text-gray-500">Years played: {player.yearsPlayed}</p>
+      </CardHeader>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm font-semibold text-gray-600 mb-1">Match Record</p>
-          <p className="text-lg font-bold text-gray-900">
-            <span className="text-green-600">{player.record.wins}</span> - <span className="text-red-600">{player.record.losses}</span>
-          </p>
-          <p className="text-xs text-gray-500">{player.record.totalGames} total games</p>
-        </div>
-        
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm font-semibold text-gray-600 mb-1">Win Rate</p>
-          <p className={`text-2xl font-bold ${getWinPercentageColor(player.winPercentage)}`}>
-            {player.winPercentage}%
-          </p>
-          {showInactivityPenalty && (
-            <p className="text-xs text-red-500 mt-1">
-              Raw: {player.actualWinPercentage}% (−{player.inactivityPenalty}%)
+      <CardContent className="p-0 space-y-3">
+        {/* Record and Win Percentage */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Record</p>
+            <p className="text-sm font-medium">
+              <span className="text-green-600">{player.record.wins}</span> - <span className="text-red-600">{player.record.losses}</span>
             </p>
-          )}
+            <p className="text-xs text-gray-500">{player.record.totalGames} games</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Win Percentage</p>
+            <p className={`text-xl font-bold ${getWinPercentageColor(player.winPercentage)}`}>
+              {player.winPercentage}%
+            </p>
+            {showInactivityPenalty ? (
+              <p className="text-xs text-red-500">
+                Actual: {player.actualWinPercentage}% (-{player.inactivityPenalty}% inactive)
+              </p>
+            ) : null}
+          </div>
         </div>
-      </div>
 
-      {/* Current Streak Badge */}
-      <div className="flex justify-center">
-        <div className={`cfa-badge ${player.streak.type === 'wins' ? 'cfa-badge-success' : 'cfa-badge-warning'}`}>
-          {player.streak.count} {player.streak.type} streak
+        {/* Streak */}
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Longest Streak</p>
+          <p className="text-sm font-medium text-gray-900">
+            {player.streak.count} {player.streak.count === 1 ? 'week' : 'weeks'}
+          </p>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
