@@ -13,7 +13,7 @@
     "lib": "lib"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.0",
+    "@neondatabase/serverless": "^1.0.1",
     "@tanstack/react-query": "^5.77.2",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.33.0",
@@ -160,6 +160,7 @@
     "dom-accessibility-api": "^0.5.16",
     "dom-helpers": "^5.2.1",
     "domexception": "^4.0.0",
+    "dotenv": "^16.5.0",
     "drizzle-kit": "^0.27.1",
     "drizzle-orm": "^0.38.2",
     "drizzle-zod": "^0.6.0",
