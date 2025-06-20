@@ -160,7 +160,7 @@ export function WinPercentageRankings() {
                 <div className="text-xs font-bold text-gray-900">
                   {player.winPercentage.toFixed(1)}%
                 </div>
-                {player.hasInactivityPenalty && player.penaltyPercentage > 0 && (
+                {(player.penaltyPercentage && player.penaltyPercentage > 0) && (
                   <div className="text-xs text-orange-600 font-medium">
                     -{player.penaltyPercentage}%
                   </div>
