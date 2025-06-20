@@ -297,7 +297,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           <div className="text-right">
             <span className="text-sm text-muted-foreground block mb-1">Win Percentage</span>
             <span className={`text-3xl font-bold ${
-              winRate >= 60 ? 'text-green-600' : 
+              winRate > 53 ? 'text-green-600' : 
               winRate >= 45 ? 'text-yellow-600' : 
               'text-red-600'
             }`}>{winRate}%</span>
@@ -309,7 +309,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             <div className="w-full bg-gray-200 dark:bg-gray-700 mt-2 rounded-full h-2.5">
               <div 
                 className={`h-2.5 rounded-full ${
-                  winRate >= 60 ? 'bg-green-600' : 
+                  winRate > 53 ? 'bg-green-600' : 
                   winRate >= 45 ? 'bg-yellow-600' : 
                   'bg-red-600'
                 }`} 

@@ -97,10 +97,9 @@ function BestPerformingTeams({
   };
 
   const getWinPercentageColor = (percentage: number): string => {
-    if (percentage >= 85) return "text-green-600";
-    if (percentage >= 75) return "text-green-500";
-    if (percentage >= 65) return "text-yellow-600";
-    return "text-red-500";
+    if (percentage > 53) return "text-green-600";
+    if (percentage >= 45) return "text-yellow-600";
+    return "text-red-600";
   };
 
   if (!teams) {
