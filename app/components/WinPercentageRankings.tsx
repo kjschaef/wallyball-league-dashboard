@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { calculatePenalizedWinPercentage } from '../lib/utils';
 
 // Mock data for the rankings as shown in the screenshot
 const mockRankings = [
@@ -53,23 +52,25 @@ export function WinPercentageRankings() {
   const [originalPlayerOrder, setOriginalPlayerOrder] = useState<string[]>([]);
 
   useEffect(() => {
-    // Fetch real rankings data and recent matches
+    // Fetch player stats and recent matches
     const fetchData = async () => {
       try {
-        // Fetch players
-        const playersResponse = await fetch('/api/players');
-        if (!playersResponse.ok) {
-          throw new Error('Failed to fetch player rankings');
+        // Fetch player stats (already calculated with game-level data)
+        const [statsResponse, matchesResponse] = await Promise.all([
+          fetch('/api/player-stats'),
+          fetch('/api/matches?limit=10')
+        ]);
+        
+        if (!statsResponse.ok) {
+          throw new Error('Failed to fetch player stats');
         }
         
-        const players = await playersResponse.json();
+        const playerStats = await statsResponse.json();
         
         // Store original player order for consistent color assignment
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setOriginalPlayerOrder(players.map((p: any) => p.name));
+        setOriginalPlayerOrder(playerStats.map((p: any) => p.name));
         
-        // Fetch recent matches
-        const matchesResponse = await fetch('/api/matches?limit=10');
+        // Fetch recent matches for highlighting
         let recentPlayers: string[] = [];
         
         if (matchesResponse.ok) {
@@ -94,41 +95,17 @@ export function WinPercentageRankings() {
         
         setRecentMatchPlayers(recentPlayers);
         
-        // Sort players by penalized win percentage (highest first)
-        const sortedPlayers = [...players].sort((a, b) => {
-          // Calculate win percentages with inactivity penalty applied
-          const { penalizedWinRate: aWinRate } = calculatePenalizedWinPercentage(a);
-          const { penalizedWinRate: bWinRate } = calculatePenalizedWinPercentage(b);
-          
-          // Sort by penalized win percentage (highest first)
-          return bWinRate - aWinRate;
-        });
+        // Format the player stats data (already sorted by win percentage)
+        const formattedRankings = playerStats.map((player: any) => ({
+          id: player.id,
+          name: player.name,
+          winPercentage: player.winPercentage,
+          matches: player.record.totalGames,
+          hasInactivityPenalty: player.inactivityPenalty && player.inactivityPenalty > 0,
+          penaltyPercentage: player.inactivityPenalty || 0
+        }));
         
-        // Format for our rankings component
-        const formattedRankings = sortedPlayers.map(player => {
-          const total = player.stats.won + player.stats.lost;
-          const penaltyData = calculatePenalizedWinPercentage(player);
-          const penalizedWinRate = typeof penaltyData === 'number' ? penaltyData : penaltyData.penalizedWinRate;
-          const penaltyPercentage = typeof penaltyData === 'number' ? 0 : penaltyData.penaltyPercentage;
-          
-          return {
-            id: player.id,
-            name: player.name,
-            games: total,
-            winPercentage: penalizedWinRate,
-            hasInactivityPenalty: penaltyPercentage > 0,
-            penaltyPercentage: Math.round(penaltyPercentage * 100)
-          };
-        });
-        
-        setRankings(formattedRankings.map(ranking => ({
-          id: ranking.id,
-          name: ranking.name,
-          winPercentage: ranking.winPercentage,
-          matches: ranking.games,
-          hasInactivityPenalty: ranking.hasInactivityPenalty,
-          penaltyPercentage: ranking.penaltyPercentage
-        })));
+        setRankings(formattedRankings);
       } catch (error) {
         console.error('Error fetching data:', error);
         setRankings(mockRankings.map(ranking => ({
