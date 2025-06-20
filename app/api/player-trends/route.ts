@@ -26,12 +26,15 @@ export async function GET() {
         match.team_two_player_three_id === player.id
       );
       
-      // Calculate cumulative performance by date with penalties
+      // Calculate cumulative performance by date with penalties calculated relative to each date
       const dailyStats = new Map();
       let cumulativeGamesWon = 0;
       let cumulativeGamesLost = 0;
       
-      playerMatches.forEach(match => {
+      // Sort matches chronologically
+      const sortedMatches = playerMatches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      sortedMatches.forEach((match, index) => {
         const isTeamOne = match.team_one_player_one_id === player.id || 
                          match.team_one_player_two_id === player.id || 
                          match.team_one_player_three_id === player.id;
@@ -45,18 +48,23 @@ export async function GET() {
         const totalGames = cumulativeGamesWon + cumulativeGamesLost;
         const rawWinPercentage = totalGames > 0 ? (cumulativeGamesWon / totalGames) * 100 : 0;
         
-        // Calculate inactivity penalty for this data point
-        const currentDate = new Date();
-        const matchDate = new Date(match.date);
-        const daysSinceMatch = Math.floor((currentDate.getTime() - matchDate.getTime()) / (1000 * 60 * 60 * 24));
-        const weeksSinceMatch = Math.floor(daysSinceMatch / 7);
-        
-        // No penalty for first 2 weeks, then 5% per week up to 50%
-        const gracePeriodWeeks = 2;
-        const penaltyWeeks = Math.max(0, weeksSinceMatch - gracePeriodWeeks);
-        const penaltyPerWeek = 5;
-        const maxPenalty = 50;
-        const inactivityPenalty = Math.min(maxPenalty, penaltyWeeks * penaltyPerWeek);
+        // Calculate inactivity penalty for this specific date
+        let inactivityPenalty = 0;
+        if (index > 0) {
+          // Find the previous match date for this player
+          const currentMatchDate = new Date(match.date);
+          const previousMatchDate = new Date(sortedMatches[index - 1].date);
+          
+          const daysSinceLastMatch = Math.floor((currentMatchDate.getTime() - previousMatchDate.getTime()) / (1000 * 60 * 60 * 24));
+          const weeksSinceLastMatch = Math.floor(daysSinceLastMatch / 7);
+          
+          // No penalty for first 2 weeks, then 5% per week up to 50%
+          const gracePeriodWeeks = 2;
+          const penaltyWeeks = Math.max(0, weeksSinceLastMatch - gracePeriodWeeks);
+          const penaltyPerWeek = 5;
+          const maxPenalty = 50;
+          inactivityPenalty = Math.min(maxPenalty, penaltyWeeks * penaltyPerWeek);
+        }
         
         const penalizedWinPercentage = Math.max(0, rawWinPercentage - inactivityPenalty);
         

@@ -53,7 +53,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<Array<{date: string; [key: string]: unknown}>>([]);
 
-  // Fetch player trends data with penalty calculations
+  // Fetch player stats and historical trends with contextual penalties
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -70,7 +70,6 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
         const trendsData = await trendsResponse.json();
         
         setPlayerStats(statsData);
-        // Convert trends data to the format expected by the chart
         setMatches(trendsData);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -88,7 +87,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
   useEffect(() => {
     if (!playerStats.length || !matches.length) return;
     
-    // matches now contains trend data with penalty calculations
+    // matches now contains trend data with contextual penalty calculations
     const trendsData = matches as any[];
     
     // Get all unique dates from trends data
