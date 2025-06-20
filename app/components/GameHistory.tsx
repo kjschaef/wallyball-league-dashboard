@@ -55,7 +55,7 @@ export function GameHistory({ games }: GameHistoryProps) {
           return (
             <div
               key={game.id}
-              className="border rounded-lg overflow-hidden bg-white"
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white"
             >
               {/* Game Summary Row */}
               <div
@@ -103,7 +103,7 @@ export function GameHistory({ games }: GameHistoryProps) {
               
               {/* Expanded Game Details */}
               {expandedGameId === game.id && (
-                <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+                <div className="px-4 pb-4 pt-2 border-t border-gray-200">
                   <h4 className="font-semibold mb-2">Game Details</h4>
                   
                   <div className="grid grid-cols-2 gap-4">
