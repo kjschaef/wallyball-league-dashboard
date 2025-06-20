@@ -210,13 +210,13 @@ export default function GamesPage() {
       )}
 
       {/* Match History List */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-white rounded-lg border border-gray-200">
         {sortedMatches.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No matches found.
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-gray-200">
             {sortedMatches.map((match) => {
               const winningTeam = getWinningTeam(match);
 
