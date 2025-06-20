@@ -96,14 +96,17 @@ export function WinPercentageRankings() {
         setRecentMatchPlayers(recentPlayers);
         
         // Format the player stats data (already sorted by win percentage)
-        const formattedRankings = playerStats.map((player: any) => ({
-          id: player.id,
-          name: player.name,
-          winPercentage: player.winPercentage,
-          matches: player.record.totalGames,
-          hasInactivityPenalty: player.inactivityPenalty && player.inactivityPenalty > 0,
-          penaltyPercentage: player.inactivityPenalty || 0
-        }));
+        const formattedRankings = playerStats.map((player: any) => {
+          console.log('Player:', player.name, 'inactivityPenalty:', player.inactivityPenalty);
+          return {
+            id: player.id,
+            name: player.name,
+            winPercentage: player.winPercentage,
+            matches: player.record.totalGames,
+            hasInactivityPenalty: player.inactivityPenalty && player.inactivityPenalty > 0,
+            penaltyPercentage: player.inactivityPenalty > 0 ? player.inactivityPenalty : undefined
+          };
+        });
         
         setRankings(formattedRankings);
       } catch (error) {
@@ -160,7 +163,7 @@ export function WinPercentageRankings() {
                 <div className="text-xs font-bold text-gray-900">
                   {player.winPercentage.toFixed(1)}%
                 </div>
-                {(player.penaltyPercentage && player.penaltyPercentage > 0) && (
+                {player.penaltyPercentage !== undefined && (
                   <div className="text-xs text-orange-600 font-medium">
                     -{player.penaltyPercentage}%
                   </div>
