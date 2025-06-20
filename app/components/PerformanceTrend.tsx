@@ -53,24 +53,25 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<Array<{date: string; [key: string]: unknown}>>([]);
 
-  // Fetch player stats and matches data
+  // Fetch player trends data with penalty calculations
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsResponse, matchesResponse] = await Promise.all([
+        const [statsResponse, trendsResponse] = await Promise.all([
           fetch('/api/player-stats'),
-          fetch('/api/matches')
+          fetch('/api/player-trends')
         ]);
         
-        if (!statsResponse.ok || !matchesResponse.ok) {
+        if (!statsResponse.ok || !trendsResponse.ok) {
           throw new Error('Failed to fetch data');
         }
         
         const statsData = await statsResponse.json();
-        const matchesData = await matchesResponse.json();
+        const trendsData = await trendsResponse.json();
         
         setPlayerStats(statsData);
-        setMatches(matchesData);
+        // Convert trends data to the format expected by the chart
+        setMatches(trendsData);
       } catch (error) {
         console.error('Error fetching data:', error);
         setPlayerStats([]);
@@ -83,57 +84,19 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
     fetchData();
   }, []);
 
-  // Process data when playerStats, matches, or metric changes
+  // Process data when playerStats, matches (trends), or metric changes
   useEffect(() => {
     if (!playerStats.length || !matches.length) return;
     
-    // Create a mapping of cumulative stats by date for each player
-    const playerProgressMap = new Map<number, Map<string, {winPercentage: number; totalWins: number}>>();
+    // matches now contains trend data with penalty calculations
+    const trendsData = matches as any[];
     
-    playerStats.forEach(player => {
-      playerProgressMap.set(player.id, new Map());
-    });
-
-    // Process matches chronologically to build cumulative stats
-    const sortedMatches = [...matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const playerCumulativeStats = new Map<number, {gamesWon: number; gamesLost: number}>();
-    
-    // Initialize cumulative stats
-    playerStats.forEach(player => {
-      playerCumulativeStats.set(player.id, {gamesWon: 0, gamesLost: 0});
-    });
-
-    sortedMatches.forEach(match => {
-      const date = format(new Date(match.date), "yyyy-MM-dd");
-      
-      // Process each team's players
-      [...match.teamOnePlayers, ...match.teamTwoPlayers].forEach(playerName => {
-        const player = playerStats.find(p => p.name === playerName);
-        if (!player) return;
-        
-        const isTeamOne = match.teamOnePlayers.includes(playerName);
-        const gamesWon = isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
-        const gamesLost = isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon;
-        
-        const currentStats = playerCumulativeStats.get(player.id)!;
-        currentStats.gamesWon += gamesWon;
-        currentStats.gamesLost += gamesLost;
-        
-        const totalGames = currentStats.gamesWon + currentStats.gamesLost;
-        const winPercentage = totalGames > 0 ? (currentStats.gamesWon / totalGames) * 100 : 0;
-        
-        const playerProgress = playerProgressMap.get(player.id)!;
-        playerProgress.set(date, {
-          winPercentage,
-          totalWins: currentStats.gamesWon
-        });
-      });
-    });
-
-    // Get all unique dates
+    // Get all unique dates from trends data
     const allDates = new Set<string>();
-    playerProgressMap.forEach(playerProgress => {
-      playerProgress.forEach((_, date) => allDates.add(date));
+    trendsData.forEach(playerTrend => {
+      Object.keys(playerTrend.dailyStats).forEach(date => {
+        allDates.add(date);
+      });
     });
 
     // Generate chart data
@@ -144,19 +107,18 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dataPoint: any = { date };
       
-      playerStats.forEach(player => {
-        const playerProgress = playerProgressMap.get(player.id)!;
-        const stats = playerProgress.get(date);
+      trendsData.forEach(playerTrend => {
+        const stats = playerTrend.dailyStats[date];
         
         if (stats) {
-          dataPoint[player.name] = stats[metric];
+          dataPoint[playerTrend.name] = stats[metric];
         } else {
           // Find the last known value for this player before this date
           const previousDates = sortedDates.filter(d => d < date);
           let lastKnownValue = null;
           
           for (let i = previousDates.length - 1; i >= 0; i--) {
-            const prevStats = playerProgress.get(previousDates[i]);
+            const prevStats = playerTrend.dailyStats[previousDates[i]];
             if (prevStats) {
               lastKnownValue = prevStats[metric];
               break;
@@ -164,7 +126,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
           }
           
           if (lastKnownValue !== null) {
-            dataPoint[player.name] = lastKnownValue;
+            dataPoint[playerTrend.name] = lastKnownValue;
           }
         }
       });
