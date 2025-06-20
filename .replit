@@ -47,5 +47,8 @@ author = 37966029
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
