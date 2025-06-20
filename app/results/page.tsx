@@ -38,16 +38,16 @@ function SeasonStatistics({ stats }: { stats: SeasonStats | null }) {
         <CardContent>
           <div data-testid="loading-stats" className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-300 rounded animate-pulse"></div>
+              <div className="h-8 bg-gray-300 rounded animate-pulse"></div>
             </div>
             <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-300 rounded animate-pulse"></div>
+              <div className="h-8 bg-gray-300 rounded animate-pulse"></div>
             </div>
             <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-300 rounded animate-pulse"></div>
+              <div className="h-8 bg-gray-300 rounded animate-pulse"></div>
             </div>
           </div>
         </CardContent>
@@ -114,12 +114,12 @@ function BestPerformingTeams({
             {[...Array(5)].map((_, i) => (
               <div
                 key={i}
-                className="flex justify-between items-center p-4 bg-gray-50 rounded"
+                className="flex justify-between items-center p-4 bg-gray-200 rounded"
               >
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                <div className="h-4 bg-gray-300 rounded animate-pulse w-32"></div>
                 <div className="flex items-center gap-4">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-12"></div>
+                  <div className="h-4 bg-gray-300 rounded animate-pulse w-16"></div>
+                  <div className="h-4 bg-gray-300 rounded animate-pulse w-12"></div>
                 </div>
               </div>
             ))}
