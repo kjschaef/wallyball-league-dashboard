@@ -4,7 +4,7 @@ import { Providers } from './components/Providers';
 import '../globals.css';
 
 export const metadata: Metadata = {
-  title: 'Volleyball League Management',
+  title: 'CFA Wallyball League',
   description: 'Track and analyze volleyball player and team performance',
 };
 
