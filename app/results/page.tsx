@@ -150,7 +150,7 @@ function BestPerformingTeams({
               <div
                 key={team.id}
                 data-testid="team-row"
-                className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex justify-between items-center p-4 bg-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="font-medium text-gray-900">
                   {formatTeamName(team.players)}

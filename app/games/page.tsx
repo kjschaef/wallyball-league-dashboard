@@ -223,7 +223,7 @@ export default function GamesPage() {
               return (
                 <div
                   key={match.id}
-                  className="p-4 hover:bg-gray-50 transition-colors"
+                  className="p-4 hover:bg-gray-200 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     {/* Left side: Date and teams */}
