@@ -47,77 +47,129 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const showInactivityPenalty = player.inactivityPenalty && player.inactivityPenalty > 0;
   
   return (
-    <Card className="relative p-3 bg-white border border-gray-200 hover:shadow-md transition-shadow">
-      {/* Header with name and years */}
-      <CardHeader className="p-0 pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold text-gray-900">
-            {player.name}
-          </CardTitle>
-          <div className="flex gap-1">
-            <button 
-              className="p-1 hover:bg-gray-100 rounded"
-              onClick={() => onEdit(player)}
-            >
-              <Edit className="h-3 w-3 text-gray-500" />
-            </button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <Trash2 className="h-3 w-3 text-gray-500" />
-                </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Player</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete {player.name}? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => onDelete(player.id)} className="bg-red-600 hover:bg-red-700">
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+    <Card className="relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border-0 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      {/* Decorative top border */}
+      <div className={`h-1 w-full ${getWinPercentageColor(player.winPercentage).includes('green') ? 'bg-gradient-to-r from-green-400 to-green-600' : getWinPercentageColor(player.winPercentage).includes('yellow') ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`}></div>
+      
+      <div className="p-4">
+        {/* Header with name and actions */}
+        <CardHeader className="p-0 pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-lg font-bold text-gray-900 mb-1">
+                {player.name}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {player.yearsPlayed} {player.yearsPlayed === 1 ? 'year' : 'years'}
+                </span>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                  {player.record.totalGames} games
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-1 ml-3">
+              <button 
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                onClick={() => onEdit(player)}
+                title="Edit player"
+              >
+                <Edit className="h-4 w-4 text-gray-500 hover:text-gray-700" />
+              </button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button className="p-2 hover:bg-red-50 rounded-full transition-colors duration-200" title="Delete player">
+                    <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-600" />
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Player</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete {player.name}? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onDelete(player.id)} className="bg-red-600 hover:bg-red-700">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
-        </div>
-        <p className="text-xs text-gray-500">Years played: {player.yearsPlayed}</p>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="p-0 space-y-3">
-        {/* Record and Win Percentage */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Record</p>
-            <p className="text-sm font-medium">
-              <span className="text-green-600">{player.record.wins}</span> - <span className="text-red-600">{player.record.losses}</span>
-            </p>
-            <p className="text-xs text-gray-500">{player.record.totalGames} games</p>
+        <CardContent className="p-0 space-y-4">
+          {/* Main stats grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Record Section */}
+            <div className="bg-white rounded-lg p-3 border border-gray-100">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Record</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-bold text-green-600">{player.record.wins}</span>
+                <span className="text-gray-400 font-medium">-</span>
+                <span className="text-lg font-bold text-red-600">{player.record.losses}</span>
+              </div>
+            </div>
+            
+            {/* Win Percentage Section */}
+            <div className="bg-white rounded-lg p-3 border border-gray-100">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Win Rate</p>
+              <div className="flex items-baseline gap-1">
+                <span className={`text-2xl font-bold ${getWinPercentageColor(player.winPercentage)}`}>
+                  {player.winPercentage}
+                </span>
+                <span className={`text-sm font-medium ${getWinPercentageColor(player.winPercentage)}`}>%</span>
+              </div>
+              {showInactivityPenalty && (
+                <div className="mt-1">
+                  <p className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                    Base: {player.actualWinPercentage}% (-{player.inactivityPenalty}% penalty)
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Win Percentage</p>
-            <p className={`text-xl font-bold ${getWinPercentageColor(player.winPercentage)}`}>
-              {player.winPercentage}%
-            </p>
-            {showInactivityPenalty ? (
-              <p className="text-xs text-red-500">
-                Actual: {player.actualWinPercentage}% (-{player.inactivityPenalty}% inactive)
-              </p>
-            ) : null}
-          </div>
-        </div>
 
-        {/* Streak */}
-        <div>
-          <p className="text-xs text-gray-500 mb-1">Longest Streak</p>
-          <p className="text-sm font-medium text-gray-900">
-            {player.streak.count} {player.streak.count === 1 ? 'week' : 'weeks'}
-          </p>
-        </div>
-      </CardContent>
+          {/* Streak Section */}
+          <div className="bg-white rounded-lg p-3 border border-gray-100">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Longest Streak</p>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-gray-900">{player.streak.count}</span>
+              <span className="text-sm text-gray-600">
+                {player.streak.count === 1 ? 'week' : 'weeks'}
+              </span>
+              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                player.streak.type === 'wins' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {player.streak.type === 'wins' ? '📈 Win' : '📉 Loss'}
+              </div>
+            </div>
+          </div>
+
+          {/* Win Percentage Visual Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>Performance</span>
+              <span>{player.winPercentage}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${
+                  player.winPercentage >= 60 ? 'bg-gradient-to-r from-green-400 to-green-600' : 
+                  player.winPercentage >= 45 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 
+                  'bg-gradient-to-r from-red-400 to-red-600'
+                }`}
+                style={{ width: `${Math.min(100, Math.max(0, player.winPercentage))}%` }}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </div>
     </Card>
   );
 }
