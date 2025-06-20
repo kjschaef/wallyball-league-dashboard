@@ -32,93 +32,122 @@ interface PerformanceTrendProps {
   isExporting?: boolean;
 }
 
+interface PlayerStats {
+  id: number;
+  name: string;
+  record: {
+    wins: number;
+    losses: number;
+    totalGames: number;
+  };
+  winPercentage: number;
+  actualWinPercentage?: number;
+  inactivityPenalty?: number;
+}
+
 export function PerformanceTrend({ isExporting: _isExporting = false }: PerformanceTrendProps) {
   const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
   const [showAllData, setShowAllData] = useState(false);
-  const [players, setPlayers] = useState<Array<{id: number; name: string; matches: Array<{date: string; won: boolean}>}>>([]);
+  const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
+  const [matches, setMatches] = useState<Array<{date: string; teamOnePlayers: string[]; teamTwoPlayers: string[]; teamOneGamesWon: number; teamTwoGamesWon: number}>>([]);
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<Array<{date: string; [key: string]: unknown}>>([]);
 
-  // Fetch players data
+  // Fetch player stats and matches data
   useEffect(() => {
-    const fetchPlayers = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/players');
-        if (!response.ok) {
-          throw new Error('Failed to fetch player data');
+        const [statsResponse, matchesResponse] = await Promise.all([
+          fetch('/api/player-stats'),
+          fetch('/api/matches')
+        ]);
+        
+        if (!statsResponse.ok || !matchesResponse.ok) {
+          throw new Error('Failed to fetch data');
         }
-        const data = await response.json();
-        setPlayers(data);
+        
+        const statsData = await statsResponse.json();
+        const matchesData = await matchesResponse.json();
+        
+        setPlayerStats(statsData);
+        setMatches(matchesData);
       } catch (error) {
-        console.error('Error fetching player data:', error);
-        setPlayers([]);
+        console.error('Error fetching data:', error);
+        setPlayerStats([]);
+        setMatches([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPlayers();
+    fetchData();
   }, []);
 
-  // Process data when players or metric changes
+  // Process data when playerStats, matches, or metric changes
   useEffect(() => {
-    if (!players.length) return;
+    if (!playerStats.length || !matches.length) return;
     
-    // Process player data to calculate performance metrics
-    const playerStats = players.map((player) => {
-      const dailyStats = new Map();
-      let cumulativeWins = 0;
-      let cumulativeTotalGames = 0;
-      const daysPlayed = new Set();
-      
-      // Sort matches by date
-      const sortedMatches = [...(player.matches || [])].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      );
+    // Create a mapping of cumulative stats by date for each player
+    const playerProgressMap = new Map<number, Map<string, {winPercentage: number; totalWins: number}>>();
+    
+    playerStats.forEach(player => {
+      playerProgressMap.set(player.id, new Map());
+    });
 
-      sortedMatches.forEach((match) => {
-        const date = format(new Date(match.date), "yyyy-MM-dd");
-        const won = match.won || false;
+    // Process matches chronologically to build cumulative stats
+    const sortedMatches = [...matches].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const playerCumulativeStats = new Map<number, {gamesWon: number; gamesLost: number}>();
+    
+    // Initialize cumulative stats
+    playerStats.forEach(player => {
+      playerCumulativeStats.set(player.id, {gamesWon: 0, gamesLost: 0});
+    });
+
+    sortedMatches.forEach(match => {
+      const date = format(new Date(match.date), "yyyy-MM-dd");
+      
+      // Process each team's players
+      [...match.teamOnePlayers, ...match.teamTwoPlayers].forEach(playerName => {
+        const player = playerStats.find(p => p.name === playerName);
+        if (!player) return;
         
-        cumulativeWins += won ? 1 : 0;
-        cumulativeTotalGames += 1;
-        daysPlayed.add(date);
+        const isTeamOne = match.teamOnePlayers.includes(playerName);
+        const gamesWon = isTeamOne ? match.teamOneGamesWon : match.teamTwoGamesWon;
+        const gamesLost = isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon;
         
-        // Calculate win percentage
-        const winPercentage = cumulativeTotalGames > 0 
-          ? (cumulativeWins / cumulativeTotalGames) * 100 
-          : 0;
-          
-        dailyStats.set(date, { 
-          winPercentage: winPercentage,
-          totalWins: cumulativeWins 
+        const currentStats = playerCumulativeStats.get(player.id)!;
+        currentStats.gamesWon += gamesWon;
+        currentStats.gamesLost += gamesLost;
+        
+        const totalGames = currentStats.gamesWon + currentStats.gamesLost;
+        const winPercentage = totalGames > 0 ? (currentStats.gamesWon / totalGames) * 100 : 0;
+        
+        const playerProgress = playerProgressMap.get(player.id)!;
+        playerProgress.set(date, {
+          winPercentage,
+          totalWins: currentStats.gamesWon
         });
       });
-
-      return {
-        id: player.id,
-        name: player.name,
-        dailyStats,
-      };
     });
 
     // Get all unique dates
     const allDates = new Set<string>();
-    playerStats.forEach((player) => {
-      player.dailyStats.forEach((_, date) => allDates.add(date));
+    playerProgressMap.forEach(playerProgress => {
+      playerProgress.forEach((_, date) => allDates.add(date));
     });
 
-    // Generate chart data with contiguous lines
+    // Generate chart data
     const sortedDates = Array.from(allDates).sort();
     const dateRange = showAllData ? sortedDates : sortedDates.slice(-4);
     
-    // Create contiguous data by filling in missing values
     const newChartData = dateRange.map(date => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dataPoint: any = { date };
       
       playerStats.forEach(player => {
-        const stats = player.dailyStats.get(date);
+        const playerProgress = playerProgressMap.get(player.id)!;
+        const stats = playerProgress.get(date);
+        
         if (stats) {
           dataPoint[player.name] = stats[metric];
         } else {
@@ -127,14 +156,13 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
           let lastKnownValue = null;
           
           for (let i = previousDates.length - 1; i >= 0; i--) {
-            const prevStats = player.dailyStats.get(previousDates[i]);
+            const prevStats = playerProgress.get(previousDates[i]);
             if (prevStats) {
               lastKnownValue = prevStats[metric];
               break;
             }
           }
           
-          // Use last known value to create contiguous line
           if (lastKnownValue !== null) {
             dataPoint[player.name] = lastKnownValue;
           }
@@ -145,7 +173,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
     });
 
     setChartData(newChartData);
-  }, [players, metric, showAllData]);
+  }, [playerStats, matches, metric, showAllData]);
 
   if (loading) {
     return (
@@ -231,7 +259,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
               }}
             />
             <Legend />
-            {players.map((player, index) => (
+            {playerStats.map((player, index) => (
               <Line
                 key={player.id}
                 type="monotone"
