@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,17 +29,17 @@ interface PlayerStats {
   inactivityPenalty?: number;
 }
 
-function getWinPercentageColor(percentage: number): string {
-  if (percentage >= 60) return 'text-emerald-600';
+const getWinPercentageColor = (percentage: number): string => {
+  if (percentage > 53) return 'text-emerald-600';
   if (percentage >= 45) return 'text-amber-600';
   return 'text-rose-600';
-}
+};
 
-function getWinPercentageGradient(percentage: number): string {
-  if (percentage >= 60) return 'from-emerald-500 to-emerald-600';
+const getWinPercentageGradient = (percentage: number): string => {
+  if (percentage > 53) return 'from-emerald-500 to-emerald-600';
   if (percentage >= 45) return 'from-amber-500 to-amber-600';
   return 'from-rose-500 to-rose-600';
-}
+};
 
 interface PlayerCardProps {
   player: PlayerStats;
@@ -50,12 +49,12 @@ interface PlayerCardProps {
 
 function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const showInactivityPenalty = player.inactivityPenalty && player.inactivityPenalty > 0;
-  
+
   return (
     <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50/50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
+
       <CardHeader className="relative pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -73,7 +72,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               </div>
             </div>
           </div>
-          
+
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button 
               className="p-2 hover:bg-white/80 rounded-lg transition-colors shadow-sm"
@@ -116,7 +115,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             </div>
             <p className="text-xs text-gray-500 mt-1">Win Percentage</p>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="w-full bg-gray-200 rounded-full h-2 mt-3 overflow-hidden">
             <div 
@@ -149,7 +148,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               <span className="text-lg font-bold text-rose-600">{player.record.losses}</span>
             </div>
           </div>
-          
+
           <div className="bg-white/60 rounded-xl p-4 border border-gray-100">
             <p className="text-sm font-medium text-gray-600 mb-2">Playing Time</p>
             <div className="text-center">
@@ -197,11 +196,11 @@ export function PlayerCards() {
         },
         body: JSON.stringify(updatedPlayer),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update player');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -216,12 +215,12 @@ export function PlayerCards() {
       const response = await fetch(`/api/players?id=${playerId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to delete player');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
