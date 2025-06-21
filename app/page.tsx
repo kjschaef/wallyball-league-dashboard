@@ -5,6 +5,7 @@ import { PerformanceTrend } from './components/PerformanceTrend';
 import { WinPercentageRankings } from './components/WinPercentageRankings';
 import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
+import { ChatBot } from './components/ChatBot';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -266,6 +267,8 @@ export default function DashboardPage() {
         onClose={() => setShowAddPlayerModal(false)}
         onSubmit={handleAddPlayerSubmit}
       />
+
+      <ChatBot />
     </div>
   );
 }

@@ -432,6 +432,7 @@
     "on-headers": "^1.0.2",
     "once": "^1.4.0",
     "onetime": "^5.1.2",
+    "openai": "^5.6.0",
     "optionator": "^0.9.4",
     "outvariant": "^1.4.3",
     "own-keys": "^1.0.1",
