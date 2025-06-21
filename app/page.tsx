@@ -7,6 +7,7 @@ import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
 import { TeamSuggestionModal } from './components/TeamSuggestionModal';
+import { FloatingActionButton } from './components/FloatingActionButton';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -71,49 +72,16 @@ export default function DashboardPage() {
     setShowAddPlayerModal(true); // Show the Add Player modal
   };
 
-  const FloatingActionButton = ({ onRecordMatch, onAddPlayer }: { onRecordMatch: () => void; onAddPlayer: () => void }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const toggleOpen = () => {
-      setIsOpen(!isOpen);
-    };
-
-    return (
-      <div className="fixed bottom-6 right-6">
-        <div className="relative">
-          {isOpen && (
-            <div className="absolute bottom-16 right-0 bg-white rounded-md shadow-xl overflow-hidden z-10 min-w-48">
-              <button
-                onClick={() => {
-                  onAddPlayer();
-                  setIsOpen(false);
-                }}
-                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
-              >
-                Add Player
-              </button>
-              <button
-                onClick={() => {
-                  onRecordMatch();
-                  setIsOpen(false);
-                }}
-                className="block px-4 py-2 text-gray-800 hover:bg-gray-200 w-full text-left"
-              >
-                Record Match
-              </button>
-            </div>
-          )}
-          <button
-            onClick={toggleOpen}
-            className="bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-full shadow-lg transition-colors"
-            style={{ width: '60px', height: '60px', fontSize: '24px', lineHeight: '1' }}
-          >
-            +
-          </button>
-        </div>
-      </div>
-    );
+  const handleTeamSuggestion = () => {
+    setShowTeamSuggestionModal(true);
   };
+
+  const handleUseTeams = (teamOne: number[], teamTwo: number[]) => {
+    setSuggestedTeams({ teamOne, teamTwo });
+    setShowRecordMatchModal(true);
+  };
+
+
 
 
 
@@ -257,6 +225,7 @@ export default function DashboardPage() {
       <FloatingActionButton 
           onRecordMatch={() => setShowRecordMatchModal(true)}
           onAddPlayer={handleAddPlayer}
+          onTeamSuggestion={handleTeamSuggestion}
         />
 
       <RecordMatchModal 
@@ -269,6 +238,12 @@ export default function DashboardPage() {
         isOpen={showAddPlayerModal}
         onClose={() => setShowAddPlayerModal(false)}
         onSubmit={handleAddPlayerSubmit}
+      />
+
+      <TeamSuggestionModal
+        isOpen={showTeamSuggestionModal}
+        onClose={() => setShowTeamSuggestionModal(false)}
+        onUseTeams={handleUseTeams}
       />
 
       <ChatBot />
