@@ -14,20 +14,24 @@ interface BestPerformingTeamsProps {
   minGames: number;
 }
 
-export function BestPerformingTeams({ teams, minGames }: BestPerformingTeamsProps) {
+export function BestPerformingTeams({
+  teams,
+  minGames,
+}: BestPerformingTeamsProps) {
   const formatTeamName = (players: string[]): string => {
     if (players.length <= 2) {
-      return players.join(' and ');
+      return players.join(" and ");
     }
     const lastPlayer = players[players.length - 1];
     const otherPlayers = players.slice(0, -1);
-    return `${otherPlayers.join(', ')} and ${lastPlayer}`;
+    return `${otherPlayers.join(", ")} and ${lastPlayer}`;
   };
 
   const getWinPercentageColor = (percentage: number): string => {
-    if (percentage > 53) return 'text-green-600';
-    if (percentage >= 45) return 'text-yellow-600';
-    return 'text-red-600';
+    if (percentage >= 85) return "text-green-600";
+    if (percentage >= 75) return "text-green-500";
+    if (percentage >= 65) return "text-yellow-600";
+    return "text-red-500";
   };
 
   if (!teams) {
@@ -39,7 +43,10 @@ export function BestPerformingTeams({ teams, minGames }: BestPerformingTeamsProp
         <CardContent>
           <div data-testid="loading-teams" className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex justify-between items-center p-4 bg-gray-50 rounded">
+              <div
+                key={i}
+                className="flex justify-between items-center p-4 bg-gray-50 rounded"
+              >
                 <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
                 <div className="flex items-center gap-4">
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
@@ -54,7 +61,7 @@ export function BestPerformingTeams({ teams, minGames }: BestPerformingTeamsProp
   }
 
   const qualifiedTeams = teams
-    .filter(team => team.totalGames >= minGames)
+    .filter((team) => team.totalGames >= minGames)
     .sort((a, b) => b.winPercentage - a.winPercentage);
 
   return (
@@ -70,8 +77,8 @@ export function BestPerformingTeams({ teams, minGames }: BestPerformingTeamsProp
         ) : (
           <div className="space-y-3">
             {qualifiedTeams.map((team) => (
-              <div 
-                key={team.id} 
+              <div
+                key={team.id}
                 data-testid="team-row"
                 className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
@@ -82,7 +89,9 @@ export function BestPerformingTeams({ teams, minGames }: BestPerformingTeamsProp
                   <div className="text-sm text-gray-600">
                     {team.wins}W - {team.losses}L
                   </div>
-                  <div className={`text-sm font-semibold ${getWinPercentageColor(team.winPercentage)}`}>
+                  <div
+                    className={`text-sm font-semibold ${getWinPercentageColor(team.winPercentage)}`}
+                  >
                     {Math.round(team.winPercentage)}%
                   </div>
                 </div>
