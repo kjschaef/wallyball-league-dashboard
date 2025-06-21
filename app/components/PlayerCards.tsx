@@ -39,12 +39,6 @@ interface PlayerStats {
   inactivityPenalty?: number;
 }
 
-const getWinPercentageColor = (percentage: number): string => {
-  if (percentage > 53) return "text-emerald-600";
-  if (percentage >= 40) return "text-amber-600";
-  return "text-rose-600";
-};
-
 const getWinPercentageGradient = (percentage: number): string => {
   if (percentage > 53) return "from-emerald-500 to-emerald-600";
   if (percentage >= 40) return "from-amber-500 to-amber-600";
@@ -151,7 +145,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
         </div>
 
         {/* Inactivity Penalty */}
-        {showInactivityPenalty && player.inactivityPenalty > 0 && (
+        {showInactivityPenalty && (
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="h-4 w-4 text-amber-600" />
