@@ -60,19 +60,19 @@ export function WinPercentageRankings() {
           fetch('/api/player-stats'),
           fetch('/api/matches?limit=10')
         ]);
-        
+
         if (!statsResponse.ok) {
           throw new Error('Failed to fetch player stats');
         }
-        
+
         const playerStats = await statsResponse.json();
-        
+
         // Store original player order for consistent color assignment
         setOriginalPlayerOrder(playerStats.map((p: any) => p.name));
-        
+
         // Fetch recent matches for highlighting
         let recentPlayers: string[] = [];
-        
+
         if (matchesResponse.ok) {
           const matches = await matchesResponse.json();
           // Get the most recent day's matches
@@ -84,7 +84,7 @@ export function WinPercentageRankings() {
             const lastDayMatches = sortedMatches.filter(match => 
               new Date(match.date).toDateString() === mostRecentDate
             );
-            
+
             // Extract all player names from recent matches
             recentPlayers = lastDayMatches.reduce((acc, match) => {
               return [...acc, ...match.teamOnePlayers, ...match.teamTwoPlayers];
@@ -92,9 +92,9 @@ export function WinPercentageRankings() {
             recentPlayers = Array.from(new Set(recentPlayers)); // Remove duplicates
           }
         }
-        
+
         setRecentMatchPlayers(recentPlayers);
-        
+
         // Format the player stats data (already sorted by win percentage)
         const formattedRankings = playerStats.map((player: any) => {
           console.log('Player:', player.name, 'inactivityPenalty:', player.inactivityPenalty);
@@ -107,7 +107,7 @@ export function WinPercentageRankings() {
             penaltyPercentage: player.inactivityPenalty > 0 ? player.inactivityPenalty : undefined
           };
         });
-        
+
         setRankings(formattedRankings);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -121,9 +121,41 @@ export function WinPercentageRankings() {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
+
+  const formatTooltipContent = (value: number, name: string) => {
+    if (name === 'winPercentage') {
+      return [`${value}%`, 'Win %'];
+    }
+    return [value, name];
+  };
+
+  const CustomTooltip = ({ active, payload, label }: {
+    active?: boolean;
+    payload?: Array<{
+      value: number;
+      dataKey: string;
+      color: string;
+    }>;
+    label?: string;
+  }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-2 bg-white border border-gray-300 rounded-md shadow-md">
+          <p className="text-sm font-semibold">{`${label}`}</p>
+          {payload.map((item, index) => (
+            <p key={`tooltip-item-${index}`} className="text-xs">
+              {`${item.dataKey}: ${formatTooltipContent(item.value, item.dataKey)[0]}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   if (loading) {
     return <div className="flex justify-center py-10">Loading rankings...</div>;
@@ -137,7 +169,7 @@ export function WinPercentageRankings() {
         const borderStyle = isInRecentMatch 
           ? { borderColor: playerColor, borderWidth: '2px' }
           : {};
-        
+
         return (
           <div 
             key={player.id} 

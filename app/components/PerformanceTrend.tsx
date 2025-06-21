@@ -127,7 +127,6 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
       } catch (error) {
         console.error('Error fetching data:', error);
         setPlayerStats([]);
-        setChartData([]);
       } finally {
         setLoading(false);
       }
