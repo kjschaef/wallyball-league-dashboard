@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { Navbar } from './components/Navbar';
 import { Providers } from './components/Providers';
-import '../globals.css';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'CFA Wallyball League',
