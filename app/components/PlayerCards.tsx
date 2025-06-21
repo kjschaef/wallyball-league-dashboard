@@ -59,7 +59,7 @@ interface PlayerCardProps {
 
 function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const showInactivityPenalty =
-    player.inactivityPenalty && player.inactivityPenalty > 0;
+    player.inactivityPenalty !== undefined && player.inactivityPenalty > 0;
 
   return (
     <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50/50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
