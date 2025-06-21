@@ -1,0 +1,83 @@
+[20:15:09.609] Running build in Washington, D.C., USA (East) – iad1
+[20:15:09.610] Build machine configuration: 2 cores, 8 GB
+[20:15:09.645] Cloning github.com/kjschaef/wallyball-league-dashboard (Branch: main, Commit: de7af0b)
+[20:15:10.324] Cloning completed: 679.000ms
+[20:15:12.122] Restored build cache from previous deployment (7do6GPnAGn6JMxTN2eUUHFs62uXg)
+[20:15:12.911] Running "vercel build"
+[20:15:13.338] Vercel CLI 43.3.0
+[20:15:13.908] Installing dependencies...
+[20:15:20.464] 
+[20:15:20.465] added 96 packages, removed 38 packages, and changed 94 packages in 6s
+[20:15:20.465] 
+[20:15:20.465] 204 packages are looking for funding
+[20:15:20.465]   run `npm fund` for details
+[20:15:20.506] Running "npm run build"
+[20:15:20.620] 
+[20:15:20.620] > volleyball-league-management-next@0.1.0 build
+[20:15:20.621] > next build
+[20:15:20.621] 
+[20:15:21.318] Attention: Next.js now collects completely anonymous telemetry regarding usage.
+[20:15:21.319] This information is used to shape Next.js' roadmap and prioritize features.
+[20:15:21.319] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[20:15:21.320] https://nextjs.org/telemetry
+[20:15:21.320] 
+[20:15:21.381]    ▲ Next.js 15.3.2
+[20:15:21.382] 
+[20:15:21.454]    Creating an optimized production build ...
+[20:15:41.472]  ✓ Compiled successfully in 16.0s
+[20:15:41.478]    Linting and checking validity of types ...
+[20:15:53.570] 
+[20:15:53.570] ./app/components/PerformanceTrend.tsx
+[20:15:53.577] 77:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:15:53.577] 90:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:15:53.577] 92:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:15:53.577] 191:26  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+[20:15:53.588] 204:26  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+[20:15:53.589] 
+[20:15:53.593] ./app/components/WinPercentageRankings.tsx
+[20:15:53.594] 71:52  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:15:53.594] 99:60  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:15:53.594] 
+[20:15:53.594] info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[20:15:54.356]    Collecting page data ...
+[20:15:56.997]    Generating static pages (0/16) ...
+[20:15:57.990]    Generating static pages (4/16) 
+[20:15:57.991]    Generating static pages (8/16) 
+[20:15:58.058]    Generating static pages (12/16) 
+[20:15:58.058]  ✓ Generating static pages (16/16)
+[20:15:58.423]    Finalizing page optimization ...
+[20:15:58.428]    Collecting build traces ...
+[20:16:04.533] 
+[20:16:04.543] Route (app)                                 Size  First Load JS
+[20:16:04.544] ┌ ○ /                                     119 kB         220 kB
+[20:16:04.544] ├ ○ /_not-found                            173 B         102 kB
+[20:16:04.544] ├ ƒ /api/achievements/check/[playerId]     173 B         102 kB
+[20:16:04.544] ├ ƒ /api/achievements/player/[playerId]    173 B         102 kB
+[20:16:04.544] ├ ƒ /api/games                             173 B         102 kB
+[20:16:04.544] ├ ƒ /api/games/[id]                        173 B         102 kB
+[20:16:04.544] ├ ƒ /api/matches                           173 B         102 kB
+[20:16:04.545] ├ ƒ /api/matches/[id]                      173 B         102 kB
+[20:16:04.545] ├ ƒ /api/player-stats                      173 B         102 kB
+[20:16:04.545] ├ ƒ /api/player-trends                     173 B         102 kB
+[20:16:04.545] ├ ƒ /api/players                           173 B         102 kB
+[20:16:04.545] ├ ƒ /api/players/[id]                      173 B         102 kB
+[20:16:04.545] ├ ƒ /api/season-stats                      173 B         102 kB
+[20:16:04.545] ├ ƒ /api/team-performance                  173 B         102 kB
+[20:16:04.545] ├ ƒ /api/trends                            173 B         102 kB
+[20:16:04.545] ├ ○ /dashboard                             173 B         102 kB
+[20:16:04.545] ├ ○ /games                               2.72 kB         104 kB
+[20:16:04.545] ├ ○ /players                             3.78 kB         112 kB
+[20:16:04.546] └ ○ /results                             22.1 kB         136 kB
+[20:16:04.546] + First Load JS shared by all             102 kB
+[20:16:04.546]   ├ chunks/4bd1b696-662af337b518d04b.js  53.2 kB
+[20:16:04.546]   ├ chunks/684-81f21119b8909f34.js       46.4 kB
+[20:16:04.546]   └ other shared chunks (total)          1.97 kB
+[20:16:04.546] 
+[20:16:04.546] 
+[20:16:04.547] ○  (Static)   prerendered as static content
+[20:16:04.547] ƒ  (Dynamic)  server-rendered on demand
+[20:16:04.547] 
+[20:16:04.582] Error: No Output Directory named "dist" found after the Build completed. You can configure the Output Directory in your Project Settings.
+[20:16:04.583] Learn More: https://vercel.link/missing-public-directory
+[20:16:04.950] 
+[20:16:07.570] Exiting build container
