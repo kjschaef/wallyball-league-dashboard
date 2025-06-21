@@ -6,6 +6,7 @@ import { WinPercentageRankings } from './components/WinPercentageRankings';
 import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
+import { TeamSuggestionModal } from './components/TeamSuggestionModal';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -22,7 +23,9 @@ interface PlayerData {
 
 export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
-  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false); // Added state for Add Player modal
+  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [showTeamSuggestionModal, setShowTeamSuggestionModal] = useState(false);
+  const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | null>(null);
 
   const handleRecordMatch = async (matchData: MatchData) => {
     try {

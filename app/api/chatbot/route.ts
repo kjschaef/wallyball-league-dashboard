@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzePlayerPerformance, suggestTeamMatchups, generateMatchAnalysis, PlayerStats } from '@/lib/openai';
+import { analyzePlayerPerformance, suggestTeamMatchups, generateMatchAnalysis, PlayerStats } from '../../lib/openai';
 
 interface ChatRequest {
   message: string;
