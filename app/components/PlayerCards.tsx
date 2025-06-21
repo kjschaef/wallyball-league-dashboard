@@ -194,26 +194,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           </div>
         </div>
 
-        {/* Streak */}
-        <div className="bg-white/60 rounded-xl p-4 border border-gray-100">
-          <p className="text-sm font-medium text-gray-600 mb-2">
-            Current Streak
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-gray-900">
-              {player.streak.count} weeks
-            </span>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                player.streak.type === "wins"
-                  ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                  : "bg-rose-100 text-rose-700 border border-rose-200"
-              }`}
-            >
-              {player.streak.type}
-            </span>
-          </div>
-        </div>
+        
       </CardContent>
     </Card>
   );
