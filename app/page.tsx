@@ -7,7 +7,7 @@ import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
 import { TeamSuggestionModal } from './components/TeamSuggestionModal';
-import { FloatingActionButton } from './components/FloatingActionButton';
+import { ActionButtons } from './components/ActionButtons';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -222,7 +222,7 @@ export default function DashboardPage() {
         <RecentMatches />
       </div>
 
-      <FloatingActionButton 
+      <ActionButtons 
           onRecordMatch={() => setShowRecordMatchModal(true)}
           onAddPlayer={handleAddPlayer}
           onTeamSuggestion={handleTeamSuggestion}
