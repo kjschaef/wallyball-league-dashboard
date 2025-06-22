@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Users, TrendingUp, Clock, Award } from 'lucide-react';
+import { PlayerGrid } from './PlayerGrid';
 
 interface Player {
   id: number;
@@ -121,18 +122,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
     onClose();
   };
 
-  const getStreakColor = (streak: { type: 'wins' | 'losses'; count: number }) => {
-    if (streak.type === 'wins') {
-      return streak.count >= 3 ? 'text-green-600' : 'text-green-500';
-    }
-    return streak.count >= 3 ? 'text-red-600' : 'text-red-500';
-  };
 
-  const getWinPercentageColor = (percentage: number) => {
-    if (percentage >= 50) return 'text-green-600';
-    if (percentage >= 40) return 'text-yellow-600';
-    return 'text-red-600';
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -150,39 +140,20 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
               Select the players who are available today. The AI will create balanced teams based on their performance statistics.
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {players.map(player => (
-                <div
-                  key={player.id}
-                  onClick={() => togglePlayer(player.id)}
-                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    selectedPlayers.includes(player.id)
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">{player.name}</h3>
-                    <div className={`text-sm font-medium ${getWinPercentageColor(player.winPercentage)}`}>
-                      {player.winPercentage}%
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{player.record.wins}W - {player.record.losses}L</span>
-                    <span className={getStreakColor(player.streak)}>
-                      {player.streak.count} {player.streak.type}
-                    </span>
-                  </div>
-                  
-                  {player.inactivityPenalty && player.inactivityPenalty > 0 && (
-                    <div className="text-xs text-orange-600 mt-1">
-                      -{player.inactivityPenalty}% inactivity
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            <PlayerGrid
+              players={players.map(p => ({
+                id: p.id,
+                name: p.name,
+                winPercentage: p.winPercentage,
+                record: p.record,
+                streak: p.streak,
+                inactivityPenalty: p.inactivityPenalty
+              }))}
+              selectedPlayers={selectedPlayers}
+              onPlayerToggle={togglePlayer}
+              title="Available Players"
+              multiSelect={true}
+            />
             
             <div className="flex justify-between items-center pt-4 border-t">
               <div className="text-sm text-gray-600">
