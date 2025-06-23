@@ -1,7 +1,9 @@
 import OpenAI from "openai";
 import fs from 'fs';
 import path from 'path';
-import pdfParse from 'pdf-parse';
+
+// Use require for pdf-parse to avoid ESM issues
+const pdfParse = require('pdf-parse');
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -16,9 +18,17 @@ async function loadWallyballRules(): Promise<string> {
 
   try {
     const pdfPath = path.join(process.cwd(), 'Wallyball_Rules_2012.pdf');
+    
+    // Check if file exists first
+    if (!fs.existsSync(pdfPath)) {
+      console.error('Wallyball rules PDF not found at:', pdfPath);
+      return 'Wallyball rules document is not available at this time.';
+    }
+    
     const dataBuffer = fs.readFileSync(pdfPath);
     const data = await pdfParse(dataBuffer);
     wallyballRules = data.text;
+    console.log('Wallyball rules PDF loaded successfully');
     return wallyballRules;
   } catch (error) {
     console.error('Error loading Wallyball rules PDF:', error);
