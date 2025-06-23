@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzePlayerPerformance, suggestTeamMatchups, generateMatchAnalysis, PlayerStats } from '../../lib/openai';
+import { analyzePlayerPerformance, suggestTeamMatchups, generateMatchAnalysis, queryWallyballRules, PlayerStats } from '../../lib/openai';
 
 interface ChatRequest {
   message: string;
@@ -54,7 +54,15 @@ export async function POST(request: NextRequest) {
     // Determine intent and handle accordingly
     const lowerMessage = message.toLowerCase();
     
-    if (lowerMessage.includes('team') && (lowerMessage.includes('suggest') || lowerMessage.includes('matchup') || lowerMessage.includes('who should play'))) {
+    // Check for rules queries first
+    const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game', 'scoring', 'boundary', 'rotation'];
+    const isRulesQuery = rulesKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    if (isRulesQuery) {
+      // Rules query
+      response = await queryWallyballRules(message);
+      responseType = 'rules_query';
+    } else if (lowerMessage.includes('team') && (lowerMessage.includes('suggest') || lowerMessage.includes('matchup') || lowerMessage.includes('who should play'))) {
       // Team suggestion request
       const availablePlayers = context?.players 
         ? allPlayers.filter(p => context.players!.includes(p.id))
@@ -113,14 +121,18 @@ export async function GET() {
         'Team matchup suggestions', 
         'Match predictions',
         'Statistical comparisons',
-        'Performance trends'
+        'Performance trends',
+        'Official Wallyball rules queries'
       ],
       sampleQueries: [
         "Who are the top performing players this season?",
         "Suggest balanced teams for today's match",
         "Which players are on winning streaks?",
         "Compare John and Sarah's performance",
-        "Who should play today if we have 8 players available?"
+        "Who should play today if we have 8 players available?",
+        "What are the serving rules in Wallyball?",
+        "How is scoring done in Wallyball?",
+        "What are the court boundaries?"
       ]
     });
   } catch (error) {

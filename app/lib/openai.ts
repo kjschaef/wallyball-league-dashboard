@@ -1,7 +1,55 @@
 import OpenAI from "openai";
+import fs from 'fs';
+import path from 'path';
+import pdfParse from 'pdf-parse';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Cache for PDF content
+let wallyballRules: string | null = null;
+
+async function loadWallyballRules(): Promise<string> {
+  if (wallyballRules) {
+    return wallyballRules;
+  }
+
+  try {
+    const pdfPath = path.join(process.cwd(), 'Wallyball_Rules_2012.pdf');
+    const dataBuffer = fs.readFileSync(pdfPath);
+    const data = await pdfParse(dataBuffer);
+    wallyballRules = data.text;
+    return wallyballRules;
+  } catch (error) {
+    console.error('Error loading Wallyball rules PDF:', error);
+    return 'Wallyball rules document is not available at this time.';
+  }
+}
+
+function searchWallyballRules(query: string, rules: string): string {
+  const lines = rules.split('\n');
+  const searchTerms = query.toLowerCase().split(' ');
+  const relevantLines: string[] = [];
+
+  lines.forEach((line, index) => {
+    const lowerLine = line.toLowerCase();
+    if (searchTerms.some(term => lowerLine.includes(term))) {
+      // Include context (previous and next lines)
+      const contextStart = Math.max(0, index - 1);
+      const contextEnd = Math.min(lines.length - 1, index + 1);
+      
+      for (let i = contextStart; i <= contextEnd; i++) {
+        if (!relevantLines.includes(lines[i]) && lines[i].trim()) {
+          relevantLines.push(lines[i]);
+        }
+      }
+    }
+  });
+
+  return relevantLines.length > 0 
+    ? relevantLines.slice(0, 20).join('\n') // Limit to first 20 relevant lines
+    : 'No specific rules found for that query.';
+}
 
 export interface PlayerStats {
   id: number;
@@ -43,21 +91,35 @@ export async function analyzePlayerPerformance(
       yearsPlayed: p.yearsPlayed
     }));
 
+    // Load Wallyball rules for context
+    const rules = await loadWallyballRules();
+    let rulesContext = '';
+    
+    // Check if the query is about rules
+    const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game'];
+    const isRulesQuery = rulesKeywords.some(keyword => query.toLowerCase().includes(keyword));
+    
+    if (isRulesQuery) {
+      rulesContext = `\n\nRelevant Wallyball Rules:\n${searchWallyballRules(query, rules)}`;
+    }
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are a volleyball performance analyst. Analyze player statistics and provide insights.
+          content: `You are a volleyball/wallyball performance analyst with access to official rules. Analyze player statistics and provide insights.
           
-Current player data: ${JSON.stringify(playerSummary, null, 2)}
+Current player data: ${JSON.stringify(playerSummary, null, 2)}${rulesContext}
 
 Guidelines:
 - Focus on win percentages, streaks, and recent performance
 - Consider inactivity penalties in your analysis
 - Provide specific, actionable insights
 - Be concise but informative
-- Use volleyball terminology appropriately`
+- Use volleyball/wallyball terminology appropriately
+- When asked about rules, reference the official Wallyball Rules 2012 document
+- If asked about specific rules or regulations, provide accurate information from the rules document`
         },
         {
           role: "user",
@@ -165,6 +227,43 @@ Respond in JSON format:
       expectedWinProbability: 50,
       reasoning: "Balanced teams created by alternating top performers"
     };
+  }
+}
+
+export async function queryWallyballRules(query: string): Promise<string> {
+  try {
+    const rules = await loadWallyballRules();
+    const relevantRules = searchWallyballRules(query, rules);
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a Wallyball rules expert with access to the official Wallyball Rules 2012 document. 
+          
+Relevant rules section:
+${relevantRules}
+
+Guidelines:
+- Provide accurate information based on the official rules
+- If the specific rule isn't found in the provided section, indicate this
+- Be clear and concise in your explanations
+- Reference specific rule numbers when available
+- Explain the reasoning behind rules when helpful`
+        },
+        {
+          role: "user",
+          content: query
+        }
+      ],
+      max_tokens: 400,
+    });
+
+    return response.choices[0].message.content || "Unable to find information about that rule.";
+  } catch (error) {
+    console.error('Error querying Wallyball rules:', error);
+    return "I'm having trouble accessing the rules document right now. Please try again.";
   }
 }
 
