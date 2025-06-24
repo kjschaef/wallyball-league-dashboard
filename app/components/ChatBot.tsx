@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -219,9 +220,17 @@ export function ChatBot() {
                     {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     <div className="flex-1">
-                      <div className="whitespace-pre-wrap text-sm">
-                        {message.content}
-                      </div>
+                      {message.role === 'assistant' ? (
+                        <ReactMarkdown 
+                          className="text-sm prose prose-sm max-w-none prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-ul:text-inherit prose-ol:text-inherit prose-li:text-inherit"
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      ) : (
+                        <div className="whitespace-pre-wrap text-sm">
+                          {message.content}
+                        </div>
+                      )}
                       {message.type === 'team_suggestion' && message.additionalData && (
                         <TeamSuggestionCard data={message.additionalData} />
                       )}
