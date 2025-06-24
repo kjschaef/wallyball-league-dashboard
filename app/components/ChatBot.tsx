@@ -51,7 +51,7 @@ export function ChatBot() {
       const response = await fetch('/api/chatbot');
       const data = await response.json();
       setChatStatus(data);
-      
+
       if (data.status === 'ready') {
         setMessages([{
           role: 'assistant',
@@ -86,7 +86,7 @@ export function ChatBot() {
       });
 
       const data = await response.json();
-      
+
       const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: data.response,
@@ -203,7 +203,7 @@ export function ChatBot() {
             Volleyball Team Assistant
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
@@ -212,7 +212,7 @@ export function ChatBot() {
                 <p>Chat is loading...</p>
               </div>
             )}
-            
+
             {messages.map((message, index) => (
               <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] ${message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100'} rounded-lg p-3`}>
@@ -242,7 +242,7 @@ export function ChatBot() {
                 </div>
               </div>
             ))}
-            
+
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-gray-100 rounded-lg p-3">
@@ -256,7 +256,7 @@ export function ChatBot() {
             )}
             <div ref={messagesEndRef} />
           </div>
-          
+
           <div className="border-t p-4">
             {messages.length > 0 && <QuickActions />}
             <div className="flex gap-2">
