@@ -1,64 +1,29 @@
 import OpenAI from "openai";
-import fs from 'fs';
-import path from 'path';
+import { WallyballRulesMCPServer } from '../../lib/mcp-server';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Cache for PDF content
-let wallyballRules: string | null = null;
+// MCP server instance for rules queries
+let mcpServer: WallyballRulesMCPServer | null = null;
 
-async function loadWallyballRules(): Promise<string> {
-  if (wallyballRules) {
-    return wallyballRules;
+async function getMCPServer(): Promise<WallyballRulesMCPServer> {
+  if (!mcpServer) {
+    mcpServer = new WallyballRulesMCPServer();
   }
-
-  try {
-    const pdfPath = path.join(process.cwd(), 'Wallyball_Rules_2012.pdf');
-    
-    // Check if file exists first
-    if (!fs.existsSync(pdfPath)) {
-      console.error('Wallyball rules PDF not found at:', pdfPath);
-      return 'Wallyball rules document is not available at this time.';
-    }
-    
-    // Use require to avoid module path issues
-    const pdfParse = require('pdf-parse');
-    
-    const dataBuffer = fs.readFileSync(pdfPath);
-    const data = await pdfParse(dataBuffer);
-    wallyballRules = data.text;
-    console.log('Wallyball rules PDF loaded successfully');
-    return wallyballRules;
-  } catch (error) {
-    console.error('Error loading Wallyball rules PDF:', error);
-    return 'Wallyball rules document is not available at this time.';
-  }
+  return mcpServer;
 }
 
-function searchWallyballRules(query: string, rules: string): string {
-  const lines = rules.split('\n');
-  const searchTerms = query.toLowerCase().split(' ');
-  const relevantLines: string[] = [];
-
-  lines.forEach((line, index) => {
-    const lowerLine = line.toLowerCase();
-    if (searchTerms.some(term => lowerLine.includes(term))) {
-      // Include context (previous and next lines)
-      const contextStart = Math.max(0, index - 1);
-      const contextEnd = Math.min(lines.length - 1, index + 1);
-      
-      for (let i = contextStart; i <= contextEnd; i++) {
-        if (!relevantLines.includes(lines[i]) && lines[i].trim()) {
-          relevantLines.push(lines[i]);
-        }
-      }
-    }
-  });
-
-  return relevantLines.length > 0 
-    ? relevantLines.slice(0, 20).join('\n') // Limit to first 20 relevant lines
-    : 'No specific rules found for that query.';
+async function searchWallyballRules(query: string): Promise<string> {
+  try {
+    const server = await getMCPServer();
+    // Simulate MCP server call
+    const result = await server.searchRules(query);
+    return result.content[0]?.text || 'No rules found for that query.';
+  } catch (error) {
+    console.error('Error searching Wallyball rules via MCP:', error);
+    return 'Wallyball rules document is not available at this time.';
+  }
 }
 
 export interface PlayerStats {
@@ -101,16 +66,14 @@ export async function analyzePlayerPerformance(
       yearsPlayed: p.yearsPlayed
     }));
 
-    // Load Wallyball rules for context
-    const rules = await loadWallyballRules();
+    // Check if the query is about rules and get context from MCP server
     let rulesContext = '';
-    
-    // Check if the query is about rules
     const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game'];
     const isRulesQuery = rulesKeywords.some(keyword => query.toLowerCase().includes(keyword));
     
     if (isRulesQuery) {
-      rulesContext = `\n\nRelevant Wallyball Rules:\n${searchWallyballRules(query, rules)}`;
+      const rules = await searchWallyballRules(query);
+      rulesContext = `\n\nRelevant Wallyball Rules:\n${rules}`;
     }
 
     const response = await openai.chat.completions.create({
@@ -242,8 +205,7 @@ Respond in JSON format:
 
 export async function queryWallyballRules(query: string): Promise<string> {
   try {
-    const rules = await loadWallyballRules();
-    const relevantRules = searchWallyballRules(query, rules);
+    const relevantRules = await searchWallyballRules(query);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

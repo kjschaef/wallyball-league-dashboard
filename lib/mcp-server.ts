@@ -87,7 +87,7 @@ class WallyballRulesMCPServer {
     });
   }
 
-  private searchRules(query: string) {
+  public searchRules(query: string) {
     if (!this.pdfContent) {
       return {
         content: [
