@@ -22,8 +22,8 @@ async function loadWallyballRules(): Promise<string> {
       return 'Wallyball rules document is not available at this time.';
     }
     
-    // Use dynamic import to avoid module initialization issues
-    const pdfParse = (await import('pdf-parse')).default;
+    // Use require to avoid module path issues
+    const pdfParse = require('pdf-parse');
     
     const dataBuffer = fs.readFileSync(pdfPath);
     const data = await pdfParse(dataBuffer);
