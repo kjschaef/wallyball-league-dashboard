@@ -34,10 +34,17 @@ export class WallyballRulesMCPServer {
   private async loadPDF() {
     try {
       const pdfPath = path.join(process.cwd(), 'Wallyball_Rules_2012.pdf');
+      console.log('Attempting to load PDF from:', pdfPath);
+      
+      if (!fs.existsSync(pdfPath)) {
+        console.error('PDF file not found at:', pdfPath);
+        return;
+      }
+      
       const dataBuffer = fs.readFileSync(pdfPath);
       const data = await pdfParse(dataBuffer);
       this.pdfContent = data.text;
-      console.log('Wallyball rules PDF loaded successfully');
+      console.log('Wallyball rules PDF loaded successfully, content length:', this.pdfContent.length);
     } catch (error) {
       console.error('Error loading PDF:', error);
     }
