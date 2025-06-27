@@ -457,6 +457,7 @@
     "path-to-regexp": "^0.1.12",
     "pause": "^0.0.1",
     "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.3.31",
     "pg": "^8.13.1",
     "pg-cloudflare": "^1.1.1",
     "pg-connection-string": "^2.7.0",
