@@ -9,7 +9,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import fs from 'fs';
 import path from 'path';
-import * as pdfjs from 'pdfjs-dist';
+import pdfParse from 'pdf-parse';
 
 export class WallyballRulesMCPServer {
   private server: Server;
@@ -43,27 +43,8 @@ export class WallyballRulesMCPServer {
       }
       
       const dataBuffer = fs.readFileSync(pdfPath);
-      const uint8Array = new Uint8Array(dataBuffer);
-      
-      const doc = await pdfjs.getDocument({ data: uint8Array }).promise;
-      const numPages = doc.numPages;
-      console.log(`PDF loaded successfully, ${numPages} pages found`);
-      
-      let fullText = '';
-      
-      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-        const page = await doc.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        
-        const pageText = textContent.items
-          .filter((item: any) => 'str' in item)
-          .map((item: any) => item.str)
-          .join(' ');
-        
-        fullText += pageText + '\n';
-      }
-      
-      this.pdfContent = fullText;
+      const data = await pdfParse(dataBuffer);
+      this.pdfContent = data.text;
       console.log('Wallyball rules PDF loaded successfully, content length:', this.pdfContent.length);
     } catch (error) {
       console.error('Error loading PDF:', error);
