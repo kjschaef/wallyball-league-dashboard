@@ -81,7 +81,7 @@ export async function analyzePlayerPerformance(
       messages: [
         {
           role: "system",
-          content: `You are a volleyball/wallyball performance analyst with access to official rules. Analyze player statistics and provide insights.
+          content: `You are a wallyball performance analyst with access to official rules. Analyze player statistics and provide insights.
           
 Current player data: ${JSON.stringify(playerSummary, null, 2)}${rulesContext}
 
