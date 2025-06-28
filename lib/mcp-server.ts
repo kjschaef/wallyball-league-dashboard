@@ -9,7 +9,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import fs from 'fs';
 import path from 'path';
-import pdfParse from 'pdf-parse';
+// import pdfParse from 'pdf-parse'; // Temporarily disabled due to compatibility issues
 
 export class WallyballRulesMCPServer {
   private server: Server;
