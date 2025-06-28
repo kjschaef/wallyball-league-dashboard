@@ -7,9 +7,14 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // MCP server instance for rules queries
 let mcpServer: WallyballRulesMCPServer | null = null;
 
-async function getMCPServer(): Promise<WallyballRulesMCPServer> {
+async function getMCPServer(): Promise<WallyballRulesMCPServer | null> {
   if (!mcpServer) {
-    mcpServer = new WallyballRulesMCPServer();
+    try {
+      mcpServer = new WallyballRulesMCPServer();
+    } catch (error) {
+      console.error('Failed to initialize MCP server:', error);
+      return null;
+    }
   }
   return mcpServer;
 }
@@ -17,8 +22,11 @@ async function getMCPServer(): Promise<WallyballRulesMCPServer> {
 async function searchWallyballRules(query: string): Promise<string> {
   try {
     const server = await getMCPServer();
+    if (!server) {
+      return 'Wallyball rules document is not available at this time.';
+    }
     // Simulate MCP server call
-    const result = await server.searchRules(query);
+    const result = server.searchRules(query);
     return result.content[0]?.text || 'No rules found for that query.';
   } catch (error) {
     console.error('Error searching Wallyball rules via MCP:', error);
