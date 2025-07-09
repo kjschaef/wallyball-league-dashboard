@@ -134,11 +134,26 @@ Guidelines:
 
 export async function suggestTeamMatchups(
   availablePlayers: PlayerStats[],
-  teamSize: number = 3
+  teamSize?: number
 ): Promise<TeamSuggestion[]> {
   try {
     if (availablePlayers.length < 4) {
       throw new Error(`Need at least 4 players for team suggestions`);
+    }
+
+    // Determine team sizes based on total players
+    let team1Size: number, team2Size: number;
+    if (availablePlayers.length === 4) {
+      team1Size = 2;
+      team2Size = 2;
+    } else if (availablePlayers.length === 5) {
+      team1Size = 2;
+      team2Size = 3;
+    } else {
+      // For 6+ players, use equal teams or as close as possible
+      const playersPerTeam = Math.floor(availablePlayers.length / 2);
+      team1Size = playersPerTeam;
+      team2Size = availablePlayers.length - playersPerTeam;
     }
 
     const playerIds = availablePlayers.map(p => p.id);
@@ -162,14 +177,21 @@ export async function suggestTeamMatchups(
           role: "system",
           content: `You are a volleyball team formation expert. Create multiple balanced team matchups from available players.
 
-Available players: ${JSON.stringify(playerSummary, null, 2)}
+Available players (${availablePlayers.length} total): ${JSON.stringify(playerSummary, null, 2)}
 
 MCP Performance Analysis:
 ${mcpAnalysis}
 
+IMPORTANT RULES:
+- Team 1 must have exactly ${team1Size} players
+- Team 2 must have exactly ${team2Size} players
+- Each player can only be on ONE team (no duplicates between teams)
+- Use ALL ${availablePlayers.length} available players across both teams
+- No player should appear on both teams in any scenario
+
 Your task:
 1. Create 3 different team matchup scenarios
-2. Each scenario should have two teams of ${teamSize} players each
+2. Each scenario should have Team 1 with ${team1Size} players and Team 2 with ${team2Size} players
 3. Balance skill levels for competitive matches
 4. Consider current streaks, performance trends, and inactivity penalties
 5. Provide variety in team combinations for multiple matches
@@ -181,24 +203,24 @@ Respond in JSON format:
   "matchups": [
     {
       "scenario": "Scenario 1: Balanced Experience",
-      "teamOne": ["player1", "player2", "player3"],
-      "teamTwo": ["player4", "player5", "player6"],
+      "teamOne": ["player1", "player2"],
+      "teamTwo": ["player3", "player4"],
       "balanceScore": 75,
       "expectedWinProbability": 52,
       "reasoning": "Detailed explanation of team formation logic"
     },
     {
-      "scenario": "Scenario 2: Streak Focus",
-      "teamOne": ["player2", "player3", "player4"],
-      "teamTwo": ["player1", "player5", "player6"],
+      "scenario": "Scenario 2: Streak Focus", 
+      "teamOne": ["player2", "player3"],
+      "teamTwo": ["player1", "player4"],
       "balanceScore": 68,
       "expectedWinProbability": 48,
       "reasoning": "Teams formed considering current streaks"
     },
     {
       "scenario": "Scenario 3: Mix & Match",
-      "teamOne": ["player1", "player3", "player5"],
-      "teamTwo": ["player2", "player4", "player6"],
+      "teamOne": ["player1", "player4"],
+      "teamTwo": ["player2", "player3"],
       "balanceScore": 71,
       "expectedWinProbability": 55,
       "reasoning": "Alternative pairing for variety"
@@ -208,7 +230,7 @@ Respond in JSON format:
         },
         {
           role: "user",
-          content: `Create 3 different balanced team matchup scenarios from these ${availablePlayers.length} players for multiple competitive matches.`
+          content: `Create 3 different balanced team matchup scenarios from these ${availablePlayers.length} players. Team 1 needs ${team1Size} players, Team 2 needs ${team2Size} players. Ensure no player appears on both teams.`
         }
       ],
       response_format: { type: "json_object" },
@@ -216,7 +238,7 @@ Respond in JSON format:
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
     
-    // Map player names back to PlayerStats objects for each matchup
+    // Map player names back to PlayerStats objects and validate
     const matchups = result.matchups?.map((matchup: any) => {
       const teamOne = matchup.teamOne?.map((name: string) => 
         availablePlayers.find(p => p.name === name)
@@ -225,6 +247,15 @@ Respond in JSON format:
       const teamTwo = matchup.teamTwo?.map((name: string) => 
         availablePlayers.find(p => p.name === name)
       ).filter(Boolean) || [];
+
+      // Validate no duplicate players between teams
+      const allPlayerIds = [...teamOne.map(p => p.id), ...teamTwo.map(p => p.id)];
+      const hasDuplicates = allPlayerIds.length !== new Set(allPlayerIds).size;
+      
+      if (hasDuplicates || teamOne.length !== team1Size || teamTwo.length !== team2Size) {
+        // Return fallback if validation fails
+        return createFallbackMatchup(availablePlayers, team1Size, team2Size);
+      }
 
       return {
         scenario: matchup.scenario,
@@ -236,36 +267,64 @@ Respond in JSON format:
       };
     }) || [];
 
-    return matchups.length > 0 ? matchups : [createFallbackMatchup(availablePlayers, teamSize)];
+    return matchups.length > 0 ? matchups : [createFallbackMatchup(availablePlayers, team1Size, team2Size)];
     
   } catch (error) {
     console.error('Error suggesting team matchups:', error);
-    return [createFallbackMatchup(availablePlayers, teamSize)];
+    return [createFallbackMatchup(availablePlayers)];
   }
 }
 
-function createFallbackMatchup(availablePlayers: PlayerStats[], teamSize: number): TeamSuggestion {
-  // Fallback: create balanced teams based on win percentage
+function createFallbackMatchup(availablePlayers: PlayerStats[], team1Size?: number, team2Size?: number): TeamSuggestion {
+  // Determine team sizes if not provided
+  let actualTeam1Size: number, actualTeam2Size: number;
+  
+  if (team1Size && team2Size) {
+    actualTeam1Size = team1Size;
+    actualTeam2Size = team2Size;
+  } else if (availablePlayers.length === 4) {
+    actualTeam1Size = 2;
+    actualTeam2Size = 2;
+  } else if (availablePlayers.length === 5) {
+    actualTeam1Size = 2;
+    actualTeam2Size = 3;
+  } else {
+    const playersPerTeam = Math.floor(availablePlayers.length / 2);
+    actualTeam1Size = playersPerTeam;
+    actualTeam2Size = availablePlayers.length - playersPerTeam;
+  }
+
+  // Fallback: create balanced teams based on win percentage using snake draft
   const sortedPlayers = [...availablePlayers].sort((a, b) => b.winPercentage - a.winPercentage);
   const teamOne = [];
   const teamTwo = [];
   
-  const playersToUse = Math.min(availablePlayers.length, teamSize * 2);
-  for (let i = 0; i < playersToUse; i++) {
-    if (i % 2 === 0) {
+  // Snake draft pattern for better balance
+  let pickForTeamOne = true;
+  for (let i = 0; i < availablePlayers.length; i++) {
+    if (pickForTeamOne && teamOne.length < actualTeam1Size) {
+      teamOne.push(sortedPlayers[i]);
+    } else if (!pickForTeamOne && teamTwo.length < actualTeam2Size) {
+      teamTwo.push(sortedPlayers[i]);
+    } else if (teamOne.length < actualTeam1Size) {
       teamOne.push(sortedPlayers[i]);
     } else {
       teamTwo.push(sortedPlayers[i]);
     }
+    
+    // Alternate picks when both teams can still pick
+    if (teamOne.length < actualTeam1Size && teamTwo.length < actualTeam2Size) {
+      pickForTeamOne = !pickForTeamOne;
+    }
   }
 
   return {
-    scenario: "Fallback: Alternating Selection",
+    scenario: "Fallback: Snake Draft Selection",
     teamOne,
     teamTwo,
     balanceScore: 50,
     expectedWinProbability: 50,
-    reasoning: "Balanced teams created by alternating top performers"
+    reasoning: `Balanced teams created using snake draft: ${actualTeam1Size}v${actualTeam2Size} formation`
   };
 }
 
