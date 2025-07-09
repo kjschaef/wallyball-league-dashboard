@@ -43,7 +43,12 @@ interface TeamSuggestion {
   reasoning: string;
 }
 
-export function ChatBot() {
+interface ChatBotProps {
+  className?: string;
+  onUseMatchup?: (teamOne: number[], teamTwo: number[]) => void;
+}
+
+export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -75,7 +80,7 @@ export function ChatBot() {
       const response = await fetch('/api/chatbot');
       const data = await response.json();
       setChatStatus(data);
-      
+
       if (data.status === 'ready') {
         setMessages([{
           role: 'assistant',
@@ -128,7 +133,7 @@ export function ChatBot() {
       });
 
       const data = await response.json();
-      
+
       const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: data.response,
@@ -203,7 +208,7 @@ export function ChatBot() {
       });
 
       const data = await response.json();
-      
+
       const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: data.response,
@@ -242,14 +247,14 @@ export function ChatBot() {
 
   const handleQuickAction = async (prompt: string) => {
     if (isLoading) return;
-    
+
     // Check if this is a team suggestion request
     if (isTeamSuggestionRequest(prompt)) {
       setPendingTeamSuggestionPrompt(prompt);
       setShowPlayerSelector(true);
       return;
     }
-    
+
     const userMessage: ChatMessage = {
       role: 'user',
       content: prompt,
@@ -267,7 +272,7 @@ export function ChatBot() {
       });
 
       const data = await response.json();
-      
+
       const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: data.response,
@@ -359,8 +364,14 @@ export function ChatBot() {
           className="w-full" 
           variant="outline"
           onClick={() => {
-            // TODO: Integrate with match recording
-            alert(`Team matchup ${index + 1} will be integrated with match recording in the next phase!`);
+            if (onUseMatchup) {
+              const teamOneIds = data.teamOne.map(player => player.id);
+              const teamTwoIds = data.teamTwo.map(player => player.id);
+              onUseMatchup(teamOneIds, teamTwoIds);
+            } else {
+              // TODO: Integrate with match recording
+              alert(`Team matchup ${index + 1} will be integrated with match recording in the next phase!`);
+            }
           }}
         >
           Use This Matchup
@@ -395,7 +406,7 @@ export function ChatBot() {
             Volleyball Team Assistant
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
@@ -404,7 +415,7 @@ export function ChatBot() {
                 <p>Chat is loading...</p>
               </div>
             )}
-            
+
             {messages.map((message, index) => (
               <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] ${message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100'} rounded-lg p-3`}>
@@ -438,7 +449,7 @@ export function ChatBot() {
                 </div>
               </div>
             ))}
-            
+
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-gray-100 rounded-lg p-3">
@@ -452,7 +463,7 @@ export function ChatBot() {
             )}
             <div ref={messagesEndRef} />
           </div>
-          
+
           <div className="border-t p-4">
             {messages.length > 0 && <QuickActions />}
             <div className="flex gap-2">
@@ -486,12 +497,12 @@ export function ChatBot() {
             Select Available Players
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           <div className="text-sm text-gray-600">
             Select the players who are available today. The AI will create balanced teams from your selection.
           </div>
-          
+
           <div className="space-y-3">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Available Players</h3>
@@ -502,7 +513,7 @@ export function ChatBot() {
             <div className="grid grid-cols-3 gap-2">
               {allPlayers.map((player) => {
                 const isSelected = selectedPlayers.includes(player.id);
-                
+
                 return (
                   <button
                     key={player.id}
@@ -522,7 +533,7 @@ export function ChatBot() {
               })}
             </div>
           </div>
-          
+
           <div className="flex justify-between items-center pt-4 border-t">
             <div className="text-sm text-gray-600">
               Selected: {selectedPlayers.length} players
@@ -530,7 +541,7 @@ export function ChatBot() {
                 <span className="text-green-600 ml-2">✓ Ready for team suggestions</span>
               )}
             </div>
-            
+
             <div className="flex gap-2">
               <Button variant="outline" onClick={cancelPlayerSelection}>
                 Cancel

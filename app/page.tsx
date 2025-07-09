@@ -59,7 +59,7 @@ export default function DashboardPage() {
       const newMatch = await response.json();
       console.log('Match recorded:', newMatch);
       setShowRecordMatchModal(false);
-      
+
       // Show success message
       alert('Match recorded successfully!');
     } catch (error) {
@@ -94,16 +94,16 @@ export default function DashboardPage() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setIsSubmitting(true);
-      
+
       const formData = new FormData(e.currentTarget);
       const name = formData.get('name') as string;
       const startYear = formData.get('startYear') as string;
-      
+
       const playerData = {
         name: name,
         startYear: startYear ? parseInt(startYear) : null
       };
-      
+
       try {
         await onSubmit(playerData);
       } finally {
@@ -180,7 +180,7 @@ export default function DashboardPage() {
       const newPlayer = await response.json();
       console.log('Player added:', newPlayer);
       setShowAddPlayerModal(false);
-      
+
       // Optionally show a success message
       alert(`Player "${playerData.name}" has been added successfully!`);
     } catch (error) {
@@ -246,7 +246,7 @@ export default function DashboardPage() {
         onUseTeams={handleUseTeams}
       />
 
-      <ChatBot />
+      <ChatBot className="w-full" onUseMatchup={handleUseTeams} />
     </div>
   );
 }
