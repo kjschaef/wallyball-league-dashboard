@@ -34,6 +34,20 @@ async function searchWallyballRules(query: string): Promise<string> {
   }
 }
 
+async function analyzePlayersWithMCP(playerIds: number[], analysisType: string): Promise<string> {
+  try {
+    const server = await getMCPServer();
+    if (!server) {
+      return 'Player analysis service is not available at this time.';
+    }
+    const result = await server.analyzePlayerPerformance(playerIds, analysisType);
+    return result.content[0]?.text || 'No analysis available.';
+  } catch (error) {
+    console.error('Error analyzing players via MCP:', error);
+    return 'Player analysis service is not available at this time.';
+  }
+}
+
 export interface PlayerStats {
   id: number;
   name: string;
@@ -54,6 +68,7 @@ export interface PlayerStats {
 }
 
 export interface TeamSuggestion {
+  scenario?: string;
   teamOne: PlayerStats[];
   teamTwo: PlayerStats[];
   balanceScore: number;
@@ -120,18 +135,24 @@ Guidelines:
 export async function suggestTeamMatchups(
   availablePlayers: PlayerStats[],
   teamSize: number = 3
-): Promise<TeamSuggestion> {
+): Promise<TeamSuggestion[]> {
   try {
     if (availablePlayers.length < teamSize * 2) {
       throw new Error(`Need at least ${teamSize * 2} players for team suggestions`);
     }
+
+    const playerIds = availablePlayers.map(p => p.id);
+    
+    // Get MCP analysis for the selected players
+    const mcpAnalysis = await analyzePlayersWithMCP(playerIds, 'matchup_optimization');
 
     const playerSummary = availablePlayers.map(p => ({
       name: p.name,
       winPercentage: p.winPercentage,
       totalGames: p.record.totalGames,
       streak: p.streak,
-      actualWinPercentage: p.actualWinPercentage || p.winPercentage
+      actualWinPercentage: p.actualWinPercentage || p.winPercentage,
+      inactivityPenalty: p.inactivityPenalty || 0
     }));
 
     const response = await openai.chat.completions.create({
@@ -139,29 +160,55 @@ export async function suggestTeamMatchups(
       messages: [
         {
           role: "system",
-          content: `You are a volleyball team formation expert. Create balanced team matchups from available players.
+          content: `You are a volleyball team formation expert. Create multiple balanced team matchups from available players.
 
 Available players: ${JSON.stringify(playerSummary, null, 2)}
 
+MCP Performance Analysis:
+${mcpAnalysis}
+
 Your task:
-1. Form two teams of ${teamSize} players each
-2. Balance skill levels for competitive matches
-3. Consider current streaks and performance trends
-4. Provide a balance score (0-100, where 50 is perfectly balanced)
-5. Estimate win probability for team one
+1. Create 3 different team matchup scenarios
+2. Each scenario should have two teams of ${teamSize} players each
+3. Balance skill levels for competitive matches
+4. Consider current streaks, performance trends, and inactivity penalties
+5. Provide variety in team combinations for multiple matches
+6. Provide a balance score (0-100, where 50 is perfectly balanced)
+7. Estimate win probability for team one
 
 Respond in JSON format:
 {
-  "teamOne": ["player1", "player2", "player3"],
-  "teamTwo": ["player4", "player5", "player6"],
-  "balanceScore": 75,
-  "expectedWinProbability": 52,
-  "reasoning": "Detailed explanation of team formation logic"
+  "matchups": [
+    {
+      "scenario": "Scenario 1: Balanced Experience",
+      "teamOne": ["player1", "player2", "player3"],
+      "teamTwo": ["player4", "player5", "player6"],
+      "balanceScore": 75,
+      "expectedWinProbability": 52,
+      "reasoning": "Detailed explanation of team formation logic"
+    },
+    {
+      "scenario": "Scenario 2: Streak Focus",
+      "teamOne": ["player2", "player3", "player4"],
+      "teamTwo": ["player1", "player5", "player6"],
+      "balanceScore": 68,
+      "expectedWinProbability": 48,
+      "reasoning": "Teams formed considering current streaks"
+    },
+    {
+      "scenario": "Scenario 3: Mix & Match",
+      "teamOne": ["player1", "player3", "player5"],
+      "teamTwo": ["player2", "player4", "player6"],
+      "balanceScore": 71,
+      "expectedWinProbability": 55,
+      "reasoning": "Alternative pairing for variety"
+    }
+  ]
 }`
         },
         {
           role: "user",
-          content: `Create balanced teams from these ${availablePlayers.length} players for a competitive match.`
+          content: `Create 3 different balanced team matchup scenarios from these ${availablePlayers.length} players for multiple competitive matches.`
         }
       ],
       response_format: { type: "json_object" },
@@ -169,46 +216,56 @@ Respond in JSON format:
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
     
-    // Map player names back to PlayerStats objects
-    const teamOne = result.teamOne?.map((name: string) => 
-      availablePlayers.find(p => p.name === name)
-    ).filter(Boolean) || [];
-    
-    const teamTwo = result.teamTwo?.map((name: string) => 
-      availablePlayers.find(p => p.name === name)
-    ).filter(Boolean) || [];
+    // Map player names back to PlayerStats objects for each matchup
+    const matchups = result.matchups?.map((matchup: any) => {
+      const teamOne = matchup.teamOne?.map((name: string) => 
+        availablePlayers.find(p => p.name === name)
+      ).filter(Boolean) || [];
+      
+      const teamTwo = matchup.teamTwo?.map((name: string) => 
+        availablePlayers.find(p => p.name === name)
+      ).filter(Boolean) || [];
 
-    return {
-      teamOne,
-      teamTwo,
-      balanceScore: result.balanceScore || 50,
-      expectedWinProbability: result.expectedWinProbability || 50,
-      reasoning: result.reasoning || "Team formation based on balanced skill levels"
-    };
+      return {
+        scenario: matchup.scenario,
+        teamOne,
+        teamTwo,
+        balanceScore: matchup.balanceScore || 50,
+        expectedWinProbability: matchup.expectedWinProbability || 50,
+        reasoning: matchup.reasoning || "Team formation based on balanced skill levels"
+      };
+    }) || [];
+
+    return matchups.length > 0 ? matchups : [createFallbackMatchup(availablePlayers, teamSize)];
+    
   } catch (error) {
     console.error('Error suggesting team matchups:', error);
-    
-    // Fallback: create balanced teams based on win percentage
-    const sortedPlayers = [...availablePlayers].sort((a, b) => b.winPercentage - a.winPercentage);
-    const teamOne = [];
-    const teamTwo = [];
-    
-    for (let i = 0; i < teamSize * 2; i++) {
-      if (i % 2 === 0) {
-        teamOne.push(sortedPlayers[i]);
-      } else {
-        teamTwo.push(sortedPlayers[i]);
-      }
-    }
-
-    return {
-      teamOne,
-      teamTwo,
-      balanceScore: 50,
-      expectedWinProbability: 50,
-      reasoning: "Balanced teams created by alternating top performers"
-    };
+    return [createFallbackMatchup(availablePlayers, teamSize)];
   }
+}
+
+function createFallbackMatchup(availablePlayers: PlayerStats[], teamSize: number): TeamSuggestion {
+  // Fallback: create balanced teams based on win percentage
+  const sortedPlayers = [...availablePlayers].sort((a, b) => b.winPercentage - a.winPercentage);
+  const teamOne = [];
+  const teamTwo = [];
+  
+  for (let i = 0; i < teamSize * 2; i++) {
+    if (i % 2 === 0) {
+      teamOne.push(sortedPlayers[i]);
+    } else {
+      teamTwo.push(sortedPlayers[i]);
+    }
+  }
+
+  return {
+    scenario: "Fallback: Alternating Selection",
+    teamOne,
+    teamTwo,
+    balanceScore: 50,
+    expectedWinProbability: 50,
+    reasoning: "Balanced teams created by alternating top performers"
+  };
 }
 
 export async function queryWallyballRules(query: string): Promise<string> {

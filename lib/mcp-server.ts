@@ -5,7 +5,7 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
 // import pdfParse from 'pdf-parse'; // Temporarily disabled due to compatibility issues
 
@@ -33,10 +33,11 @@ export class WallyballRulesMCPServer {
   private async loadPDF() {
     try {
       const pdfPath = path.join(process.cwd(), "Wallyball_Rules_2012.pdf");
-      const safePath = resolvePath(pdfPath);
-      let pdfDataSource = await fs.readFile(safePath);
-      const pdfContent = await pdfParse(pdfDataSource);
-
+      // let pdfDataSource = await fs.readFile(pdfPath);
+      // const pdfContent = await pdfParse(pdfDataSource);
+      
+      // For now, use a fallback since PDF parsing is disabled
+      this.pdfContent = "Wallyball rules document temporarily unavailable. Basic rules: Teams of 2-3 players, games to 15 points, must win by 2.";
       console.log("Basic Wallyball rules loaded");
     } catch (error) {
       console.error("Error in loadPDF fallback:", error);
@@ -73,6 +74,27 @@ export class WallyballRulesMCPServer {
               properties: {},
             },
           },
+          {
+            name: "analyze_player_performance",
+            description:
+              "Analyze performance data for selected players to optimize team matchups",
+            inputSchema: {
+              type: "object",
+              properties: {
+                playerIds: {
+                  type: "array",
+                  items: { type: "number" },
+                  description: "Array of player IDs to analyze",
+                },
+                analysisType: {
+                  type: "string",
+                  enum: ["team_balance", "matchup_optimization", "player_comparison"],
+                  description: "Type of performance analysis to conduct",
+                },
+              },
+              required: ["playerIds", "analysisType"],
+            },
+          },
         ] as Tool[],
       };
     });
@@ -85,6 +107,8 @@ export class WallyballRulesMCPServer {
           return this.searchRules(args?.query as string);
         case "get_full_rules":
           return this.getFullRules();
+        case "analyze_player_performance":
+          return this.analyzePlayerPerformance(args?.playerIds as number[], args?.analysisType as string);
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
@@ -147,6 +171,109 @@ export class WallyballRulesMCPServer {
         },
       ],
     };
+  }
+
+  public async analyzePlayerPerformance(playerIds: number[], analysisType: string) {
+    try {
+      // Fetch player stats from the API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/api/player-stats`);
+      const allPlayers = await response.json();
+      
+      // Filter to selected players
+      const selectedPlayers = allPlayers.filter((p: any) => playerIds.includes(p.id));
+      
+      let analysisResult = '';
+      
+      switch (analysisType) {
+        case 'team_balance':
+          analysisResult = this.analyzeTeamBalance(selectedPlayers);
+          break;
+        case 'matchup_optimization':
+          analysisResult = this.analyzeMatchupOptimization(selectedPlayers);
+          break;
+        case 'player_comparison':
+          analysisResult = this.analyzePlayerComparison(selectedPlayers);
+          break;
+        default:
+          analysisResult = 'Unknown analysis type';
+      }
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Performance Analysis (${analysisType}):\n\n${analysisResult}`,
+          },
+        ],
+      };
+    } catch (error) {
+      console.error('Error analyzing player performance:', error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Error fetching player performance data",
+          },
+        ],
+      };
+    }
+  }
+
+  private analyzeTeamBalance(players: any[]): string {
+    const analysis = players.map(p => ({
+      name: p.name,
+      winPercentage: p.winPercentage,
+      totalGames: p.record.totalGames,
+      streak: p.streak,
+      inactivityPenalty: p.inactivityPenalty || 0
+    }));
+    
+    const avgWinRate = analysis.reduce((sum, p) => sum + p.winPercentage, 0) / analysis.length;
+    const experienceSpread = Math.max(...analysis.map(p => p.totalGames)) - Math.min(...analysis.map(p => p.totalGames));
+    
+    return `Selected Players Analysis:
+${analysis.map(p => `• ${p.name}: ${p.winPercentage}% win rate, ${p.totalGames} games, ${p.streak.count} ${p.streak.type} streak`).join('\n')}
+
+Group Statistics:
+• Average Win Rate: ${avgWinRate.toFixed(1)}%
+• Experience Spread: ${experienceSpread} games
+• Players with Penalties: ${analysis.filter(p => p.inactivityPenalty > 0).length}
+
+Balance Factors:
+• High performers: ${analysis.filter(p => p.winPercentage > avgWinRate + 10).map(p => p.name).join(', ') || 'None'}
+• Developing players: ${analysis.filter(p => p.winPercentage < avgWinRate - 10).map(p => p.name).join(', ') || 'None'}`;
+  }
+
+  private analyzeMatchupOptimization(players: any[]): string {
+    const sortedByWinRate = [...players].sort((a, b) => b.winPercentage - a.winPercentage);
+    
+    return `Matchup Optimization for ${players.length} players:
+
+Performance Tiers:
+• Tier 1 (Top): ${sortedByWinRate.slice(0, Math.ceil(players.length * 0.3)).map(p => `${p.name} (${p.winPercentage}%)`).join(', ')}
+• Tier 2 (Mid): ${sortedByWinRate.slice(Math.ceil(players.length * 0.3), Math.ceil(players.length * 0.7)).map(p => `${p.name} (${p.winPercentage}%)`).join(', ')}
+• Tier 3 (Dev): ${sortedByWinRate.slice(Math.ceil(players.length * 0.7)).map(p => `${p.name} (${p.winPercentage}%)`).join(', ')}
+
+Optimal Pairing Strategy:
+• Mix tiers for balanced teams
+• Consider current streaks for momentum
+• Account for inactivity penalties
+• Rotate partnerships for variety`;
+  }
+
+  private analyzePlayerComparison(players: any[]): string {
+    return `Player Comparison (${players.length} players):
+
+${players.map(p => `${p.name}:
+  Win Rate: ${p.winPercentage}% (${p.record.wins}W-${p.record.losses}L)
+  Experience: ${p.record.totalGames} games
+  Current Form: ${p.streak.count} ${p.streak.type} streak
+  Penalty: ${p.inactivityPenalty || 0}%`).join('\n\n')}
+
+Key Insights:
+• Most experienced: ${players.reduce((prev, curr) => prev.record.totalGames > curr.record.totalGames ? prev : curr).name}
+• Highest win rate: ${players.reduce((prev, curr) => prev.winPercentage > curr.winPercentage ? prev : curr).name}
+• Best form: ${players.filter(p => p.streak.type === 'wins').reduce((prev, curr) => (prev?.streak.count || 0) > curr.streak.count ? prev : curr, null)?.name || 'None on winning streak'}`;
   }
 
   async run() {

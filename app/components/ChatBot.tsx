@@ -35,6 +35,7 @@ interface Player {
 }
 
 interface TeamSuggestion {
+  scenario?: string;
   teamOne: Array<{ id: number; name: string; winPercentage: number }>;
   teamTwo: Array<{ id: number; name: string; winPercentage: number }>;
   balanceScore: number;
@@ -323,12 +324,15 @@ export function ChatBot() {
     </div>
   );
 
-  const TeamSuggestionCard = ({ data }: { data: TeamSuggestion }) => (
+  const TeamSuggestionCard = ({ data, index }: { data: TeamSuggestion; index: number }) => (
     <Card className="mt-2 bg-blue-50 border-blue-200">
       <CardContent className="p-4">
+        {data.scenario && (
+          <h4 className="font-semibold text-blue-900 mb-3 text-center">{data.scenario}</h4>
+        )}
         <div className="grid grid-cols-2 gap-4 mb-3">
           <div>
-            <h4 className="font-semibold text-blue-900 mb-2">Team 1</h4>
+            <h5 className="font-semibold text-blue-900 mb-2">Team 1</h5>
             {data.teamOne.map(player => (
               <div key={player.id} className="text-sm">
                 {player.name} ({player.winPercentage}%)
@@ -336,7 +340,7 @@ export function ChatBot() {
             ))}
           </div>
           <div>
-            <h4 className="font-semibold text-blue-900 mb-2">Team 2</h4>
+            <h5 className="font-semibold text-blue-900 mb-2">Team 2</h5>
             {data.teamTwo.map(player => (
               <div key={player.id} className="text-sm">
                 {player.name} ({player.winPercentage}%)
@@ -344,22 +348,33 @@ export function ChatBot() {
             ))}
           </div>
         </div>
-        <div className="flex justify-between text-sm text-blue-700">
+        <div className="flex justify-between text-sm text-blue-700 mb-2">
           <span>Balance: {data.balanceScore}/100</span>
           <span>Team 1 Win Chance: {data.expectedWinProbability}%</span>
         </div>
+        <div className="text-xs text-blue-600 mb-3 italic">
+          {data.reasoning}
+        </div>
         <Button 
-          className="w-full mt-3" 
+          className="w-full" 
           variant="outline"
           onClick={() => {
             // TODO: Integrate with match recording
-            alert('Team suggestion will be integrated with match recording in the next phase!');
+            alert(`Team matchup ${index + 1} will be integrated with match recording in the next phase!`);
           }}
         >
-          Use These Teams
+          Use This Matchup
         </Button>
       </CardContent>
     </Card>
+  );
+
+  const MultipleTeamSuggestions = ({ suggestions }: { suggestions: TeamSuggestion[] }) => (
+    <div className="space-y-4 mt-2">
+      {suggestions.map((suggestion, index) => (
+        <TeamSuggestionCard key={index} data={suggestion} index={index} />
+      ))}
+    </div>
   );
 
   return (
@@ -409,7 +424,11 @@ export function ChatBot() {
                         </div>
                       )}
                       {message.type === 'team_suggestion' && message.additionalData && (
-                        <TeamSuggestionCard data={message.additionalData} />
+                        Array.isArray(message.additionalData) ? (
+                          <MultipleTeamSuggestions suggestions={message.additionalData} />
+                        ) : (
+                          <TeamSuggestionCard data={message.additionalData} index={0} />
+                        )
                       )}
                     </div>
                   </div>

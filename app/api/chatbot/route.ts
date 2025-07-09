@@ -68,16 +68,18 @@ export async function POST(request: NextRequest) {
         ? allPlayers.filter(p => context.players!.includes(p.id))
         : allPlayers;
       
-      if (availablePlayers.length < 6) {
-        response = "I need at least 6 players to suggest balanced teams. Please let me know which players are available today.";
+      if (availablePlayers.length < 4) {
+        response = "I need at least 4 players to suggest balanced teams. Please let me know which players are available today.";
         responseType = 'error';
       } else {
-        const teamSuggestion = await suggestTeamMatchups(availablePlayers);
+        const teamSuggestions = await suggestTeamMatchups(availablePlayers);
         
-        response = `Here are my suggested balanced teams:\n\n**Team 1:** ${teamSuggestion.teamOne.map(p => p.name).join(', ')}\n**Team 2:** ${teamSuggestion.teamTwo.map(p => p.name).join(', ')}\n\n**Balance Score:** ${teamSuggestion.balanceScore}/100\n**Expected Win Probability:** Team 1 has a ${teamSuggestion.expectedWinProbability}% chance\n\n**Reasoning:** ${teamSuggestion.reasoning}`;
+        response = `Here are my suggested team matchups for multiple matches:\n\n${teamSuggestions.map((suggestion, index) => 
+          `**${suggestion.scenario || `Matchup ${index + 1}`}**\n**Team 1:** ${suggestion.teamOne.map(p => p.name).join(', ')}\n**Team 2:** ${suggestion.teamTwo.map(p => p.name).join(', ')}\n**Balance Score:** ${suggestion.balanceScore}/100\n**Expected Win Probability:** Team 1 has a ${suggestion.expectedWinProbability}% chance\n**Reasoning:** ${suggestion.reasoning}`
+        ).join('\n\n---\n\n')}`;
         
         responseType = 'team_suggestion';
-        additionalData = teamSuggestion;
+        additionalData = teamSuggestions;
       }
     } else if (lowerMessage.includes('match') && lowerMessage.includes('analysis')) {
       response = "Please specify which teams you'd like me to analyze, or use the team suggestion feature first.";
