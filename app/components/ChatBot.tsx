@@ -166,8 +166,8 @@ export function ChatBot() {
   };
 
   const generateTeamSuggestionWithPlayers = async () => {
-    if (selectedPlayers.length < 6) {
-      alert('Please select at least 6 players for team suggestions.');
+    if (selectedPlayers.length < 4) {
+      alert('Please select at least 4 players for team suggestions.');
       return;
     }
 
@@ -507,7 +507,7 @@ export function ChatBot() {
           <div className="flex justify-between items-center pt-4 border-t">
             <div className="text-sm text-gray-600">
               Selected: {selectedPlayers.length} players
-              {selectedPlayers.length >= 6 && (
+              {selectedPlayers.length >= 4 && (
                 <span className="text-green-600 ml-2">✓ Ready for team suggestions</span>
               )}
             </div>
@@ -518,7 +518,7 @@ export function ChatBot() {
               </Button>
               <Button 
                 onClick={generateTeamSuggestionWithPlayers}
-                disabled={selectedPlayers.length < 6 || isLoading}
+                disabled={selectedPlayers.length < 4 || isLoading}
               >
                 {isLoading ? (
                   <>
