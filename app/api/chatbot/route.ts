@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         const teamSuggestions = await suggestTeamMatchups(availablePlayers);
         
         response = `Here are my suggested team matchups for multiple matches:\n\n${teamSuggestions.map((suggestion, index) => 
-          `**${suggestion.scenario || `Matchup ${index + 1}`}**\n**Team 1:** ${suggestion.teamOne.map(p => p.name).join(', ')}\n**Team 2:** ${suggestion.teamTwo.map(p => p.name).join(', ')}\n**Balance Score:** ${suggestion.balanceScore}/100\n**Expected Win Probability:** Team 1 has a ${suggestion.expectedWinProbability}% chance\n**Reasoning:** ${suggestion.reasoning}`
+          `**${suggestion.scenario || `Matchup ${index + 1}`}**\n**Team 1:** ${suggestion.teamOne?.map(p => p?.name).filter(Boolean).join(', ') || 'Team assignment failed'}\n**Team 2:** ${suggestion.teamTwo?.map(p => p?.name).filter(Boolean).join(', ') || 'Team assignment failed'}\n**Balance Score:** ${suggestion.balanceScore || 0}/100\n**Expected Win Probability:** Team 1 has a ${suggestion.expectedWinProbability || 50}% chance\n**Reasoning:** ${suggestion.reasoning || 'No reasoning provided'}`
         ).join('\n\n---\n\n')}`;
         
         responseType = 'team_suggestion';

@@ -137,8 +137,8 @@ export async function suggestTeamMatchups(
   teamSize: number = 3
 ): Promise<TeamSuggestion[]> {
   try {
-    if (availablePlayers.length < teamSize * 2) {
-      throw new Error(`Need at least ${teamSize * 2} players for team suggestions`);
+    if (availablePlayers.length < 4) {
+      throw new Error(`Need at least 4 players for team suggestions`);
     }
 
     const playerIds = availablePlayers.map(p => p.id);
@@ -250,7 +250,8 @@ function createFallbackMatchup(availablePlayers: PlayerStats[], teamSize: number
   const teamOne = [];
   const teamTwo = [];
   
-  for (let i = 0; i < teamSize * 2; i++) {
+  const playersToUse = Math.min(availablePlayers.length, teamSize * 2);
+  for (let i = 0; i < playersToUse; i++) {
     if (i % 2 === 0) {
       teamOne.push(sortedPlayers[i]);
     } else {
