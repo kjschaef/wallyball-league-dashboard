@@ -1,19 +1,17 @@
-
-
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { 
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
-  Tool 
-} from '@modelcontextprotocol/sdk/types.js';
-import fs from 'fs';
-import path from 'path';
+  Tool,
+} from "@modelcontextprotocol/sdk/types.js";
+import fs from "fs";
+import path from "path";
 // import pdfParse from 'pdf-parse'; // Temporarily disabled due to compatibility issues
 
 export class WallyballRulesMCPServer {
   private server: Server;
-  private pdfContent: string = '';
+  private pdfContent: string = "";
 
   constructor() {
     this.server = new Server(
@@ -25,7 +23,7 @@ export class WallyballRulesMCPServer {
         capabilities: {
           tools: {},
         },
-      }
+      },
     );
 
     this.setupHandlers();
@@ -34,46 +32,15 @@ export class WallyballRulesMCPServer {
 
   private async loadPDF() {
     try {
-      const pdfPath = path.join(process.cwd(), 'Wallyball_Rules_2012.pdf');
-      console.log('PDF loading temporarily disabled due to library compatibility issues');
-      
-      // Temporarily disable PDF parsing to avoid library issues
-      // TODO: Implement alternative PDF parsing or fix pdf-parse compatibility
-      this.pdfContent = `Wallyball Rules (Basic Overview):
+      const pdfPath = path.join(process.cwd(), "Wallyball_Rules_2012.pdf");
+      const safePath = resolvePath(pdfPath);
+      let pdfDataSource = await fs.readFile(safePath);
+      const pdfContent = await pdfParse(pdfDataSource);
 
-COURT SETUP:
-- Standard racquetball court (20' x 40' x 20' high)
-- Net divides court at 20' mark, 3' high
-- Side walls, back walls, and ceiling are in play
-
-TEAMS:
-- 2-4 players per team
-- Maximum 3 players per side on court at once
-
-SCORING:
-- Rally point system
-- Games typically played to 15 or 21 points
-- Must win by 2 points
-- Matches are best of 3 games
-
-SERVING:
-- Underhand serve only
-- Server gets two attempts
-- Ball must hit front wall first, then floor
-- Cannot hit ceiling on serve
-
-GAMEPLAY:
-- Ball can hit walls and ceiling (except on serve)
-- Maximum 3 team hits before returning
-- No player can hit ball twice consecutively
-- Net violations result in point loss
-
-Note: For complete official rules, please refer to the official Wallyball Rules 2012 document.`;
-      
-      console.log('Basic Wallyball rules loaded (fallback content)');
+      console.log("Basic Wallyball rules loaded");
     } catch (error) {
-      console.error('Error in loadPDF fallback:', error);
-      this.pdfContent = 'Wallyball rules document not available.';
+      console.error("Error in loadPDF fallback:", error);
+      this.pdfContent = "Wallyball rules document not available.";
     }
   }
 
@@ -83,13 +50,15 @@ Note: For complete official rules, please refer to the official Wallyball Rules 
         tools: [
           {
             name: "search_wallyball_rules",
-            description: "Search through the official Wallyball Rules 2012 document for specific information",
+            description:
+              "Search through the official Wallyball Rules 2012 document for specific information",
             inputSchema: {
               type: "object",
               properties: {
                 query: {
                   type: "string",
-                  description: "The search term or question about wallyball rules",
+                  description:
+                    "The search term or question about wallyball rules",
                 },
               },
               required: ["query"],
@@ -97,7 +66,8 @@ Note: For complete official rules, please refer to the official Wallyball Rules 
           },
           {
             name: "get_full_rules",
-            description: "Get the complete text of the Wallyball Rules 2012 document",
+            description:
+              "Get the complete text of the Wallyball Rules 2012 document",
             inputSchema: {
               type: "object",
               properties: {},
@@ -133,14 +103,14 @@ Note: For complete official rules, please refer to the official Wallyball Rules 
       };
     }
 
-    const lines = this.pdfContent.split('\n');
+    const lines = this.pdfContent.split("\n");
     const relevantLines: string[] = [];
-    const searchTerms = query.toLowerCase().split(' ');
+    const searchTerms = query.toLowerCase().split(" ");
 
     // Find lines that contain any of the search terms
     lines.forEach((line, index) => {
       const lowerLine = line.toLowerCase();
-      if (searchTerms.some(term => lowerLine.includes(term))) {
+      if (searchTerms.some((term) => lowerLine.includes(term))) {
         // Include some context (previous and next lines)
         const contextStart = Math.max(0, index - 2);
         const contextEnd = Math.min(lines.length - 1, index + 2);
@@ -153,9 +123,10 @@ Note: For complete official rules, please refer to the official Wallyball Rules 
       }
     });
 
-    const result = relevantLines.length > 0 
-      ? relevantLines.join('\n') 
-      : 'No specific rules found for that query. Try a different search term.';
+    const result =
+      relevantLines.length > 0
+        ? relevantLines.join("\n")
+        : "No specific rules found for that query. Try a different search term.";
 
     return {
       content: [
@@ -190,4 +161,3 @@ if (require.main === module) {
   const server = new WallyballRulesMCPServer();
   server.run().catch(console.error);
 }
-
