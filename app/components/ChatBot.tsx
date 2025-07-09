@@ -473,20 +473,36 @@ export function ChatBot() {
             Select the players who are available today. The AI will create balanced teams from your selection.
           </div>
           
-          <PlayerGrid
-            players={allPlayers.map(p => ({
-              id: p.id,
-              name: p.name,
-              winPercentage: p.winPercentage,
-              record: p.record,
-              streak: p.streak,
-              inactivityPenalty: p.inactivityPenalty
-            }))}
-            selectedPlayers={selectedPlayers}
-            onPlayerToggle={togglePlayer}
-            title="Available Players"
-            multiSelect={true}
-          />
+          <div className="space-y-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Available Players</h3>
+              <p className="text-sm text-gray-600">
+                Select players ({selectedPlayers.length} selected)
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {allPlayers.map((player) => {
+                const isSelected = selectedPlayers.includes(player.id);
+                
+                return (
+                  <button
+                    key={player.id}
+                    type="button"
+                    onClick={() => togglePlayer(player.id)}
+                    className={`
+                      px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                      ${isSelected 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      }
+                    `}
+                  >
+                    {player.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           
           <div className="flex justify-between items-center pt-4 border-t">
             <div className="text-sm text-gray-600">
