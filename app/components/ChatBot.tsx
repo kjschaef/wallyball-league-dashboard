@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { PlayerGrid } from './PlayerGrid';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -14,6 +15,23 @@ interface ChatMessage {
   timestamp: string;
   type?: string;
   additionalData?: any;
+}
+
+interface Player {
+  id: number;
+  name: string;
+  winPercentage: number;
+  record: {
+    wins: number;
+    losses: number;
+    totalGames: number;
+  };
+  streak: {
+    type: 'wins' | 'losses';
+    count: number;
+  };
+  actualWinPercentage?: number;
+  inactivityPenalty?: number;
 }
 
 interface TeamSuggestion {
@@ -31,6 +49,10 @@ export function ChatBot() {
   const [isLoading, setIsLoading] = useState(false);
   const [chatStatus, setChatStatus] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showPlayerSelector, setShowPlayerSelector] = useState(false);
+  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
+  const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
+  const [pendingTeamSuggestionPrompt, setPendingTeamSuggestionPrompt] = useState<string>('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,6 +65,7 @@ export function ChatBot() {
   useEffect(() => {
     if (isOpen && !chatStatus) {
       fetchChatStatus();
+      fetchPlayers();
     }
   }, [isOpen]);
 
@@ -65,8 +88,26 @@ export function ChatBot() {
     }
   };
 
+  const fetchPlayers = async () => {
+    try {
+      const response = await fetch('/api/player-stats');
+      const data = await response.json();
+      setAllPlayers(data);
+    } catch (error) {
+      console.error('Failed to fetch players:', error);
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
+
+    // Check if this is a team suggestion request
+    if (isTeamSuggestionRequest(input)) {
+      setPendingTeamSuggestionPrompt(input);
+      setShowPlayerSelector(true);
+      setInput('');
+      return;
+    }
 
     const userMessage: ChatMessage = {
       role: 'user',
@@ -116,8 +157,97 @@ export function ChatBot() {
     }
   };
 
+  const togglePlayer = (playerId: number) => {
+    setSelectedPlayers(prev => 
+      prev.includes(playerId) 
+        ? prev.filter(id => id !== playerId)
+        : [...prev, playerId]
+    );
+  };
+
+  const generateTeamSuggestionWithPlayers = async () => {
+    if (selectedPlayers.length < 6) {
+      alert('Please select at least 6 players for team suggestions.');
+      return;
+    }
+
+    setShowPlayerSelector(false);
+    setIsLoading(true);
+
+    const selectedPlayerNames = allPlayers
+      .filter(p => selectedPlayers.includes(p.id))
+      .map(p => p.name);
+
+    const enhancedPrompt = `${pendingTeamSuggestionPrompt} from these available players: ${selectedPlayerNames.join(', ')}`;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: enhancedPrompt,
+      timestamp: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+
+    try {
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: enhancedPrompt,
+          context: {
+            type: 'team_suggestion',
+            players: selectedPlayers
+          }
+        })
+      });
+
+      const data = await response.json();
+      
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: data.response,
+        timestamp: data.timestamp,
+        type: data.type,
+        additionalData: data.additionalData
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error processing your request. Please try again.',
+        timestamp: new Date().toISOString(),
+        type: 'error'
+      }]);
+    } finally {
+      setIsLoading(false);
+      setSelectedPlayers([]);
+      setPendingTeamSuggestionPrompt('');
+    }
+  };
+
+  const cancelPlayerSelection = () => {
+    setShowPlayerSelector(false);
+    setSelectedPlayers([]);
+    setPendingTeamSuggestionPrompt('');
+  };
+
+  const isTeamSuggestionRequest = (prompt: string): boolean => {
+    const teamKeywords = ['team', 'suggest', 'balance', 'matchup', 'formation'];
+    const lowerPrompt = prompt.toLowerCase();
+    return teamKeywords.some(keyword => lowerPrompt.includes(keyword));
+  };
+
   const handleQuickAction = async (prompt: string) => {
     if (isLoading) return;
+    
+    // Check if this is a team suggestion request
+    if (isTeamSuggestionRequest(prompt)) {
+      setPendingTeamSuggestionPrompt(prompt);
+      setShowPlayerSelector(true);
+      return;
+    }
     
     const userMessage: ChatMessage = {
       role: 'user',
@@ -233,15 +363,16 @@ export function ChatBot() {
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          className="fixed bottom-6 right-28 h-14 w-14 rounded-full shadow-lg z-50 bg-gray-900 hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"
-          size="icon"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </Button>
-      </DialogTrigger>
+    <>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button 
+            className="fixed bottom-6 right-28 h-14 w-14 rounded-full shadow-lg z-50 bg-gray-900 hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"
+            size="icon"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
+        </DialogTrigger>
       <DialogContent className="max-w-2xl h-[600px] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -326,5 +457,67 @@ export function ChatBot() {
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Player Selector Modal */}
+    <Dialog open={showPlayerSelector} onOpenChange={setShowPlayerSelector}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Select Available Players
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          <div className="text-sm text-gray-600">
+            Select the players who are available today. The AI will create balanced teams from your selection.
+          </div>
+          
+          <PlayerGrid
+            players={allPlayers.map(p => ({
+              id: p.id,
+              name: p.name,
+              winPercentage: p.winPercentage,
+              record: p.record,
+              streak: p.streak,
+              inactivityPenalty: p.inactivityPenalty
+            }))}
+            selectedPlayers={selectedPlayers}
+            onPlayerToggle={togglePlayer}
+            title="Available Players"
+            multiSelect={true}
+          />
+          
+          <div className="flex justify-between items-center pt-4 border-t">
+            <div className="text-sm text-gray-600">
+              Selected: {selectedPlayers.length} players
+              {selectedPlayers.length >= 6 && (
+                <span className="text-green-600 ml-2">✓ Ready for team suggestions</span>
+              )}
+            </div>
+            
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={cancelPlayerSelection}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={generateTeamSuggestionWithPlayers}
+                disabled={selectedPlayers.length < 6 || isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  'Generate Teams'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
