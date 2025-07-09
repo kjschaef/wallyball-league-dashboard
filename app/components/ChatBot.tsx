@@ -116,12 +116,56 @@ export function ChatBot() {
     }
   };
 
+  const handleQuickAction = async (prompt: string) => {
+    if (isLoading) return;
+    
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: prompt,
+      timestamp: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt })
+      });
+
+      const data = await response.json();
+      
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: data.response,
+        timestamp: data.timestamp,
+        type: data.type,
+        additionalData: data.additionalData
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error processing your request. Please try again.',
+        timestamp: new Date().toISOString(),
+        type: 'error'
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const QuickActions = () => (
     <div className="flex flex-wrap gap-2 mb-4">
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setInput("Who are the top performing players?")}
+        onClick={() => handleQuickAction("Who are the top performing players?")}
+        disabled={isLoading}
         className="text-xs"
       >
         <TrendingUp className="w-3 h-3 mr-1" />
@@ -130,7 +174,8 @@ export function ChatBot() {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setInput("Suggest balanced teams for today")}
+        onClick={() => handleQuickAction("Suggest balanced teams for today")}
+        disabled={isLoading}
         className="text-xs"
       >
         <Users className="w-3 h-3 mr-1" />
@@ -139,7 +184,8 @@ export function ChatBot() {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setInput("Which players are on winning streaks?")}
+        onClick={() => handleQuickAction("Which players are on winning streaks?")}
+        disabled={isLoading}
         className="text-xs"
       >
         Streaks
