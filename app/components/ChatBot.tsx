@@ -407,6 +407,7 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
             if (onUseMatchup) {
               const teamOneIds = data.teamOne.map(player => player.id);
               const teamTwoIds = data.teamTwo.map(player => player.id);
+              setIsOpen(false); // Close the chatbot dialog
               onUseMatchup(teamOneIds, teamTwoIds);
             } else {
               // TODO: Integrate with match recording

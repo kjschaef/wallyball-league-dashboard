@@ -230,8 +230,12 @@ export default function DashboardPage() {
 
       <RecordMatchModal 
         isOpen={showRecordMatchModal}
-        onClose={() => setShowRecordMatchModal(false)}
+        onClose={() => {
+          setShowRecordMatchModal(false);
+          setSuggestedTeams(null); // Clear suggested teams when modal closes
+        }}
         onSubmit={handleRecordMatch}
+        suggestedTeams={suggestedTeams}
       />
 
        <AddPlayerModal // Add the AddPlayerModal here

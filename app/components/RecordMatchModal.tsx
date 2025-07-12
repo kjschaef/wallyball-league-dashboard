@@ -20,6 +20,10 @@ interface RecordMatchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (match: Match) => void;
+  suggestedTeams?: {
+    teamOne: number[];
+    teamTwo: number[];
+  };
 }
 
 interface PlayerGridProps {
@@ -75,7 +79,7 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
   );
 }
 
-export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModalProps) {
+export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: RecordMatchModalProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [teamOnePlayers, setTeamOnePlayers] = useState<number[]>([]);
   const [teamTwoPlayers, setTeamTwoPlayers] = useState<number[]>([]);
@@ -86,8 +90,13 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit }: RecordMatchModal
   useEffect(() => {
     if (isOpen) {
       fetchPlayers();
+      // Set suggested teams if provided
+      if (suggestedTeams) {
+        setTeamOnePlayers(suggestedTeams.teamOne);
+        setTeamTwoPlayers(suggestedTeams.teamTwo);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, suggestedTeams]);
 
   const fetchPlayers = async () => {
     try {
