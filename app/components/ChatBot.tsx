@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2 } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { PlayerGrid } from './PlayerGrid';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -59,6 +60,12 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
   const [pendingTeamSuggestionPrompt, setPendingTeamSuggestionPrompt] = useState<string>('');
+  const [feedbackDialog, setFeedbackDialog] = useState<{
+    isOpen: boolean;
+    messageIndex: number;
+    type: 'positive' | 'negative';
+  }>({ isOpen: false, messageIndex: -1, type: 'positive' });
+  const [feedbackText, setFeedbackText] = useState('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -237,6 +244,39 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     setShowPlayerSelector(false);
     setSelectedPlayers([]);
     setPendingTeamSuggestionPrompt('');
+  };
+
+  const submitFeedback = async () => {
+    if (!feedbackText.trim()) return;
+
+    try {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageIndex: feedbackDialog.messageIndex,
+          feedbackType: feedbackDialog.type,
+          feedbackText,
+          chatTranscript: messages
+        })
+      });
+
+      if (response.ok) {
+        alert('Thank you for your feedback!');
+      } else {
+        alert('Failed to submit feedback. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('Failed to submit feedback. Please try again.');
+    }
+
+    setFeedbackDialog({ isOpen: false, messageIndex: -1, type: 'positive' });
+    setFeedbackText('');
+  };
+
+  const openFeedbackDialog = (messageIndex: number, type: 'positive' | 'negative') => {
+    setFeedbackDialog({ isOpen: true, messageIndex, type });
   };
 
   const isTeamSuggestionRequest = (prompt: string): boolean => {
@@ -443,8 +483,30 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
                       )}
                     </div>
                   </div>
-                  <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {new Date(message.timestamp).toLocaleTimeString()}
+                  <div className="flex items-center justify-between mt-2">
+                    <div className={`text-xs ${message.role === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </div>
+                    {message.role === 'assistant' && (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openFeedbackDialog(index, 'positive')}
+                          className="h-6 w-6 p-0 hover:bg-green-100"
+                        >
+                          <ThumbsUp className="h-3 w-3 text-gray-400 hover:text-green-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openFeedbackDialog(index, 'negative')}
+                          className="h-6 w-6 p-0 hover:bg-red-100"
+                        >
+                          <ThumbsDown className="h-3 w-3 text-gray-400 hover:text-red-600" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -560,6 +622,61 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
                 )}
               </Button>
             </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Feedback Dialog */}
+    <Dialog open={feedbackDialog.isOpen} onOpenChange={(open) => {
+      if (!open) {
+        setFeedbackDialog({ isOpen: false, messageIndex: -1, type: 'positive' });
+        setFeedbackText('');
+      }
+    }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {feedbackDialog.type === 'positive' ? (
+              <ThumbsUp className="h-5 w-5 text-green-600" />
+            ) : (
+              <ThumbsDown className="h-5 w-5 text-red-600" />
+            )}
+            {feedbackDialog.type === 'positive' ? 'Positive Feedback' : 'Feedback for Improvement'}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="text-sm text-gray-600">
+            {feedbackDialog.type === 'positive' 
+              ? "What did you like about this response?"
+              : "How can we improve this response?"
+            }
+          </div>
+
+          <Textarea
+            value={feedbackText}
+            onChange={(e) => setFeedbackText(e.target.value)}
+            placeholder="Share your thoughts..."
+            className="min-h-[100px]"
+          />
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setFeedbackDialog({ isOpen: false, messageIndex: -1, type: 'positive' });
+                setFeedbackText('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={submitFeedback}
+              disabled={!feedbackText.trim()}
+            >
+              Submit Feedback
+            </Button>
           </div>
         </div>
       </DialogContent>
