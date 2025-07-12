@@ -133,6 +133,19 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
     }
   };
 
+  const resetForm = () => {
+    setTeamOnePlayers([]);
+    setTeamTwoPlayers([]);
+    setTeamOneGamesWon(0);
+    setTeamTwoGamesWon(0);
+    setDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -156,12 +169,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
       date
     });
 
-    // Reset form
-    setTeamOnePlayers([]);
-    setTeamTwoPlayers([]);
-    setTeamOneGamesWon(0);
-    setTeamTwoGamesWon(0);
-    setDate(new Date().toISOString().split('T')[0]);
+    resetForm();
     onClose();
   };
 
@@ -178,7 +186,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
               <p className="text-gray-600 mt-1">Enter the game details including teams, scores, and date.</p>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="h-6 w-6" />
