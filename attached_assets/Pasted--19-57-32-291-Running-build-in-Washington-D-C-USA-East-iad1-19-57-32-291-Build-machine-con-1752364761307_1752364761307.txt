@@ -1,0 +1,81 @@
+[19:57:32.291] Running build in Washington, D.C., USA (East) – iad1
+[19:57:32.291] Build machine configuration: 2 cores, 8 GB
+[19:57:32.339] Cloning github.com/kjschaef/wallyball-league-dashboard (Branch: main, Commit: 8628976)
+[19:57:32.826] Cloning completed: 487.000ms
+[19:57:35.300] Restored build cache from previous deployment (DvBMuekhJo4DYVtgM8gYP9vXPSr9)
+[19:57:36.740] Running "vercel build"
+[19:57:38.096] Vercel CLI 44.3.0
+[19:57:38.433] Installing dependencies...
+[19:57:44.448] 
+[19:57:44.449] added 116 packages in 6s
+[19:57:44.450] 
+[19:57:44.450] 274 packages are looking for funding
+[19:57:44.450]   run `npm fund` for details
+[19:57:44.485] Detected Next.js version: 15.3.2
+[19:57:44.493] Running "npm run build"
+[19:57:44.610] 
+[19:57:44.610] > volleyball-league-management-next@0.1.0 build
+[19:57:44.610] > next build
+[19:57:44.610] 
+[19:57:45.355]    ▲ Next.js 15.3.2
+[19:57:45.356] 
+[19:57:45.428]    Creating an optimized production build ...
+[19:58:09.610]  ✓ Compiled successfully in 20.0s
+[19:58:09.615]    Linting and checking validity of types ...
+[19:58:24.391] 
+[19:58:24.392] Failed to compile.
+[19:58:24.396] 
+[19:58:24.396] ./app/api/chatbot/route.ts
+[19:58:24.396] 2:57  Warning: 'generateMatchAnalysis' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.396] 52:25  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.396] 
+[19:58:24.396] ./app/components/ActionButtons.tsx
+[19:58:24.396] 5:16  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.397] 
+[19:58:24.397] ./app/components/ChatBot.tsx
+[19:58:24.397] 6:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.397] 6:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.397] 10:10  Warning: 'PlayerGrid' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.397] 18:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.397] 52:27  Warning: 'className' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+[19:58:24.403] 57:48  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.403] 83:6  Warning: React Hook useEffect has a missing dependency: 'chatStatus'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+[19:58:24.403] 
+[19:58:24.403] ./app/components/PerformanceTrend.tsx
+[19:58:24.403] 77:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.403] 90:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.404] 92:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.405] 190:26  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.405] 203:26  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.405] 
+[19:58:24.406] ./app/components/PlayerGrid.tsx
+[19:58:24.406] 75:13  Warning: Visible, non-interactive elements with click handlers must have at least one keyboard listener.  jsx-a11y/click-events-have-key-events
+[19:58:24.406] 75:13  Warning: Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element.  jsx-a11y/no-static-element-interactions
+[19:58:24.406] 
+[19:58:24.406] ./app/components/TeamSuggestionModal.tsx
+[19:58:24.408] 7:38  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.409] 
+[19:58:24.409] ./app/components/WinPercentageRankings.tsx
+[19:58:24.409] 71:52  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.409] 99:60  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.409] 135:9  Warning: 'CustomTooltip' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.410] 
+[19:58:24.410] ./app/components/ui/textarea.tsx
+[19:58:24.410] 8:18  Error: An interface declaring no members is equivalent to its supertype.  @typescript-eslint/no-empty-object-type
+[19:58:24.410] 
+[19:58:24.410] ./app/lib/openai.ts
+[19:58:24.410] 137:3  Warning: 'teamSize' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+[19:58:24.410] 242:53  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.410] 
+[19:58:24.411] ./lib/mcp-server.ts
+[19:58:24.411] 37:11  Error: 'pdfDataSource' is never reassigned. Use 'const' instead.  prefer-const
+[19:58:24.411] 38:13  Warning: 'pdfContent' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[19:58:24.411] 194:53  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.411] 235:39  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.411] 273:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.412] 301:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[19:58:24.412] 
+[19:58:24.412] info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[19:58:24.454] Error: Command "npm run build" exited with 1
+[19:58:27.213] 
+[19:58:30.450] Exiting build container
