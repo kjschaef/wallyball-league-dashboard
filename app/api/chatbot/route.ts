@@ -54,15 +54,8 @@ export async function POST(request: NextRequest) {
     // Determine intent and handle accordingly
     const lowerMessage = message.toLowerCase();
     
-    // Check for rules queries first
-    const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game', 'scoring', 'boundary', 'rotation'];
-    const isRulesQuery = rulesKeywords.some(keyword => lowerMessage.includes(keyword));
-    
-    if (isRulesQuery) {
-      // Rules query
-      response = await queryWallyballRules(message);
-      responseType = 'rules_query';
-    } else if (lowerMessage.includes('team') && (lowerMessage.includes('suggest') || lowerMessage.includes('matchup') || lowerMessage.includes('who should play'))) {
+    // Check for team suggestions first (higher priority)
+    if (lowerMessage.includes('team') && (lowerMessage.includes('suggest') || lowerMessage.includes('matchup') || lowerMessage.includes('who should play'))) {
       // Team suggestion request
       const availablePlayers = context?.players 
         ? allPlayers.filter(p => context.players!.includes(p.id))
@@ -85,9 +78,19 @@ export async function POST(request: NextRequest) {
       response = "Please specify which teams you'd like me to analyze, or use the team suggestion feature first.";
       responseType = 'match_analysis';
     } else {
+      // Check for rules queries
+      const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game', 'scoring', 'boundary', 'rotation'];
+      const isRulesQuery = rulesKeywords.some(keyword => lowerMessage.includes(keyword));
+      
+      if (isRulesQuery) {
+        // Rules query
+        response = await queryWallyballRules(message);
+        responseType = 'rules_query';
+      } else {
       // General performance analysis
-      response = await analyzePlayerPerformance(allPlayers, message);
-      responseType = 'performance_analysis';
+        response = await analyzePlayerPerformance(allPlayers, message);
+        responseType = 'performance_analysis';
+      }
     }
 
     return NextResponse.json({
