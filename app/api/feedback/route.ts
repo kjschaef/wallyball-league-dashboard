@@ -25,6 +25,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if email credentials are configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+      console.error('Email credentials not configured');
+      return NextResponse.json(
+        { error: 'Email service not configured' },
+        { status: 500 }
+      );
+    }
+
     // Create email transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',

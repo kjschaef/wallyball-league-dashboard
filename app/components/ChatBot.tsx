@@ -260,14 +260,17 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
         })
       });
 
+      const result = await response.json();
+
       if (response.ok) {
         alert('Thank you for your feedback!');
       } else {
-        alert('Failed to submit feedback. Please try again.');
+        console.error('Feedback submission failed:', result);
+        alert(`Failed to submit feedback: ${result.error || 'Unknown error'}. Please try again.`);
       }
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      alert('Failed to submit feedback. Please try again.');
+      alert('Failed to submit feedback due to network error. Please try again.');
     }
 
     setFeedbackDialog({ isOpen: false, messageIndex: -1, type: 'positive' });
@@ -634,7 +637,7 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
         setFeedbackText('');
       }
     }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" aria-describedby="feedback-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {feedbackDialog.type === 'positive' ? (
@@ -644,10 +647,10 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
             )}
             {feedbackDialog.type === 'positive' ? 'Positive Feedback' : 'Feedback for Improvement'}
           </DialogTitle>
-        </DialogHeader>
+        </DialogHeader>logHeader>
 
         <div className="space-y-4">
-          <div className="text-sm text-gray-600">
+          <div id="feedback-description" className="text-sm text-gray-600">
             {feedbackDialog.type === 'positive' 
               ? "What did you like about this response?"
               : "How can we improve this response?"
