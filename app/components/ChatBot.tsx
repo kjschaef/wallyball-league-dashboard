@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from "./ui/card";
-import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +14,7 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   type?: string;
-  additionalData?: any;
+  additionalData?: TeamSuggestion | TeamSuggestion[];
 }
 
 interface Player {
@@ -48,12 +48,12 @@ interface ChatBotProps {
   onUseMatchup?: (teamOne: number[], teamTwo: number[]) => void;
 }
 
-export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
+export function ChatBot({ onUseMatchup }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [chatStatus, setChatStatus] = useState<any>(null);
+  const [chatStatus, setChatStatus] = useState<{ status: string; playerCount: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showPlayerSelector, setShowPlayerSelector] = useState(false);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
@@ -79,7 +79,7 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
       fetchChatStatus();
       fetchPlayers();
     }
-  }, [isOpen]);
+  }, [isOpen, chatStatus]);
 
   const fetchChatStatus = async () => {
     try {

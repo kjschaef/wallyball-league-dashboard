@@ -10,7 +10,7 @@ import fs from "fs/promises";
 import path from "path";
 
 // Placeholder function for PDF parsing - will be implemented when pdf-parse is available
-function pdfParse(buffer: Buffer): Promise<{ text: string }> {
+function pdfParse(_buffer: Buffer): Promise<{ text: string }> {
   return Promise.resolve({ text: "PDF parsing temporarily disabled due to compatibility issues." });
 }
 
