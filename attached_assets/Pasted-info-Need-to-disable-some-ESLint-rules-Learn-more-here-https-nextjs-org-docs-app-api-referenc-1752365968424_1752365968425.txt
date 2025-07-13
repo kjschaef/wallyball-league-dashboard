@@ -1,0 +1,19 @@
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+Failed to compile.
+./lib/mcp-server.ts:343:87
+Type error: No overload matches this call.
+  Overload 1 of 3, '(callbackfn: (previousValue: { name: string; winPercentage: number; record: { totalGames: number; wins: number; losses: number; }; streak: { count: number; type: string; }; inactivityPenalty?: number | undefined; }, currentValue: { ...; }, currentIndex: number, array: { ...; }[]) => { ...; }, initialValue: { ...; }): { ...; }', gave the following error.
+    Type '{ name: string; winPercentage: number; record: { totalGames: number; wins: number; losses: number; }; streak: { count: number; type: string; }; inactivityPenalty?: number | undefined; } | null' is not assignable to type '{ name: string; winPercentage: number; record: { totalGames: number; wins: number; losses: number; }; streak: { count: number; type: string; }; inactivityPenalty?: number | undefined; }'.
+      Type 'null' is not assignable to type '{ name: string; winPercentage: number; record: { totalGames: number; wins: number; losses: number; }; streak: { count: number; type: string; }; inactivityPenalty?: number | undefined; }'.
+  Overload 2 of 3, '(callbackfn: (previousValue: null, currentValue: { name: string; winPercentage: number; record: { totalGames: number; wins: number; losses: number; }; streak: { count: number; type: string; }; inactivityPenalty?: number | undefined; }, currentIndex: number, array: { ...; }[]) => null, initialValue: null): null', gave the following error.
+    Type '{ name: string; winPercentage: number; record: { totalGames: number; wins: number; losses: number; }; streak: { count: number; type: string; }; inactivityPenalty?: number | undefined; } | null' is not assignable to type 'null'.
+      Type '{ name: string; winPercentage: number; record: { totalGames: number; wins: number; losses: number; }; streak: { count: number; type: string; }; inactivityPenalty?: number | undefined; }' is not assignable to type 'null'.
+  341 | • Most experienced: ${players.reduce((prev, curr) => (prev.record.totalGames > curr.record.totalGames ? prev : curr)).name}
+  342 | • Highest win rate: ${players.reduce((prev, curr) => (prev.winPercentage > curr.winPercentage ? prev : curr)).name}
+> 343 | • Best form: ${players.filter((p) => p.streak.type === "wins").reduce((prev, curr) => ((prev?.streak.count || 0) > curr.streak.count ? prev : curr), null)?.name || "None on winning streak"}`;
+      |                                                                                       ^
+  344 |   }
+  345 |
+  346 |   async run() {
+Next.js build worker exited with code: 1 and signal: null
+Error: Command "npm run build" exited with 1
