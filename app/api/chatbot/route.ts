@@ -3,6 +3,7 @@ import {
   analyzePlayerPerformance,
   suggestTeamMatchups,
   queryWallyballRules,
+  PlayerStats,
 } from '../../lib/openai';
 
 interface ChatRequest {
