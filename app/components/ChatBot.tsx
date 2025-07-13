@@ -50,7 +50,7 @@ interface ChatBotProps {
 
 export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [chatStatus, setChatStatus] = useState<any>(null);
