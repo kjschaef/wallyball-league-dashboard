@@ -248,7 +248,7 @@ Respond in JSON format:
       ).filter(Boolean) || [];
 
       // Validate no duplicate players between teams
-      const allPlayerIds = [...teamOne.map(p => p.id), ...teamTwo.map(p => p.id)];
+      const allPlayerIds = [...teamOne.map((p: PlayerStats) => p.id), ...teamTwo.map((p: PlayerStats) => p.id)];
       const hasDuplicates = allPlayerIds.length !== new Set(allPlayerIds).size;
       
       if (hasDuplicates || teamOne.length !== team1Size || teamTwo.length !== team2Size) {
