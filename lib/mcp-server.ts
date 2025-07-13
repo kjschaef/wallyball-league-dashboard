@@ -196,8 +196,9 @@ export class WallyballRulesMCPServer {
   ) {
     try {
       // Fetch player stats from the API
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5000"}/api/player-stats`,
+        `${baseUrl}/api/player-stats`,
       );
       const allPlayers = await response.json();
 
