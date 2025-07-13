@@ -1,6 +1,6 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 interface FeedbackRequest {
   messageIndex: number;
@@ -25,22 +25,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email credentials are configured
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-      console.error('Email credentials not configured');
+    // Check if AWS SES credentials are configured
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_REGION) {
+      console.error('AWS SES credentials not configured');
       return NextResponse.json(
         { error: 'Email service not configured' },
         { status: 500 }
       );
     }
 
-    // Create email transporter
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD // Use App Password for Gmail
-      }
+    // Create SES client
+    const sesClient = new SESClient({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
     });
 
     // Format chat transcript for email
@@ -70,12 +70,37 @@ Timestamp: ${new Date().toISOString()}
     `;
 
     // Send email
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: 'schaefer.keith@gmail.com',
-      subject: emailSubject,
-      text: emailBody
+    const sendEmailCommand = new SendEmailCommand({
+      Destination: {
+        ToAddresses: ['schaefer.keith@gmail.com'],
+      },
+      Message: {
+        Body: {
+          Text: {
+            Data: emailBody,
+          },
+        },
+        Subject: {
+          Data: emailSubject,
+        },
+      },
+      Source: 'schaefer.keith@gmail.com', // Replace with your verified SES email
     });
+
+    try {
+      const sendResult = await sesClient.send(sendEmailCommand);
+      console.log("Email sent successfully:", sendResult);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to send email using SES',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

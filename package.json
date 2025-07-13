@@ -13,6 +13,7 @@
     "lib": "lib"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.844.0",
     "@modelcontextprotocol/sdk": "^1.13.1",
     "@neondatabase/serverless": "^1.0.1",
     "@tanstack/react-query": "^5.77.2",
@@ -419,6 +420,7 @@
     "node-int64": "^0.4.0",
     "node-releases": "^2.0.19",
     "nodemailer": "^7.0.5",
+    "nodemailer-ses-transport": "^1.5.1",
     "normalize-path": "^3.0.0",
     "normalize-range": "^0.1.2",
     "npm-run-path": "^4.0.1",
