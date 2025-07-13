@@ -16,11 +16,22 @@ interface ChatRequest {
 
 async function fetchPlayerStats(): Promise<PlayerStats[]> {
   try {
-    // For server-side fetches in production, use the Vercel URL or construct a local URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
-                   (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'http://localhost:5000');
-    const response = await fetch(`${baseUrl}/api/player-stats`, {
+    // Construct the base URL properly for different environments
+    let baseUrl: string;
+    
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+      baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    } else if (process.env.VERCEL_URL) {
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    } else {
+      // Default to localhost for development
+      baseUrl = 'http://localhost:5000';
+    }
+    
+    const url = `${baseUrl}/api/player-stats`;
+    console.log('Fetching player stats from:', url);
+    
+    const response = await fetch(url, {
       cache: 'no-store'
     });
 

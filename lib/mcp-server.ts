@@ -196,12 +196,21 @@ export class WallyballRulesMCPServer {
   ) {
     try {
       // Fetch player stats from the API
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
-                     (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'http://localhost:5000');
-      const response = await fetch(
-        `${baseUrl}/api/player-stats`,
-      );
+      let baseUrl: string;
+      
+      if (process.env.NEXT_PUBLIC_APP_URL) {
+        baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+      } else if (process.env.VERCEL_URL) {
+        baseUrl = `https://${process.env.VERCEL_URL}`;
+      } else {
+        // Default to localhost for development
+        baseUrl = 'http://localhost:5000';
+      }
+      
+      const url = `${baseUrl}/api/player-stats`;
+      console.log('MCP server fetching from:', url);
+      
+      const response = await fetch(url);
       const allPlayers = await response.json();
 
       // Filter to selected players
