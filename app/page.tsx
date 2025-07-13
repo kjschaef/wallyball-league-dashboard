@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   const [showTeamSuggestionModal, setShowTeamSuggestionModal] = useState(false);
-  const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | null>(null);
+  const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | undefined>(undefined);
 
   const handleRecordMatch = async (matchData: MatchData) => {
     try {
@@ -232,7 +232,7 @@ export default function DashboardPage() {
         isOpen={showRecordMatchModal}
         onClose={() => {
           setShowRecordMatchModal(false);
-          setSuggestedTeams(null); // Clear suggested teams when modal closes
+          setSuggestedTeams(undefined); // Clear suggested teams when modal closes
         }}
         onSubmit={handleRecordMatch}
         suggestedTeams={suggestedTeams}
