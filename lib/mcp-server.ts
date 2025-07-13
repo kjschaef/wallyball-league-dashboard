@@ -200,6 +200,9 @@ export class WallyballRulesMCPServer {
       
       if (process.env.NEXT_PUBLIC_APP_URL) {
         baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+      } else if (process.env.NODE_ENV === 'production') {
+        // For production deployments, use the actual deployment URL
+        baseUrl = 'https://wallyball-league-dashboard.vercel.app';
       } else if (process.env.VERCEL_URL) {
         baseUrl = `https://${process.env.VERCEL_URL}`;
       } else {
