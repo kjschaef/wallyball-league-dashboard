@@ -1,0 +1,69 @@
+[20:02:43.814] Running build in Washington, D.C., USA (East) – iad1
+[20:02:43.815] Build machine configuration: 2 cores, 8 GB
+[20:02:43.832] Cloning github.com/kjschaef/wallyball-league-dashboard (Branch: main, Commit: 1caac16)
+[20:02:44.432] Cloning completed: 600.000ms
+[20:02:47.098] Restored build cache from previous deployment (DvBMuekhJo4DYVtgM8gYP9vXPSr9)
+[20:02:47.950] Running "vercel build"
+[20:02:48.376] Vercel CLI 44.3.0
+[20:02:48.730] Installing dependencies...
+[20:02:54.057] 
+[20:02:54.057] added 116 packages in 5s
+[20:02:54.058] 
+[20:02:54.058] 274 packages are looking for funding
+[20:02:54.058]   run `npm fund` for details
+[20:02:54.096] Detected Next.js version: 15.3.2
+[20:02:54.103] Running "npm run build"
+[20:02:54.214] 
+[20:02:54.214] > volleyball-league-management-next@0.1.0 build
+[20:02:54.215] > next build
+[20:02:54.215] 
+[20:02:54.959]    ▲ Next.js 15.3.2
+[20:02:54.959] 
+[20:02:55.029]    Creating an optimized production build ...
+[20:03:19.472]  ✓ Compiled successfully in 21.0s
+[20:03:19.476]    Linting and checking validity of types ...
+[20:03:33.658] 
+[20:03:33.659] Failed to compile.
+[20:03:33.659] 
+[20:03:33.660] ./app/api/chatbot/route.ts
+[20:03:33.660] 56:25  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.660] 
+[20:03:33.660] ./app/components/ChatBot.tsx
+[20:03:33.660] 17:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.660] 51:27  Warning: 'className' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+[20:03:33.660] 56:48  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.660] 82:6  Warning: React Hook useEffect has a missing dependency: 'chatStatus'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+[20:03:33.660] 434:10  Error: 'DialogTrigger' is not defined.  react/jsx-no-undef
+[20:03:33.660] 443:10  Error: 'DialogHeader' is not defined.  react/jsx-no-undef
+[20:03:33.660] 556:10  Error: 'DialogHeader' is not defined.  react/jsx-no-undef
+[20:03:33.660] 638:10  Error: 'DialogHeader' is not defined.  react/jsx-no-undef
+[20:03:33.660] 
+[20:03:33.660] ./app/components/PerformanceTrend.tsx
+[20:03:33.660] 77:44  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.661] 90:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.661] 92:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.661] 190:26  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+[20:03:33.661] 203:26  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+[20:03:33.661] 
+[20:03:33.661] ./app/components/PlayerGrid.tsx
+[20:03:33.661] 75:13  Warning: Visible, non-interactive elements with click handlers must have at least one keyboard listener.  jsx-a11y/click-events-have-key-events
+[20:03:33.661] 75:13  Warning: Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element.  jsx-a11y/no-static-element-interactions
+[20:03:33.661] 
+[20:03:33.661] ./app/components/WinPercentageRankings.tsx
+[20:03:33.661] 71:52  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.661] 99:60  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.662] 135:9  Warning: 'CustomTooltip' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+[20:03:33.662] 
+[20:03:33.662] ./app/components/ui/textarea.tsx
+[20:03:33.662] 6:18  Error: An interface declaring no members is equivalent to its supertype.  @typescript-eslint/no-empty-object-type
+[20:03:33.662] 
+[20:03:33.662] ./app/lib/openai.ts
+[20:03:33.662] 241:53  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+[20:03:33.662] 
+[20:03:33.662] ./lib/mcp-server.ts
+[20:03:33.662] 13:19  Warning: 'buffer' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+[20:03:33.662] 
+[20:03:33.662] info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[20:03:33.711] Error: Command "npm run build" exited with 1
+[20:03:34.096] 
+[20:03:37.418] Exiting build container
