@@ -340,7 +340,12 @@ ${players
 Key Insights:
 • Most experienced: ${players.reduce((prev, curr) => (prev.record.totalGames > curr.record.totalGames ? prev : curr)).name}
 • Highest win rate: ${players.reduce((prev, curr) => (prev.winPercentage > curr.winPercentage ? prev : curr)).name}
-• Best form: ${players.filter((p) => p.streak.type === "wins").reduce((prev, curr) => ((prev?.streak.count || 0) > curr.streak.count ? prev : curr), null)?.name || "None on winning streak"}`;
+• Best form: ${(() => {
+    const winningStreakPlayers = players.filter((p) => p.streak.type === "wins");
+    if (winningStreakPlayers.length === 0) return "None on winning streak";
+    const bestFormPlayer = winningStreakPlayers.reduce((prev, curr) => (prev.streak.count > curr.streak.count ? prev : curr));
+    return bestFormPlayer.name;
+  })()}`;
   }
 
   async run() {
