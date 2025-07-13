@@ -48,7 +48,7 @@ interface ChatBotProps {
   onUseMatchup?: (teamOne: number[], teamTwo: number[]) => void;
 }
 
-export function ChatBot({ onUseMatchup }: ChatBotProps) {
+export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
