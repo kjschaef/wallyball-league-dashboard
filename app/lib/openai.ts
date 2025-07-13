@@ -133,8 +133,7 @@ Guidelines:
 }
 
 export async function suggestTeamMatchups(
-  availablePlayers: PlayerStats[],
-  teamSize?: number
+  availablePlayers: PlayerStats[]
 ): Promise<TeamSuggestion[]> {
   try {
     if (availablePlayers.length < 4) {

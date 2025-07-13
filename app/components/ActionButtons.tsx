@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, UserPlus, Trophy, Brain } from 'lucide-react';
+import { Plus, UserPlus, Trophy, Brain } from 'lucide-react';
 
 interface ActionButtonsProps {
   onRecordMatch: () => void;
@@ -46,7 +46,7 @@ export function ActionButtons({ onRecordMatch, onAddPlayer, onTeamSuggestion }: 
           </button>
         </div>
       )}
-      
+
       <Button
         onClick={() => setIsOpen(!isOpen)}
         className="h-14 w-14 rounded-full shadow-lg bg-gray-900 hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"

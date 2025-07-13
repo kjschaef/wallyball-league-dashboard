@@ -1,3 +1,4 @@
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -7,7 +8,16 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs/promises";
 import path from "path";
-// import pdfParse from 'pdf-parse'; // Temporarily disabled due to compatibility issues
+
+// Placeholder function for PDF parsing - will be implemented when pdf-parse is available
+function pdfParse(buffer: Buffer): Promise<{ text: string }> {
+  return Promise.resolve({ text: "PDF parsing temporarily disabled due to compatibility issues." });
+}
+
+// Simple path resolver
+function resolvePath(filePath: string): string {
+  return path.resolve(filePath);
+}
 
 export class WallyballRulesMCPServer {
   private server: Server;
@@ -34,8 +44,9 @@ export class WallyballRulesMCPServer {
     try {
       const pdfPath = path.join(process.cwd(), "Wallyball_Rules_2012.pdf");
       const safePath = resolvePath(pdfPath);
-      let pdfDataSource = await fs.readFile(safePath);
+      const pdfDataSource = await fs.readFile(safePath);
       const pdfContent = await pdfParse(pdfDataSource);
+      this.pdfContent = pdfContent.text;
 
       console.log("Basic Wallyball rules loaded");
     } catch (error) {
@@ -191,7 +202,7 @@ export class WallyballRulesMCPServer {
       const allPlayers = await response.json();
 
       // Filter to selected players
-      const selectedPlayers = allPlayers.filter((p: any) =>
+      const selectedPlayers = allPlayers.filter((p: { id: number }) =>
         playerIds.includes(p.id),
       );
 
@@ -232,7 +243,13 @@ export class WallyballRulesMCPServer {
     }
   }
 
-  private analyzeTeamBalance(players: any[]): string {
+  private analyzeTeamBalance(players: Array<{
+    name: string;
+    winPercentage: number;
+    record: { totalGames: number };
+    streak: { count: number; type: string };
+    inactivityPenalty?: number;
+  }>): string {
     const analysis = players.map((p) => ({
       name: p.name,
       winPercentage: p.winPercentage,
@@ -270,7 +287,10 @@ Balance Factors:
     }`;
   }
 
-  private analyzeMatchupOptimization(players: any[]): string {
+  private analyzeMatchupOptimization(players: Array<{
+    name: string;
+    winPercentage: number;
+  }>): string {
     const sortedByWinRate = [...players].sort(
       (a, b) => b.winPercentage - a.winPercentage,
     );
@@ -298,7 +318,13 @@ Optimal Pairing Strategy:
 • Rotate partnerships for variety`;
   }
 
-  private analyzePlayerComparison(players: any[]): string {
+  private analyzePlayerComparison(players: Array<{
+    name: string;
+    winPercentage: number;
+    record: { totalGames: number; wins: number; losses: number };
+    streak: { count: number; type: string };
+    inactivityPenalty?: number;
+  }>): string {
     return `Player Comparison (${players.length} players):
 
 ${players

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Users, TrendingUp, Clock, Award } from 'lucide-react';
+import { Loader2, Users, TrendingUp, Award } from 'lucide-react';
 import { PlayerGrid } from './PlayerGrid';
 
 interface Player {
@@ -133,13 +133,13 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
             AI Team Suggestions
           </DialogTitle>
         </DialogHeader>
-        
+
         {step === 'select' && (
           <div className="space-y-6">
             <div className="text-sm text-gray-600">
               Select the players who are available today. The AI will create balanced teams based on their performance statistics.
             </div>
-            
+
             <PlayerGrid
               players={players.map(p => ({
                 id: p.id,
@@ -154,7 +154,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
               title="Available Players"
               multiSelect={true}
             />
-            
+
             <div className="flex justify-between items-center pt-4 border-t">
               <div className="text-sm text-gray-600">
                 Selected: {selectedPlayers.length} players
@@ -162,7 +162,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                   <span className="text-green-600 ml-2">✓ Ready for team suggestions</span>
                 )}
               </div>
-              
+
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose}>
                   Cancel
@@ -184,7 +184,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
             </div>
           </div>
         )}
-        
+
         {step === 'suggest' && teamSuggestion && (
           <div className="space-y-6">
             <div className="text-center">
@@ -200,7 +200,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader className="pb-3">
@@ -220,7 +220,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-green-600">Team 2</CardTitle>
@@ -240,17 +240,17 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                 </CardContent>
               </Card>
             </div>
-            
+
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium mb-2">AI Analysis:</h4>
               <p className="text-sm text-gray-700">{teamSuggestion.reasoning}</p>
             </div>
-            
+
             <div className="flex justify-between pt-4 border-t">
               <Button variant="outline" onClick={() => setStep('select')}>
                 Back to Selection
               </Button>
-              
+
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose}>
                   Cancel

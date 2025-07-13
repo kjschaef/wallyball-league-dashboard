@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzePlayerPerformance, suggestTeamMatchups, generateMatchAnalysis, queryWallyballRules, PlayerStats } from '../../lib/openai';
+import {
+  analyzePlayerPerformance,
+  suggestTeamMatchups,
+  queryWallyballRules,
+} from '../../lib/openai';
 
 interface ChatRequest {
   message: string;
@@ -14,11 +18,11 @@ async function fetchPlayerStats(): Promise<PlayerStats[]> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/api/player-stats`, {
       cache: 'no-store'
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch player stats');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error fetching player stats:', error);
@@ -29,7 +33,7 @@ async function fetchPlayerStats(): Promise<PlayerStats[]> {
 export async function POST(request: NextRequest) {
   try {
     const { message, context }: ChatRequest = await request.json();
-    
+
     if (!message?.trim()) {
       return NextResponse.json(
         { error: 'Message is required' },
@@ -39,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch current player statistics
     const allPlayers = await fetchPlayerStats();
-    
+
     if (allPlayers.length === 0) {
       return NextResponse.json({
         response: "I don't have access to any player data right now. Please make sure there are players in the system and try again.",
@@ -53,24 +57,24 @@ export async function POST(request: NextRequest) {
 
     // Determine intent and handle accordingly
     const lowerMessage = message.toLowerCase();
-    
+
     // Check for team suggestions first (higher priority)
     if (lowerMessage.includes('team') && (lowerMessage.includes('suggest') || lowerMessage.includes('matchup') || lowerMessage.includes('who should play'))) {
       // Team suggestion request
       const availablePlayers = context?.players 
         ? allPlayers.filter(p => context.players!.includes(p.id))
         : allPlayers;
-      
+
       if (availablePlayers.length < 4) {
         response = "I need at least 4 players to suggest balanced teams. Please let me know which players are available today.";
         responseType = 'error';
       } else {
         const teamSuggestions = await suggestTeamMatchups(availablePlayers);
-        
+
         response = `Here are my suggested team matchups for multiple matches:\n\n${teamSuggestions.map((suggestion, index) => 
           `**${suggestion.scenario || `Matchup ${index + 1}`}**\n**Team 1:** ${suggestion.teamOne?.map(p => p?.name).filter(Boolean).join(', ') || 'Team assignment failed'}\n**Team 2:** ${suggestion.teamTwo?.map(p => p?.name).filter(Boolean).join(', ') || 'Team assignment failed'}\n**Balance Score:** ${suggestion.balanceScore || 0}/100\n**Expected Win Probability:** Team 1 has a ${suggestion.expectedWinProbability || 50}% chance\n**Reasoning:** ${suggestion.reasoning || 'No reasoning provided'}`
         ).join('\n\n---\n\n')}`;
-        
+
         responseType = 'team_suggestion';
         additionalData = teamSuggestions;
       }
@@ -81,7 +85,7 @@ export async function POST(request: NextRequest) {
       // Check for rules queries
       const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game', 'scoring', 'boundary', 'rotation'];
       const isRulesQuery = rulesKeywords.some(keyword => lowerMessage.includes(keyword));
-      
+
       if (isRulesQuery) {
         // Rules query
         response = await queryWallyballRules(message);
@@ -117,7 +121,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const playerStats = await fetchPlayerStats();
-    
+
     return NextResponse.json({
       status: 'ready',
       playerCount: playerStats.length,
