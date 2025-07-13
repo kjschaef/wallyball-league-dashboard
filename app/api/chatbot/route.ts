@@ -35,14 +35,21 @@ async function fetchPlayerStats(): Promise<PlayerStats[]> {
       cache: 'no-store'
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
-      throw new Error('Failed to fetch player stats');
+      const errorText = await response.text();
+      console.error('Response error:', errorText);
+      throw new Error(`Failed to fetch player stats: ${response.status} ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('Successfully fetched player stats:', data.length, 'players');
+    return data;
   } catch (error) {
     console.error('Error fetching player stats:', error);
-    return [];
+    throw new Error(`Failed to fetch player stats`);
   }
 }
 

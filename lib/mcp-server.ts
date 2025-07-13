@@ -211,6 +211,12 @@ export class WallyballRulesMCPServer {
       console.log('MCP server fetching from:', url);
       
       const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error('MCP fetch error:', response.status, response.statusText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const allPlayers = await response.json();
 
       // Filter to selected players
