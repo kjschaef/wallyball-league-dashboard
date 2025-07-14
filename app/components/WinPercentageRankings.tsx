@@ -132,31 +132,6 @@ export function WinPercentageRankings() {
     return [value, name];
   };
 
-  const CustomTooltip = ({ active, payload, label }: {
-    active?: boolean;
-    payload?: Array<{
-      value: number;
-      dataKey: string;
-      color: string;
-    }>;
-    label?: string;
-  }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="p-2 bg-white border border-gray-300 rounded-md shadow-md">
-          <p className="text-sm font-semibold">{`${label}`}</p>
-          {payload.map((item, index) => (
-            <p key={`tooltip-item-${index}`} className="text-xs">
-              {`${item.dataKey}: ${formatTooltipContent(item.value, item.dataKey)[0]}`}
-            </p>
-          ))}
-        </div>
-      );
-    }
-
-    return null;
-  };
-
   if (loading) {
     return <div className="flex justify-center py-10">Loading rankings...</div>;
   }

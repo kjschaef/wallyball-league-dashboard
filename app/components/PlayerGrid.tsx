@@ -55,7 +55,7 @@ export function PlayerGrid({
         {players.map((player) => {
           const isSelected = selectedPlayers.includes(player.id);
           const canSelect = !maxPlayers || selectedPlayers.length < maxPlayers || isSelected || !multiSelect;
-          
+
           const getWinPercentageColor = (percentage?: number) => {
             if (!percentage) return 'text-gray-500';
             if (percentage >= 50) return 'text-green-600';
@@ -70,7 +70,7 @@ export function PlayerGrid({
             }
             return streak.count >= 3 ? 'text-red-600' : 'text-red-500';
           };
-          
+
           return (
             <div
               key={player.id}
@@ -91,7 +91,7 @@ export function PlayerGrid({
                   </div>
                 )}
               </div>
-              
+
               {(player.record || player.streak) && (
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   {player.record && (
@@ -104,7 +104,7 @@ export function PlayerGrid({
                   )}
                 </div>
               )}
-              
+
               {player.inactivityPenalty && player.inactivityPenalty > 0 && (
                 <div className="text-xs text-orange-600 mt-1">
                   -{player.inactivityPenalty}% inactivity
