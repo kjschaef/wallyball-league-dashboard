@@ -56,7 +56,7 @@ export interface PlayerStats {
     wins: number;
     losses: number;
     totalGames: number;
-    
+
   };
   winPercentage: number;
   totalPlayingTime: number;
@@ -242,11 +242,11 @@ Respond in JSON format:
     const matchups = (result.matchups?.map((matchup: any) => {
       const teamOne = (matchup.teamOne?.map((name: string) => 
         availablePlayers.find(p => p.name === name)
-      ).filter((p): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
+      ).filter((p: PlayerStats | undefined): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
 
       const teamTwo = (matchup.teamTwo?.map((name: string) => 
         availablePlayers.find(p => p.name === name)
-      ).filter((p): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
+      ).filter((p: PlayerStats | undefined): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
 
       // Validate no duplicate players between teams
       const allPlayerIds = [...teamOne.map(p => p.id), ...teamTwo.map(p => p.id)];
