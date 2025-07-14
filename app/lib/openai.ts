@@ -238,7 +238,7 @@ Respond in JSON format:
     const result = JSON.parse(response.choices[0].message.content || '{}');
     
     // Map player names back to PlayerStats objects and validate
-    const matchups = result.matchups?.map((matchup: any) => {
+    const matchups = result.matchups?.map((matchup: { scenario?: string; teamOne?: string[]; teamTwo?: string[]; balanceScore?: number; expectedWinProbability?: number; reasoning?: string }) => {
       const teamOne = matchup.teamOne?.map((name: string) => 
         availablePlayers.find(p => p.name === name)
       ).filter(Boolean) || [];
