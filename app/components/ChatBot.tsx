@@ -647,7 +647,7 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
             )}
             {feedbackDialog.type === 'positive' ? 'Positive Feedback' : 'Feedback for Improvement'}
           </DialogTitle>
-        </DialogHeader>logHeader>
+        </DialogHeader>
 
         <div className="space-y-4">
           <div id="feedback-description" className="text-sm text-gray-600">
