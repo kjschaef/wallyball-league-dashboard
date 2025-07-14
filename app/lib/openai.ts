@@ -56,6 +56,7 @@ export interface PlayerStats {
     wins: number;
     losses: number;
     totalGames: number;
+    
   };
   winPercentage: number;
   totalPlayingTime: number;
@@ -93,7 +94,7 @@ export async function analyzePlayerPerformance(
     let rulesContext = '';
     const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game'];
     const isRulesQuery = rulesKeywords.some(keyword => query.toLowerCase().includes(keyword));
-    
+
     if (isRulesQuery) {
       const rules = await searchWallyballRules(query);
       rulesContext = `\n\nRelevant Wallyball Rules:\n${rules}`;
@@ -105,7 +106,7 @@ export async function analyzePlayerPerformance(
         {
           role: "system",
           content: `You are a wallyball performance analyst with access to official rules. Analyze player statistics and provide insights.
-          
+
 Current player data: ${JSON.stringify(playerSummary, null, 2)}${rulesContext}
 
 Guidelines:
@@ -156,7 +157,7 @@ export async function suggestTeamMatchups(
     }
 
     const playerIds = availablePlayers.map(p => p.id);
-    
+
     // Get MCP analysis for the selected players
     const mcpAnalysis = await analyzePlayersWithMCP(playerIds, 'matchup_optimization');
 
@@ -236,21 +237,20 @@ Respond in JSON format:
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
-    
+
     // Map player names back to PlayerStats objects and validate
-    const matchups = result.matchups?.map((matchup: { scenario?: string; teamOne?: string[]; teamTwo?: string[]; balanceScore?: number; expectedWinProbability?: number; reasoning?: string }) => {
-      const teamOne = matchup.teamOne?.map((name: string) => 
+    const teamOne = (matchup.teamOne?.map((name: string) => 
         availablePlayers.find(p => p.name === name)
-      ).filter(Boolean) || [];
-      
-      const teamTwo = matchup.teamTwo?.map((name: string) => 
+      ).filter((p): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
+
+      const teamTwo = (matchup.teamTwo?.map((name: string) => 
         availablePlayers.find(p => p.name === name)
-      ).filter(Boolean) || [];
+      ).filter((p): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
 
       // Validate no duplicate players between teams
-      const allPlayerIds = [...teamOne.map((p: PlayerStats) => p.id), ...teamTwo.map((p: PlayerStats) => p.id)];
+      const allPlayerIds = [...teamOne.map(p => p.id), ...teamTwo.map(p => p.id)];
       const hasDuplicates = allPlayerIds.length !== new Set(allPlayerIds).size;
-      
+
       if (hasDuplicates || teamOne.length !== team1Size || teamTwo.length !== team2Size) {
         // Return fallback if validation fails
         return createFallbackMatchup(availablePlayers, team1Size, team2Size);
@@ -267,7 +267,7 @@ Respond in JSON format:
     }) || [];
 
     return matchups.length > 0 ? matchups : [createFallbackMatchup(availablePlayers, team1Size, team2Size)];
-    
+
   } catch (error) {
     console.error('Error suggesting team matchups:', error);
     return [createFallbackMatchup(availablePlayers)];
@@ -277,7 +277,7 @@ Respond in JSON format:
 function createFallbackMatchup(availablePlayers: PlayerStats[], team1Size?: number, team2Size?: number): TeamSuggestion {
   // Determine team sizes if not provided
   let actualTeam1Size: number, actualTeam2Size: number;
-  
+
   if (team1Size && team2Size) {
     actualTeam1Size = team1Size;
     actualTeam2Size = team2Size;
@@ -297,7 +297,7 @@ function createFallbackMatchup(availablePlayers: PlayerStats[], team1Size?: numb
   const sortedPlayers = [...availablePlayers].sort((a, b) => b.winPercentage - a.winPercentage);
   const teamOne = [];
   const teamTwo = [];
-  
+
   // Snake draft pattern for better balance
   let pickForTeamOne = true;
   for (let i = 0; i < availablePlayers.length; i++) {
@@ -310,7 +310,7 @@ function createFallbackMatchup(availablePlayers: PlayerStats[], team1Size?: numb
     } else {
       teamTwo.push(sortedPlayers[i]);
     }
-    
+
     // Alternate picks when both teams can still pick
     if (teamOne.length < actualTeam1Size && teamTwo.length < actualTeam2Size) {
       pickForTeamOne = !pickForTeamOne;
@@ -337,7 +337,7 @@ export async function queryWallyballRules(query: string): Promise<string> {
         {
           role: "system",
           content: `You are a Wallyball rules expert with access to the official Wallyball Rules 2012 document. 
-          
+
 Relevant rules section:
 ${relevantRules}
 
@@ -374,7 +374,7 @@ export async function generateMatchAnalysis(
       winPercentage: p.winPercentage,
       streak: p.streak
     }));
-    
+
     const team2Summary = teamTwo.map(p => ({
       name: p.name,
       winPercentage: p.winPercentage,
