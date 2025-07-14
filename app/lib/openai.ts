@@ -239,7 +239,8 @@ Respond in JSON format:
     const result = JSON.parse(response.choices[0].message.content || '{}');
 
     // Map player names back to PlayerStats objects and validate
-    const teamOne = (matchup.teamOne?.map((name: string) => 
+    const matchups = (result.matchups?.map((matchup: any) => {
+      const teamOne = (matchup.teamOne?.map((name: string) => 
         availablePlayers.find(p => p.name === name)
       ).filter((p): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
 
@@ -264,7 +265,7 @@ Respond in JSON format:
         expectedWinProbability: matchup.expectedWinProbability || 50,
         reasoning: matchup.reasoning || "Team formation based on balanced skill levels"
       };
-    }) || [];
+    }) || []);
 
     return matchups.length > 0 ? matchups : [createFallbackMatchup(availablePlayers, team1Size, team2Size)];
 
