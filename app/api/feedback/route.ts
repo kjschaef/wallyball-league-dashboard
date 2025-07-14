@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import formData from 'form-data';
+import Mailgun from 'mailgun.js';
 
 interface FeedbackRequest {
   messageIndex: number;
@@ -25,22 +25,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if AWS SES credentials are configured
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_REGION) {
-      console.error('AWS SES credentials not configured');
+    // Check if Mailgun credentials are configured
+    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+      console.error('Mailgun credentials not configured');
       return NextResponse.json(
         { error: 'Email service not configured' },
         { status: 500 }
       );
     }
 
-    // Create SES client
-    const sesClient = new SESClient({
-      region: process.env.AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
+    // Create Mailgun client
+    const mailgun = new Mailgun(formData);
+    const mg = mailgun.client({
+      username: 'api',
+      key: process.env.MAILGUN_API_KEY,
     });
 
     // Format chat transcript for email
@@ -70,32 +68,20 @@ Timestamp: ${new Date().toISOString()}
     `;
 
     // Send email
-    const sendEmailCommand = new SendEmailCommand({
-      Destination: {
-        ToAddresses: ['schaefer.keith@gmail.com'],
-      },
-      Message: {
-        Body: {
-          Text: {
-            Data: emailBody,
-          },
-        },
-        Subject: {
-          Data: emailSubject,
-        },
-      },
-      Source: 'schaefer.keith@gmail.com', // Replace with your verified SES email
-    });
-
     try {
-      const sendResult = await sesClient.send(sendEmailCommand);
+      const sendResult = await mg.messages.create(process.env.MAILGUN_DOMAIN, {
+        from: `Volleyball Assistant <noreply@${process.env.MAILGUN_DOMAIN}>`,
+        to: ['schaefer.keith@gmail.com'],
+        subject: emailSubject,
+        text: emailBody
+      });
       console.log("Email sent successfully:", sendResult);
     } catch (error) {
       console.error("Error sending email:", error);
       return NextResponse.json(
         {
           success: false,
-          error: 'Failed to send email using SES',
+          error: 'Failed to send email using Mailgun',
           details: error instanceof Error ? error.message : 'Unknown error'
         },
         { status: 500 }
