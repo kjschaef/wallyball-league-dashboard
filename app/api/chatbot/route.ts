@@ -4,7 +4,6 @@ import {
   suggestTeamMatchups,
   queryWallyballRules,
   PlayerStats,
-  TeamSuggestion,
 } from '../../lib/openai';
 
 interface ChatRequest {
@@ -19,7 +18,7 @@ async function fetchPlayerStats(): Promise<PlayerStats[]> {
   try {
     // Construct the base URL properly for different environments
     let baseUrl: string;
-
+    
     if (process.env.NEXT_PUBLIC_APP_URL) {
       baseUrl = process.env.NEXT_PUBLIC_APP_URL;
     } else if (process.env.NODE_ENV === 'production') {
@@ -31,10 +30,10 @@ async function fetchPlayerStats(): Promise<PlayerStats[]> {
       // Default to localhost for development
       baseUrl = 'http://localhost:5000';
     }
-
+    
     const url = `${baseUrl}/api/player-stats`;
     console.log('Fetching player stats from:', url);
-
+    
     const response = await fetch(url, {
       cache: 'no-store'
     });
