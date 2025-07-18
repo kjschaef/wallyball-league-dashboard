@@ -14,7 +14,8 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   type?: string;
-  additionalData?: TeamSuggestion | TeamSuggestion[];
+  additionalData?: TeamSuggestion | TeamSuggestion[] | MatchResult | MatchResult[];
+  imagePreview?: string;
 }
 
 interface Player {
@@ -64,6 +65,10 @@ function isMatchResult(data: any): data is MatchResult {
   return data && typeof data === 'object' && 'matchNumber' in data && 'team1' in data && 'team2' in data;
 }
 
+function isTeamSuggestion(data: any): data is TeamSuggestion {
+  return data && typeof data === 'object' && 'teamOne' in data && 'teamTwo' in data;
+}
+
 export function ChatBot({ onUseMatchup }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -82,6 +87,7 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
   }>({ isOpen: false, messageIndex: -1, type: 'positive' });
   const [feedbackText, setFeedbackText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const logMatch = async (result: MatchResult) => {
     try {
@@ -104,20 +110,43 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected.');
+      return;
+    }
+    console.log('File selected:', file.name);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
 
     const formData = new FormData();
     formData.append('image', file);
 
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: '',
+      timestamp: new Date().toISOString(),
+      imagePreview: imagePreview || '',
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setImagePreview(null);
+
     setIsLoading(true);
 
     try {
+      console.log('Uploading image...');
       const response = await fetch('/api/chatbot/image', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Image upload response:', response);
       const data = await response.json();
+      console.log('Image upload data:', data);
 
       const assistantMessage: ChatMessage = {
         role: 'assistant',
@@ -579,11 +608,16 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
                           {message.content}
                         </div>
                       )}
+                      {message.imagePreview && (
+                        <div className="mt-2">
+                          <img src={message.imagePreview} alt="Uploaded preview" className="max-w-full h-auto" />
+                        </div>
+                      )}
                       {message.type === 'team_suggestion' && message.additionalData && (
-                        Array.isArray(message.additionalData) ? (
+                        Array.isArray(message.additionalData) && message.additionalData.every(isTeamSuggestion) ? (
                           <MultipleTeamSuggestions suggestions={message.additionalData} />
                         ) : (
-                          <TeamSuggestionCard data={message.additionalData} index={0} />
+                          isTeamSuggestion(message.additionalData) && <TeamSuggestionCard data={message.additionalData} index={0} />
                         )
                       )}
                       {message.type === 'match_results' && message.additionalData && (
@@ -667,6 +701,11 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
                 <Send className="h-4 w-4" />
               </Button>
             </div>
+            {imagePreview && (
+              <div className="mt-2">
+                <img src={imagePreview} alt="preview" className="max-w-full h-auto" />
+              </div>
+            )}
             <input
               type="file"
               ref={fileInputRef}
