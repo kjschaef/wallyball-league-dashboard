@@ -70,30 +70,67 @@ export async function GET(request: Request) {
   }
 }
 
+async function getPlayerIdsFromNames(sql: any, playerNames: string[]) {
+  if (playerNames.length === 0) {
+    return [];
+  }
+  const players = await sql`SELECT id FROM players WHERE name IN ${sql(playerNames)}`;
+  return players.map((p: any) => p.id);
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    // Validation for the documented API format
-    if (body.teamOnePlayerOneId === undefined || body.teamTwoPlayerOneId === undefined) {
-      return NextResponse.json(
-        { error: 'At least one player per team is required' },
-        { status: 400 }
-      );
-    }
-
-    if (body.teamOneGamesWon === undefined || body.teamTwoGamesWon === undefined) {
-      return NextResponse.json(
-        { error: 'Game scores are required' },
-        { status: 400 }
-      );
-    }
-
     if (!process.env.DATABASE_URL) {
       throw new Error('Database URL not configured');
     }
     
     const sql = neon(process.env.DATABASE_URL);
+
+    const teamOnePlayerIds: (number | null)[] = [null, null, null];
+    const teamTwoPlayerIds: (number | null)[] = [null, null, null];
+    let teamOneGamesWon: number;
+    let teamTwoGamesWon: number;
+
+    if (body.matchNumber) { // This is a MatchResult from image analysis
+      const team1Ids = await getPlayerIdsFromNames(sql, body.team1.players);
+      const team2Ids = await getPlayerIdsFromNames(sql, body.team2.players);
+
+      for (let i = 0; i < team1Ids.length; i++) {
+        teamOnePlayerIds[i] = team1Ids[i];
+      }
+      for (let i = 0; i < team2Ids.length; i++) {
+        teamTwoPlayerIds[i] = team2Ids[i];
+      }
+      teamOneGamesWon = body.team1.wins;
+      teamTwoGamesWon = body.team2.wins;
+
+    } else { // This is a regular match creation request
+      if (body.teamOnePlayerOneId === undefined || body.teamTwoPlayerOneId === undefined) {
+        return NextResponse.json(
+          { error: 'At least one player per team is required' },
+          { status: 400 }
+        );
+      }
+
+      if (body.teamOneGamesWon === undefined || body.teamTwoGamesWon === undefined) {
+        return NextResponse.json(
+          { error: 'Game scores are required' },
+          { status: 400 }
+        );
+      }
+
+      teamOnePlayerIds[0] = body.teamOnePlayerOneId;
+      teamOnePlayerIds[1] = body.teamOnePlayerTwoId || null;
+      teamOnePlayerIds[2] = body.teamOnePlayerThreeId || null;
+      teamTwoPlayerIds[0] = body.teamTwoPlayerOneId;
+      teamTwoPlayerIds[1] = body.teamTwoPlayerTwoId || null;
+      teamTwoPlayerIds[2] = body.teamTwoPlayerThreeId || null;
+      teamOneGamesWon = body.teamOneGamesWon;
+      teamTwoGamesWon = body.teamTwoGamesWon;
+    }
+
 
     // Create new match in database
     const newMatches = await sql`
@@ -103,9 +140,9 @@ export async function POST(request: Request) {
         team_one_games_won, team_two_games_won, date
       )
       VALUES (
-        ${body.teamOnePlayerOneId}, ${body.teamOnePlayerTwoId || null}, ${body.teamOnePlayerThreeId || null},
-        ${body.teamTwoPlayerOneId}, ${body.teamTwoPlayerTwoId || null}, ${body.teamTwoPlayerThreeId || null},
-        ${body.teamOneGamesWon}, ${body.teamTwoGamesWon}, ${body.date ? new Date(body.date) : new Date()}
+        ${teamOnePlayerIds[0]}, ${teamOnePlayerIds[1]}, ${teamOnePlayerIds[2]},
+        ${teamTwoPlayerIds[0]}, ${teamTwoPlayerIds[1]}, ${teamTwoPlayerIds[2]},
+        ${teamOneGamesWon}, ${teamTwoGamesWon}, ${body.date ? new Date(body.date) : new Date()}
       )
       RETURNING *
     `;

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Upload } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -43,12 +43,28 @@ interface TeamSuggestion {
   reasoning: string;
 }
 
+interface MatchResult {
+  matchNumber: number;
+  team1: {
+    players: string[];
+    wins: number;
+  };
+  team2: {
+    players: string[];
+    wins: number;
+  };
+}
+
 interface ChatBotProps {
   className?: string;
   onUseMatchup?: (teamOne: number[], teamTwo: number[]) => void;
 }
 
-export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
+function isMatchResult(data: any): data is MatchResult {
+  return data && typeof data === 'object' && 'matchNumber' in data && 'team1' in data && 'team2' in data;
+}
+
+export function ChatBot({ onUseMatchup }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -65,6 +81,65 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     type: 'positive' | 'negative';
   }>({ isOpen: false, messageIndex: -1, type: 'positive' });
   const [feedbackText, setFeedbackText] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const logMatch = async (result: MatchResult) => {
+    try {
+      const response = await fetch('/api/matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(result),
+      });
+
+      if (response.ok) {
+        alert(`Match ${result.matchNumber} has been logged successfully!`);
+      } else {
+        alert(`Failed to log match ${result.matchNumber}.`);
+      }
+    } catch (error) {
+      console.error('Failed to log match:', error);
+      alert(`Failed to log match ${result.matchNumber}.`);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chatbot/image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: data.response,
+        timestamp: data.timestamp,
+        type: data.type,
+        additionalData: data.additionalData
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error processing your image. Please try again.',
+        timestamp: new Date().toISOString(),
+        type: 'error'
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -431,6 +506,33 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     </div>
   );
 
+  const MatchResultsCard = ({ result }: { result: MatchResult }) => (
+    <Card className="mt-2 bg-green-50 border-green-200">
+      <CardContent className="p-4">
+        <h4 className="font-semibold text-green-900 mb-3 text-center">Match {result.matchNumber}</h4>
+        <div className="grid grid-cols-2 gap-4 mb-3">
+          <div>
+            <h5 className="font-semibold text-green-900 mb-2">Team 1</h5>
+            <p className="text-sm">{result.team1.players.join(', ')}</p>
+            <p className="text-sm">Wins: {result.team1.wins}</p>
+          </div>
+          <div>
+            <h5 className="font-semibold text-green-900 mb-2">Team 2</h5>
+            <p className="text-sm">{result.team2.players.join(', ')}</p>
+            <p className="text-sm">Wins: {result.team2.wins}</p>
+          </div>
+        </div>
+        <Button
+          className="w-full"
+          variant="outline"
+          onClick={() => logMatch(result)}
+        >
+          Log Match
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -482,6 +584,15 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
                           <MultipleTeamSuggestions suggestions={message.additionalData} />
                         ) : (
                           <TeamSuggestionCard data={message.additionalData} index={0} />
+                        )
+                      )}
+                      {message.type === 'match_results' && message.additionalData && (
+                        Array.isArray(message.additionalData) ? (
+                          message.additionalData.map((result, index) => (
+                            isMatchResult(result) && <MatchResultsCard key={index} result={result} />
+                          ))
+                        ) : (
+                          isMatchResult(message.additionalData) && <MatchResultsCard result={message.additionalData} />
                         )
                       )}
                     </div>
@@ -540,14 +651,29 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
                 disabled={isLoading}
                 className="flex-1"
               />
-              <Button 
-                onClick={sendMessage} 
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={sendMessage}
                 disabled={isLoading || !input.trim()}
                 size="icon"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              className="hidden"
+              accept="image/*"
+            />
           </div>
         </div>
       </DialogContent>
