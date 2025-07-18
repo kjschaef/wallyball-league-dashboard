@@ -167,6 +167,7 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
       }]);
     } finally {
       setIsLoading(false);
+      setImagePreview(null);
     }
   };
 
@@ -610,7 +611,7 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
                       )}
                       {message.imagePreview && (
                         <div className="mt-2">
-                          <img src={message.imagePreview} alt="Uploaded preview" className="max-w-full h-auto" />
+                          <img src={message.imagePreview} alt="Uploaded preview" className="w-24 h-24 object-cover" />
                         </div>
                       )}
                       {message.type === 'team_suggestion' && message.additionalData && (
@@ -703,7 +704,7 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
             </div>
             {imagePreview && (
               <div className="mt-2">
-                <img src={imagePreview} alt="preview" className="max-w-full h-auto" />
+                <img src={imagePreview} alt="preview" className="w-24 h-24 object-cover" />
               </div>
             )}
             <input
