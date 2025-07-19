@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Upload } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Gavel, Flame } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -194,7 +194,7 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
       if (data.status === 'ready') {
         setMessages([{
           role: 'assistant',
-          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players.\n\nI can help you with:\n• Player performance analysis\n• Team matchup suggestions\n• Match predictions\n• Statistical comparisons\n\nTry asking: "Who are the top players?" or "Suggest balanced teams"`,
+          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n• Player performance analysis\n• Team matchup suggestions\n• Answering questions about wallyball rules\n\nFor example, try asking:\n• "Who are the top players?"\n• "Suggest balanced teams for today"\n• "What are the rules for serving?"\n• "Is it legal to touch the net?"`,
           timestamp: new Date().toISOString(),
           type: 'welcome'
         }]);
@@ -470,7 +470,18 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
         disabled={isLoading}
         className="text-xs"
       >
+        <Flame className="w-3 h-3 mr-1" />
         Streaks
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleQuickAction("What are the serving rules?")}
+        disabled={isLoading}
+        className="text-xs"
+      >
+        <Gavel className="w-3 h-3 mr-1" />
+        Wallyball Rules
       </Button>
     </div>
   );

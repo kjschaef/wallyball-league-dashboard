@@ -6,6 +6,9 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'CFA Wallyball League',
   description: 'Track and analyze volleyball player and team performance',
+  icons: {
+    icon: '🏐',
+  },
 };
 
 export default function RootLayout({
