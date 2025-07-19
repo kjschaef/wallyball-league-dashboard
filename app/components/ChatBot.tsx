@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Gavel, Flame, Paperclip } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -65,6 +65,7 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     type: 'positive' | 'negative';
   }>({ isOpen: false, messageIndex: -1, type: 'positive' });
   const [feedbackText, setFeedbackText] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,7 +91,7 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
       if (data.status === 'ready') {
         setMessages([{
           role: 'assistant',
-          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players.\n\nI can help you with:\n• Player performance analysis\n• Team matchup suggestions\n• Match predictions\n• Statistical comparisons\n\nTry asking: "Who are the top players?" or "Suggest balanced teams"`,
+          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n• Player performance analysis\n• Team matchup suggestions\n• Answering questions about wallyball rules\n\nFor example, try asking:\n• "Who are the top players?"\n• "Suggest balanced teams for today"\n• "What are the rules for serving?"\n• "Is it legal to touch the net?"`,
           timestamp: new Date().toISOString(),
           type: 'welcome'
         }]);
@@ -166,6 +167,25 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    // Placeholder for file upload logic. For now, just show an alert.
+    alert(`Selected file: ${file.name}. File upload functionality is a work in progress.`);
+
+    // Reset the input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -366,7 +386,18 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
         disabled={isLoading}
         className="text-xs"
       >
+        <Flame className="w-3 h-3 mr-1" />
         Streaks
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleQuickAction("What are the serving rules?")}
+        disabled={isLoading}
+        className="text-xs"
+      >
+        <Gavel className="w-3 h-3 mr-1" />
+        Wallyball Rules
       </Button>
     </div>
   );
@@ -532,6 +563,15 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
           <div className="border-t p-4">
             {messages.length > 0 && <QuickActions />}
             <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleUploadClick}
+                disabled={isLoading}
+                title="Upload file"
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -547,6 +587,13 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
               >
                 <Send className="h-4 w-4" />
               </Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept="image/png, image/jpeg, image/gif, image/webp"
+              />
             </div>
           </div>
         </div>
