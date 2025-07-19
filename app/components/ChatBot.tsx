@@ -129,11 +129,10 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
       role: 'user',
       content: '',
       timestamp: new Date().toISOString(),
-      imagePreview: imagePreview || '',
+      imagePreview: reader.result as string,
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setImagePreview(null);
 
     setIsLoading(true);
 
