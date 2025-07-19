@@ -14,7 +14,8 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   type?: string;
-  additionalData?: TeamSuggestion | TeamSuggestion[];
+  additionalData?: TeamSuggestion | TeamSuggestion[] | MatchResult | MatchResult[];
+  imagePreview?: string;
 }
 
 interface Player {
@@ -43,12 +44,32 @@ interface TeamSuggestion {
   reasoning: string;
 }
 
+interface MatchResult {
+  matchNumber: number;
+  team1: {
+    players: string[];
+    wins: number;
+  };
+  team2: {
+    players: string[];
+    wins: number;
+  };
+}
+
 interface ChatBotProps {
   className?: string;
   onUseMatchup?: (teamOne: number[], teamTwo: number[]) => void;
 }
 
-export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
+function isMatchResult(data: any): data is MatchResult {
+  return data && typeof data === 'object' && 'matchNumber' in data && 'team1' in data && 'team2' in data;
+}
+
+function isTeamSuggestion(data: any): data is TeamSuggestion {
+  return data && typeof data === 'object' && 'teamOne' in data && 'teamTwo' in data;
+}
+
+export function ChatBot({ onUseMatchup }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -65,6 +86,89 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     type: 'positive' | 'negative';
   }>({ isOpen: false, messageIndex: -1, type: 'positive' });
   const [feedbackText, setFeedbackText] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const logMatch = async (result: MatchResult) => {
+    try {
+      const response = await fetch('/api/matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(result),
+      });
+
+      if (response.ok) {
+        alert(`Match ${result.matchNumber} has been logged successfully!`);
+      } else {
+        alert(`Failed to log match ${result.matchNumber}.`);
+      }
+    } catch (error) {
+      console.error('Failed to log match:', error);
+      alert(`Failed to log match ${result.matchNumber}.`);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      console.log('No file selected.');
+      return;
+    }
+    console.log('File selected:', file.name);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: '',
+      timestamp: new Date().toISOString(),
+      imagePreview: reader.result as string,
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+
+    setIsLoading(true);
+
+    try {
+      console.log('Uploading image...');
+      const response = await fetch('/api/chatbot/image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      console.log('Image upload response:', response);
+      const data = await response.json();
+      console.log('Image upload data:', data);
+
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: data.response,
+        timestamp: data.timestamp,
+        type: data.type,
+        additionalData: data.additionalData
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error processing your image. Please try again.',
+        timestamp: new Date().toISOString(),
+        type: 'error'
+      }]);
+    } finally {
+      setIsLoading(false);
+      setImagePreview(null);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -442,6 +546,33 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     </div>
   );
 
+  const MatchResultsCard = ({ result }: { result: MatchResult }) => (
+    <Card className="mt-2 bg-green-50 border-green-200">
+      <CardContent className="p-4">
+        <h4 className="font-semibold text-green-900 mb-3 text-center">Match {result.matchNumber}</h4>
+        <div className="grid grid-cols-2 gap-4 mb-3">
+          <div>
+            <h5 className="font-semibold text-green-900 mb-2">Team 1</h5>
+            <p className="text-sm">{result.team1.players.join(', ')}</p>
+            <p className="text-sm">Wins: {result.team1.wins}</p>
+          </div>
+          <div>
+            <h5 className="font-semibold text-green-900 mb-2">Team 2</h5>
+            <p className="text-sm">{result.team2.players.join(', ')}</p>
+            <p className="text-sm">Wins: {result.team2.wins}</p>
+          </div>
+        </div>
+        <Button
+          className="w-full"
+          variant="outline"
+          onClick={() => logMatch(result)}
+        >
+          Log Match
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -488,11 +619,25 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
                           {message.content}
                         </div>
                       )}
+                      {message.imagePreview && (
+                        <div className="mt-2">
+                          <img src={message.imagePreview} alt="Uploaded preview" className="w-24 h-24 object-cover" />
+                        </div>
+                      )}
                       {message.type === 'team_suggestion' && message.additionalData && (
-                        Array.isArray(message.additionalData) ? (
+                        Array.isArray(message.additionalData) && message.additionalData.every(isTeamSuggestion) ? (
                           <MultipleTeamSuggestions suggestions={message.additionalData} />
                         ) : (
-                          <TeamSuggestionCard data={message.additionalData} index={0} />
+                          isTeamSuggestion(message.additionalData) && <TeamSuggestionCard data={message.additionalData} index={0} />
+                        )
+                      )}
+                      {message.type === 'match_results' && message.additionalData && (
+                        Array.isArray(message.additionalData) ? (
+                          message.additionalData.map((result, index) => (
+                            isMatchResult(result) && <MatchResultsCard key={index} result={result} />
+                          ))
+                        ) : (
+                          isMatchResult(message.additionalData) && <MatchResultsCard result={message.additionalData} />
                         )
                       )}
                     </div>
@@ -551,14 +696,34 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
                 disabled={isLoading}
                 className="flex-1"
               />
-              <Button 
-                onClick={sendMessage} 
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={sendMessage}
                 disabled={isLoading || !input.trim()}
                 size="icon"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
+            {imagePreview && (
+              <div className="mt-2">
+                <img src={imagePreview} alt="preview" className="w-24 h-24 object-cover" />
+              </div>
+            )}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              className="hidden"
+              accept="image/*"
+            />
           </div>
         </div>
       </DialogContent>

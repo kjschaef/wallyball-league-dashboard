@@ -412,3 +412,43 @@ Provide:
     return "I'm having trouble analyzing the match data right now. Please try again.";
   }
 }
+
+export async function analyzeMatchResultsImage(imageBuffer: Buffer): Promise<any> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.' },
+            {
+              type: 'image_url',
+              image_url: {
+                "url": `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 1000,
+    });
+
+    const content = response.choices[0].message.content;
+    if (content) {
+      // The response from the LLM might be in a markdown block, so we need to extract the JSON from it.
+      const jsonRegex = /```json\n([\s\S]*?)\n```/;
+      const match = content.match(jsonRegex);
+      if (match && match[1]) {
+        return JSON.parse(match[1]);
+      } else {
+        return { error: "Could not parse match results from the image." };
+      }
+    } else {
+      return { error: "Could not extract match results from the image." };
+    }
+  } catch (error) {
+    console.error('Error analyzing match results image:', error);
+    return { error: "I'm having trouble analyzing the image right now. Please try again." };
+  }
+}
