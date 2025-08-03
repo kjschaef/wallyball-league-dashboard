@@ -175,34 +175,37 @@ export async function suggestTeamMatchups(
       messages: [
         {
           role: "system",
-          content: `You are a volleyball team formation expert. Create multiple balanced team matchups from available players.
+          content: `You are a volleyball team formation expert. Create balanced team matchups from available players.
 
 Available players (${availablePlayers.length} total): ${JSON.stringify(playerSummary, null, 2)}
 
 MCP Performance Analysis:
 ${mcpAnalysis}
 
-IMPORTANT RULES:
+CRITICAL REQUIREMENTS:
 - Team 1 must have exactly ${team1Size} players
 - Team 2 must have exactly ${team2Size} players
-- Each player can only be on ONE team (no duplicates between teams)
+- Each player can only be on ONE team (absolutely NO duplicates between teams)
 - Use ALL ${availablePlayers.length} available players across both teams
-- No player should appear on both teams in any scenario
+- NEVER put the same player on both teams
+- Each player ID should appear exactly once across all teams
 
-Your task:
-1. Create 3 different team matchup scenarios
-2. Each scenario should have Team 1 with ${team1Size} players and Team 2 with ${team2Size} players
-3. Balance skill levels for competitive matches
-4. Consider current streaks, performance trends, and inactivity penalties
-5. Provide variety in team combinations for multiple matches
-6. Provide a balance score (0-100, where 50 is perfectly balanced)
-7. Estimate win probability for team one
+Team Formation Goals:
+1. Balance skill levels for competitive matches
+2. Consider current streaks, performance trends, and inactivity penalties
+3. Aim for matches where either team could realistically win
+4. Create unique team combinations (avoid same players together repeatedly)
+5. Provide a balance score (0-100, where 50 is perfectly balanced)
+6. Estimate win probability for team one
+
+IMPORTANT: Return 3 different team scenarios that use DIFFERENT combinations of players. 
+Do NOT suggest the same team composition with players in different orders.
 
 Respond in JSON format:
 {
   "matchups": [
     {
-      "scenario": "Scenario 1: Balanced Experience",
+      "scenario": "Primary: Most Balanced",
       "teamOne": ["player1", "player2"],
       "teamTwo": ["player3", "player4"],
       "balanceScore": 75,
@@ -210,7 +213,7 @@ Respond in JSON format:
       "reasoning": "Detailed explanation of team formation logic"
     },
     {
-      "scenario": "Scenario 2: Streak Focus", 
+      "scenario": "Alternative: Streak-Based", 
       "teamOne": ["player2", "player3"],
       "teamTwo": ["player1", "player4"],
       "balanceScore": 68,
@@ -218,7 +221,7 @@ Respond in JSON format:
       "reasoning": "Teams formed considering current streaks"
     },
     {
-      "scenario": "Scenario 3: Mix & Match",
+      "scenario": "Variant: Mixed Experience",
       "teamOne": ["player1", "player4"],
       "teamTwo": ["player2", "player3"],
       "balanceScore": 71,
@@ -230,7 +233,13 @@ Respond in JSON format:
         },
         {
           role: "user",
-          content: `Create 3 different balanced team matchup scenarios from these ${availablePlayers.length} players. Team 1 needs ${team1Size} players, Team 2 needs ${team2Size} players. Ensure no player appears on both teams.`
+          content: `Create 3 UNIQUE balanced team matchup scenarios from these ${availablePlayers.length} players. Team 1 needs ${team1Size} players, Team 2 needs ${team2Size} players. 
+
+CRITICAL: 
+- NO player can appear on both teams in any scenario
+- Each scenario must use DIFFERENT team combinations (not just reordering the same players)
+- If you suggest Player A and Player B together on Team 1 in scenario 1, don't suggest them together again in scenarios 2 or 3
+- Provide genuine variety in team compositions across all scenarios`
         }
       ],
       response_format: { type: "json_object" },
@@ -410,5 +419,45 @@ Provide:
   } catch (error) {
     console.error('Error generating match analysis:', error);
     return "I'm having trouble analyzing the match data right now. Please try again.";
+  }
+}
+
+export async function analyzeMatchResultsImage(imageBuffer: Buffer): Promise<any> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.' },
+            {
+              type: 'image_url',
+              image_url: {
+                "url": `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 1000,
+    });
+
+    const content = response.choices[0].message.content;
+    if (content) {
+      // The response from the LLM might be in a markdown block, so we need to extract the JSON from it.
+      const jsonRegex = /```json\n([\s\S]*?)\n```/;
+      const match = content.match(jsonRegex);
+      if (match && match[1]) {
+        return JSON.parse(match[1]);
+      } else {
+        return { error: "Could not parse match results from the image." };
+      }
+    } else {
+      return { error: "Could not extract match results from the image." };
+    }
+  } catch (error) {
+    console.error('Error analyzing match results image:', error);
+    return { error: "I'm having trouble analyzing the image right now. Please try again." };
   }
 }

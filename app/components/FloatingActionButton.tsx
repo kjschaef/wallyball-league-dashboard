@@ -7,10 +7,10 @@ import { Plus, Brain } from "lucide-react";
 interface FloatingActionButtonProps {
   onRecordMatch: () => void;
   onAddPlayer?: () => void;
-  onTeamSuggestion?: () => void;
+  onTeamSuggestionClick?: () => void;
 }
 
-export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggestion }: FloatingActionButtonProps) {
+export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggestionClick }: FloatingActionButtonProps) {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const handleOptionClick = (action: 'addPlayer' | 'recordMatch' | 'teamSuggestion') => {
@@ -19,8 +19,8 @@ export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggest
       onAddPlayer();
     } else if (action === 'recordMatch') {
       onRecordMatch();
-    } else if (action === 'teamSuggestion' && onTeamSuggestion) {
-      onTeamSuggestion();
+    } else if (action === 'teamSuggestion' && onTeamSuggestionClick) {
+      onTeamSuggestionClick();
     }
   };
 
@@ -28,13 +28,6 @@ export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggest
     <div className="fixed bottom-6 right-6 z-50">
       {showDropdown && (
         <div className="absolute bottom-16 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[180px] mb-2">
-          <button
-            onClick={() => handleOptionClick('teamSuggestion')}
-            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors duration-150 flex items-center gap-2"
-          >
-            <Brain className="h-4 w-4" />
-            AI Team Suggestions
-          </button>
           <button
             onClick={() => handleOptionClick('addPlayer')}
             className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors duration-150"

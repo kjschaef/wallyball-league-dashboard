@@ -5,16 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Gavel, Flame } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Gavel, Flame, Upload } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
+import { PlayerSelectorDialog } from './PlayerSelectorDialog';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
   type?: string;
-  additionalData?: TeamSuggestion | TeamSuggestion[];
+  additionalData?: TeamSuggestion | TeamSuggestion[] | MatchResult | MatchResult[];
+  imagePreview?: string;
 }
 
 interface Player {
@@ -43,12 +45,32 @@ interface TeamSuggestion {
   reasoning: string;
 }
 
+interface MatchResult {
+  matchNumber: number;
+  team1: {
+    players: string[];
+    wins: number;
+  };
+  team2: {
+    players: string[];
+    wins: number;
+  };
+}
+
 interface ChatBotProps {
   className?: string;
   onUseMatchup?: (teamOne: number[], teamTwo: number[]) => void;
 }
 
-export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
+function isMatchResult(data: any): data is MatchResult {
+  return data && typeof data === 'object' && 'matchNumber' in data && 'team1' in data && 'team2' in data;
+}
+
+function isTeamSuggestion(data: any): data is TeamSuggestion {
+  return data && typeof data === 'object' && 'teamOne' in data && 'teamTwo' in data;
+}
+
+export function ChatBot({ onUseMatchup }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -65,6 +87,89 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     type: 'positive' | 'negative';
   }>({ isOpen: false, messageIndex: -1, type: 'positive' });
   const [feedbackText, setFeedbackText] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const logMatch = async (result: MatchResult) => {
+    try {
+      const response = await fetch('/api/matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(result),
+      });
+
+      if (response.ok) {
+        alert(`Match ${result.matchNumber} has been logged successfully!`);
+      } else {
+        alert(`Failed to log match ${result.matchNumber}.`);
+      }
+    } catch (error) {
+      console.error('Failed to log match:', error);
+      alert(`Failed to log match ${result.matchNumber}.`);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      console.log('No file selected.');
+      return;
+    }
+    console.log('File selected:', file.name);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: '',
+      timestamp: new Date().toISOString(),
+      imagePreview: reader.result as string,
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+
+    setIsLoading(true);
+
+    try {
+      console.log('Uploading image...');
+      const response = await fetch('/api/chatbot/image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      console.log('Image upload response:', response);
+      const data = await response.json();
+      console.log('Image upload data:', data);
+
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: data.response,
+        timestamp: data.timestamp,
+        type: data.type,
+        additionalData: data.additionalData
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error processing your image. Please try again.',
+        timestamp: new Date().toISOString(),
+        type: 'error'
+      }]);
+    } finally {
+      setIsLoading(false);
+      setImagePreview(null);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,7 +195,7 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
       if (data.status === 'ready') {
         setMessages([{
           role: 'assistant',
-          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n• Player performance analysis\n• Team matchup suggestions\n• Answering questions about wallyball rules\n\nFor example, try asking:\n• "Who are the top players?"\n• "Suggest balanced teams for today"\n• "What are the rules for serving?"\n• "Is it legal to touch the net?"`,
+          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n• Player performance analysis\n• Team matchup suggestions\n• Answering questions about wallyball rules\n\nFor example, try asking:\n• "Who are the top players?"\n• "Suggest balanced teams for today"\n• "Is the backwall allowed in regular play?"\n• "Is it legal to touch the net?"`,
           timestamp: new Date().toISOString(),
           type: 'welcome'
         }]);
@@ -372,7 +477,7 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => handleQuickAction("What are the serving rules?")}
+        onClick={() => handleQuickAction("Is the backwall allowed in regular play?")}
         disabled={isLoading}
         className="text-xs"
       >
@@ -442,6 +547,33 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
     </div>
   );
 
+  const MatchResultsCard = ({ result }: { result: MatchResult }) => (
+    <Card className="mt-2 bg-green-50 border-green-200">
+      <CardContent className="p-4">
+        <h4 className="font-semibold text-green-900 mb-3 text-center">Match {result.matchNumber}</h4>
+        <div className="grid grid-cols-2 gap-4 mb-3">
+          <div>
+            <h5 className="font-semibold text-green-900 mb-2">Team 1</h5>
+            <p className="text-sm">{result.team1.players.join(', ')}</p>
+            <p className="text-sm">Wins: {result.team1.wins}</p>
+          </div>
+          <div>
+            <h5 className="font-semibold text-green-900 mb-2">Team 2</h5>
+            <p className="text-sm">{result.team2.players.join(', ')}</p>
+            <p className="text-sm">Wins: {result.team2.wins}</p>
+          </div>
+        </div>
+        <Button
+          className="w-full"
+          variant="outline"
+          onClick={() => logMatch(result)}
+        >
+          Log Match
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -478,21 +610,38 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
                     {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     <div className="flex-1">
                       {message.role === 'assistant' ? (
-                        <div className="text-sm prose prose-sm max-w-none prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-ul:text-inherit prose-ol:text-inherit prose-li:text-inherit">
-                          <ReactMarkdown>
-                            {message.content}
-                          </ReactMarkdown>
-                        </div>
+                        // For team suggestions, only show cards, not the text
+                        message.type === 'team_suggestion' ? null : (
+                          <div className="text-sm prose prose-sm max-w-none prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-ul:text-inherit prose-ol:text-inherit prose-li:text-inherit">
+                            <ReactMarkdown>
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        )
                       ) : (
                         <div className="whitespace-pre-wrap text-sm">
                           {message.content}
                         </div>
                       )}
+                      {message.imagePreview && (
+                        <div className="mt-2">
+                          <img src={message.imagePreview} alt="Uploaded preview" className="w-24 h-24 object-cover" />
+                        </div>
+                      )}
                       {message.type === 'team_suggestion' && message.additionalData && (
-                        Array.isArray(message.additionalData) ? (
+                        Array.isArray(message.additionalData) && message.additionalData.every(isTeamSuggestion) ? (
                           <MultipleTeamSuggestions suggestions={message.additionalData} />
                         ) : (
-                          <TeamSuggestionCard data={message.additionalData} index={0} />
+                          isTeamSuggestion(message.additionalData) && <TeamSuggestionCard data={message.additionalData} index={0} />
+                        )
+                      )}
+                      {message.type === 'match_results' && message.additionalData && (
+                        Array.isArray(message.additionalData) ? (
+                          message.additionalData.map((result, index) => (
+                            isMatchResult(result) && <MatchResultsCard key={index} result={result} />
+                          ))
+                        ) : (
+                          isMatchResult(message.additionalData) && <MatchResultsCard result={message.additionalData} />
                         )
                       )}
                     </div>
@@ -551,95 +700,49 @@ export function ChatBot({ className, onUseMatchup }: ChatBotProps) {
                 disabled={isLoading}
                 className="flex-1"
               />
-              <Button 
-                onClick={sendMessage} 
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={sendMessage}
                 disabled={isLoading || !input.trim()}
                 size="icon"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
+            {imagePreview && (
+              <div className="mt-2">
+                <img src={imagePreview} alt="preview" className="w-24 h-24 object-cover" />
+              </div>
+            )}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              className="hidden"
+              accept="image/*"
+            />
           </div>
         </div>
       </DialogContent>
     </Dialog>
 
-    {/* Player Selector Modal */}
-    <Dialog open={showPlayerSelector} onOpenChange={setShowPlayerSelector}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Select Available Players
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          <div className="text-sm text-gray-600">
-            Select the players who are available today. The AI will create balanced teams from your selection.
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Available Players</h3>
-              <p className="text-sm text-gray-600">
-                Select players ({selectedPlayers.length} selected)
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {allPlayers.map((player) => {
-                const isSelected = selectedPlayers.includes(player.id);
-
-                return (
-                  <button
-                    key={player.id}
-                    type="button"
-                    onClick={() => togglePlayer(player.id)}
-                    className={`
-                      px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                      ${isSelected 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                      }
-                    `}
-                  >
-                    {player.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center pt-4 border-t">
-            <div className="text-sm text-gray-600">
-              Selected: {selectedPlayers.length} players
-              {selectedPlayers.length >= 4 && (
-                <span className="text-green-600 ml-2">✓ Ready for team suggestions</span>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={cancelPlayerSelection}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={generateTeamSuggestionWithPlayers}
-                disabled={selectedPlayers.length < 4 || isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  'Generate Teams'
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <PlayerSelectorDialog
+      isOpen={showPlayerSelector}
+      onOpenChange={setShowPlayerSelector}
+      allPlayers={allPlayers}
+      selectedPlayers={selectedPlayers}
+      onTogglePlayer={togglePlayer}
+      onCancel={cancelPlayerSelection}
+      onGenerateTeams={generateTeamSuggestionWithPlayers}
+      isLoading={isLoading}
+    />
 
     {/* Feedback Dialog */}
     <Dialog open={feedbackDialog.isOpen} onOpenChange={(open) => {

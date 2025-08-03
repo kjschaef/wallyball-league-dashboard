@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverActions: {
-      allowedOrigins: ["*"],
-    },
     typedRoutes: false,
   },
   typescript: {
