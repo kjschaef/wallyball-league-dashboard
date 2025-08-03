@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PerformanceTrend } from './components/PerformanceTrend';
 import { WinPercentageRankings } from './components/WinPercentageRankings';
 import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
-import { TeamSuggestionModal } from './components/TeamSuggestionModal';
-import { ActionButtons } from './components/ActionButtons';
+import { FloatingActionButton } from './components/FloatingActionButton';
+import { PlayerSelectorDialog } from './components/PlayerSelectorDialog';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -22,11 +22,33 @@ interface PlayerData {
   startYear: number | null;
 }
 
+interface Player {
+  id: number;
+  name: string;
+}
+
 export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
-  const [showTeamSuggestionModal, setShowTeamSuggestionModal] = useState(false);
+  const [showPlayerSelectorDialog, setShowPlayerSelectorDialog] = useState(false);
+  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
+  const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
   const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        const response = await fetch('/api/players');
+        const data = await response.json();
+        setAllPlayers(data);
+      } catch (error) {
+        console.error('Failed to fetch players:', error);
+      }
+    };
+    fetchPlayers();
+  }, []);
 
   const handleRecordMatch = async (matchData: MatchData) => {
     try {
@@ -72,18 +94,49 @@ export default function DashboardPage() {
     setShowAddPlayerModal(true); // Show the Add Player modal
   };
 
-  const handleTeamSuggestion = () => {
-    setShowTeamSuggestionModal(true);
-  };
+  
 
   const handleUseTeams = (teamOne: number[], teamTwo: number[]) => {
     setSuggestedTeams({ teamOne, teamTwo });
     setShowRecordMatchModal(true);
   };
 
+  const handleTogglePlayer = (playerId: number) => {
+    setSelectedPlayers(prev => 
+      prev.includes(playerId) 
+        ? prev.filter(id => id !== playerId) 
+        : [...prev, playerId]
+    );
+  };
 
+  const handleGenerateTeams = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: `Suggest teams from players: ${selectedPlayers.join(', ')}`,
+          availablePlayerIds: selectedPlayers
+        }),
+      });
 
+      if (!response.ok) {
+        throw new Error('Failed to generate teams');
+      }
 
+      const data = await response.json();
+      const { teamOne, teamTwo } = data;
+      setSuggestedTeams({ teamOne, teamTwo });
+      setShowPlayerSelectorDialog(false);
+      setShowRecordMatchModal(true);
+    } catch (error) {
+      console.error('Error generating teams:', error);
+      alert('Failed to generate teams. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Add Player Modal Component
   const AddPlayerModal = ({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (data: PlayerData) => Promise<void> }) => {
@@ -222,11 +275,11 @@ export default function DashboardPage() {
         <RecentMatches />
       </div>
 
-      <ActionButtons 
-          onRecordMatch={() => setShowRecordMatchModal(true)}
-          onAddPlayer={handleAddPlayer}
-          onTeamSuggestion={handleTeamSuggestion}
-        />
+      <FloatingActionButton 
+        onRecordMatch={() => setShowRecordMatchModal(true)}
+        onAddPlayer={handleAddPlayer}
+        onTeamSuggestionClick={() => setShowPlayerSelectorDialog(true)}
+      />
 
       <RecordMatchModal 
         isOpen={showRecordMatchModal}
@@ -244,10 +297,15 @@ export default function DashboardPage() {
         onSubmit={handleAddPlayerSubmit}
       />
 
-      <TeamSuggestionModal
-        isOpen={showTeamSuggestionModal}
-        onClose={() => setShowTeamSuggestionModal(false)}
-        onUseTeams={handleUseTeams}
+      <PlayerSelectorDialog
+        isOpen={showPlayerSelectorDialog}
+        onOpenChange={setShowPlayerSelectorDialog}
+        allPlayers={allPlayers}
+        selectedPlayers={selectedPlayers}
+        onTogglePlayer={handleTogglePlayer}
+        onCancel={() => setShowPlayerSelectorDialog(false)}
+        onGenerateTeams={handleGenerateTeams}
+        isLoading={isLoading}
       />
 
       <ChatBot className="w-full" onUseMatchup={handleUseTeams} />

@@ -1,5 +1,5 @@
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // Mock data for API response
 const mockTrendsData = [
@@ -36,9 +36,9 @@ const mockPlayerTrendsData = {
   ]
 };
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const period = searchParams.get("period") || "weekly";
     const playerIdParam = searchParams.get("playerId");
     const playerId = playerIdParam ? parseInt(playerIdParam) : undefined;
