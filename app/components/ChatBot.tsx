@@ -610,11 +610,14 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
                     {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     <div className="flex-1">
                       {message.role === 'assistant' ? (
-                        <div className="text-sm prose prose-sm max-w-none prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-ul:text-inherit prose-ol:text-inherit prose-li:text-inherit">
-                          <ReactMarkdown>
-                            {message.content}
-                          </ReactMarkdown>
-                        </div>
+                        // For team suggestions, only show cards, not the text
+                        message.type === 'team_suggestion' ? null : (
+                          <div className="text-sm prose prose-sm max-w-none prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-ul:text-inherit prose-ol:text-inherit prose-li:text-inherit">
+                            <ReactMarkdown>
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        )
                       ) : (
                         <div className="whitespace-pre-wrap text-sm">
                           {message.content}

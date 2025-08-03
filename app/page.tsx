@@ -116,8 +116,11 @@ export default function DashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          message: `Suggest teams from players: ${selectedPlayers.join(', ')}`,
-          availablePlayerIds: selectedPlayers
+          message: `Create balanced team matchups for wallyball using players with IDs: ${selectedPlayers.join(', ')}. I need exactly ONE team suggestion with no duplicate players between teams. Each player should only appear on one team.`,
+          context: {
+            type: 'team_suggestion',
+            players: selectedPlayers
+          }
         }),
       });
 
@@ -126,10 +129,19 @@ export default function DashboardPage() {
       }
 
       const data = await response.json();
-      const { teamOne, teamTwo } = data;
-      setSuggestedTeams({ teamOne, teamTwo });
-      setShowPlayerSelectorDialog(false);
-      setShowRecordMatchModal(true);
+      
+      // Extract the first matchup from additionalData
+      if (data.additionalData && data.additionalData.length > 0) {
+        const firstMatchup = data.additionalData[0];
+        setSuggestedTeams({ 
+          teamOne: firstMatchup.teamOne.map((player: any) => player.id),
+          teamTwo: firstMatchup.teamTwo.map((player: any) => player.id)
+        });
+        setShowPlayerSelectorDialog(false);
+        setShowRecordMatchModal(true);
+      } else {
+        throw new Error('No team suggestions received');
+      }
     } catch (error) {
       console.error('Error generating teams:', error);
       alert('Failed to generate teams. Please try again.');
