@@ -182,10 +182,10 @@ export async function GET() {
           losses: gamesLost,
           totalGames
         },
-        winPercentage: Math.round(winPercentage),
+        winPercentage: winPercentage,
         totalPlayingTime,
         streak,
-        actualWinPercentage: Math.round(actualWinPercentage),
+        actualWinPercentage: actualWinPercentage,
         inactivityPenalty
       };
     });
