@@ -50,6 +50,8 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
   const [showAllData, setShowAllData] = useState(false);
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   const [chartData, setChartData] = useState<Array<{date: string; [key: string]: unknown}>>([]);
+  const [trendsData, setTrendsData] = useState<any[]>([]);
+  const [dateRange, setDateRange] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch player stats and historical trends with contextual penalties
@@ -66,15 +68,20 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
         }
 
         const statsData = await statsResponse.json();
-        const trendsData = await trendsResponse.json();
+        const trendsDataResponse = await trendsResponse.json();
 
         setPlayerStats(statsData);
+        setTrendsData(trendsDataResponse);
+        
+        // Debug the player stats structure
+        console.log('Player Stats Sample:', statsData.slice(0, 2));
+        console.log('Trends Data Sample:', trendsDataResponse.slice(0, 1));
 
         // Process trends data
-        if (Array.isArray(trendsData) && trendsData.length > 0) {
+        if (Array.isArray(trendsDataResponse) && trendsDataResponse.length > 0) {
           // Get all unique dates from trends data
           const allDates = new Set<string>();
-          trendsData.forEach((playerTrend: any) => {
+          trendsDataResponse.forEach((playerTrend: any) => {
             if (playerTrend.dailyStats) {
               Object.keys(playerTrend.dailyStats).forEach(date => {
                 allDates.add(date);
@@ -84,17 +91,29 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
 
           // Generate chart data
           const sortedDates = Array.from(allDates).sort();
-          const dateRange = showAllData ? sortedDates : sortedDates.slice(-4);
+          const currentDateRange = showAllData ? sortedDates : sortedDates.slice(-4);
+          setDateRange(currentDateRange);
 
-          const newChartData = dateRange.map(date => {
+          const newChartData = currentDateRange.map((date, index) => {
             const dataPoint: any = { date };
+            const isLatestDate = index === currentDateRange.length - 1;
 
-            trendsData.forEach((playerTrend: any) => {
+            trendsDataResponse.forEach((playerTrend: any) => {
               if (playerTrend.dailyStats) {
                 const stats = playerTrend.dailyStats[date];
 
                 if (stats) {
-                  dataPoint[playerTrend.name] = stats[metric];
+                  // For the latest date, use current stats from /api/player-stats to match player cards
+                  if (isLatestDate && metric === 'winPercentage') {
+                    const currentPlayer = statsData.find((p: any) => p.name === playerTrend.name);
+                    if (currentPlayer) {
+                      dataPoint[playerTrend.name] = currentPlayer.winPercentage;
+                    } else {
+                      dataPoint[playerTrend.name] = stats[metric];
+                    }
+                  } else {
+                    dataPoint[playerTrend.name] = stats[metric];
+                  }
                   // Debug specific penalty values
                   if (playerTrend.name.toLowerCase().includes('trevor') && stats.inactivityPenalty > 0) {
                     console.log(`Trevor on ${date}: raw=${stats.rawWinPercentage}%, penalty=${stats.inactivityPenalty}%, final=${stats.winPercentage}%`);
@@ -113,7 +132,17 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
                   }
 
                   if (lastKnownValue !== null) {
-                    dataPoint[playerTrend.name] = lastKnownValue;
+                    // For the latest date, use current stats from /api/player-stats to match player cards
+                    if (isLatestDate && metric === 'winPercentage') {
+                      const currentPlayer = statsData.find((p: any) => p.name === playerTrend.name);
+                      if (currentPlayer) {
+                        dataPoint[playerTrend.name] = currentPlayer.winPercentage;
+                      } else {
+                        dataPoint[playerTrend.name] = lastKnownValue;
+                      }
+                    } else {
+                      dataPoint[playerTrend.name] = lastKnownValue;
+                    }
                   }
                 }
               }
@@ -204,12 +233,53 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
                   return date;
                 }
               }}
-              formatter={(value: number, name: string) => {
+              formatter={(value: number, name: string, props: any) => {
                 const formattedValue = Number(value.toFixed(1));
-                return [
-                  metric === 'winPercentage' ? `${formattedValue}%` : formattedValue,
-                  name
-                ];
+                
+                if (metric === 'winPercentage') {
+                  let penaltyInfo = '';
+                  
+                  // Get penalty from trends data for this specific date
+                  const currentDate = props.payload?.date;
+                  const playerTrend = trendsData.find((p: any) => p.name === name);
+                  let penaltyValue = 0;
+                  
+                  if (playerTrend?.dailyStats) {
+                    const stats = playerTrend.dailyStats[currentDate];
+                    
+                    if (stats?.inactivityPenalty !== undefined) {
+                      // Direct hit - we have data for this exact date
+                      penaltyValue = stats.inactivityPenalty;
+                    } else {
+                      // No data for this exact date, find the most recent penalty before this date
+                      const allDates = Object.keys(playerTrend.dailyStats).sort();
+                      const previousDates = allDates.filter(date => date <= currentDate);
+                      
+                      if (previousDates.length > 0) {
+                        const mostRecentDate = previousDates[previousDates.length - 1];
+                        const mostRecentStats = playerTrend.dailyStats[mostRecentDate];
+                        penaltyValue = mostRecentStats?.inactivityPenalty || 0;
+                      }
+                    }
+                  }
+                  
+                  // If still no penalty found, check current player stats for latest date
+                  if (penaltyValue === 0) {
+                    const isLatestDate = currentDate && dateRange[dateRange.length - 1] === currentDate;
+                    if (isLatestDate) {
+                      const currentPlayer = playerStats.find((p: any) => p.name === name);
+                      penaltyValue = currentPlayer?.inactivityPenalty || 0;
+                    }
+                  }
+                  
+                  if (penaltyValue > 0) {
+                    penaltyInfo = ` (-${Math.round(penaltyValue)}% penalty)`;
+                  }
+                  
+                  return [`${formattedValue}%${penaltyInfo}`, name];
+                }
+                
+                return [formattedValue, name];
               }}
               itemSorter={(item) => {
                 // Sort by value in descending order (highest win% at top)
