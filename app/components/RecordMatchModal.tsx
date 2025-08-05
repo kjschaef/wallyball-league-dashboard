@@ -32,13 +32,14 @@ interface PlayerGridProps {
   onPlayerToggle: (playerId: number) => void;
   maxPlayers: number;
   title: string;
+  disabledPlayers?: number[];
 }
 
-function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, title }: PlayerGridProps) {
+function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, title, disabledPlayers = [] }: PlayerGridProps) {
   const handlePlayerClick = (playerId: number) => {
     if (selectedPlayers.includes(playerId)) {
       onPlayerToggle(playerId);
-    } else if (selectedPlayers.length < maxPlayers) {
+    } else if (selectedPlayers.length < maxPlayers && !disabledPlayers.includes(playerId)) {
       onPlayerToggle(playerId);
     }
   };
@@ -52,7 +53,8 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
       <div className="grid grid-cols-3 gap-2">
         {players.map((player) => {
           const isSelected = selectedPlayers.includes(player.id);
-          const canSelect = selectedPlayers.length < maxPlayers || isSelected;
+          const isDisabled = disabledPlayers.includes(player.id);
+          const canSelect = (selectedPlayers.length < maxPlayers || isSelected) && !isDisabled;
           
           return (
             <button
@@ -64,9 +66,11 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
                 px-3 py-2 rounded-lg text-sm font-medium transition-colors
                 ${isSelected 
                   ? 'bg-blue-500 text-white' 
-                  : canSelect 
-                    ? 'bg-gray-100 text-gray-900 hover:bg-gray-200' 
-                    : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                  : isDisabled
+                    ? 'bg-red-100 text-red-400 cursor-not-allowed'
+                    : canSelect 
+                      ? 'bg-gray-100 text-gray-900 hover:bg-gray-200' 
+                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
                 }
               `}
             >
@@ -219,6 +223,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
               onPlayerToggle={handleTeamOnePlayerToggle}
               maxPlayers={3}
               title="Team One"
+              disabledPlayers={teamTwoPlayers}
             />
             
             {/* Team One Games Won - shown on narrow screens */}
@@ -256,6 +261,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
               onPlayerToggle={handleTeamTwoPlayerToggle}
               maxPlayers={3}
               title="Team Two"
+              disabledPlayers={teamOnePlayers}
             />
             
             {/* Team Two Games Won - shown on narrow screens */}
