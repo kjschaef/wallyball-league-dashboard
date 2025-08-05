@@ -128,7 +128,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             <div
               className={`text-4xl font-bold bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} bg-clip-text text-transparent`}
             >
-              {player.winPercentage}%
+              {player.winPercentage.toFixed(1)}%
             </div>
             <p className="text-xs text-gray-500 mt-1">Win Percentage</p>
           </div>
@@ -154,8 +154,8 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               </p>
             </div>
             <p className="text-sm text-amber-700">
-              Base: {player.actualWinPercentage}% (minus{" "}
-              {player.inactivityPenalty}% penalty)
+              Base: {player.actualWinPercentage?.toFixed(1)}% (minus{" "}
+              {player.inactivityPenalty?.toFixed(1)}% penalty)
             </p>
           </div>
         )}
