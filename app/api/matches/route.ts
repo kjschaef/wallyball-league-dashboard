@@ -142,7 +142,7 @@ export async function POST(request: Request) {
       VALUES (
         ${teamOnePlayerIds[0]}, ${teamOnePlayerIds[1]}, ${teamOnePlayerIds[2]},
         ${teamTwoPlayerIds[0]}, ${teamTwoPlayerIds[1]}, ${teamTwoPlayerIds[2]},
-        ${teamOneGamesWon}, ${teamTwoGamesWon}, ${body.date ? new Date(body.date) : new Date()}
+        ${teamOneGamesWon}, ${teamTwoGamesWon}, ${body.date ? new Date(body.date + 'T12:00:00') : new Date()}
       )
       RETURNING *
     `;
