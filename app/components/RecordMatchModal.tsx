@@ -24,6 +24,10 @@ interface RecordMatchModalProps {
     teamOne: number[];
     teamTwo: number[];
   };
+  prefilledWins?: {
+    teamOneWins: number;
+    teamTwoWins: number;
+  };
 }
 
 interface PlayerGridProps {
@@ -32,9 +36,10 @@ interface PlayerGridProps {
   onPlayerToggle: (playerId: number) => void;
   maxPlayers: number;
   title: string;
+  disabledPlayers?: number[];
 }
 
-function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, title }: PlayerGridProps) {
+function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, title, disabledPlayers = [] }: PlayerGridProps) {
   const handlePlayerClick = (playerId: number) => {
     if (selectedPlayers.includes(playerId)) {
       onPlayerToggle(playerId);
@@ -52,7 +57,8 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
       <div className="grid grid-cols-3 gap-2">
         {players.map((player) => {
           const isSelected = selectedPlayers.includes(player.id);
-          const canSelect = selectedPlayers.length < maxPlayers || isSelected;
+          const isDisabled = disabledPlayers.includes(player.id);
+          const canSelect = (selectedPlayers.length < maxPlayers || isSelected) && !isDisabled;
           
           return (
             <button
@@ -79,7 +85,7 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
   );
 }
 
-export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: RecordMatchModalProps) {
+export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, prefilledWins }: RecordMatchModalProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [teamOnePlayers, setTeamOnePlayers] = useState<number[]>([]);
   const [teamTwoPlayers, setTeamTwoPlayers] = useState<number[]>([]);
@@ -95,8 +101,13 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
         setTeamOnePlayers(suggestedTeams.teamOne);
         setTeamTwoPlayers(suggestedTeams.teamTwo);
       }
+      // Set prefilled wins if provided
+      if (prefilledWins) {
+        setTeamOneGamesWon(prefilledWins.teamOneWins);
+        setTeamTwoGamesWon(prefilledWins.teamTwoWins);
+      }
     }
-  }, [isOpen, suggestedTeams]);
+  }, [isOpen, suggestedTeams, prefilledWins]);
 
   const fetchPlayers = async () => {
     try {
@@ -219,6 +230,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
               onPlayerToggle={handleTeamOnePlayerToggle}
               maxPlayers={3}
               title="Team One"
+              disabledPlayers={teamTwoPlayers}
             />
             
             {/* Team One Games Won - shown on narrow screens */}
@@ -256,6 +268,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
               onPlayerToggle={handleTeamTwoPlayerToggle}
               maxPlayers={3}
               title="Team Two"
+              disabledPlayers={teamOnePlayers}
             />
             
             {/* Team Two Games Won - shown on narrow screens */}

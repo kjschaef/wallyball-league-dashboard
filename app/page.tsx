@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   
   const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | undefined>(undefined);
+  const [prefilledWins, setPrefilledWins] = useState<{ teamOneWins: number, teamTwoWins: number } | undefined>(undefined);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -50,7 +51,7 @@ export default function DashboardPage() {
     fetchPlayers();
   }, []);
 
-  const handleRecordMatch = async (matchData: MatchData) => {
+  const handleRecordMatchSubmit = async (matchData: MatchData) => {
     try {
       // Transform the array-based data to the API's expected format
       const apiPayload = {
@@ -81,6 +82,8 @@ export default function DashboardPage() {
       const newMatch = await response.json();
       console.log('Match recorded:', newMatch);
       setShowRecordMatchModal(false);
+      setSuggestedTeams(undefined);
+      setPrefilledWins(undefined);
 
       // Show success message
       alert('Match recorded successfully!');
@@ -98,6 +101,13 @@ export default function DashboardPage() {
 
   const handleUseTeams = (teamOne: number[], teamTwo: number[]) => {
     setSuggestedTeams({ teamOne, teamTwo });
+    setShowRecordMatchModal(true);
+  };
+
+  const handleRecordMatch = (teamOne: number[], teamTwo: number[], teamOneWins: number, teamTwoWins: number) => {
+    setSuggestedTeams({ teamOne, teamTwo });
+    // Store the wins for the modal to use
+    setPrefilledWins({ teamOneWins, teamTwoWins });
     setShowRecordMatchModal(true);
   };
 
@@ -297,10 +307,12 @@ export default function DashboardPage() {
         isOpen={showRecordMatchModal}
         onClose={() => {
           setShowRecordMatchModal(false);
-          setSuggestedTeams(undefined); // Clear suggested teams when modal closes
+          setSuggestedTeams(undefined);
+          setPrefilledWins(undefined);
         }}
-        onSubmit={handleRecordMatch}
+        onSubmit={handleRecordMatchSubmit}
         suggestedTeams={suggestedTeams}
+        prefilledWins={prefilledWins}
       />
 
        <AddPlayerModal // Add the AddPlayerModal here
@@ -320,7 +332,7 @@ export default function DashboardPage() {
         isLoading={isLoading}
       />
 
-      <ChatBot className="w-full" onUseMatchup={handleUseTeams} />
+      <ChatBot className="w-full" onUseMatchup={handleUseTeams} onRecordMatch={handleRecordMatch} />
     </div>
   );
 }

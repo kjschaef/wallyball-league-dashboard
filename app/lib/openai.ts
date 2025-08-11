@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { WallyballRulesMCPServer } from '../../lib/mcp-server';
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+// Using GPT-4.1 for all OpenAI API calls
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // MCP server instance for rules queries
@@ -101,7 +101,7 @@ export async function analyzePlayerPerformance(
     }
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4.1",
       messages: [
         {
           role: "system",
@@ -123,7 +123,7 @@ Guidelines:
           content: query
         }
       ],
-      max_tokens: 500,
+      max_tokens: 500
     });
 
     return response.choices[0].message.content || "Unable to analyze performance data.";
@@ -171,7 +171,7 @@ export async function suggestTeamMatchups(
     }));
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4.1",
       messages: [
         {
           role: "system",
@@ -242,7 +242,7 @@ CRITICAL:
 - Provide genuine variety in team compositions across all scenarios`
         }
       ],
-      response_format: { type: "json_object" },
+      response_format: { type: "json_object" }
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
@@ -342,7 +342,7 @@ export async function queryWallyballRules(query: string): Promise<string> {
     const relevantRules = await searchWallyballRules(query);
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4.1",
       messages: [
         {
           role: "system",
@@ -363,7 +363,7 @@ Guidelines:
           content: query
         }
       ],
-      max_tokens: 400,
+      max_tokens: 400
     });
 
     return response.choices[0].message.content || "Unable to find information about that rule.";
@@ -392,7 +392,7 @@ export async function generateMatchAnalysis(
     }));
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4.1",
       messages: [
         {
           role: "system",
@@ -412,7 +412,7 @@ Provide:
           content: context || "Analyze this upcoming match and provide insights."
         }
       ],
-      max_tokens: 400,
+      max_tokens: 400
     });
 
     return response.choices[0].message.content || "Unable to analyze match data.";
@@ -422,15 +422,408 @@ Provide:
   }
 }
 
-export async function analyzeMatchResultsImage(imageBuffer: Buffer): Promise<any> {
+export async function findPlayersInImage(imageBuffer: Buffer, playerNames: string[]): Promise<any> {
   try {
+    const playerContext = playerNames.length > 0
+      ? `\n\nAvailable player names and their first letters:\n${playerNames.map(name => `${name} (${name.charAt(0).toUpperCase()})`).join('\n')}`
+      : '';
+
+    const promptText = `Analyze the attached image of a whiteboard with wallyball match results.
+
+Your ONLY task is to find ALL unique letters that appear on the whiteboard as player initials.
+
+Step-by-step process:
+1. SCAN the entire whiteboard systematically from top to bottom
+2. Look for ALL letters that appear to represent players (usually grouped together as teams)
+3. IGNORE any letters that are clearly labels, titles, or other text
+4. Focus ONLY on letters that appear to be player initials in team groupings
+
+For each letter found:
+- If only ONE player in the available list starts with that letter: assign directly
+- If MULTIPLE players start with that letter: mark as ambiguous
+- If NO players start with that letter: still include it as "unknown"
+
+${playerContext}
+
+Return in this JSON format:
+{
+  "lettersFound": ["A", "B", "M", "K", "P"],
+  "playerAssignments": {
+    "A": "Alice",
+    "B": "Bob", 
+    "M": "Mark",
+    "K": "Keith",
+    "P": "?P"
+  },
+  "ambiguousLetters": [
+    {
+      "letter": "P",
+      "possiblePlayers": ["Paul", "Parker"]
+    }
+  ],
+  "unknownLetters": []
+}
+
+CRITICAL: Only focus on finding letters - do NOT try to identify teams or count tally marks yet.`;
+
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4.1',
       messages: [
+        {
+          role: 'system',
+          content: 'You are a precise image analysis expert focused on letter identification. Always respond with valid JSON only.'
+        },
         {
           role: 'user',
           content: [
-            { type: 'text', text: 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.' },
+            { type: 'text', text: promptText },
+            {
+              type: 'image_url',
+              image_url: {
+                "url": `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 500,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0].message.content;
+    if (content) {
+      try {
+        return JSON.parse(content);
+      } catch (parseError) {
+        console.log('JSON Parse Error in findPlayersInImage:', parseError);
+        console.log('Content:', content);
+        return { error: "Could not parse player letters from the image." };
+      }
+    } else {
+      return { error: "Could not extract player letters from the image." };
+    }
+  } catch (error) {
+    console.error('Error finding players in image:', error);
+    return { error: "I'm having trouble finding players in the image right now." };
+  }
+}
+
+export async function analyzeMatchesWithConfirmedPlayers(imageBuffer: Buffer, confirmedPlayerNames: string[]): Promise<any> {
+  try {
+    const playerContext = `\n\nConfirmed player names:\n${confirmedPlayerNames.join('\n')}`;
+
+    const promptText = `Analyze the attached image of a whiteboard with wallyball match results.
+
+Your task is to find ALL matches and their results using the confirmed player names provided.
+
+${playerContext}
+
+Step-by-step process:
+1. COMPREHENSIVE MATCH SCAN - Find ALL matches:
+   - Scan entire whiteboard from top to bottom systematically
+   - Look for every horizontal line with letter groupings that represent teams
+   - Each distinct horizontal grouping is a separate match
+   - Don't stop at 2-3 matches - keep scanning until entire image is covered
+
+2. TEAM IDENTIFICATION - For each match:
+   - Map the letters you see to the confirmed player names provided
+   - Group the players into Team 1 and Team 2 based on their positioning
+
+3. TALLY COUNTING - For each team:
+   - Look below each team for OBVIOUS vertical marks only (|, ||, |||, etc.)
+   - If tally marks are clear: count them accurately
+   - If tally marks are unclear/faint/questionable: set wins to 0
+   - Be conservative - only count marks you're confident about
+
+Return in this JSON format:
+{
+  "matches": [
+    {
+      "matchNumber": 1,
+      "teamOne": {
+        "players": ["Mark", "Keith"],
+        "letters": ["M", "K"],
+        "wins": 3,
+        "needsClarification": false
+      },
+      "teamTwo": {
+        "players": ["Alice", "Bob"], 
+        "letters": ["A", "B"],
+        "wins": 2,
+        "needsClarification": false
+      }
+    },
+    {
+      "matchNumber": 2,
+      "teamOne": {
+        "players": ["David", "Luke"],
+        "letters": ["D", "L"],
+        "wins": 0,
+        "needsClarification": false
+      },
+      "teamTwo": {
+        "players": ["Sarah", "Tom"],
+        "letters": ["S", "T"],
+        "wins": 0,
+        "needsClarification": false
+      }
+    }
+  ]
+}
+
+IMPORTANT: For each team, include:
+- players: full player names
+- letters: first letter of each player name (same order as players)
+- wins: number of wins counted
+- needsClarification: always false since players are confirmed
+
+CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about tallies, use 0.`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a precise match analysis expert. Always respond with valid JSON only.'
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: promptText },
+            {
+              type: 'image_url',
+              image_url: {
+                "url": `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 800,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0].message.content;
+    if (content) {
+      try {
+        return JSON.parse(content);
+      } catch (parseError) {
+        console.log('JSON Parse Error in analyzeMatchesWithConfirmedPlayers:', parseError);
+        console.log('Content:', content);
+        return { error: "Could not parse match results from the image." };
+      }
+    } else {
+      return { error: "Could not extract match results from the image." };
+    }
+  } catch (error) {
+    console.error('Error analyzing matches with confirmed players:', error);
+    return { error: "I'm having trouble analyzing the matches right now." };
+  }
+}
+
+export async function analyzeMatchResultsImage(imageBuffer: Buffer, playerNames?: string[]): Promise<any> {
+  try {
+    // Create player names context
+    let playerContext = '';
+    
+    if (playerNames && playerNames.length > 0) {
+      playerContext = `\n\nAvailable player names and their first letters:\n${playerNames.map(name => `${name} (${name.charAt(0).toUpperCase()})`).join('\n')}`;
+    }
+
+    const promptText = playerNames && playerNames.length > 0
+      ? `Analyze the attached image of a whiteboard with wallyball match results. The whiteboard shows:
+1. Each horizontal line represents ONE MATCH between two teams
+2. First letters of player names grouped together to indicate teams
+3. Tally marks below teams indicate wins for each team
+
+PRIMARY GOAL: Find ALL matches on the whiteboard
+- Scan the entire image systematically from top to bottom
+- Look for every horizontal line that has team groupings
+- Each line with letters grouped as "Team vs Team" is a match
+- Don't miss any matches - be thorough in your scan, the handwriting may be messy
+- Determine the correct player names based on the first letters shown
+
+SECONDARY GOAL: Count tally marks
+- Only count OBVIOUS vertical counting marks like |, ||, |||
+- If tally marks are unclear, faint, or ambiguous, set wins to 0
+- Focus accuracy over completeness for tally marks
+
+TALLY MARK RULES:
+- Must be clearly intentional vertical lines or tick marks
+- When in doubt, use 0 wins for that team
+
+Extract ALL matches found, with conservative tally counting. 
+
+Step-by-step process:
+1. COMPREHENSIVE MATCH SCAN - Find ALL matches:
+   - Scan entire whiteboard from top to bottom systematically
+   - Look for every horizontal line with letter groupings
+   - Don't stop at 2-3 matches - keep scanning until entire image is covered
+   - Each distinct horizontal grouping is a separate match
+
+2. PLAYER ASSIGNMENT - For EACH letter found across ALL matches:
+   - First, identify ALL letters that appear in the whiteboard image
+   - For each letter found in the image, check if multiple players share that first letter
+   - ONLY flag letters as ambiguous if BOTH conditions are true:
+     - Letter is visible in the whiteboard image
+     - Multiple available players have that same first letter
+   - If a letter appears in image but only one player matches, directly assign that player
+   - Completely ignore any players whose first letters don't appear in the image
+   - Example:
+      - M: Count players starting with M → Mark (1 player) → DIRECT ASSIGNMENT
+      - P: Count players starting with P → Paul, Parker (2 players) → AMBIGUOUS
+      - J: Count players starting with J → John (1 player) → DIRECT ASSIGNMENT
+      - A: Count players starting with A → Alice, Amy (2 players) → AMBIGUOUS
+      - Continue for every letter found in the image
+
+3. TALLY COUNTING - For each match:
+   - Look below each team for OBVIOUS vertical marks only
+   - If tally marks are clear: count them
+   - If tally marks are unclear/faint/questionable: use the count of clear marks
+   - If no clear tallies, set wins to 0 for that team
+
+4. VALIDATION:
+   - Verify all matches found
+   - Only include letters in ambiguousLetters if 2+ players match
+   - Use actual names for single-match letters
+
+CRITICAL PLAYER NAME FORMATTING RULES:
+- ONLY use "?X" format when letter X has 2+ possible players (e.g., "?P" when both Paul and Parker exist)
+- ALWAYS use actual player name when letter has exactly 1 match (e.g., "Mark" not "?M")
+- NEVER use ? prefix unless multiple players share that first letter
+
+EXAMPLES OF CORRECT FORMATTING:
+- Letter M with only Mark available → Use "Mark" (NOT "?M")
+- Letter P with Paul and Parker available → Use "?P" (ambiguous)
+- Letter K with only Keith available → Use "Keith" (NOT "?K")
+
+${playerContext}
+
+Return in this JSON format:
+
+EXAMPLE 1 - WITH ambiguity (letter P has multiple matches):
+{
+  "hasAmbiguity": true,
+  "ambiguousLetters": [
+    {
+      "letter": "P",
+      "possiblePlayers": ["Paul", "Parker"]
+    }
+  ],
+  "matches": [
+    {
+      "matchNumber": 1,
+      "teamOne": {
+        "players": ["?P", "Keith"],
+        "letters": ["P", "K"],
+        "wins": 3,
+        "needsClarification": true
+      },
+      "teamTwo": {
+        "players": ["Bob", "John"],
+        "letters": ["B", "J"],
+        "wins": 2,
+        "needsClarification": false
+      }
+    }
+  ]
+}
+
+Note: P uses "?P" because Paul/Parker both match. K uses "Keith" directly because only Keith matches K.
+The wins count represents ONLY clear, intentional tally marks found below each team.
+If no clear tallies are visible, use 0 for wins.
+
+EXAMPLE 2 - Multiple matches found (scan entire whiteboard):
+{
+  "hasAmbiguity": false,
+  "ambiguousLetters": [],
+  "matches": [
+    {
+      "matchNumber": 1,
+      "teamOne": {
+        "players": ["Mark", "Keith"],
+        "letters": ["M", "K"],
+        "wins": 0,
+        "needsClarification": false
+      },
+      "teamTwo": {
+        "players": ["Alice", "Bob"],
+        "letters": ["A", "B"],
+        "wins": 0,
+        "needsClarification": false
+      }
+    },
+    {
+      "matchNumber": 2,
+      "teamOne": {
+        "players": ["David", "Luke"],
+        "letters": ["D", "L"],
+        "wins": 3,
+        "needsClarification": false
+      },
+      "teamTwo": {
+        "players": ["Sarah", "Tom"],
+        "letters": ["S", "T"],
+        "wins": 2,
+        "needsClarification": false
+      }
+    },
+    {
+      "matchNumber": 3,
+      "teamOne": {
+        "players": ["Rachel", "Jim"],
+        "letters": ["R", "J"],
+        "wins": 0,
+        "needsClarification": false
+      },
+      "teamTwo": {
+        "players": ["Nancy", "Paul"],
+        "letters": ["N", "P"],
+        "wins": 0,
+        "needsClarification": false
+      }
+    },
+    {
+      "matchNumber": 4,
+      "teamOne": {
+        "players": ["Zoe", "Ian"],
+        "letters": ["Z", "I"],
+        "wins": 1,
+        "needsClarification": false
+      },
+      "teamTwo": {
+        "players": ["Emma", "Greg"],
+        "letters": ["E", "G"],
+        "wins": 4,
+        "needsClarification": false
+      }
+    }
+  ]
+}
+
+Note: This example shows finding 4 matches by scanning the entire whiteboard.
+Many teams have 0 wins due to conservative tally counting - only clear tallies are counted.
+
+FINAL VALIDATION:
+1. Check every player name in your response
+2. Remove ? prefix from any unambiguous player letters
+3. Only letters with 2+ matches should be in ambiguousLetters array
+   - Example: If only Mark starts with M, use "Mark" not "?M"
+
+REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first letter and the letter is found in the image!`
+      : 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.';
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4.1',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a precise image analysis expert. Always respond with valid JSON only. Do not include any text before or after the JSON object.'
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: promptText + '\n\nIMPORTANT: Return only valid JSON. Do not include any markdown formatting, code blocks, or explanatory text.' },
             {
               type: 'image_url',
               image_url: {
@@ -441,23 +834,26 @@ export async function analyzeMatchResultsImage(imageBuffer: Buffer): Promise<any
         },
       ],
       max_tokens: 1000,
+      response_format: { type: "json_object" }
     });
 
     const content = response.choices[0].message.content;
     if (content) {
-      // The response from the LLM might be in a markdown block, so we need to extract the JSON from it.
-      const jsonRegex = /```json\n([\s\S]*?)\n```/;
-      const match = content.match(jsonRegex);
-      if (match && match[1]) {
-        return JSON.parse(match[1]);
-      } else {
-        return { error: "Could not parse match results from the image." };
+      try {
+        return JSON.parse(content);
+      } catch (parseError) {
+        console.log('JSON Parse Error:', parseError);
+        console.log('Content that failed to parse:', content);
+        return { 
+          error: "Could not parse team groupings from the image.", 
+          rawResponse: content.substring(0, 500)
+        };
       }
     } else {
-      return { error: "Could not extract match results from the image." };
+      return { error: "Could not extract team groupings from the image." };
     }
   } catch (error) {
-    console.error('Error analyzing match results image:', error);
+    console.error('Error analyzing team groupings image:', error);
     return { error: "I'm having trouble analyzing the image right now. Please try again." };
   }
 }
