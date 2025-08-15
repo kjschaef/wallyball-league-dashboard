@@ -438,22 +438,31 @@ Step-by-step process:
 3. IGNORE any letters that are clearly labels, titles, or other text
 4. Focus ONLY on letters that appear to be player initials in team groupings
 
-For each letter found:
-- If only ONE player in the available list starts with that letter: assign directly
-- If MULTIPLE players start with that letter: mark as ambiguous
-- If NO players start with that letter: still include it as "unknown"
+MAPPING PROCESS - For each letter found:
+1. Check if exactly ONE player starts with that letter → assign directly (e.g., "N" → "Nate")
+2. If MULTIPLE players start with that letter → mark as ambiguous (e.g., "P" → "?P") 
+3. If NO players start with that letter → mark as unknown
 
 ${playerContext}
 
+MAPPING EXAMPLES:
+- If you find "N" and only "Nate" starts with N → "N": "Nate"
+- If you find "M" and only "Mark" starts with M → "M": "Mark"  
+- If you find "P" and both "Paul" and "Parker" start with P → "P": "?P"
+- If you find "X" and no players start with X → "X": "UNKNOWN"
+
+CRITICAL: Every letter found must appear in playerAssignments, even if unknown.
+
 Return in this JSON format:
 {
-  "lettersFound": ["A", "B", "M", "K", "P"],
+  "lettersFound": ["A", "B", "M", "K", "P", "N"],
   "playerAssignments": {
     "A": "Alice",
     "B": "Bob", 
     "M": "Mark",
     "K": "Keith",
-    "P": "?P"
+    "P": "?P",
+    "N": "Nate"
   },
   "ambiguousLetters": [
     {
@@ -463,6 +472,12 @@ Return in this JSON format:
   ],
   "unknownLetters": []
 }
+
+VALIDATION CHECKLIST:
+✓ Every letter in lettersFound appears in playerAssignments
+✓ Direct assignments use actual player names (e.g., "Nate", not "?N")  
+✓ Ambiguous letters use "?" prefix (e.g., "?P")
+✓ Unknown letters use "UNKNOWN"
 
 CRITICAL: Only focus on finding letters - do NOT try to identify teams or count tally marks yet.`;
 
