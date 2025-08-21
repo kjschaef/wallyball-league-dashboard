@@ -20,3 +20,11 @@ out/
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Testing output
+coverage/
+
+# Debug files
+debug_*.js
+test_*.js
+*.log
