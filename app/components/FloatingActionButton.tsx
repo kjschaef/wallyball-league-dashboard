@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Brain } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface FloatingActionButtonProps {
   onRecordMatch: () => void;

@@ -4,7 +4,6 @@ import {
   suggestTeamMatchups,
   queryWallyballRules,
   PlayerStats,
-  TeamSuggestion,
 } from '../../lib/openai';
 
 interface ChatRequest {

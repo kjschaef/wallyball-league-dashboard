@@ -117,7 +117,6 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
   }>({ isOpen: false, messageIndex: -1, type: 'positive' });
   const [feedbackText, setFeedbackText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [pendingMatchResults, setPendingMatchResults] = useState<MatchResultsResponse | null>(null);
   const [playerChoices, setPlayerChoices] = useState<{ [key: string]: string }>({});
   const [lastUploadedImage, setLastUploadedImage] = useState<File | null>(null);
 
@@ -750,7 +749,6 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
         };
 
         setMessages(prev => [...prev, assistantMessage]);
-        setPendingMatchResults(null);
       } else {
         // New two-step format - proceed to step 2 with confirmed players
         if (!originalImage) return;
@@ -823,7 +821,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
               return (
                 <div key={index} className="border border-yellow-300 rounded-lg p-3">
                   <p className="text-sm font-medium text-yellow-900 mb-2">
-                    Letter "{amb.letter}" ({letterCount} instance{letterCount !== 1 ? 's' : ''}):
+                    Letter &quot;{amb.letter}&quot; ({letterCount} instance{letterCount !== 1 ? 's' : ''}):
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {amb.possiblePlayers.map(player => {
@@ -989,7 +987,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
                               ambiguousLetters: data.ambiguousLetters,
                               matches: [] // Empty matches since we're in step 1
                             };
-                            return <PlayerDisambiguationCard response={mockResponse as MatchResultsResponse} originalImage={lastUploadedImage} />;
+                            return <PlayerDisambiguationCard response={mockResponse as MatchResultsResponse} originalImage={lastUploadedImage || undefined} />;
                           }
                           return null;
                         })()
@@ -999,7 +997,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
                           const data = message.additionalData as any;
                           // Handle new format with hasAmbiguity flag
                           if (data.hasAmbiguity && data.ambiguousLetters) {
-                            return <PlayerDisambiguationCard response={data as MatchResultsResponse} originalImage={lastUploadedImage} />;
+                            return <PlayerDisambiguationCard response={data as MatchResultsResponse} originalImage={lastUploadedImage || undefined} />;
                           }
                           // Handle matches array
                           else if (data.matches) {
