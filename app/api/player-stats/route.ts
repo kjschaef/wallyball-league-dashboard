@@ -83,7 +83,7 @@ export async function GET() {
     const sql = neon(process.env.DATABASE_URL);
     
     // Fetch all players
-    const allPlayers = await sql`SELECT * FROM players ORDER BY name ASC`;
+    const allPlayers = await sql`SELECT * FROM players ORDER BY created_at DESC`;
     
     // Fetch all matches, excluding any with timestamps more than 24 hours in the future
     // This allows for timezone differences while filtering out obviously incorrect future dates
@@ -97,6 +97,7 @@ export async function GET() {
     
     
     const playerStats: PlayerStats[] = allPlayers.map(player => {
+      try {
       // Find matches where this player participated
       const playerMatches = allMatches.filter(match => 
         match.team_one_player_one_id === player.id ||
@@ -106,6 +107,7 @@ export async function GET() {
         match.team_two_player_two_id === player.id ||
         match.team_two_player_three_id === player.id
       );
+      
       
       
       // Process matches to determine wins/losses for this player
@@ -175,10 +177,26 @@ export async function GET() {
         actualWinPercentage: actualWinPercentage,
         inactivityPenalty
       };
+      } catch (error) {
+        console.error(`Error processing player ${player.name} (ID ${player.id}):`, error);
+        // Return a minimal stats object so the player still appears
+        return {
+          id: player.id,
+          name: player.name,
+          yearsPlayed: 1,
+          record: { wins: 0, losses: 0, totalGames: 0 },
+          winPercentage: 0,
+          totalPlayingTime: 0,
+          streak: { type: 'wins' as const, count: 0 },
+          actualWinPercentage: 0,
+          inactivityPenalty: 0
+        };
+      }
     });
     
     // Sort by win percentage descending
     playerStats.sort((a, b) => b.winPercentage - a.winPercentage);
+    
     
     return NextResponse.json(playerStats);
   } catch (error) {

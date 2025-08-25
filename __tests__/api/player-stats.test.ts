@@ -658,4 +658,220 @@ describe('/api/player-stats', () => {
       expect(alice.actualWinPercentage).toBe(60);
     });
   });
+
+  describe('Player visibility regression tests', () => {
+    it('REGRESSION TEST - Jarod D. should appear in player-stats even with few games', async () => {
+      // This test reproduces the issue where Jarod D. was not showing up in the dashboard
+      const mockPlayers = [
+        { id: 1, name: 'Chad', start_year: 2009, created_at: '2025-07-08T16:14:55.201Z' },
+        { id: 2, name: 'Paul', start_year: 2025, created_at: '2025-07-10T04:37:13.866Z' },
+        { id: 3, name: 'Mark', start_year: 2005, created_at: '2025-07-10T04:51:57.167Z' },
+        { id: 4, name: 'Jarod D.', start_year: 2025, created_at: '2025-08-14T14:24:11.403Z' },
+      ];
+
+      // Jarod's actual matches from the real data
+      const mockMatches = [
+        {
+          id: 226,
+          team_one_player_one_id: 4, // Jarod D. on team one
+          team_one_player_two_id: null,
+          team_one_player_three_id: null,
+          team_two_player_one_id: 2, // Paul
+          team_two_player_two_id: null,
+          team_two_player_three_id: null,
+          team_one_games_won: 3,
+          team_two_games_won: 4,
+          date: '2025-08-14T16:00:00.000Z'
+        },
+        {
+          id: 227,
+          team_one_player_one_id: 2, // Paul
+          team_one_player_two_id: null,
+          team_one_player_three_id: null,
+          team_two_player_one_id: 4, // Jarod D. on team two
+          team_two_player_two_id: null,
+          team_two_player_three_id: null,
+          team_one_games_won: 1,
+          team_two_games_won: 0,
+          date: '2025-08-14T16:00:00.000Z'
+        },
+        // Add some matches for other players to ensure they show up too
+        {
+          id: 1,
+          team_one_player_one_id: 1, // Chad
+          team_one_player_two_id: null,
+          team_one_player_three_id: null,
+          team_two_player_one_id: 3, // Mark
+          team_two_player_two_id: null,
+          team_two_player_three_id: null,
+          team_one_games_won: 2,
+          team_two_games_won: 1,
+          date: '2025-07-08T04:00:00.000Z'
+        }
+      ];
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') {
+          return Promise.resolve(mockPlayers);
+        }
+        if (queryType === 'matches') {
+          return Promise.resolve(mockMatches);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/player-stats');
+      const response = await GET(request);
+      const playerStats = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(playerStats).toHaveLength(4); // All 4 players should be returned
+
+      // Find Jarod's stats
+      const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
+      
+      // This should NOT be undefined - this is the bug we're testing for
+      expect(jarod).toBeDefined();
+      
+      // Verify Jarod's stats are calculated correctly
+      // Match 226: Jarod lost 3-4 (3 wins, 4 losses)
+      // Match 227: Jarod lost 0-1 (0 wins, 1 loss) 
+      // Total: 3 wins, 5 losses = 8 total games
+      expect(jarod.record).toEqual({
+        wins: 3,
+        losses: 5,
+        totalGames: 8
+      });
+
+      // Verify win percentage: 3/8 = 37.5%
+      expect(jarod.winPercentage).toBe(37.5);
+
+      // Ensure other players are also present
+      const chad = playerStats.find((p: any) => p.name === 'Chad');
+      const paul = playerStats.find((p: any) => p.name === 'Paul');
+      const mark = playerStats.find((p: any) => p.name === 'Mark');
+
+      expect(chad).toBeDefined();
+      expect(paul).toBeDefined(); 
+      expect(mark).toBeDefined();
+    });
+
+    it('ACTUAL DATABASE STRUCTURE - Test with real Jarod match data', async () => {
+      // Test with the actual database structure found from the matches API
+      const mockPlayers = [
+        { id: 4, name: 'Jarod D.', start_year: 2025, created_at: '2025-08-14T14:24:11.403Z' },
+        { id: 54, name: 'Hodnett', start_year: 2020, created_at: '2025-01-01' },
+        { id: 56, name: 'Vamsi', start_year: 2020, created_at: '2025-01-01' },
+        { id: 61, name: 'Ambree', start_year: 2020, created_at: '2025-01-01' },
+        { id: 64, name: 'Lance', start_year: 2020, created_at: '2025-01-01' },
+        { id: 67, name: 'Reily', start_year: 2020, created_at: '2025-01-01' }
+      ];
+
+      // Actual match data from the real database
+      const mockMatches = [
+        {
+          id: 227,
+          team_one_player_one_id: 61,   // Ambree
+          team_one_player_two_id: 54,   // Hodnett
+          team_one_player_three_id: 64, // Lance
+          team_two_player_one_id: 4,    // Jarod D.
+          team_two_player_two_id: 67,   // Reily
+          team_two_player_three_id: 56, // Vamsi
+          team_one_games_won: 1,
+          team_two_games_won: 0,
+          date: new Date('2025-08-14T16:00:00.000Z')
+        },
+        {
+          id: 226,
+          team_one_player_one_id: 54,   // Hodnett
+          team_one_player_two_id: 4,    // Jarod D.
+          team_one_player_three_id: 56, // Vamsi
+          team_two_player_one_id: 61,   // Ambree
+          team_two_player_two_id: 64,   // Lance
+          team_two_player_three_id: 67, // Reily
+          team_one_games_won: 3,
+          team_two_games_won: 4,
+          date: new Date('2025-08-14T16:00:00.000Z')
+        }
+      ];
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') {
+          return Promise.resolve(mockPlayers);
+        }
+        if (queryType === 'matches') {
+          return Promise.resolve(mockMatches);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/player-stats');
+      const response = await GET(request);
+      const playerStats = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(playerStats).toHaveLength(6); // All 6 players should be returned
+      
+      const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
+      expect(jarod).toBeDefined();
+      
+      // Calculate expected stats:
+      // Match 227: Jarod on team two, lost 0-1 (0 wins, 1 loss)
+      // Match 226: Jarod on team one, lost 3-4 (3 wins, 4 losses) 
+      // Total: 3 wins, 5 losses = 8 total games
+      expect(jarod.record).toEqual({
+        wins: 3,
+        losses: 5,
+        totalGames: 8
+      });
+
+      expect(jarod.winPercentage).toBe(37.5); // 3/8 = 37.5%
+    });
+
+    it('CRITICAL ISSUE - Player with no matches should still appear', async () => {
+      // This test specifically addresses the Jarod D. issue where he exists but has no matches
+      const mockPlayers = [
+        { id: 1, name: 'Alice', start_year: 2020, created_at: '2020-01-01' },
+        { id: 4, name: 'Jarod D.', start_year: 2025, created_at: '2025-08-14T14:24:11.403Z' },
+      ];
+
+      // No matches in database - this is the real issue!
+      const mockMatches = [];
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') {
+          return Promise.resolve(mockPlayers);
+        }
+        if (queryType === 'matches') {
+          return Promise.resolve(mockMatches);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/player-stats');
+      const response = await GET(request);
+      const playerStats = await response.json();
+
+      expect(response.status).toBe(200);
+      
+      // CRITICAL: Both players should appear even if they have no matches
+      expect(playerStats).toHaveLength(2);
+      
+      const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
+      const alice = playerStats.find((p: any) => p.name === 'Alice');
+      
+      // Both players should exist in the response
+      expect(jarod).toBeDefined();
+      expect(alice).toBeDefined();
+      
+      // Players with no matches should have zero stats
+      expect(jarod.record).toEqual({
+        wins: 0,
+        losses: 0,
+        totalGames: 0
+      });
+      
+      expect(jarod.winPercentage).toBe(0);
+    });
+  });
 });
