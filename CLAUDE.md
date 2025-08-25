@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Running the Application
-- **Development server**: `npm run dev` (runs on port 5000)
+- **Development server**: `npm run dev` (runs on port 5001), assume it's already running first
 - **Production build**: `npm run build`
 - **Production start**: `npm start` (runs on port 5000)
 
@@ -138,3 +138,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `tailwind.config.js` - Tailwind styling configuration
 - `tsconfig.json` - TypeScript configuration with path aliases
 - `drizzle.config.ts` - Database ORM configuration
+
+**Workflow Steps**
+- When debugging, if possible, write a unit test to recreate the bug before applying a fix.  Run tests and see that it fails, then run again after the fix to make sure the fix worked
