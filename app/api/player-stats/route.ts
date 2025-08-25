@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { calculateInactivityPenalty } from '../../../lib/inactivity-penalty';
 
 interface PlayerStats {
   id: number;
@@ -71,26 +72,9 @@ function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type
   };
 }
 
-function calculateInactivityPenalty(matches: Array<{ date: string }>, createdAt: string | null): number {
-  if (matches.length === 0 || !createdAt) return 0;
-  
-  const now = new Date();
-  const lastMatchDate = matches.length > 0 
-    ? new Date(Math.max(...matches.map(m => new Date(m.date).getTime())))
-    : new Date(createdAt);
-  
-  const daysSinceLastMatch = Math.floor((now.getTime() - lastMatchDate.getTime()) / (1000 * 60 * 60 * 24));
-  const weeksSinceLastMatch = Math.floor(daysSinceLastMatch / 7);
-  
-  // No penalty for first 2 weeks
-  if (weeksSinceLastMatch <= 2) return 0;
-  
-  // 5% penalty per week after 2 weeks, capped at 50%
-  const penaltyWeeks = weeksSinceLastMatch - 2;
-  return Math.min(penaltyWeeks * 5, 50);
-}
 
 export async function GET() {
+  
   try {
     if (!process.env.DATABASE_URL) {
       throw new Error('Database URL not configured');
@@ -101,8 +85,16 @@ export async function GET() {
     // Fetch all players
     const allPlayers = await sql`SELECT * FROM players ORDER BY name ASC`;
     
-    // Fetch all matches
-    const allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
+    // Fetch all matches, excluding any with timestamps more than 24 hours in the future
+    // This allows for timezone differences while filtering out obviously incorrect future dates
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
+    const allMatches = await sql`
+      SELECT * FROM matches 
+      WHERE date <= ${tomorrow}
+      ORDER BY date DESC
+    `;
+    
     
     const playerStats: PlayerStats[] = allPlayers.map(player => {
       // Find matches where this player participated
@@ -114,6 +106,7 @@ export async function GET() {
         match.team_two_player_two_id === player.id ||
         match.team_two_player_three_id === player.id
       );
+      
       
       // Process matches to determine wins/losses for this player
       const processedMatches = playerMatches.map(match => {
@@ -143,11 +136,6 @@ export async function GET() {
         return total + (match.isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon);
       }, 0);
       
-      // Calculate match wins/losses for win percentage calculation
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _matchWins = processedMatches.filter(match => match.won).length;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _matchLosses = processedMatches.filter(match => !match.won).length;
       const totalGames = processedMatches.reduce((total, match) => 
         total + match.teamOneGamesWon + match.teamTwoGamesWon, 0
       );
@@ -170,8 +158,9 @@ export async function GET() {
       
       // Calculate win percentage and inactivity penalty (based on games won/lost)
       const actualWinPercentage = gamesWon + gamesLost > 0 ? (gamesWon / (gamesWon + gamesLost)) * 100 : 0;
-      const inactivityPenalty = calculateInactivityPenalty(processedMatches, player.created_at);
+      const inactivityPenalty = calculateInactivityPenalty(processedMatches, player.created_at, player.name);
       const winPercentage = Math.max(0, actualWinPercentage - inactivityPenalty);
+      
       
       return {
         id: player.id,

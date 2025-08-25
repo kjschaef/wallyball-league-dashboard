@@ -15,7 +15,7 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   type?: string;
-  additionalData?: TeamSuggestion | TeamSuggestion[] | MatchResult | MatchResult[];
+  additionalData?: TeamSuggestion | TeamSuggestion[] | MatchResult | MatchResult[] | MatchResultsResponse | TeamGrouping[];
   imagePreview?: string;
 }
 
@@ -57,9 +57,34 @@ interface MatchResult {
   };
 }
 
+interface TeamGrouping {
+  players: string[];
+  letters: string[];
+  wins?: number;
+  needsClarification?: boolean;
+}
+
+interface MatchResult {
+  matchNumber: number;
+  teamOne: TeamGrouping;
+  teamTwo: TeamGrouping;
+}
+
+interface AmbiguousLetter {
+  letter: string;
+  possiblePlayers: string[];
+}
+
+interface MatchResultsResponse {
+  hasAmbiguity: boolean;
+  ambiguousLetters?: AmbiguousLetter[];
+  matches: MatchResult[];
+}
+
 interface ChatBotProps {
   className?: string;
   onUseMatchup?: (teamOne: number[], teamTwo: number[]) => void;
+  onRecordMatch?: (teamOne: number[], teamTwo: number[], teamOneWins: number, teamTwoWins: number) => void;
 }
 
 function isMatchResult(data: any): data is MatchResult {
@@ -70,7 +95,11 @@ function isTeamSuggestion(data: any): data is TeamSuggestion {
   return data && typeof data === 'object' && 'teamOne' in data && 'teamTwo' in data;
 }
 
-export function ChatBot({ onUseMatchup }: ChatBotProps) {
+function isTeamGrouping(data: any): data is TeamGrouping {
+  return data && typeof data === 'object' && 'teamNumber' in data && 'players' in data && 'letters' in data;
+}
+
+export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -88,7 +117,8 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
   }>({ isOpen: false, messageIndex: -1, type: 'positive' });
   const [feedbackText, setFeedbackText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [playerChoices, setPlayerChoices] = useState<{ [key: string]: string }>({});
+  const [lastUploadedImage, setLastUploadedImage] = useState<File | null>(null);
 
   const logMatch = async (result: MatchResult) => {
     try {
@@ -117,58 +147,75 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
     }
     console.log('File selected:', file.name);
 
+    // Store the uploaded image for later use in disambiguation
+    setLastUploadedImage(file);
+
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    
+    reader.onloadend = async () => {
+      const imageDataUrl = reader.result as string;
 
-    const formData = new FormData();
-    formData.append('image', file);
+      // Fetch current player names
+      let playerNames: string[] = [];
+      try {
+        const playersResponse = await fetch('/api/players');
+        if (playersResponse.ok) {
+          const playersData = await playersResponse.json();
+          playerNames = playersData.map((player: any) => player.name);
+        }
+      } catch (error) {
+        console.error('Failed to fetch player names:', error);
+      }
 
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: '',
-      timestamp: new Date().toISOString(),
-      imagePreview: reader.result as string,
-    };
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('playerNames', JSON.stringify(playerNames));
+      formData.append('step', '1'); // Start with step 1 for the new two-step process
 
-    setMessages(prev => [...prev, userMessage]);
-
-    setIsLoading(true);
-
-    try {
-      console.log('Uploading image...');
-      const response = await fetch('/api/chatbot/image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      console.log('Image upload response:', response);
-      const data = await response.json();
-      console.log('Image upload data:', data);
-
-      const assistantMessage: ChatMessage = {
-        role: 'assistant',
-        content: data.response,
-        timestamp: data.timestamp,
-        type: data.type,
-        additionalData: data.additionalData
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: '',
+        timestamp: new Date().toISOString(),
+        imagePreview: imageDataUrl,
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Failed to upload image:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, I encountered an error processing your image. Please try again.',
-        timestamp: new Date().toISOString(),
-        type: 'error'
-      }]);
-    } finally {
-      setIsLoading(false);
-      setImagePreview(null);
-    }
+      setMessages(prev => [...prev, userMessage]);
+      setIsLoading(true);
+
+      try {
+        console.log('Uploading image with player names...');
+        const response = await fetch('/api/chatbot/image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        console.log('Image upload response:', response);
+        const data = await response.json();
+        console.log('Image upload data:', data);
+
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: data.response,
+          timestamp: data.timestamp,
+          type: data.type,
+          additionalData: data.additionalData
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+      } catch (error) {
+        console.error('Failed to upload image:', error);
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: 'Sorry, I encountered an error processing your image. Please try again.',
+          timestamp: new Date().toISOString(),
+          type: 'error'
+        }]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    reader.readAsDataURL(file);
   };
 
   const scrollToBottom = () => {
@@ -574,6 +621,292 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
     </Card>
   );
 
+  const MatchResultCard = ({ match }: { match: MatchResult }) => {
+    const hasAmbiguity = match.teamOne.needsClarification || match.teamTwo.needsClarification;
+    const cardColor = hasAmbiguity ? 'bg-orange-50 border-orange-200' : 'bg-purple-50 border-purple-200';
+    const textColor = hasAmbiguity ? 'text-orange-900' : 'text-purple-900';
+    const lightTextColor = hasAmbiguity ? 'text-orange-700' : 'text-purple-700';
+    const mediumTextColor = hasAmbiguity ? 'text-orange-800' : 'text-purple-800';
+
+    const handleRecordMatch = () => {
+      if (!onRecordMatch || hasAmbiguity) return;
+
+      // Map player names to IDs
+      const getPlayerIds = (playerNames: string[]): number[] => {
+        return playerNames
+          .map(name => allPlayers.find(p => p.name === name)?.id)
+          .filter((id): id is number => id !== undefined);
+      };
+
+      const teamOneIds = getPlayerIds(match.teamOne.players);
+      const teamTwoIds = getPlayerIds(match.teamTwo.players);
+
+      // Only proceed if we found all player IDs
+      if (teamOneIds.length === match.teamOne.players.length && 
+          teamTwoIds.length === match.teamTwo.players.length) {
+        setIsOpen(false); // Close chatbot dialog
+        onRecordMatch(teamOneIds, teamTwoIds, match.teamOne.wins || 0, match.teamTwo.wins || 0);
+      } else {
+        alert('Could not find all players in the roster. Please make sure all players are added to the system.');
+      }
+    };
+
+    return (
+      <Card className={`mt-2 ${cardColor}`}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className={`font-semibold ${textColor}`}>
+              Match {match.matchNumber} {hasAmbiguity && '(Needs Clarification)'}
+            </h4>
+            <div className={`text-lg font-bold ${textColor}`}>
+              {match.teamOne.wins || 0} - {match.teamTwo.wins || 0}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="space-y-2">
+              <h5 className={`font-medium ${mediumTextColor}`}>Team One</h5>
+              <p className={`text-sm ${mediumTextColor}`}>
+                Letters: {match.teamOne.letters.join(', ')}
+              </p>
+              <p className={`text-sm ${lightTextColor}`}>
+                {match.teamOne.players.join(', ')}
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <h5 className={`font-medium ${mediumTextColor}`}>Team Two</h5>
+              <p className={`text-sm ${mediumTextColor}`}>
+                Letters: {match.teamTwo.letters.join(', ')}
+              </p>
+              <p className={`text-sm ${lightTextColor}`}>
+                {match.teamTwo.players.join(', ')}
+              </p>
+            </div>
+          </div>
+
+          {!hasAmbiguity && onRecordMatch && (
+            <Button 
+              onClick={handleRecordMatch}
+              className="w-full"
+              variant="outline"
+            >
+              Record This Match
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+
+  const PlayerDisambiguationCard = ({ response, originalImage }: { response: MatchResultsResponse, originalImage?: File }) => {
+    const handlePlayerChoice = (letter: string, player: string) => {
+      setPlayerChoices(prev => ({ ...prev, [letter]: player }));
+    };
+
+    const allChoicesMade = response.ambiguousLetters?.every(amb => {
+      return playerChoices[amb.letter];
+    }) || false;
+
+    const finalizeClarification = async () => {
+      if (!response.ambiguousLetters || !allChoicesMade) return;
+
+      // Check if this is step 1 (no matches) or the old format (has matches)
+      if (response.matches && response.matches.length > 0) {
+        // Old format - update matches with user choices
+        const finalizedMatches = response.matches.map(match => {
+          const updateTeam = (team: TeamGrouping) => {
+            const updatedPlayers = team.players.map(player => {
+              if (player.startsWith('?')) {
+                const letter = player.substring(1);
+                return playerChoices[letter] || player;
+              }
+              return player;
+            });
+            
+            return {
+              ...team,
+              players: updatedPlayers,
+              needsClarification: false
+            };
+          };
+
+          return {
+            ...match,
+            teamOne: updateTeam(match.teamOne),
+            teamTwo: updateTeam(match.teamTwo)
+          };
+        });
+
+        // Create a new message with finalized matches
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: 'Great! Here are the finalized match results:',
+          timestamp: new Date().toISOString(),
+          type: 'match_results',
+          additionalData: { matches: finalizedMatches, hasAmbiguity: false }
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        // New two-step format - proceed to step 2 with confirmed players
+        if (!originalImage) return;
+        
+        try {
+          setIsLoading(true);
+          
+          // Create final player list from choices
+          const confirmedPlayers = Object.values(playerChoices);
+          
+          // Send to step 2 with confirmed players
+          const formData = new FormData();
+          formData.append('image', originalImage);
+          formData.append('confirmedPlayers', JSON.stringify(confirmedPlayers));
+          formData.append('step', '2');
+
+          const response = await fetch('/api/chatbot/image', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          
+          const assistantMessage: ChatMessage = {
+            role: 'assistant',
+            content: result.response,
+            timestamp: new Date().toISOString(),
+            type: result.type,
+            additionalData: result.additionalData
+          };
+
+          setMessages(prev => [...prev, assistantMessage]);
+        } catch (error) {
+          console.error('Error in step 2:', error);
+          const errorMessage: ChatMessage = {
+            role: 'assistant',
+            content: 'Sorry, I encountered an error processing your confirmed player choices. Please try again.',
+            timestamp: new Date().toISOString(),
+            type: 'error'
+          };
+          setMessages(prev => [...prev, errorMessage]);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      setPlayerChoices({});
+    };
+
+    return (
+      <Card className="mt-2 bg-yellow-50 border-yellow-200">
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-yellow-900 mb-3 text-center">Player Clarification Needed</h4>
+          <p className="text-sm text-yellow-800 mb-4">
+            Some letters could match multiple players. Please choose which player each letter represents (choice will apply to all instances):
+          </p>
+          
+          <div className="space-y-4">
+            {response.ambiguousLetters?.map((amb, index) => {
+              // Count how many times this letter appears across all matches
+              const letterCount = response.matches.reduce((count, match) => {
+                const teamOneCount = match.teamOne.letters.filter(l => l === amb.letter).length;
+                const teamTwoCount = match.teamTwo.letters.filter(l => l === amb.letter).length;
+                return count + teamOneCount + teamTwoCount;
+              }, 0);
+              
+              return (
+                <div key={index} className="border border-yellow-300 rounded-lg p-3">
+                  <p className="text-sm font-medium text-yellow-900 mb-2">
+                    Letter &quot;{amb.letter}&quot; ({letterCount} instance{letterCount !== 1 ? 's' : ''}):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {amb.possiblePlayers.map(player => {
+                      const isSelected = playerChoices[amb.letter] === player;
+                      return (
+                        <button
+                          key={player}
+                          onClick={() => handlePlayerChoice(amb.letter, player)}
+                          className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                            isSelected 
+                              ? 'bg-yellow-500 text-white' 
+                              : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                          }`}
+                        >
+                          {player}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {allChoicesMade && (
+            <Button 
+              onClick={finalizeClarification}
+              className="w-full mt-4 bg-yellow-600 hover:bg-yellow-700"
+            >
+              Confirm Player Choices
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const TeamGroupingCard = ({ grouping }: { grouping: TeamGrouping }) => (
+    <Card className={`mt-2 ${grouping.needsClarification ? 'bg-orange-50 border-orange-200' : 'bg-purple-50 border-purple-200'}`}>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className={`font-semibold ${grouping.needsClarification ? 'text-orange-900' : 'text-purple-900'}`}>
+            Team {grouping.needsClarification && '(Needs Clarification)'}
+          </h4>
+          {grouping.wins !== undefined && (
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+              grouping.needsClarification ? 'bg-orange-200 text-orange-800' : 'bg-purple-200 text-purple-800'
+            }`}>
+              <span>{grouping.wins} win{grouping.wins !== 1 ? 's' : ''}</span>
+            </div>
+          )}
+        </div>
+        <div className="space-y-2">
+          <div>
+            <p className={`text-sm font-medium ${grouping.needsClarification ? 'text-orange-800' : 'text-purple-800'}`}>
+              Letters seen: {grouping.letters.join(', ')}
+            </p>
+          </div>
+          <div>
+            <p className={`text-sm font-medium ${grouping.needsClarification ? 'text-orange-800' : 'text-purple-800'}`}>Players:</p>
+            <p className={`text-sm ${grouping.needsClarification ? 'text-orange-700' : 'text-purple-700'}`}>
+              {grouping.players.join(', ')}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const MultipleTeamGroupings = ({ groupings }: { groupings: TeamGrouping[] }) => (
+    <div className="space-y-2 mt-2">
+      {groupings.map((grouping, index) => (
+        <TeamGroupingCard key={index} grouping={grouping} />
+      ))}
+    </div>
+  );
+
+  const MultipleMatchResults = ({ matches }: { matches: MatchResult[] }) => (
+    <div className="space-y-2 mt-2">
+      {matches.map((match, index) => (
+        <MatchResultCard key={index} match={match} />
+      ))}
+    </div>
+  );
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -625,7 +958,7 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
                       )}
                       {message.imagePreview && (
                         <div className="mt-2">
-                          <img src={message.imagePreview} alt="Uploaded preview" className="w-24 h-24 object-cover" />
+                          <img src={message.imagePreview} alt="Uploaded preview" className="w-32 h-32 object-cover rounded-lg border border-gray-200" />
                         </div>
                       )}
                       {message.type === 'team_suggestion' && message.additionalData && (
@@ -643,6 +976,47 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
                         ) : (
                           isMatchResult(message.additionalData) && <MatchResultsCard result={message.additionalData} />
                         )
+                      )}
+                      {message.type === 'player_disambiguation' && message.additionalData && (
+                        (() => {
+                          const data = message.additionalData as any;
+                          if (data.ambiguousLetters && data.ambiguousLetters.length > 0) {
+                            // Convert the step 1 format to match the existing PlayerDisambiguationCard format
+                            const mockResponse = {
+                              hasAmbiguity: true,
+                              ambiguousLetters: data.ambiguousLetters,
+                              matches: [] // Empty matches since we're in step 1
+                            };
+                            return <PlayerDisambiguationCard response={mockResponse as MatchResultsResponse} originalImage={lastUploadedImage || undefined} />;
+                          }
+                          return null;
+                        })()
+                      )}
+                      {(message.type === 'team_groupings' || message.type === 'match_results') && message.additionalData && (
+                        (() => {
+                          const data = message.additionalData as any;
+                          // Handle new format with hasAmbiguity flag
+                          if (data.hasAmbiguity && data.ambiguousLetters) {
+                            return <PlayerDisambiguationCard response={data as MatchResultsResponse} originalImage={lastUploadedImage || undefined} />;
+                          }
+                          // Handle matches array
+                          else if (data.matches) {
+                            return <MultipleMatchResults matches={data.matches} />;
+                          }
+                          // Handle legacy teams array format for backwards compatibility
+                          else if (data.teams) {
+                            return <MultipleTeamGroupings groupings={data.teams} />;
+                          }
+                          // Handle legacy array format
+                          else if (Array.isArray(message.additionalData)) {
+                            return <MultipleTeamGroupings groupings={message.additionalData.filter(isTeamGrouping) as TeamGrouping[]} />;
+                          }
+                          // Handle single team grouping
+                          else if (isTeamGrouping(message.additionalData)) {
+                            return <TeamGroupingCard grouping={message.additionalData as TeamGrouping} />;
+                          }
+                          return null;
+                        })()
                       )}
                     </div>
                   </div>
@@ -716,11 +1090,6 @@ export function ChatBot({ onUseMatchup }: ChatBotProps) {
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-            {imagePreview && (
-              <div className="mt-2">
-                <img src={imagePreview} alt="preview" className="w-24 h-24 object-cover" />
-              </div>
-            )}
             <input
               type="file"
               ref={fileInputRef}

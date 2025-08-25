@@ -24,6 +24,10 @@ interface RecordMatchModalProps {
     teamOne: number[];
     teamTwo: number[];
   };
+  prefilledWins?: {
+    teamOneWins: number;
+    teamTwoWins: number;
+  };
 }
 
 interface PlayerGridProps {
@@ -83,7 +87,7 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
   );
 }
 
-export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: RecordMatchModalProps) {
+export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, prefilledWins }: RecordMatchModalProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [teamOnePlayers, setTeamOnePlayers] = useState<number[]>([]);
   const [teamTwoPlayers, setTeamTwoPlayers] = useState<number[]>([]);
@@ -99,8 +103,13 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams }: 
         setTeamOnePlayers(suggestedTeams.teamOne);
         setTeamTwoPlayers(suggestedTeams.teamTwo);
       }
+      // Set prefilled wins if provided
+      if (prefilledWins) {
+        setTeamOneGamesWon(prefilledWins.teamOneWins);
+        setTeamTwoGamesWon(prefilledWins.teamTwoWins);
+      }
     }
-  }, [isOpen, suggestedTeams]);
+  }, [isOpen, suggestedTeams, prefilledWins]);
 
   const fetchPlayers = async () => {
     try {

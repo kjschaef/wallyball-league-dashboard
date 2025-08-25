@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { calculateInactivityPenalty } from '../lib/utils';
+import { calculateInactivityPenaltyWithDecay, filterFutureMatches } from '../../lib/inactivity-penalty';
 import { PlayerAchievements } from './PlayerAchievements';
 
 interface Player {
@@ -28,20 +28,15 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
   
-  // Ensure we're working with matches in order (oldest first)
-  const sortedPlayer = {
-    ...player,
-    matches: [...player.matches].sort((a, b) => 
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    )
-  };
+  // Filter out future-dated matches and ensure proper formatting
+  const validMatches = filterFutureMatches(matches.map(match => ({ date: match.date })));
   
-  // Calculate inactivity penalty using the utility function
+  // Calculate inactivity penalty using the centralized logic
   const { 
     weeksInactive, 
     penaltyPercentage,
     decayFactor
-  } = calculateInactivityPenalty(sortedPlayer);
+  } = calculateInactivityPenaltyWithDecay(validMatches, player.createdAt?.toString() || null);
   
   const hasInactivityPenalty = penaltyPercentage > 0;
   

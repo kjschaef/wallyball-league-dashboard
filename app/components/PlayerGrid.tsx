@@ -75,6 +75,10 @@ export function PlayerGrid({
             <div
               key={player.id}
               onClick={() => canSelect && handlePlayerClick(player.id)}
+              onKeyDown={(e) => canSelect && (e.key === 'Enter' || e.key === ' ') && handlePlayerClick(player.id)}
+              tabIndex={canSelect ? 0 : -1}
+              role="button"
+              aria-pressed={isSelected}
               className={`p-3 border rounded-lg cursor-pointer transition-all ${
                 isSelected
                   ? 'border-blue-500 bg-blue-50'
