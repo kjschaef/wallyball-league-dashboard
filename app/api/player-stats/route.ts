@@ -136,9 +136,7 @@ export async function GET() {
         return total + (match.isTeamOne ? match.teamTwoGamesWon : match.teamOneGamesWon);
       }, 0);
       
-      const totalGames = processedMatches.reduce((total, match) => 
-        total + match.teamOneGamesWon + match.teamTwoGamesWon, 0
-      );
+      const totalGames = gamesWon + gamesLost;
       
       // Calculate years played
       const createdAt = player.created_at ? new Date(player.created_at) : new Date();

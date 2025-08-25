@@ -4,6 +4,7 @@ import { neon } from '@neondatabase/serverless';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = searchParams.get('limit');
+  const stats = searchParams.get('stats');
   
   try {
     if (!process.env.DATABASE_URL) {
@@ -11,6 +12,22 @@ export async function GET(request: Request) {
     }
     
     const sql = neon(process.env.DATABASE_URL);
+    
+    // If stats requested, return aggregated statistics
+    if (stats === 'true') {
+      const allMatches = await sql`SELECT team_one_games_won, team_two_games_won FROM matches`;
+      const totalMatches = allMatches.length;
+      const totalGames = allMatches.reduce((sum, match) => 
+        sum + (match.team_one_games_won || 0) + (match.team_two_games_won || 0), 0
+      );
+      const avgGamesPerMatch = totalMatches > 0 ? Number((totalGames / totalMatches).toFixed(1)) : 0;
+      
+      return NextResponse.json({
+        totalMatches,
+        totalGames,
+        avgGamesPerMatch
+      });
+    }
     
     // Fetch matches from database
     let allMatches;

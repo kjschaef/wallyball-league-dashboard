@@ -180,8 +180,8 @@ function BestPerformingTeams({
 
 export default function ResultsPage() {
   const { data: seasonStats } = useQuery<SeasonStats>({
-    queryKey: ["/api/season-stats"],
-    queryFn: () => fetch("/api/season-stats").then((res) => res.json()),
+    queryKey: ["/api/matches", { stats: true }],
+    queryFn: () => fetch("/api/matches?stats=true").then((res) => res.json()),
   });
 
   const { data: teamPerformance } = useQuery<TeamPerformance[]>({
