@@ -200,6 +200,7 @@ Team Formation Goals:
 
 IMPORTANT: Return 3 different team scenarios that use DIFFERENT combinations of players. 
 Do NOT suggest the same team composition with players in different orders.
+Do NOT suggest the same team more than once.
 
 Respond in JSON format:
 {
@@ -210,7 +211,7 @@ Respond in JSON format:
       "teamTwo": ["player3", "player4"],
       "balanceScore": 75,
       "expectedWinProbability": 52,
-      "reasoning": "Detailed explanation of team formation logic"
+      "reasoning": "Brief explanation of team formation logic"
     },
     {
       "scenario": "Alternative: Streak-Based", 
@@ -238,8 +239,7 @@ Respond in JSON format:
 CRITICAL: 
 - NO player can appear on both teams in any scenario
 - Each scenario must use DIFFERENT team combinations (not just reordering the same players)
-- If you suggest Player A and Player B together on Team 1 in scenario 1, don't suggest them together again in scenarios 2 or 3
-- Provide genuine variety in team compositions across all scenarios`
+- If you suggest Player A and Player B together on Team 1 in scenario 1, don't suggest them together again in scenarios 2 or 3`
         }
       ],
       response_format: { type: "json_object" }
