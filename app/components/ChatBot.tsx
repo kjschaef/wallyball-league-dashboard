@@ -514,7 +514,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => handleQuickAction("Which players are on winning streaks?")}
+        onClick={() => handleQuickAction("Which players are on activity streaks?")}
         disabled={isLoading}
         className="text-xs"
       >

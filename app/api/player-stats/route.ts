@@ -14,15 +14,15 @@ interface PlayerStats {
   winPercentage: number;
   totalPlayingTime: number;
   streak: {
-    type: 'wins' | 'losses';
+    type: 'activity';
     count: number;
   };
   actualWinPercentage?: number;
   inactivityPenalty?: number;
 }
 
-function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type: 'wins' | 'losses'; count: number } {
-  if (matches.length === 0) return { type: 'wins', count: 0 };
+function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type: 'activity'; count: number } {
+  if (matches.length === 0) return { type: 'activity', count: 0 };
   
   // Group matches by week (using ISO week format YYYY-MM-DD for Monday of each week)
   const matchesByWeek = new Set<string>();
@@ -43,8 +43,8 @@ function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type
   // Convert to sorted array (oldest first for streak calculation)
   const sortedWeeks = Array.from(matchesByWeek).sort((a, b) => a.localeCompare(b));
   
-  if (sortedWeeks.length === 0) return { type: 'wins', count: 0 };
-  if (sortedWeeks.length === 1) return { type: 'wins', count: 1 };
+  if (sortedWeeks.length === 0) return { type: 'activity', count: 0 };
+  if (sortedWeeks.length === 1) return { type: 'activity', count: 1 };
   
   // Find the longest consecutive streak of weeks
   let maxStreak = 1;
@@ -67,7 +67,7 @@ function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type
   }
   
   return {
-    type: 'wins', // Always 'wins' since we're counting consecutive weeks of activity
+    type: 'activity', // Counting consecutive weeks of activity
     count: maxStreak
   };
 }
@@ -187,7 +187,7 @@ export async function GET() {
           record: { wins: 0, losses: 0, totalGames: 0 },
           winPercentage: 0,
           totalPlayingTime: 0,
-          streak: { type: 'wins' as const, count: 0 },
+          streak: { type: 'activity' as const, count: 0 },
           actualWinPercentage: 0,
           inactivityPenalty: 0
         };
