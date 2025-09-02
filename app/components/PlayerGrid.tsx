@@ -9,7 +9,7 @@ interface Player {
     losses: number;
   };
   streak?: {
-    type: 'wins' | 'losses';
+    type: 'activity';
     count: number;
   };
   inactivityPenalty?: number;
@@ -63,12 +63,10 @@ export function PlayerGrid({
             return 'text-red-600';
           };
 
-          const getStreakColor = (streak?: { type: 'wins' | 'losses'; count: number }) => {
+          const getStreakColor = (streak?: { type: 'activity'; count: number }) => {
             if (!streak) return 'text-gray-500';
-            if (streak.type === 'wins') {
-              return streak.count >= 3 ? 'text-green-600' : 'text-green-500';
-            }
-            return streak.count >= 3 ? 'text-red-600' : 'text-red-500';
+            // Activity streaks are always positive (green)
+            return streak.count >= 3 ? 'text-green-600' : 'text-green-500';
           };
 
           return (
@@ -103,7 +101,7 @@ export function PlayerGrid({
                   )}
                   {player.streak && (
                     <span className={getStreakColor(player.streak)}>
-                      {player.streak.count} {player.streak.type}
+                      {player.streak.count} weeks
                     </span>
                   )}
                 </div>

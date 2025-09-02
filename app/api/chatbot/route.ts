@@ -162,7 +162,7 @@ export async function GET() {
       sampleQueries: [
         "Who are the top performing players this season?",
         "Suggest balanced teams for today's match",
-        "Which players are on winning streaks?",
+        "Which players are on activity streaks?",
         "Compare John and Sarah's performance",
         "Who should play today if we have 8 players available?",
         "What are the serving rules in Wallyball?",

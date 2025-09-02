@@ -514,7 +514,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => handleQuickAction("Which players are on winning streaks?")}
+        onClick={() => handleQuickAction("Which players are on activity streaks?")}
         disabled={isLoading}
         className="text-xs"
       >
@@ -545,7 +545,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
             <h5 className="font-semibold text-blue-900 mb-2">Team 1</h5>
             {data.teamOne.map(player => (
               <div key={player.id} className="text-sm">
-                {player.name} ({player.winPercentage}%)
+                {player.name} ({player.winPercentage.toFixed(1)}%)
               </div>
             ))}
           </div>
@@ -553,7 +553,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
             <h5 className="font-semibold text-blue-900 mb-2">Team 2</h5>
             {data.teamTwo.map(player => (
               <div key={player.id} className="text-sm">
-                {player.name} ({player.winPercentage}%)
+                {player.name} ({player.winPercentage.toFixed(1)}%)
               </div>
             ))}
           </div>
