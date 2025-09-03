@@ -1,19 +1,55 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     if (!process.env.DATABASE_URL) {
       throw new Error('Database URL not configured');
     }
     
     const sql = neon(process.env.DATABASE_URL);
+    const { searchParams } = new URL(request.url);
+    const seasonParam = searchParams.get('season');
     
     // Fetch all players
     const allPlayers = await sql`SELECT * FROM players ORDER BY name ASC`;
     
-    // Fetch all matches
-    const allMatches = await sql`SELECT * FROM matches ORDER BY date ASC`;
+    // Handle season filtering for matches
+    let allMatches;
+    let seasonId: number | null = null;
+    
+    if (seasonParam) {
+      if (seasonParam === 'current') {
+        // Get current active season
+        const currentSeason = await sql`SELECT * FROM seasons WHERE is_active = true LIMIT 1`;
+        if (currentSeason.length === 0) {
+          return NextResponse.json({ error: 'No active season found' }, { status: 404 });
+        }
+        seasonId = currentSeason[0].id;
+      } else if (seasonParam === 'lifetime') {
+        // No season filter for lifetime
+        seasonId = null;
+      } else if (!isNaN(Number(seasonParam))) {
+        // Specific season ID
+        seasonId = Number(seasonParam);
+        const season = await sql`SELECT * FROM seasons WHERE id = ${seasonId}`;
+        if (season.length === 0) {
+          return NextResponse.json({ error: 'Season not found' }, { status: 404 });
+        }
+      } else {
+        return NextResponse.json(
+          { error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Fetch matches with optional season filtering
+    if (seasonId !== null) {
+      allMatches = await sql`SELECT * FROM matches WHERE season_id = ${seasonId} ORDER BY date ASC`;
+    } else {
+      allMatches = await sql`SELECT * FROM matches ORDER BY date ASC`;
+    }
     
     const playerTrends = allPlayers.map(player => {
       // Find matches where this player participated
@@ -80,7 +116,10 @@ export async function GET() {
       });
       
       // For inactive players, add synthetic weekly data points showing penalty progression
-      if (playerMatches.length > 0) {
+      // Only apply this for current season or lifetime stats, not historical seasons
+      const isHistoricalSeason = seasonParam && seasonParam !== 'current' && seasonParam !== 'lifetime';
+      
+      if (playerMatches.length > 0 && !isHistoricalSeason) {
         const lastMatchDate = new Date(sortedMatches[sortedMatches.length - 1].date);
         const today = new Date();
         const daysSinceLastMatch = Math.floor((today.getTime() - lastMatchDate.getTime()) / (1000 * 60 * 60 * 24));

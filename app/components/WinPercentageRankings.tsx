@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 
+interface WinPercentageRankingsProps {
+  season?: string;
+}
+
 // Mock data for the rankings as shown in the screenshot
 const mockRankings = [
   { id: 16, name: 'Troy', games: 3, winPercentage: 57.1 },
@@ -38,7 +42,7 @@ const getPlayerColor = (playerName: string, allPlayers: string[]) => {
   return originalIndex >= 0 ? CHART_COLORS[originalIndex % CHART_COLORS.length] : CHART_COLORS[0];
 };
 
-export function WinPercentageRankings() {
+export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {}) {
   const [rankings, setRankings] = useState<Array<{
     id: number; 
     name: string; 
@@ -56,8 +60,9 @@ export function WinPercentageRankings() {
     const fetchData = async () => {
       try {
         // Fetch player stats (already calculated with game-level data)
+        const seasonParam = season ? `season=${season}` : '';
         const [statsResponse, matchesResponse] = await Promise.all([
-          fetch('/api/player-stats'),
+          fetch(`/api/player-stats${seasonParam ? `?${seasonParam}` : ''}`),
           fetch('/api/matches?limit=10')
         ]);
 
@@ -123,7 +128,7 @@ export function WinPercentageRankings() {
     };
 
     fetchData();
-  }, []);
+  }, [season]);
 
   const formatTooltipContent = (value: number, name: string) => {
     if (name === 'winPercentage') {

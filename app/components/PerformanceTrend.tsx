@@ -30,6 +30,7 @@ const COLORS = [
 
 interface PerformanceTrendProps {
   isExporting?: boolean;
+  season?: string;
 }
 
 interface PlayerStats {
@@ -45,9 +46,8 @@ interface PlayerStats {
   inactivityPenalty?: number;
 }
 
-export function PerformanceTrend({ isExporting: _isExporting = false }: PerformanceTrendProps) {
+export function PerformanceTrend({ isExporting: _isExporting = false, season }: PerformanceTrendProps) {
   const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
-  const [showAllData, setShowAllData] = useState(false);
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   const [chartData, setChartData] = useState<Array<{date: string; [key: string]: unknown}>>([]);
   const [trendsData, setTrendsData] = useState<any[]>([]);
@@ -58,9 +58,11 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Build URLs with optional season parameter
+        const seasonParam = season ? `season=${season}` : '';
         const [statsResponse, trendsResponse] = await Promise.all([
-          fetch('/api/player-stats'),
-          fetch('/api/player-trends')
+          fetch(`/api/player-stats${seasonParam ? `?${seasonParam}` : ''}`),
+          fetch(`/api/player-trends${seasonParam ? `?${seasonParam}` : ''}`)
         ]);
 
         if (!statsResponse.ok || !trendsResponse.ok) {
@@ -89,9 +91,9 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
             }
           });
 
-          // Generate chart data
+          // Generate chart data - show all data for the selected season
           const sortedDates = Array.from(allDates).sort();
-          const currentDateRange = showAllData ? sortedDates : sortedDates.slice(-4);
+          const currentDateRange = sortedDates; // Always show all data for seasonal view
           setDateRange(currentDateRange);
 
           const newChartData = currentDateRange.map((date, index) => {
@@ -162,7 +164,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
     };
 
     fetchData();
-  }, [metric, showAllData]);
+  }, [metric, season]);
 
   if (loading) {
     return (
@@ -177,6 +179,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold">Performance Over Time</h3>
         <div className="flex space-x-2">
           <button 
             className={`${metric === 'winPercentage' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
@@ -189,20 +192,6 @@ export function PerformanceTrend({ isExporting: _isExporting = false }: Performa
             onClick={() => setMetric('totalWins')}
           >
             Total Wins
-          </button>
-        </div>
-        <div className="flex space-x-2">
-          <button 
-            className={`${!showAllData ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
-            onClick={() => setShowAllData(false)}
-          >
-            Recent
-          </button>
-          <button 
-            className={`${showAllData ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
-            onClick={() => setShowAllData(true)}
-          >
-            All Data
           </button>
         </div>
       </div>

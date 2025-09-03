@@ -8,6 +8,7 @@ import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
 import { FloatingActionButton } from './components/FloatingActionButton';
 import { PlayerSelectorDialog } from './components/PlayerSelectorDialog';
+import { SeasonSelector } from './components/SeasonSelector';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -27,6 +28,15 @@ interface Player {
   name: string;
 }
 
+interface Season {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
@@ -35,8 +45,15 @@ export default function DashboardPage() {
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Season management state
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [currentSeason, setCurrentSeason] = useState<string>('current'); // 'current', 'lifetime', or season ID
+  
   const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | undefined>(undefined);
   const [prefilledWins, setPrefilledWins] = useState<{ teamOneWins: number, teamTwoWins: number } | undefined>(undefined);
+  
+  // Add refresh trigger for dashboard components
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -48,7 +65,19 @@ export default function DashboardPage() {
         console.error('Failed to fetch players:', error);
       }
     };
+    
+    const fetchSeasons = async () => {
+      try {
+        const response = await fetch('/api/seasons');
+        const data = await response.json();
+        setSeasons(data);
+      } catch (error) {
+        console.error('Failed to fetch seasons:', error);
+      }
+    };
+    
     fetchPlayers();
+    fetchSeasons();
   }, []);
 
   const handleRecordMatchSubmit = async (matchData: MatchData) => {
@@ -84,6 +113,9 @@ export default function DashboardPage() {
       setShowRecordMatchModal(false);
       setSuggestedTeams(undefined);
       setPrefilledWins(undefined);
+
+      // Trigger refresh of all dashboard components
+      setRefreshKey(prev => prev + 1);
 
       // Show success message
       alert('Match recorded successfully!');
@@ -270,11 +302,17 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-800">Win Percentage</h1>
       </div>
 
+      <SeasonSelector
+        seasons={seasons}
+        currentSeason={currentSeason}
+        onSeasonChange={setCurrentSeason}
+      />
+
       <div className="grid grid-cols-1 gap-6">
         {/* Chart */}
         <div>
           <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <PerformanceTrend />
+            <PerformanceTrend key={`trend-${refreshKey}`} season={currentSeason} />
           </div>
         </div>
 
@@ -286,7 +324,7 @@ export default function DashboardPage() {
                 May 18, 2025
               </div>
               <div className="space-y-2">
-                <WinPercentageRankings />
+                <WinPercentageRankings key={`rankings-${refreshKey}`} season={currentSeason} />
               </div>
             </div>
           </div>
@@ -294,7 +332,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="bg-white p-6 rounded-lg border border-gray-200">
-        <RecentMatches />
+        <RecentMatches key={`recent-${refreshKey}`} />
       </div>
 
       <FloatingActionButton 
