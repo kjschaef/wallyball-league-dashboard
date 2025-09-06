@@ -6,6 +6,13 @@ export interface Match {
   date: string;
 }
 
+export interface Season {
+  id: number;
+  start_date: string;
+  end_date: string;
+  name: string;
+}
+
 /**
  * Calculates the inactivity penalty for a player based on their match history
  * 
@@ -87,4 +94,143 @@ export function calculateInactivityPenaltyWithDecay(
     penaltyPercentage: penaltyDecimal,
     decayFactor: 1 - penaltyDecimal
   };
+}
+
+/**
+ * Calculates season-specific inactivity penalty for historical seasons
+ * 
+ * For historical seasons, penalty is calculated based on inactivity within that season only.
+ * Players who were active at the end of the season retain their final statistics.
+ * 
+ * @param matches Array of matches the player participated in during the season
+ * @param season Season object with start/end dates
+ * @param createdAt Player's account creation date
+ * @param playerName Optional player name for debugging
+ * @returns Penalty percentage (0-50)
+ */
+export function calculateSeasonalInactivityPenalty(
+  matches: Array<Match>,
+  season: Season,
+  createdAt: string | null,
+  playerName?: string
+): number {
+  if (matches.length === 0 || !createdAt) return 0;
+
+  const seasonStart = new Date(season.start_date);
+  const seasonEnd = new Date(season.end_date);
+  
+  // Filter matches to only those within the season
+  const seasonMatches = filterFutureMatches(matches).filter(match => {
+    const matchDate = new Date(match.date);
+    return matchDate >= seasonStart && matchDate <= seasonEnd;
+  });
+
+  if (seasonMatches.length === 0) return 0;
+
+  // Sort matches chronologically (critical for accurate calculations)
+  const sortedMatches = seasonMatches.sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  const lastMatchInSeason = new Date(sortedMatches[sortedMatches.length - 1].date);
+  
+  // Calculate inactivity from last match in season to season end
+  const daysBetweenLastMatchAndSeasonEnd = Math.floor(
+    (seasonEnd.getTime() - lastMatchInSeason.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  
+  const weeksSinceLastMatch = Math.floor(daysBetweenLastMatchAndSeasonEnd / 7);
+  
+  // Apply same rules: 3-day immediate reset (but relative to season end)
+  if (daysBetweenLastMatchAndSeasonEnd <= 3) {
+    return 0;
+  }
+  
+  // No penalty for first 2 weeks of inactivity
+  if (weeksSinceLastMatch <= 2) {
+    return 0;
+  }
+  
+  // 5% penalty per week after 2 weeks, capped at 50%
+  const penaltyWeeks = weeksSinceLastMatch - 2;
+  const penalty = Math.min(penaltyWeeks * 5, 50);
+  
+  // Debug logging for troubleshooting (similar to existing Trevor debug)
+  if (playerName && penalty > 0) {
+    console.log(`Seasonal penalty for ${playerName} in ${season.name}: ${penalty}% (inactive ${weeksSinceLastMatch} weeks from ${lastMatchInSeason.toISOString().split('T')[0]} to season end)`);
+  }
+  
+  return penalty;
+}
+
+/**
+ * Generates a penalty series for a season: weekly penalty values from the last
+ * match in season to the season end (inclusive). Returns a map of YYYY-MM-DD -> penaltyPercent
+ *
+ * This is used by the trends API to show progressive penalty decay across a season
+ * for historical seasons.
+ */
+export function calculateSeasonalPenaltySeries(
+  matches: Array<Match>,
+  season: Season,
+  createdAt: string | null
+): Record<string, number> {
+  const result: Record<string, number> = {};
+  if (matches.length === 0 || !createdAt) return result;
+
+  const seasonStart = new Date(season.start_date);
+  const seasonEnd = new Date(season.end_date);
+
+  // Filter and sort matches within the season
+  const seasonMatches = filterFutureMatches(matches).filter(m => {
+    const d = new Date(m.date);
+    return d >= seasonStart && d <= seasonEnd;
+  }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  if (seasonMatches.length === 0) return result;
+
+  const lastMatch = new Date(seasonMatches[seasonMatches.length - 1].date);
+
+  // Calculate weeks between last match and season end
+  const daysBetween = Math.floor((seasonEnd.getTime() - lastMatch.getTime()) / (1000 * 60 * 60 * 24));
+  const totalWeeks = Math.floor(daysBetween / 7);
+
+  // Start applying penalties after the 2-week grace period. We'll emit weekly points
+  // for week indexes 3..(2+totalWeeks)
+  for (let week = 3; week <= 2 + totalWeeks; week++) {
+    const penaltyWeeks = week - 2;
+    const penalty = Math.min(penaltyWeeks * 5, 50);
+
+    const pointDate = new Date(lastMatch);
+    pointDate.setDate(pointDate.getDate() + week * 7);
+
+    // If pointDate is after season end, clamp to season end
+    if (pointDate > seasonEnd) {
+      pointDate.setTime(seasonEnd.getTime());
+    }
+
+    const key = pointDate.toISOString().split('T')[0];
+    // Keep the highest penalty for the same date if multiple weeks collapse to season end
+    result[key] = Math.max(result[key] || 0, penalty);
+  }
+
+  // Ensure season end is present (even if within grace period, penalty could be 0)
+  const seasonEndKey = seasonEnd.toISOString().split('T')[0];
+  if (!(seasonEndKey in result)) {
+    // Compute penalty relative to last match -> season end
+    const daysToEnd = Math.floor((seasonEnd.getTime() - lastMatch.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysToEnd > 3) {
+      const weeksSince = Math.floor(daysToEnd / 7);
+      if (weeksSince > 2) {
+        const penalty = Math.min((weeksSince - 2) * 5, 50);
+        result[seasonEndKey] = penalty;
+      } else {
+        result[seasonEndKey] = 0;
+      }
+    } else {
+      result[seasonEndKey] = 0;
+    }
+  }
+
+  return result;
 }

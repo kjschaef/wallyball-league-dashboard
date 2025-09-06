@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { calculateInactivityPenalty } from '../../../lib/inactivity-penalty';
+import { calculateInactivityPenalty, calculateSeasonalInactivityPenalty } from '../../../lib/inactivity-penalty';
 
 interface PlayerStats {
   id: number;
@@ -89,6 +89,7 @@ export async function GET(request: Request) {
     
     // Handle season filtering
     let seasonId: number | null = null;
+    let seasonData: {id: number; name: string; start_date: string; end_date: string} | null = null;
     let allMatches;
     
     const now = new Date();
@@ -105,6 +106,7 @@ export async function GET(request: Request) {
           );
         }
         seasonId = currentSeason[0].id;
+        seasonData = currentSeason[0];
       } else if (seasonParam === 'lifetime') {
         // Explicitly requested lifetime stats - no season filter
         seasonId = null;
@@ -118,6 +120,7 @@ export async function GET(request: Request) {
             { status: 404 }
           );
         }
+        seasonData = season[0];
       } else {
         return NextResponse.json(
           { error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' },
@@ -205,12 +208,21 @@ export async function GET(request: Request) {
       // Calculate win percentage and inactivity penalty (based on games won/lost)
       const actualWinPercentage = gamesWon + gamesLost > 0 ? (gamesWon / (gamesWon + gamesLost)) * 100 : 0;
       
-      // Only apply inactivity penalty for current season and lifetime stats, not historical seasons
+      // Apply inactivity penalty based on season type
       let inactivityPenalty = 0;
       const isHistoricalSeason = seasonParam && seasonParam !== 'current' && seasonParam !== 'lifetime';
       
       if (!isHistoricalSeason) {
+        // Current season and lifetime stats use the standard penalty calculation
         inactivityPenalty = calculateInactivityPenalty(processedMatches, player.created_at, player.name);
+      } else if (seasonData) {
+        // Historical seasons use season-specific penalty calculation
+        inactivityPenalty = calculateSeasonalInactivityPenalty(
+          processedMatches, 
+          seasonData, 
+          player.created_at, 
+          player.name
+        );
       }
       
       const winPercentage = Math.max(0, actualWinPercentage - inactivityPenalty);
