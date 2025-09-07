@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import {
@@ -12,6 +12,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import { PerformanceControls } from './PerformanceControls';
 
 const COLORS = [
   "#FF6B6B", // Coral Red
@@ -31,6 +32,7 @@ const COLORS = [
 interface PerformanceTrendProps {
   isExporting?: boolean;
   season?: string;
+  onSeasonChange?: (season: string | undefined) => void;
 }
 
 interface PlayerStats {
@@ -46,15 +48,22 @@ interface PlayerStats {
   inactivityPenalty?: number;
 }
 
-export function PerformanceTrend({ isExporting: _isExporting = false, season }: PerformanceTrendProps) {
+export function PerformanceTrend({ isExporting: _isExporting = false, season: initialSeason, onSeasonChange }: PerformanceTrendProps) {
   const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   const [chartData, setChartData] = useState<Array<{date: string; [key: string]: unknown}>>([]);
   const [trendsData, setTrendsData] = useState<any[]>([]);
   const [dateRange, setDateRange] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [season, setSeason] = useState<string | undefined>(initialSeason);
+  const [compare, setCompare] = useState<number[]>([]);
 
   // Fetch player stats and historical trends with contextual penalties
+  // Keep internal season in sync with prop changes
+  useEffect(() => {
+    setSeason(initialSeason);
+  }, [initialSeason]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -83,17 +92,40 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season }: 
         if (Array.isArray(trendsDataResponse) && trendsDataResponse.length > 0) {
           // Get all unique dates from trends data
           const allDates = new Set<string>();
+          // Also compute last logged match date across players (for current season)
+          let lastLoggedGameDate: string | null = null;
+
           trendsDataResponse.forEach((playerTrend: any) => {
             if (playerTrend.dailyStats) {
-              Object.keys(playerTrend.dailyStats).forEach(date => {
+              const dates = Object.keys(playerTrend.dailyStats).sort();
+              let prevTotalGames = -1;
+
+              dates.forEach(date => {
+                const stats = playerTrend.dailyStats[date];
                 allDates.add(date);
+
+                // detect a logged game by observing an increase in totalGames
+                const totalGames = typeof stats.totalGames === 'number' ? stats.totalGames : NaN;
+                if (prevTotalGames >= 0 && !isNaN(totalGames) && totalGames > prevTotalGames) {
+                  // this date corresponds to a logged match for this player
+                  if (!lastLoggedGameDate || date > lastLoggedGameDate) lastLoggedGameDate = date;
+                }
+                prevTotalGames = isNaN(totalGames) ? prevTotalGames : totalGames;
               });
             }
           });
 
           // Generate chart data - show all data for the selected season
           const sortedDates = Array.from(allDates).sort();
-          const currentDateRange = sortedDates; // Always show all data for seasonal view
+          let currentDateRange = sortedDates; // default
+
+          // If viewing the current season, trim the date range to the last logged game date
+          if (season === 'current' && lastLoggedGameDate) {
+            currentDateRange = sortedDates.filter(d => d <= lastLoggedGameDate);
+            // ensure we include the last logged date if present
+            if (!currentDateRange.includes(lastLoggedGameDate)) currentDateRange.push(lastLoggedGameDate);
+            currentDateRange = Array.from(new Set(currentDateRange)).sort();
+          }
           setDateRange(currentDateRange);
 
           const newChartData = currentDateRange.map((date, index) => {
@@ -106,20 +138,24 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season }: 
 
                 if (stats) {
                   // For the latest date, use current stats from /api/player-stats to match player cards
+                  const valueForMetric = (() => {
+                    if (metric === 'winPercentage') {
+                      return stats.winPercentage;
+                    }
+                    return stats[metric];
+                  })();
+
                   if (isLatestDate && metric === 'winPercentage') {
                     const currentPlayer = statsData.find((p: any) => p.name === playerTrend.name);
                     if (currentPlayer) {
                       dataPoint[playerTrend.name] = currentPlayer.winPercentage;
                     } else {
-                      dataPoint[playerTrend.name] = stats[metric];
+                      dataPoint[playerTrend.name] = valueForMetric;
                     }
                   } else {
-                    dataPoint[playerTrend.name] = stats[metric];
+                    dataPoint[playerTrend.name] = valueForMetric;
                   }
-                  // Debug specific penalty values
-                  if (playerTrend.name.toLowerCase().includes('trevor') && stats.inactivityPenalty > 0) {
-                    console.log(`Trevor on ${date}: raw=${stats.rawWinPercentage}%, penalty=${stats.inactivityPenalty}%, final=${stats.winPercentage}%`);
-                  }
+                  // (debug logs removed)
                 } else {
                   // Find the last known value for this player before this date
                   const previousDates = sortedDates.filter(d => d < date);
@@ -178,22 +214,19 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season }: 
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold">Performance Over Time</h3>
-        <div className="flex space-x-2">
-          <button 
-            className={`${metric === 'winPercentage' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
-            onClick={() => setMetric('winPercentage')}
-          >
-            Win %
-          </button>
-          <button 
-            className={`${metric === 'totalWins' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'} px-4 py-1 text-sm rounded transition duration-150 ease-in-out`}
-            onClick={() => setMetric('totalWins')}
-          >
-            Total Wins
-          </button>
-        </div>
+      <div className="mb-6">
+        <PerformanceControls season={season} metric={metric} compare={compare} onChange={(opts) => {
+          if (opts.season !== undefined) {
+            const newSeason = opts.season as string | undefined;
+            setSeason(newSeason);
+            if (onSeasonChange) onSeasonChange(newSeason);
+          }
+          if (opts.metric !== undefined) setMetric(opts.metric);
+          if (opts.compare !== undefined) setCompare(opts.compare);
+          if (opts.action === 'reset') {
+            setMetric('winPercentage'); setCompare([]); setSeason(undefined);
+          }
+        }} />
       </div>
 
       <div className="h-[400px] w-full">
@@ -224,18 +257,18 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season }: 
               }}
               formatter={(value: number, name: string, props: any) => {
                 const formattedValue = Number(value.toFixed(1));
-                
+
                 if (metric === 'winPercentage') {
                   let penaltyInfo = '';
-                  
+
                   // Get penalty from trends data for this specific date
                   const currentDate = props.payload?.date;
                   const playerTrend = trendsData.find((p: any) => p.name === name);
                   let penaltyValue = 0;
-                  
+
                   if (playerTrend?.dailyStats) {
                     const stats = playerTrend.dailyStats[currentDate];
-                    
+
                     if (stats?.inactivityPenalty !== undefined) {
                       // Direct hit - we have data for this exact date
                       penaltyValue = stats.inactivityPenalty;
@@ -243,7 +276,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season }: 
                       // No data for this exact date, find the most recent penalty before this date
                       const allDates = Object.keys(playerTrend.dailyStats).sort();
                       const previousDates = allDates.filter(date => date <= currentDate);
-                      
+
                       if (previousDates.length > 0) {
                         const mostRecentDate = previousDates[previousDates.length - 1];
                         const mostRecentStats = playerTrend.dailyStats[mostRecentDate];
@@ -251,7 +284,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season }: 
                       }
                     }
                   }
-                  
+
                   // If still no penalty found, check current player stats for latest date
                   if (penaltyValue === 0) {
                     const isLatestDate = currentDate && dateRange[dateRange.length - 1] === currentDate;
@@ -260,14 +293,14 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season }: 
                       penaltyValue = currentPlayer?.inactivityPenalty || 0;
                     }
                   }
-                  
+
                   if (penaltyValue > 0) {
                     penaltyInfo = ` (-${Math.round(penaltyValue)}% penalty)`;
                   }
-                  
+
                   return [`${formattedValue}%${penaltyInfo}`, name];
                 }
-                
+
                 return [formattedValue, name];
               }}
               itemSorter={(item) => {
@@ -276,18 +309,24 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season }: 
               }}
             />
             <Legend />
-            {playerStats.map((player, index) => (
-              <Line
-                key={player.id}
-                type="monotone"
-                dataKey={player.name}
-                stroke={COLORS[index % COLORS.length]}
-                strokeWidth={2}
-                activeDot={{ r: 6 }}
-                dot={false}
-                connectNulls={true}
-              />
-            ))}
+            {playerStats.map((player, index) => {
+              const isCompared = compare.length === 0 ? true : compare.includes(player.id);
+              const strokeOpacity = compare.length === 0 ? 1 : (isCompared ? 1 : 0.18);
+              const strokeWidth = isCompared ? 3 : 1;
+              return (
+                <Line
+                  key={player.id}
+                  type="monotone"
+                  dataKey={player.name}
+                  stroke={COLORS[index % COLORS.length]}
+                  strokeWidth={strokeWidth}
+                  strokeOpacity={strokeOpacity}
+                  activeDot={{ r: isCompared ? 6 : 0 }}
+                  dot={false}
+                  connectNulls={true}
+                />
+              );
+            })}
           </LineChart>
         </ResponsiveContainer>
       </div>
