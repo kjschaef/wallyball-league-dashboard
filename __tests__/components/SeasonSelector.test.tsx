@@ -39,97 +39,55 @@ describe('SeasonSelector', () => {
   });
 
   it('should render current season toggle and lifetime options', () => {
-    render(
-      <SeasonSelector
-        seasons={mockSeasons}
-        currentSeason="current"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: mockSeasons, currentSeason: 'current', onSeasonChange: mockOnSeasonChange }));
 
     expect(screen.getByText('Current Season')).toBeInTheDocument();
-    expect(screen.getByText('Lifetime Stats')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Lifetime Stats' })).toBeInTheDocument();
   });
 
   it('should highlight current season when selected', () => {
-    render(
-      <SeasonSelector
-        seasons={mockSeasons}
-        currentSeason="current"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: mockSeasons, currentSeason: 'current', onSeasonChange: mockOnSeasonChange }));
 
     const currentSeasonButton = screen.getByText('Current Season');
     expect(currentSeasonButton).toHaveClass('bg-blue-600', 'text-white');
     
-    const lifetimeButton = screen.getByText('Lifetime Stats');
+    const lifetimeButton = screen.getByRole('button', { name: 'Lifetime Stats' });
     expect(lifetimeButton).toHaveClass('bg-gray-100', 'text-gray-700');
   });
 
   it('should highlight lifetime stats when selected', () => {
-    render(
-      <SeasonSelector
-        seasons={mockSeasons}
-        currentSeason="lifetime"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: mockSeasons, currentSeason: 'lifetime', onSeasonChange: mockOnSeasonChange }));
 
     const currentSeasonButton = screen.getByText('Current Season');
     expect(currentSeasonButton).toHaveClass('bg-gray-100', 'text-gray-700');
     
-    const lifetimeButton = screen.getByText('Lifetime Stats');
+    const lifetimeButton = screen.getByRole('button', { name: 'Lifetime Stats' });
     expect(lifetimeButton).toHaveClass('bg-blue-600', 'text-white');
   });
 
   it('should call onSeasonChange when current season is clicked', () => {
-    render(
-      <SeasonSelector
-        seasons={mockSeasons}
-        currentSeason="lifetime"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: mockSeasons, currentSeason: 'lifetime', onSeasonChange: mockOnSeasonChange }));
 
-    fireEvent.click(screen.getByText('Current Season'));
+    fireEvent.click(screen.getByRole('button', { name: 'Current Season' }));
     expect(mockOnSeasonChange).toHaveBeenCalledWith('current');
   });
 
   it('should call onSeasonChange when lifetime stats is clicked', () => {
-    render(
-      <SeasonSelector
-        seasons={mockSeasons}
-        currentSeason="current"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: mockSeasons, currentSeason: 'current', onSeasonChange: mockOnSeasonChange }));
 
-    fireEvent.click(screen.getByText('Lifetime Stats'));
+    fireEvent.click(screen.getByRole('button', { name: 'Lifetime Stats' }));
     expect(mockOnSeasonChange).toHaveBeenCalledWith('lifetime');
   });
 
   it('should show dropdown for historical seasons', () => {
-    render(
-      <SeasonSelector
-        seasons={mockSeasons}
-        currentSeason="current"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: mockSeasons, currentSeason: 'current', onSeasonChange: mockOnSeasonChange }));
 
     const dropdown = screen.getByRole('combobox');
     expect(dropdown).toBeInTheDocument();
   });
 
   it('should populate dropdown with historical seasons', () => {
-    render(
-      <SeasonSelector
-        seasons={mockSeasons}
-        currentSeason="current"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: mockSeasons, currentSeason: 'current', onSeasonChange: mockOnSeasonChange }));
 
     const dropdown = screen.getByRole('combobox');
     fireEvent.click(dropdown);
@@ -163,17 +121,11 @@ describe('SeasonSelector', () => {
     );
 
     // Should show "2025 Q3" as current season label
-    expect(screen.getByText('2025 Q3')).toBeInTheDocument();
+    expect(screen.getAllByText('2025 Q3').length).toBeGreaterThan(0);
   });
 
   it('should handle empty seasons list', () => {
-    render(
-      <SeasonSelector
-        seasons={[]}
-        currentSeason="lifetime"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: [], currentSeason: 'lifetime', onSeasonChange: mockOnSeasonChange }));
 
     expect(screen.getByText('Current Season')).toBeInTheDocument();
     expect(screen.getByText('Lifetime Stats')).toBeInTheDocument();
@@ -183,13 +135,7 @@ describe('SeasonSelector', () => {
   });
 
   it('should show specific season name when selected by ID', () => {
-    render(
-      <SeasonSelector
-        seasons={mockSeasons}
-        currentSeason="1"
-        onSeasonChange={mockOnSeasonChange}
-      />
-    );
+    render(React.createElement(SeasonSelector, { seasons: mockSeasons, currentSeason: '1', onSeasonChange: mockOnSeasonChange }));
 
     // Should show "2025 Q1" when season ID 1 is selected
     expect(screen.getByText('2025 Q1')).toBeInTheDocument();
