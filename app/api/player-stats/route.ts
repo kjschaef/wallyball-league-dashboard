@@ -89,7 +89,7 @@ export async function GET(request: Request) {
     
     // Handle season filtering
     let seasonId: number | null = null;
-    let seasonData: {id: number; name: string; start_date: string; end_date: string} | null = null;
+    let seasonData: any = null;
     let allMatches;
     
     const now = new Date();
@@ -106,7 +106,7 @@ export async function GET(request: Request) {
           );
         }
         seasonId = currentSeason[0].id;
-        seasonData = currentSeason[0];
+        seasonData = currentSeason[0] as any;
       } else if (seasonParam === 'lifetime') {
         // Explicitly requested lifetime stats - no season filter
         seasonId = null;
@@ -120,7 +120,7 @@ export async function GET(request: Request) {
             { status: 404 }
           );
         }
-        seasonData = season[0];
+        seasonData = season[0] as any;
       } else {
         return NextResponse.json(
           { error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' },

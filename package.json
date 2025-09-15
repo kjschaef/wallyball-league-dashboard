@@ -124,6 +124,9 @@
     "typescript": "^5.6.3",
     "zod": "^3.25.39"
   },
+  "optionalDependencies": {
+    "utf-8-validate": "^5.0.4"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"

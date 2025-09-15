@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Select from 'react-select';
 
-interface Season { id: number; name: string; start_date: string; end_date: string }
+interface Season { id: number; name: string; start_date: string; end_date: string; is_active?: boolean }
 
 interface Props {
   season?: string;
@@ -78,10 +78,10 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
             onChange={e => { setSelectedSeason(e.target.value); onChange({ season: e.target.value }); }}
           >
             <option value="current">Current</option>
-            <option value="lifetime">Lifetime</option>
             {seasons.filter(s => !s.is_active).map(s => (
               <option key={s.id} value={String(s.id)}>{s.name}</option>
             ))}
+            <option value="lifetime">Lifetime</option>
           </select>
         </div>
 
@@ -115,7 +115,24 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
               placeholder="Search players..."
               onChange={(vals: any) => onChange({ compare: (vals || []).map((v: any) => v.value) })}
               value={players.filter(p => compare.includes(p.id)).map(p => ({ value: p.id, label: p.name }))}
-              styles={{ menu: (provided) => ({ ...provided, maxHeight: 240 }), container: (p) => ({ ...p, width: 260 }) }}
+              // Render the menu into a portal so it isn't clipped by parent containers,
+              // and ensure it appears above other UI like charts with a high z-index.
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+              menuPosition="fixed"
+              styles={{
+                // Ensure the visible menu has a very high z-index so it sits above charts
+                menu: (provided) => ({ ...provided, maxHeight: 240, zIndex: 9999 }),
+                // Also ensure the portal wrapper has a high z-index
+                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                // Fix container width and prevent selected values from overflowing
+                container: (p) => ({ ...p, width: 260 }),
+                control: (base) => ({ ...base, overflow: 'hidden' }),
+                valueContainer: (base) => ({ ...base, overflow: 'hidden', maxWidth: 200 }),
+                multiValue: (base) => ({ ...base, maxWidth: '100%', overflow: 'hidden' }),
+                multiValueLabel: (base) => ({ ...base, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }),
+                multiValueRemove: (base) => ({ ...base, flex: '0 0 auto' }),
+                singleValue: (base) => ({ ...base, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })
+              }}
               closeMenuOnSelect={false}
             />
           </div>

@@ -36,10 +36,10 @@ export function SeasonSelector({ seasons = [], currentSeason = 'current', onSeas
       {historical.length > 0 && (
         <select aria-label="Season" role="combobox" value={selected} onChange={e => onSeasonChange(e.target.value)} className="border px-2 py-1 rounded">
           <option value="current">{active ? active.name : 'Current Season'}</option>
-          <option value="lifetime">Lifetime Stats</option>
           {historical.map(s => (
             <option key={s.id} value={String(s.id)}>{s.name}</option>
           ))}
+          <option value="lifetime">Lifetime Stats</option>
         </select>
       )}
 
@@ -51,4 +51,3 @@ export function SeasonSelector({ seasons = [], currentSeason = 'current', onSeas
 }
 
 export default SeasonSelector;
-

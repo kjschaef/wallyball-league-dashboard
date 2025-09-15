@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   
   // Season management state
-  const [currentSeason, setCurrentSeason] = useState<string>('current'); // 'current', 'lifetime', or season ID
+  const [currentSeason, setCurrentSeason] = useState<string | undefined>('current'); // 'current', 'lifetime', or season ID
   
   const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | undefined>(undefined);
   const [prefilledWins, setPrefilledWins] = useState<{ teamOneWins: number, teamTwoWins: number } | undefined>(undefined);

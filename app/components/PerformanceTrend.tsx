@@ -122,9 +122,9 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
 
           // If viewing the current season, trim the date range to the last logged game date
           if (season === 'current' && lastLoggedGameDate) {
-            currentDateRange = sortedDates.filter(d => d <= lastLoggedGameDate);
+            currentDateRange = sortedDates.filter(d => d <= lastLoggedGameDate!);
             // ensure we include the last logged date if present
-            if (!currentDateRange.includes(lastLoggedGameDate)) currentDateRange.push(lastLoggedGameDate);
+            if (!currentDateRange.includes(lastLoggedGameDate!)) currentDateRange.push(lastLoggedGameDate!);
             currentDateRange = Array.from(new Set(currentDateRange)).sort();
           }
           setDateRange(currentDateRange);

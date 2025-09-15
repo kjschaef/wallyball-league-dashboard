@@ -5,7 +5,7 @@ import { matches, players } from "../../../db/schema";
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    console.log("Recording new game:", data);
+    // recording new game (server)
     
     // Validation
     if (data.teamOnePlayerOneId === undefined || data.teamTwoPlayerOneId === undefined) {
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       teamTwoPlayers
     };
       
-    console.log("Game recorded:", responseMatch);
+    // game recorded
     return NextResponse.json(responseMatch, { status: 201 });
   } catch (error) {
     console.error("Error recording game:", error);

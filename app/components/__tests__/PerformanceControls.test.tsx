@@ -3,9 +3,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PerformanceControls } from '../PerformanceControls';
 
 // Mock react-select to a simple input for testability
-jest.mock('react-select', () => (props: any) => {
+jest.mock('react-select', () => {
   const React = require('react');
-  return React.createElement('input', {
+  const MockSelect = (props: any) => React.createElement('input', {
     'data-testid': 'react-select',
     onChange: (e: any) => {
       const val = e.target.value;
@@ -13,6 +13,8 @@ jest.mock('react-select', () => (props: any) => {
       props.onChange(parts);
     }
   });
+  MockSelect.displayName = 'MockReactSelect';
+  return MockSelect;
 });
 
 describe('PerformanceControls', () => {

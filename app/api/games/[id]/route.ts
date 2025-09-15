@@ -9,11 +9,11 @@ export async function DELETE(
 ) {
   try {
     const gameId = parseInt(params.id);
-    console.log("Deleting game:", gameId);
+    // deleting game id: server
 
     await db.delete(matches).where(eq(matches.id, gameId));
 
-    console.log("Game deleted successfully");
+    // game deleted successfully
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Error deleting game:", error);
