@@ -1,16 +1,17 @@
+/** @type {import('jest').Config} */
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testEnvironment: 'jsdom',
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+    '^@\/(.*)$': '<rootDir>/$1',
+    '^@db$': '<rootDir>/db',
+    '^@db\/(.*)$': '<rootDir>/db/$1',
+    '^next/server$': '<rootDir>/__mocks__/next-server.js'
   },
-  collectCoverageFrom: [
-    'app/**/*.{js,jsx,ts,tsx}',
-    '!app/**/_*.{js,jsx,ts,tsx}',
-    '!app/**/layout.{js,jsx,ts,tsx}',
-    '!app/**/page.{js,jsx,ts,tsx}',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
-  ],
-}
+  transform: {
+    '^.+\\.[tj]sx?$': 'babel-jest'
+  },
+  testPathIgnorePatterns: ['/node_modules/', '/.next/'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
+};

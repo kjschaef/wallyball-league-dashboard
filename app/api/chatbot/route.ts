@@ -32,14 +32,10 @@ async function fetchPlayerStats(): Promise<PlayerStats[]> {
     }
 
     const url = `${baseUrl}/api/player-stats`;
-    console.log('Fetching player stats from:', url);
-
+    // fetch player stats from internal API
     const response = await fetch(url, {
       cache: 'no-store'
     });
-
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -48,7 +44,6 @@ async function fetchPlayerStats(): Promise<PlayerStats[]> {
     }
 
     const data = await response.json();
-    console.log('Successfully fetched player stats:', data.length, 'players');
     return data;
   } catch (error) {
     console.error('Error fetching player stats:', error);

@@ -27,13 +27,8 @@ const createMockSql = () => {
   );
 };
 
-let sql: any;
-
 jest.mock('@neondatabase/serverless', () => ({
-  neon: jest.fn(() => {
-    sql = createMockSql();
-    return sql;
-  }),
+  neon: jest.fn(() => createMockSql()),
 }));
 
 // Mock Next.js environment

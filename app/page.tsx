@@ -27,6 +27,7 @@ interface Player {
   name: string;
 }
 
+
 export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
@@ -35,8 +36,14 @@ export default function DashboardPage() {
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Season management state
+  const [currentSeason, setCurrentSeason] = useState<string | undefined>('current'); // 'current', 'lifetime', or season ID
+  
   const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | undefined>(undefined);
   const [prefilledWins, setPrefilledWins] = useState<{ teamOneWins: number, teamTwoWins: number } | undefined>(undefined);
+  
+  // Add refresh trigger for dashboard components
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -48,6 +55,7 @@ export default function DashboardPage() {
         console.error('Failed to fetch players:', error);
       }
     };
+    
     fetchPlayers();
   }, []);
 
@@ -84,6 +92,9 @@ export default function DashboardPage() {
       setShowRecordMatchModal(false);
       setSuggestedTeams(undefined);
       setPrefilledWins(undefined);
+
+      // Trigger refresh of all dashboard components
+      setRefreshKey(prev => prev + 1);
 
       // Show success message
       alert('Match recorded successfully!');
@@ -270,13 +281,15 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-800">Win Percentage</h1>
       </div>
 
+
+
       <div className="grid grid-cols-1 gap-6">
         {/* Chart */}
         <div>
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <PerformanceTrend />
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <PerformanceTrend key={`trend-${refreshKey}`} season={currentSeason} onSeasonChange={setCurrentSeason} />
           </div>
-        </div>
+          </div>
 
         {/* Rankings */}
         <div>
@@ -286,7 +299,7 @@ export default function DashboardPage() {
                 May 18, 2025
               </div>
               <div className="space-y-2">
-                <WinPercentageRankings />
+                <WinPercentageRankings key={`rankings-${refreshKey}`} season={currentSeason} />
               </div>
             </div>
           </div>
@@ -294,7 +307,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="bg-white p-6 rounded-lg border border-gray-200">
-        <RecentMatches />
+        <RecentMatches key={`recent-${refreshKey}`} />
       </div>
 
       <FloatingActionButton 

@@ -69,13 +69,13 @@ Timestamp: ${new Date().toISOString()}
 
     // Send email
     try {
-      const sendResult = await mg.messages.create(process.env.MAILGUN_DOMAIN, {
+      await mg.messages.create(process.env.MAILGUN_DOMAIN, {
         from: `Volleyball Assistant <noreply@${process.env.MAILGUN_DOMAIN}>`,
         to: ['schaefer.keith@gmail.com'],
         subject: emailSubject,
         text: emailBody
       });
-      console.log("Email sent successfully:", sendResult);
+      // email sent successfully
     } catch (error) {
       console.error("Error sending email:", error);
       return NextResponse.json(
