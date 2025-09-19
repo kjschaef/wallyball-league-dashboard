@@ -101,7 +101,8 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
         setRecentMatchPlayers(recentPlayers);
 
         // Format the player stats data (already sorted by win percentage)
-        const formattedRankings = playerStats.map((player: any) => {
+        // Apply 20-game minimum for dashboard visibility
+        const formattedRankings = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= 20).map((player: any) => {
           console.log('Player:', player.name, 'inactivityPenalty:', player.inactivityPenalty);
           return {
             id: player.id,

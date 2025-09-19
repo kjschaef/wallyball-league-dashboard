@@ -79,7 +79,11 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
           throw new Error('Failed to fetch data');
         }
 
-        const statsData = await statsResponse.json();
+        let statsData = await statsResponse.json();
+        // Filter to players with at least 20 total games for dashboard charts
+        statsData = Array.isArray(statsData)
+          ? statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= 20)
+          : [];
         const trendsDataResponse = await trendsResponse.json();
 
         setPlayerStats(statsData);
@@ -134,6 +138,8 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
             const isLatestDate = index === currentDateRange.length - 1;
 
             trendsDataResponse.forEach((playerTrend: any) => {
+              // Only include players present after 20-game filter
+              if (!statsData.find((p: any) => p.name === playerTrend.name)) return;
               if (playerTrend.dailyStats) {
                 const stats = playerTrend.dailyStats[date];
 
