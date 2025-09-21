@@ -189,6 +189,16 @@ export default function ResultsPage() {
     queryFn: () => fetch("/api/team-performance").then((res) => res.json()),
   });
 
+  const { data: exemptions, refetch } = useQuery<any[]>({
+    queryKey: ["/api/inactivity-exemptions"],
+    queryFn: () => fetch("/api/inactivity-exemptions").then((res) => res.json()),
+  });
+
+  const handleDelete = async (id: number) => {
+    await fetch(`/api/inactivity-exemptions?id=${id}` , { method: 'DELETE' });
+    refetch();
+  };
+
   return (
     <div className="space-y-6 p-6">
       <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
@@ -198,6 +208,28 @@ export default function ResultsPage() {
       <BestPerformingTeams teams={teamPerformance || null} minGames={10} />
 
       <PlayerCards />
+
+      <div className="bg-white border rounded p-4">
+        <h2 className="text-xl font-semibold mb-3">Inactivity Exemptions</h2>
+        {!exemptions ? (
+          <div className="text-gray-500">Loading...</div>
+        ) : exemptions.length === 0 ? (
+          <div className="text-gray-500">No exemptions added yet.</div>
+        ) : (
+          <div className="space-y-2">
+            {exemptions.map((ex) => (
+              <div key={ex.id} className="flex justify-between items-center border rounded p-2">
+                <div className="text-sm">
+                  <div className="font-medium">Player #{ex.playerId}</div>
+                  <div className="text-gray-600">{ex.reason || '—'}</div>
+                  <div className="text-gray-600">{new Date(ex.startDate).toLocaleDateString()} {ex.endDate ? `→ ${new Date(ex.endDate).toLocaleDateString()}` : ''}</div>
+                </div>
+                <button className="text-red-600 text-sm" onClick={() => handleDelete(ex.id)}>Delete</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

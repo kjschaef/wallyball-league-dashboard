@@ -52,6 +52,24 @@ export function calculateInactivityPenalty(
 }
 
 /**
+ * Utility: check if current date falls within any exemption windows. Caller passes list.
+ */
+export interface InactivityExemptionWindow {
+  startDate: string; // ISO date
+  endDate?: string | null; // optional ISO date
+}
+
+export function isWithinExemption(now: Date, exemptions: InactivityExemptionWindow[] | undefined): boolean {
+  if (!exemptions || exemptions.length === 0) return false;
+  return exemptions.some(ex => {
+    const s = new Date(ex.startDate);
+    const e = ex.endDate ? new Date(ex.endDate) : undefined;
+    if (e) return now >= s && now <= e;
+    return now >= s;
+  });
+}
+
+/**
  * Filters matches to exclude those with timestamps more than 24 hours in the future
  * This prevents timezone issues and future-dated matches from affecting calculations
  * 

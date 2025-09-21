@@ -66,6 +66,19 @@ export const playerAchievements = pgTable("player_achievements", {
   playerAchievementIdx: index("player_achievement_idx").on(table.playerId, table.achievementId),
 }));
 
+// Inactivity penalty exemptions
+export const inactivityExemptions = pgTable("inactivity_exemptions", {
+  id: serial("id").primaryKey(),
+  playerId: integer("player_id").references(() => players.id).notNull(),
+  reason: text("reason"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  playerIdx: index("inactivity_exemption_player_idx").on(table.playerId),
+  startIdx: index("inactivity_exemption_start_idx").on(table.startDate),
+}));
+
 export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
 export const insertSeasonSchema = createInsertSchema(seasons);
@@ -76,6 +89,8 @@ export const insertAchievementSchema = createInsertSchema(achievements);
 export const selectAchievementSchema = createSelectSchema(achievements);
 export const insertPlayerAchievementSchema = createInsertSchema(playerAchievements);
 export const selectPlayerAchievementSchema = createSelectSchema(playerAchievements);
+export const insertInactivityExemptionSchema = createInsertSchema(inactivityExemptions);
+export const selectInactivityExemptionSchema = createSelectSchema(inactivityExemptions);
 
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
@@ -87,3 +102,5 @@ export type Achievement = typeof achievements.$inferSelect;
 export type NewAchievement = typeof achievements.$inferInsert;
 export type PlayerAchievement = typeof playerAchievements.$inferSelect;
 export type NewPlayerAchievement = typeof playerAchievements.$inferInsert;
+export type InactivityExemption = typeof inactivityExemptions.$inferSelect;
+export type NewInactivityExemption = typeof inactivityExemptions.$inferInsert;

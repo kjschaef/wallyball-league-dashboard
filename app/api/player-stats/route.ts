@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { calculateInactivityPenalty, calculateSeasonalInactivityPenalty } from '../../../lib/inactivity-penalty';
+import { calculateInactivityPenalty, calculateSeasonalInactivityPenalty, isWithinExemption } from '../../../lib/inactivity-penalty';
 
 interface PlayerStats {
   id: number;
@@ -145,7 +145,7 @@ export async function GET(request: Request) {
     }
     
     
-    const playerStats: PlayerStats[] = allPlayers.map(player => {
+    const playerStats: PlayerStats[] = await Promise.all(allPlayers.map(async player => {
       try {
       // Find matches where this player participated
       const playerMatches = allMatches.filter(match => 
@@ -215,6 +215,11 @@ export async function GET(request: Request) {
       if (!isHistoricalSeason) {
         // Current season and lifetime stats use the standard penalty calculation
         inactivityPenalty = calculateInactivityPenalty(processedMatches, player.created_at, player.name);
+        // Apply exemption if active today
+        const exemptions = await sql`SELECT start_date, end_date FROM inactivity_exemptions WHERE player_id = ${player.id}`;
+        if (isWithinExemption(new Date(), exemptions.map((e: any) => ({ startDate: e.start_date, endDate: e.end_date })))) {
+          inactivityPenalty = 0;
+        }
       } else if (seasonData) {
         // Historical seasons use season-specific penalty calculation
         inactivityPenalty = calculateSeasonalInactivityPenalty(
@@ -258,7 +263,7 @@ export async function GET(request: Request) {
           inactivityPenalty: 0
         };
       }
-    });
+    }));
     
     // Sort by win percentage descending
     playerStats.sort((a, b) => b.winPercentage - a.winPercentage);

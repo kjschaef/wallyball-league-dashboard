@@ -7,6 +7,7 @@ import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
 import { FloatingActionButton } from './components/FloatingActionButton';
+import { InactivityExemptionModal } from './components/InactivityExemptionModal';
 import { PlayerSelectorDialog } from './components/PlayerSelectorDialog';
 
 interface MatchData {
@@ -31,6 +32,7 @@ interface Player {
 export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [showExemptionModal, setShowExemptionModal] = useState(false);
   const [showPlayerSelectorDialog, setShowPlayerSelectorDialog] = useState(false);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
@@ -314,6 +316,7 @@ export default function DashboardPage() {
         onRecordMatch={() => setShowRecordMatchModal(true)}
         onAddPlayer={handleAddPlayer}
         onTeamSuggestionClick={() => setShowPlayerSelectorDialog(true)}
+        onAddExemption={() => setShowExemptionModal(true)}
       />
 
       <RecordMatchModal 
@@ -344,6 +347,8 @@ export default function DashboardPage() {
         onGenerateTeams={handleGenerateTeams}
         isLoading={isLoading}
       />
+
+      <InactivityExemptionModal isOpen={showExemptionModal} onClose={() => setShowExemptionModal(false)} />
 
       <ChatBot className="w-full" onUseMatchup={handleUseTeams} onRecordMatch={handleRecordMatch} />
     </div>

@@ -8,12 +8,13 @@ interface FloatingActionButtonProps {
   onRecordMatch: () => void;
   onAddPlayer?: () => void;
   onTeamSuggestionClick?: () => void;
+  onAddExemption?: () => void;
 }
 
-export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggestionClick }: FloatingActionButtonProps) {
+export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggestionClick, onAddExemption }: FloatingActionButtonProps) {
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const handleOptionClick = (action: 'addPlayer' | 'recordMatch' | 'teamSuggestion') => {
+  const handleOptionClick = (action: 'addPlayer' | 'recordMatch' | 'teamSuggestion' | 'addExemption') => {
     setShowDropdown(false);
     if (action === 'addPlayer' && onAddPlayer) {
       onAddPlayer();
@@ -21,6 +22,8 @@ export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggest
       onRecordMatch();
     } else if (action === 'teamSuggestion' && onTeamSuggestionClick) {
       onTeamSuggestionClick();
+    } else if (action === 'addExemption' && onAddExemption) {
+      onAddExemption();
     }
   };
 
@@ -39,6 +42,12 @@ export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggest
             className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors duration-150"
           >
             Record Match
+          </button>
+          <button
+            onClick={() => handleOptionClick('addExemption')}
+            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors duration-150"
+          >
+            Add Inactivity Exemption
           </button>
         </div>
       )}
