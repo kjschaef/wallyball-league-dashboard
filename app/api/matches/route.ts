@@ -91,7 +91,11 @@ async function getPlayerIdsFromNames(sql: any, playerNames: string[]) {
   if (playerNames.length === 0) {
     return [];
   }
-  const players = await sql`SELECT id FROM players WHERE name IN ${sql(playerNames)}`;
+  // Use sql.query for conventional function-call style with placeholders
+  // Build the right number of placeholders for the IN clause
+  const placeholders = playerNames.map((_, i) => `$${i + 1}`).join(', ');
+  const query = `SELECT id FROM players WHERE name IN (${placeholders})`;
+  const players = await sql.query(query, playerNames);
   return players.map((p: any) => p.id);
 }
 

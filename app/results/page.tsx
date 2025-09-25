@@ -222,7 +222,16 @@ export default function ResultsPage() {
                 <div className="text-sm">
                   <div className="font-medium">Player #{ex.playerId}</div>
                   <div className="text-gray-600">{ex.reason || '—'}</div>
-                  <div className="text-gray-600">{new Date(ex.startDate).toLocaleDateString()} {ex.endDate ? `→ ${new Date(ex.endDate).toLocaleDateString()}` : ''}</div>
+                  <div className="text-gray-600">
+                    {(() => {
+                      const start = ex.startDate ? new Date(ex.startDate).toLocaleDateString() : null;
+                      const end = ex.endDate ? new Date(ex.endDate).toLocaleDateString() : null;
+                      if (start && end) return `${start} — ${end}`;
+                      if (start) return `Starts ${start}`;
+                      if (end) return `Ends ${end}`;
+                      return '—';
+                    })()}
+                  </div>
                 </div>
                 <button className="text-red-600 text-sm" onClick={() => handleDelete(ex.id)}>Delete</button>
               </div>
