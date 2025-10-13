@@ -297,9 +297,7 @@ export default function DashboardPage() {
         <div>
           <div className="bg-white p-4 rounded-lg border border-gray-200 h-full">
             <div className="space-y-3">
-              <div className="text-sm text-gray-600 mb-4">
-                May 18, 2025
-              </div>
+              
               <div className="space-y-2">
                 <WinPercentageRankings key={`rankings-${refreshKey}`} season={currentSeason} />
               </div>
@@ -348,7 +346,11 @@ export default function DashboardPage() {
         isLoading={isLoading}
       />
 
-      <InactivityExemptionModal isOpen={showExemptionModal} onClose={() => setShowExemptionModal(false)} />
+      <InactivityExemptionModal
+        isOpen={showExemptionModal}
+        onClose={() => setShowExemptionModal(false)}
+        onSaved={() => setRefreshKey(prev => prev + 1)}
+      />
 
       <ChatBot className="w-full" onUseMatchup={handleUseTeams} onRecordMatch={handleRecordMatch} />
     </div>

@@ -26,7 +26,8 @@ export function calculateInactivityPenalty(
   createdAt: string | null, 
   _playerName?: string
 ): number {
-  if (matches.length === 0 || !createdAt) return 0;
+  // Only bail out when we have no matches AND no createdAt to base a calculation on.
+  if (matches.length === 0 && !createdAt) return 0;
   
   const now = new Date();
   const lastMatchDate = matches.length > 0 
@@ -67,6 +68,54 @@ export function isWithinExemption(now: Date, exemptions: InactivityExemptionWind
     if (e) return now >= s && now <= e;
     return now >= s;
   });
+}
+
+/**
+ * Calculates inactivity penalty while honoring exemption windows.
+ * If currently within any exemption window, returns 0.
+ * Otherwise, the inactivity "clock" resumes from the later of the last match date or the latest
+ * exemption end date prior to now.
+ */
+export function calculateInactivityPenaltyWithExemptions(
+  matches: Array<Match>,
+  createdAt: string | null,
+  exemptions?: InactivityExemptionWindow[]
+): number {
+  // Only bail out when we have neither matches nor a createdAt date to base inactivity from.
+  if (matches.length === 0 && !createdAt) return 0;
+
+  const now = new Date();
+
+  // If currently within an exemption, no penalty applies
+  if (isWithinExemption(now, exemptions)) return 0;
+
+  // Determine baseline last activity date (last match or createdAt)
+  const lastMatchDate = matches.length > 0 
+    ? new Date(Math.max(...matches.map(m => new Date(m.date).getTime())))
+    : (createdAt ? new Date(createdAt) : new Date());
+
+  // If there are exemptions that ended after the last match date, "pause" inactivity until that end
+  let effectiveLastActivity = lastMatchDate;
+  if (exemptions && exemptions.length > 0) {
+    const latestEnd = exemptions
+      .map(ex => ex.endDate ? new Date(ex.endDate) : null)
+      .filter((d): d is Date => !!d)
+      .filter(d => d <= now) // only past end dates
+      .sort((a, b) => b.getTime() - a.getTime())[0];
+    if (latestEnd && latestEnd > effectiveLastActivity) {
+      effectiveLastActivity = latestEnd;
+    }
+  }
+
+  const daysSince = Math.floor((now.getTime() - effectiveLastActivity.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Immediate reset if played very recently
+  if (daysSince <= 3) return 0;
+
+  const weeks = Math.floor(daysSince / 7);
+  if (weeks <= 2) return 0;
+  const penaltyWeeks = weeks - 2;
+  return Math.min(penaltyWeeks * 5, 50);
 }
 
 /**
@@ -130,9 +179,11 @@ export function calculateSeasonalInactivityPenalty(
   matches: Array<Match>,
   season: Season,
   createdAt: string | null,
-  playerName?: string
+  playerName?: string,
+  exemptions?: InactivityExemptionWindow[]
 ): number {
-  if (matches.length === 0 || !createdAt) return 0;
+  // Allow calculation when matches exist; only return early if we have neither matches nor createdAt.
+  if (matches.length === 0 && !createdAt) return 0;
 
   const seasonStart = new Date(season.start_date);
   const seasonEnd = new Date(season.end_date);
@@ -152,9 +203,29 @@ export function calculateSeasonalInactivityPenalty(
 
   const lastMatchInSeason = new Date(sortedMatches[sortedMatches.length - 1].date);
   
-  // Calculate inactivity from last match in season to season end
+  // Determine effective last activity: last match in season or createdAt
+  let effectiveLastActivity = lastMatchInSeason;
+  if (!effectiveLastActivity && createdAt) effectiveLastActivity = new Date(createdAt);
+
+  // If an exemption covers the season end, no penalty applies
+  if (exemptions && isWithinExemption(seasonEnd, exemptions)) return 0;
+
+  // If there are exemptions that ended after the last match date (but before season end),
+  // pause inactivity until that end date.
+  if (exemptions && exemptions.length > 0) {
+    const latestEnd = exemptions
+      .map(ex => ex.endDate ? new Date(ex.endDate) : null)
+      .filter((d): d is Date => !!d)
+      .filter(d => d <= seasonEnd) // only consider ends up to season end
+      .sort((a, b) => b.getTime() - a.getTime())[0];
+    if (latestEnd && latestEnd > effectiveLastActivity) {
+      effectiveLastActivity = latestEnd;
+    }
+  }
+
+  // Calculate inactivity from effective last activity to season end
   const daysBetweenLastMatchAndSeasonEnd = Math.floor(
-    (seasonEnd.getTime() - lastMatchInSeason.getTime()) / (1000 * 60 * 60 * 24)
+    (seasonEnd.getTime() - effectiveLastActivity.getTime()) / (1000 * 60 * 60 * 24)
   );
   
   const weeksSinceLastMatch = Math.floor(daysBetweenLastMatchAndSeasonEnd / 7);
@@ -191,7 +262,8 @@ export function calculateSeasonalInactivityPenalty(
 export function calculateSeasonalPenaltySeries(
   matches: Array<Match>,
   season: Season,
-  createdAt: string | null
+  createdAt: string | null,
+  exemptions?: InactivityExemptionWindow[]
 ): Record<string, number> {
   const result: Record<string, number> = {};
   if (matches.length === 0 || !createdAt) return result;
@@ -215,11 +287,24 @@ export function calculateSeasonalPenaltySeries(
 
   // Start applying penalties after the 2-week grace period. We'll emit weekly points
   // for week indexes 3..(2+totalWeeks)
+  // Determine effective last activity (consider exemptions that pause inactivity)
+  let effectiveLastActivity = lastMatch;
+  if (exemptions && exemptions.length > 0) {
+    const latestEnd = exemptions
+      .map(ex => ex.endDate ? new Date(ex.endDate) : null)
+      .filter((d): d is Date => !!d)
+      .filter(d => d <= seasonEnd)
+      .sort((a, b) => b.getTime() - a.getTime())[0];
+    if (latestEnd && latestEnd > effectiveLastActivity) {
+      effectiveLastActivity = latestEnd;
+    }
+  }
+
   for (let week = 3; week <= 2 + totalWeeks; week++) {
     const penaltyWeeks = week - 2;
     const penalty = Math.min(penaltyWeeks * 5, 50);
 
-    const pointDate = new Date(lastMatch);
+    const pointDate = new Date(effectiveLastActivity);
     pointDate.setDate(pointDate.getDate() + week * 7);
 
     // If pointDate is after season end, clamp to season end

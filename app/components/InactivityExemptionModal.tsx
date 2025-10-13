@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onSaved?: () => void;
 }
 
-export function InactivityExemptionModal({ isOpen, onClose }: Props) {
+export function InactivityExemptionModal({ isOpen, onClose, onSaved }: Props) {
   const [players, setPlayers] = useState<{ id: number; name: string }[]>([]);
   const [playerId, setPlayerId] = useState<number | null>(null);
   const [reason, setReason] = useState<string>("");
@@ -18,6 +19,8 @@ export function InactivityExemptionModal({ isOpen, onClose }: Props) {
 
   useEffect(() => {
     if (!isOpen) return;
+    // Reset form when modal is opened so end date appears blank unless user enters a value
+    reset();
     fetch('/api/players').then(r => r.json()).then(setPlayers).catch(() => setPlayers([]));
   }, [isOpen]);
 
@@ -44,6 +47,8 @@ export function InactivityExemptionModal({ isOpen, onClose }: Props) {
       });
       if (!res.ok) throw new Error(await res.text());
       reset();
+      // Notify parent so dashboard can refresh charts/lists
+      if (onSaved) onSaved();
       onClose();
     } catch (e: any) {
       setError(e?.message || 'Failed to save');
@@ -65,7 +70,7 @@ export function InactivityExemptionModal({ isOpen, onClose }: Props) {
         <div className="space-y-3">
           <div>
             <label className="block text-sm text-gray-700 mb-1">Player</label>
-            <select className="w-full border rounded px-2 py-1" value={playerId ?? ''} onChange={(e) => setPlayerId(e.target.value ? Number(e.target.value) : null)}>
+            <select className="w-full border rounded px-3 py-2 h-10 text-sm" value={playerId ?? ''} onChange={(e) => setPlayerId(e.target.value ? Number(e.target.value) : null)}>
               <option value="">Select player</option>
               {players.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -78,11 +83,11 @@ export function InactivityExemptionModal({ isOpen, onClose }: Props) {
           </div>
           <div>
             <label className="block text-sm text-gray-700 mb-1">Start Date</label>
-            <input type="date" className="w-full border rounded px-2 py-1" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            <input type="date" className="w-full border rounded px-2 py-1 text-gray-500 placeholder:text-gray-300" value={startDate} onChange={e => setStartDate(e.target.value)} />
           </div>
           <div>
             <label className="block text-sm text-gray-700 mb-1">End Date (optional)</label>
-            <input type="date" className="w-full border rounded px-2 py-1" value={endDate} onChange={e => setEndDate(e.target.value)} />
+            <input type="date" className="w-full border rounded px-2 py-1 text-gray-500 placeholder:text-gray-300" value={endDate} onChange={e => setEndDate(e.target.value)} />
           </div>
         </div>
         <div className="mt-4 flex justify-end gap-2">
@@ -93,4 +98,3 @@ export function InactivityExemptionModal({ isOpen, onClose }: Props) {
     </div>
   );
 }
-

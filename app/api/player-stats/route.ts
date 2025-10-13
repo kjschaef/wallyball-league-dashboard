@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { calculateInactivityPenalty, calculateSeasonalInactivityPenalty, isWithinExemption } from '../../../lib/inactivity-penalty';
+import { calculateInactivityPenalty, calculateSeasonalInactivityPenalty, isWithinExemption, calculateInactivityPenaltyWithExemptions } from '../../../lib/inactivity-penalty';
 
 interface PlayerStats {
   id: number;
@@ -213,20 +213,22 @@ export async function GET(request: Request) {
       const isHistoricalSeason = seasonParam && seasonParam !== 'current' && seasonParam !== 'lifetime';
       
       if (!isHistoricalSeason) {
-        // Current season and lifetime stats use the standard penalty calculation
-        inactivityPenalty = calculateInactivityPenalty(processedMatches, player.created_at, player.name);
-        // Apply exemption if active today
+        // Current season and lifetime stats: honor exemption windows when computing penalty
         const exemptions = await sql`SELECT start_date, end_date FROM inactivity_exemptions WHERE player_id = ${player.id}`;
-        if (isWithinExemption(new Date(), exemptions.map((e: any) => ({ startDate: e.start_date, endDate: e.end_date })))) {
-          inactivityPenalty = 0;
-        }
+        const windows = exemptions.map((e: any) => ({ startDate: e.start_date, endDate: e.end_date }));
+        // Be resilient to older test mocks that don't provide the new helper
+        const calcFn = (calculateInactivityPenaltyWithExemptions as any) || ((m: any, c: any) => calculateInactivityPenalty(m, c));
+        inactivityPenalty = calcFn(processedMatches, player.created_at, windows);
       } else if (seasonData) {
-        // Historical seasons use season-specific penalty calculation
+        // Historical seasons use season-specific penalty calculation (consider exemptions relative to season end)
+        const exemptions = await sql`SELECT start_date, end_date FROM inactivity_exemptions WHERE player_id = ${player.id}`;
+        const windows = exemptions.map((e: any) => ({ startDate: e.start_date, endDate: e.end_date }));
         inactivityPenalty = calculateSeasonalInactivityPenalty(
           processedMatches, 
           seasonData, 
           player.created_at, 
-          player.name
+          player.name,
+          windows
         );
       }
       

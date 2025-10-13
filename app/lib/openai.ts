@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { WallyballRulesMCPServer } from '../../lib/mcp-server';
 
-// Using GPT-4.1 for all OpenAI API calls
+// Using GPT-5-Mini for all OpenAI API calls
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // MCP server instance for rules queries
@@ -101,7 +101,8 @@ export async function analyzePlayerPerformance(
     }
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-5-mini",
+      temperature: 0.2,
       messages: [
         {
           role: "system",
@@ -123,7 +124,7 @@ Guidelines:
           content: query
         }
       ],
-      max_tokens: 500
+      max_completion_tokens: 500
     });
 
     return response.choices[0].message.content || "Unable to analyze performance data.";
@@ -171,7 +172,8 @@ export async function suggestTeamMatchups(
     }));
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-5-mini",
+      temperature: 0.2,
       messages: [
         {
           role: "system",
@@ -342,7 +344,8 @@ export async function queryWallyballRules(query: string): Promise<string> {
     const relevantRules = await searchWallyballRules(query);
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-5-mini",
+      temperature: 0.2,
       messages: [
         {
           role: "system",
@@ -363,7 +366,7 @@ Guidelines:
           content: query
         }
       ],
-      max_tokens: 400
+      max_completion_tokens: 400
     });
 
     return response.choices[0].message.content || "Unable to find information about that rule.";
@@ -392,7 +395,8 @@ export async function generateMatchAnalysis(
     }));
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-5-mini",
+      temperature: 0.2,
       messages: [
         {
           role: "system",
@@ -412,7 +416,7 @@ Provide:
           content: context || "Analyze this upcoming match and provide insights."
         }
       ],
-      max_tokens: 400
+      max_completion_tokens: 400
     });
 
     return response.choices[0].message.content || "Unable to analyze match data.";
@@ -482,7 +486,8 @@ VALIDATION CHECKLIST:
 CRITICAL: Only focus on finding letters - do NOT try to identify teams or count tally marks yet.`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4.1',
+      model: 'gpt-5-mini',
+      temperature: 0.2,
       messages: [
         {
           role: 'system',
@@ -501,7 +506,7 @@ CRITICAL: Only focus on finding letters - do NOT try to identify teams or count 
           ],
         },
       ],
-      max_tokens: 500,
+      max_completion_tokens: 500,
       response_format: { type: "json_object" }
     });
 
@@ -595,7 +600,8 @@ IMPORTANT: For each team, include:
 CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about tallies, use 0.`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4.1',
+      model: 'gpt-5-mini',
+      temperature: 0.2,
       messages: [
         {
           role: 'system',
@@ -614,7 +620,7 @@ CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about t
           ],
         },
       ],
-      max_tokens: 800,
+      max_completion_tokens: 800,
       response_format: { type: "json_object" }
     });
 
@@ -829,7 +835,8 @@ REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first le
       : 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.';
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4.1',
+      model: 'gpt-5-mini',
+      temperature: 0.2,
       messages: [
         {
           role: 'system',
@@ -848,7 +855,7 @@ REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first le
           ],
         },
       ],
-      max_tokens: 1000,
+      max_completion_tokens: 1000,
       response_format: { type: "json_object" }
     });
 

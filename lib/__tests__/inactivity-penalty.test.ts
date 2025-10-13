@@ -49,5 +49,28 @@ describe('inactivity penalty utils', () => {
     const filtered = filterFutureMatches(matches as any);
     expect(filtered.every((m: any) => new Date(m.date) <= new Date(now.getTime() + 24 * 60 * 60 * 1000))).toBe(true);
   });
-});
 
+  it('isWithinExemption respects end date boundaries', () => {
+    const { isWithinExemption } = require('../inactivity-penalty');
+    const start = new Date();
+    start.setDate(start.getDate() - 10);
+    const end = new Date();
+    end.setDate(end.getDate() - 1);
+    const now = new Date();
+    // Exemption ended yesterday; today should not be within
+    expect(isWithinExemption(now, [{ startDate: start.toISOString(), endDate: end.toISOString() }])).toBe(false);
+  });
+
+  it('calculateInactivityPenaltyWithExemptions resumes from exemption end', () => {
+    const { calculateInactivityPenaltyWithExemptions } = require('../inactivity-penalty');
+    const now = new Date();
+    // Last match 8 weeks ago
+    const lastMatch = new Date(now.getTime() - 56 * 24 * 60 * 60 * 1000).toISOString();
+    // Exemption covered until 3 weeks ago
+    const exStart = new Date(now.getTime() - 50 * 24 * 60 * 60 * 1000).toISOString();
+    const exEnd = new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString();
+    // Effective inactivity since exEnd is 3 weeks -> 1 week beyond grace => 5%
+    const penalty = calculateInactivityPenaltyWithExemptions([{ date: lastMatch }], new Date().toISOString(), [{ startDate: exStart, endDate: exEnd }]);
+    expect(penalty).toBe(5);
+  });
+});
