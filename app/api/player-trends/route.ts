@@ -20,39 +20,29 @@ export async function GET(request: Request) {
     let seasonId: number | null = null;
     let seasonData: any = null;
     
+
     if (seasonParam) {
+      const { listSeasons, getSeasonById } = await import('../../../lib/seasons');
+      const computedSeasons = listSeasons(32);
       if (seasonParam === 'current') {
-        // Get current active season
-        const currentSeason = await sql`SELECT * FROM seasons WHERE is_active = true LIMIT 1`;
-        if (currentSeason.length === 0) {
-          return NextResponse.json({ error: 'No active season found' }, { status: 404 });
-        }
-        seasonId = currentSeason[0].id;
+        const s = computedSeasons[0];
+        seasonData = s;
+        allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${new Date().toISOString()} ORDER BY date ASC`;
       } else if (seasonParam === 'lifetime') {
-        // No season filter for lifetime
-        seasonId = null;
+        allMatches = await sql`SELECT * FROM matches ORDER BY date ASC`;
       } else if (!isNaN(Number(seasonParam))) {
-        // Specific season ID
-        seasonId = Number(seasonParam);
-        const season = await sql`SELECT * FROM seasons WHERE id = ${seasonId}`;
-        if (season.length === 0) {
-          return NextResponse.json({ error: 'Season not found' }, { status: 404 });
-        }
-        seasonData = season[0];
+        const sid = Number(seasonParam);
+        const s = getSeasonById(sid);
+        if (!s) return NextResponse.json({ error: 'Season not found' }, { status: 404 });
+        seasonData = s;
+        allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${s.end_date} ORDER BY date ASC`;
       } else {
-        return NextResponse.json(
-          { error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' }, { status: 400 });
       }
-    }
-    
-    // Fetch matches with optional season filtering
-    if (seasonId !== null) {
-      allMatches = await sql`SELECT * FROM matches WHERE season_id = ${seasonId} ORDER BY date ASC`;
     } else {
       allMatches = await sql`SELECT * FROM matches ORDER BY date ASC`;
     }
+
     
     // Fetch all exemptions once and index by player id for quick lookup
     const exemptionsRows = await sql`SELECT player_id, start_date, end_date FROM inactivity_exemptions`;

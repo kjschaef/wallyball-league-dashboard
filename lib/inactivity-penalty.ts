@@ -300,21 +300,27 @@ export function calculateSeasonalPenaltySeries(
     }
   }
 
-  for (let week = 3; week <= 2 + totalWeeks; week++) {
-    const penaltyWeeks = week - 2;
-    const penalty = Math.min(penaltyWeeks * 5, 50);
+  // Smooth and generate penalty points evenly between first penalty moment and season end
+  const penaltyWeeks = Math.max(0, totalWeeks - 2);
+  if (penaltyWeeks > 0) {
+    const startDate = new Date(effectiveLastActivity);
+    startDate.setDate(startDate.getDate() + 3 * 7); // first penalty moment
 
-    const pointDate = new Date(effectiveLastActivity);
-    pointDate.setDate(pointDate.getDate() + week * 7);
-
-    // If pointDate is after season end, clamp to season end
-    if (pointDate > seasonEnd) {
-      pointDate.setTime(seasonEnd.getTime());
+    if (startDate >= seasonEnd) {
+      const finalPenalty = Math.min(penaltyWeeks * 5, 50);
+      const key = seasonEnd.toISOString().split('T')[0];
+      result[key] = Math.max(result[key] || 0, finalPenalty);
+    } else {
+      const intervalMs = (seasonEnd.getTime() - startDate.getTime());
+      for (let i = 0; i < penaltyWeeks; i++) {
+        const frac = penaltyWeeks === 1 ? 1 : (i) / Math.max(1, penaltyWeeks - 1);
+        const pointMs = Math.round(startDate.getTime() + frac * intervalMs);
+        const pointDate = new Date(pointMs);
+        const key = pointDate.toISOString().split('T')[0];
+        const penalty = Math.min((i + 1) * 5, 50);
+        result[key] = Math.max(result[key] || 0, penalty);
+      }
     }
-
-    const key = pointDate.toISOString().split('T')[0];
-    // Keep the highest penalty for the same date if multiple weeks collapse to season end
-    result[key] = Math.max(result[key] || 0, penalty);
   }
 
   // Ensure season end is present (even if within grace period, penalty could be 0)

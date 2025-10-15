@@ -116,15 +116,31 @@ describe('/api/seasons', () => {
       expect(data).toEqual(mockActiveSeason);
     });
 
-    it('should return 404 when no active season exists', async () => {
-      mockSql.mockResolvedValue([]);
+    it('should create and return a new active season when none exists', async () => {
+      // Sequence of DB calls:
+      // 1) activeSeasons query -> []
+      // 2) select by name -> []
+      // 3) insert -> returns inserted row
+      const insertedSeason = {
+        id: 10,
+        name: '2025 Q4',
+        start_date: '2025-10-01',
+        end_date: '2025-12-31',
+        is_active: true,
+        created_at: '2025-10-01T00:00:00.000Z'
+      };
+
+      mockSql
+        .mockResolvedValueOnce([]) // activeSeasons
+        .mockResolvedValueOnce([]) // select by name
+        .mockResolvedValueOnce([insertedSeason]); // insert returning
 
       const request = new NextRequest('http://localhost:3000/api/seasons/current');
       const response = await getCurrentSeason(request);
       const data = await response.json();
 
-      expect(response.status).toBe(404);
-      expect(data.error).toBe('No active season found');
+      expect(response.status).toBe(200);
+      expect(data).toEqual(insertedSeason);
     });
 
     it('should handle multiple active seasons by returning the first one', async () => {

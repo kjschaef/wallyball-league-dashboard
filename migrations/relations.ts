@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { players, playerAchievements, achievements, matches, seasons } from "./schema";
+import { players, playerAchievements, achievements, matches } from "./schema";
 
 export const playerAchievementsRelations = relations(playerAchievements, ({one}) => ({
 	player: one(players, {
@@ -69,12 +69,4 @@ export const matchesRelations = relations(matches, ({one}) => ({
 		references: [players.id],
 		relationName: "matches_teamTwoPlayerThreeId_players_id"
 	}),
-	season: one(seasons, {
-		fields: [matches.seasonId],
-		references: [seasons.id]
-	}),
-}));
-
-export const seasonsRelations = relations(seasons, ({many}) => ({
-	matches: many(matches),
 }));

@@ -101,8 +101,12 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
         setRecentMatchPlayers(recentPlayers);
 
         // Format the player stats data (already sorted by win percentage)
-        // Apply 20-game minimum for dashboard visibility
-        const formattedRankings = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= 20).map((player: any) => {
+        // Adaptive threshold: show players with >=1 game by default, but if more than
+        // 6 players have >=20 games, use 20-game minimum to keep leaderboard focused.
+        const count20 = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= 20).length;
+        const threshold = count20 > 6 ? 20 : 1;
+        console.log('Leaderboard threshold:', threshold, '(players with >=20 games:', count20, ')');
+        const formattedRankings = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold).map((player: any) => {
           console.log('Player:', player.name, 'inactivityPenalty:', player.inactivityPenalty);
           return {
             id: player.id,

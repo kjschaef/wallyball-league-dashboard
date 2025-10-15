@@ -95,54 +95,30 @@ export async function GET(request: Request) {
     const now = new Date();
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
     
+
     if (seasonParam) {
+      // Resolve season param against computed quarters
+      const { listSeasons, getSeasonById } = await import('../../../lib/seasons');
+      const computedSeasons = listSeasons(32);
       if (seasonParam === 'current') {
-        // Get current active season
-        const currentSeason = await sql`SELECT * FROM seasons WHERE is_active = true LIMIT 1`;
-        if (currentSeason.length === 0) {
-          return NextResponse.json(
-            { error: 'No active season found' },
-            { status: 404 }
-          );
-        }
-        seasonId = currentSeason[0].id;
-        seasonData = currentSeason[0] as any;
+        const s = computedSeasons[0];
+        seasonData = s;
+        allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${tomorrow} ORDER BY date DESC`;
       } else if (seasonParam === 'lifetime') {
-        // Explicitly requested lifetime stats - no season filter
-        seasonId = null;
+        allMatches = await sql`SELECT * FROM matches WHERE date <= ${tomorrow} ORDER BY date DESC`;
       } else if (!isNaN(Number(seasonParam))) {
-        // Specific season ID
-        seasonId = Number(seasonParam);
-        const season = await sql`SELECT * FROM seasons WHERE id = ${seasonId}`;
-        if (season.length === 0) {
-          return NextResponse.json(
-            { error: 'Season not found' },
-            { status: 404 }
-          );
-        }
-        seasonData = season[0] as any;
+        const sid = Number(seasonParam);
+        const s = getSeasonById(sid);
+        if (!s) return NextResponse.json({ error: 'Season not found' }, { status: 404 });
+        seasonData = s as any;
+        allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${s.end_date} ORDER BY date DESC`;
       } else {
-        return NextResponse.json(
-          { error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' }, { status: 400 });
       }
-    }
-    
-    // Fetch matches with optional season filtering
-    if (seasonId !== null) {
-      allMatches = await sql`
-        SELECT * FROM matches 
-        WHERE date <= ${tomorrow} AND season_id = ${seasonId}
-        ORDER BY date DESC
-      `;
     } else {
-      allMatches = await sql`
-        SELECT * FROM matches 
-        WHERE date <= ${tomorrow}
-        ORDER BY date DESC
-      `;
+      allMatches = await sql`SELECT * FROM matches WHERE date <= ${tomorrow} ORDER BY date DESC`;
     }
+
     
     
     const playerStats: PlayerStats[] = await Promise.all(allPlayers.map(async player => {

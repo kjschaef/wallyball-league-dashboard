@@ -80,10 +80,15 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
         }
 
         let statsData = await statsResponse.json();
-        // Filter to players with at least 20 total games for dashboard charts
-        statsData = Array.isArray(statsData)
-          ? statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= 20)
-          : [];
+        // Adaptive threshold for chart: if many players (more than 6) have 20+ games,
+        // keep the 20-game minimum, otherwise show players with at least 1 game.
+        if (!Array.isArray(statsData)) {
+          statsData = [];
+        }
+        const count20 = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= 20).length;
+        const threshold = count20 > 6 ? 20 : 1;
+        console.log('Chart threshold:', threshold, '(players with >=20 games:', count20, ')');
+        statsData = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold);
         const trendsDataResponse = await trendsResponse.json();
 
         setPlayerStats(statsData);
