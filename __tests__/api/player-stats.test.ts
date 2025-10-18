@@ -8,11 +8,13 @@ const mockSql = jest.fn();
 const createMockSql = () => {
   return Object.assign(
     jest.fn().mockImplementation((strings: TemplateStringsArray, ...values: any[]) => {
-      const query = strings.join('');
-      if (query.includes('SELECT * FROM players')) {
+      const query = strings.join('').toLowerCase();
+      if (query.includes('select * from players')) {
         return mockSql('players');
-      } else if (query.includes('SELECT * FROM matches')) {
+      } else if (query.includes('select * from matches')) {
         return mockSql('matches');
+      } else if (query.includes('from inactivity_exemptions')) {
+        return mockSql('exemptions', values[0]);
       }
       return mockSql('unknown');
     }),
@@ -30,6 +32,8 @@ jest.mock('@neondatabase/serverless', () => ({
 jest.mock('@/lib/inactivity-penalty', () => ({
   calculateInactivityPenalty: jest.fn().mockReturnValue(0), // Default to no penalty
   calculateSeasonalInactivityPenalty: jest.fn().mockReturnValue(0),
+  calculateInactivityPenaltyWithExemptions: jest.fn().mockReturnValue(0),
+  isWithinExemption: jest.fn().mockReturnValue(false),
 }));
 
 // Mock Next.js environment
@@ -38,6 +42,12 @@ process.env.DATABASE_URL = 'mock-database-url';
 describe('/api/player-stats', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSql.mockImplementation((queryType) => {
+      if (queryType === 'exemptions') {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve([]);
+    });
   });
 
   describe('Game count calculations', () => {
@@ -652,6 +662,122 @@ describe('/api/player-stats', () => {
       // Alice won 3, lost 2, so win percentage should be 3/5 = 60%
       expect(alice.winPercentage).toBe(60);
       expect(alice.actualWinPercentage).toBe(60);
+    });
+  });
+
+  describe('Inactivity exemption integration', () => {
+    it('applies exemption windows when computing current/lifetime penalties', async () => {
+      const penaltyModule = require('@/lib/inactivity-penalty');
+      const penaltyWithExemptionsMock = penaltyModule.calculateInactivityPenaltyWithExemptions as jest.Mock;
+      penaltyWithExemptionsMock.mockReset();
+      penaltyWithExemptionsMock.mockReturnValue(0);
+      penaltyWithExemptionsMock.mockReturnValueOnce(20);
+
+      const mockPlayers = [
+        { id: 1, name: 'Alice', start_year: 2020, created_at: '2020-01-01T00:00:00.000Z' },
+      ];
+      const mockMatches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_one_player_two_id: null,
+          team_one_player_three_id: null,
+          team_two_player_one_id: 2,
+          team_two_player_two_id: null,
+          team_two_player_three_id: null,
+          team_one_games_won: 3,
+          team_two_games_won: 0,
+          date: '2023-12-01T00:00:00.000Z',
+        },
+      ];
+
+      mockSql.mockImplementation((queryType, value) => {
+        if (queryType === 'players') {
+          return Promise.resolve(mockPlayers);
+        }
+        if (queryType === 'matches') {
+          return Promise.resolve(mockMatches);
+        }
+        if (queryType === 'exemptions') {
+          expect(value).toBe(1);
+          return Promise.resolve([
+            {
+              start_date: '2024-01-01T00:00:00.000Z',
+              end_date: '2024-01-15T00:00:00.000Z',
+            },
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/player-stats');
+      const response = await GET(request);
+      const stats = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(stats[0].inactivityPenalty).toBe(20);
+      expect(stats[0].winPercentage).toBe(80); // 100 - 20
+      expect(penaltyWithExemptionsMock).toHaveBeenCalledTimes(1);
+      const callArgs = penaltyWithExemptionsMock.mock.calls[0];
+      expect(Array.isArray(callArgs[2])).toBe(true);
+      expect(callArgs[2]).toEqual([
+        { startDate: '2024-01-01T00:00:00.000Z', endDate: '2024-01-15T00:00:00.000Z' },
+      ]);
+    });
+
+    it('uses seasonal inactivity penalties for historical seasons', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z'));
+      const penaltyModule = require('@/lib/inactivity-penalty');
+      const seasonalPenaltyMock = penaltyModule.calculateSeasonalInactivityPenalty as jest.Mock;
+      seasonalPenaltyMock.mockReset();
+      seasonalPenaltyMock.mockReturnValue(0);
+      seasonalPenaltyMock.mockReturnValueOnce(12);
+      const penaltyWithExemptionsMock = penaltyModule.calculateInactivityPenaltyWithExemptions as jest.Mock;
+      penaltyWithExemptionsMock.mockReset();
+      penaltyWithExemptionsMock.mockReturnValue(0);
+
+      const mockPlayers = [
+        { id: 1, name: 'Alice', start_year: 2020, created_at: '2020-01-01T00:00:00.000Z' },
+      ];
+      const mockMatches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_one_player_two_id: null,
+          team_one_player_three_id: null,
+          team_two_player_one_id: 2,
+          team_two_player_two_id: null,
+          team_two_player_three_id: null,
+          team_one_games_won: 3,
+          team_two_games_won: 1,
+          date: '2024-11-10T00:00:00.000Z',
+        },
+      ];
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') {
+          return Promise.resolve(mockPlayers);
+        }
+        if (queryType === 'matches') {
+          return Promise.resolve(mockMatches);
+        }
+        if (queryType === 'exemptions') {
+          return Promise.resolve([
+            { start_date: '2024-10-01T00:00:00.000Z', end_date: '2024-10-31T00:00:00.000Z' },
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=2');
+      const response = await GET(request);
+      const stats = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(stats[0].inactivityPenalty).toBe(12);
+      expect(seasonalPenaltyMock).toHaveBeenCalledTimes(1);
+      expect(penaltyWithExemptionsMock).not.toHaveBeenCalled();
+      jest.useRealTimers();
     });
   });
 

@@ -12,12 +12,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const seasonParam = searchParams.get('season');
     
-    // Fetch all players
-    const allPlayers = await sql`SELECT * FROM players ORDER BY name ASC`;
-    
     // Handle season filtering for matches
     let allMatches;
-    let seasonId: number | null = null;
+    const seasonId: number | null = null;
     let seasonData: any = null;
     
 
@@ -52,10 +49,14 @@ export async function GET(request: Request) {
       exemptionsByPlayer[r.player_id].push({ startDate: r.start_date, endDate: r.end_date });
     }
 
+    // Fetch all players (deferred until after season resolution so we avoid unnecessary queries)
+    const allPlayers = await sql`SELECT * FROM players ORDER BY name ASC`;
+
+    // Use UTC components to ensure date keys are stable across test environments
     const toDateKeyLocal = (d: Date) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
       return `${y}-${m}-${day}`;
     };
 

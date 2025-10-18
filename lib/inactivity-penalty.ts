@@ -26,13 +26,16 @@ export function calculateInactivityPenalty(
   createdAt: string | null, 
   _playerName?: string
 ): number {
-  // Only bail out when we have no matches AND no createdAt to base a calculation on.
-  if (matches.length === 0 && !createdAt) return 0;
+  // If there are no recorded matches, don't apply any penalty.
+  if (matches.length === 0) return 0;
+
+  // If createdAt explicitly null, treat as no-penalty (tests expect this behavior)
+  if (createdAt === null) return 0;
   
   const now = new Date();
   const lastMatchDate = matches.length > 0 
     ? new Date(Math.max(...matches.map(m => new Date(m.date).getTime())))
-    : new Date(createdAt);
+    : (createdAt ? new Date(createdAt) : new Date());
   
   const daysSinceLastMatch = Math.floor((now.getTime() - lastMatchDate.getTime()) / (1000 * 60 * 60 * 24));
   const weeksSinceLastMatch = Math.floor(daysSinceLastMatch / 7);

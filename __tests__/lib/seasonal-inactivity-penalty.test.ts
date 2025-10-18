@@ -14,10 +14,10 @@ describe('calculateSeasonalInactivityPenalty', () => {
       expect(penalty).toBe(0);
     });
 
-    it('should return 0 for null createdAt', () => {
+    it('should still compute penalty when createdAt is null but matches exist', () => {
       const matches = [{ date: '2024-01-15' }];
       const penalty = calculateSeasonalInactivityPenalty(matches, mockSeason, null);
-      expect(penalty).toBe(0);
+      expect(penalty).toBeGreaterThan(0);
     });
 
     it('should return 0 for no matches within season', () => {

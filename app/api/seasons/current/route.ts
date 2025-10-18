@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentSeasonByDate } from '../../../lib/seasons';
+import { getCurrentSeasonByDate } from '../../../../lib/seasons';
 
 export async function GET() {
   try {
