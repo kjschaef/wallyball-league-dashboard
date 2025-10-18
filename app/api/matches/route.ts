@@ -91,7 +91,11 @@ async function getPlayerIdsFromNames(sql: any, playerNames: string[]) {
   if (playerNames.length === 0) {
     return [];
   }
-  const players = await sql`SELECT id FROM players WHERE name IN ${sql(playerNames)}`;
+  // Use sql.query for conventional function-call style with placeholders
+  // Build the right number of placeholders for the IN clause
+  const placeholders = playerNames.map((_, i) => `$${i + 1}`).join(', ');
+  const query = `SELECT id FROM players WHERE name IN (${placeholders})`;
+  const players = await sql.query(query, playerNames);
   return players.map((p: any) => p.id);
 }
 
@@ -148,24 +152,21 @@ export async function POST(request: Request) {
       teamTwoGamesWon = body.teamTwoGamesWon;
     }
 
-    // Get current active season
-    const currentSeason = await sql`SELECT id FROM seasons WHERE is_active = true LIMIT 1`;
-    const seasonId = currentSeason.length > 0 ? currentSeason[0].id : null;
-
-    // Create new match in database
+    // Create new match in database (no season_id column)
     const newMatches = await sql`
       INSERT INTO matches (
         team_one_player_one_id, team_one_player_two_id, team_one_player_three_id,
         team_two_player_one_id, team_two_player_two_id, team_two_player_three_id,
-        team_one_games_won, team_two_games_won, date, season_id
+        team_one_games_won, team_two_games_won, date
       )
       VALUES (
         ${teamOnePlayerIds[0]}, ${teamOnePlayerIds[1]}, ${teamOnePlayerIds[2]},
         ${teamTwoPlayerIds[0]}, ${teamTwoPlayerIds[1]}, ${teamTwoPlayerIds[2]},
-        ${teamOneGamesWon}, ${teamTwoGamesWon}, ${body.date ? new Date(body.date + 'T12:00:00') : new Date()}, ${seasonId}
+        ${teamOneGamesWon}, ${teamTwoGamesWon}, ${body.date ? new Date(body.date + 'T12:00:00') : new Date()}
       )
       RETURNING *
     `;
+
 
     // Get player names for the response
     const allPlayers = await sql`SELECT * FROM players`;

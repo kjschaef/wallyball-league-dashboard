@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { calculateSeasonalPenaltySeries } from '../../../lib/inactivity-penalty';
+import { calculateSeasonalPenaltySeries, isWithinExemption } from '../../../lib/inactivity-penalty';
 
 export async function GET(request: Request) {
   try {
@@ -12,49 +12,56 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const seasonParam = searchParams.get('season');
     
-    // Fetch all players
-    const allPlayers = await sql`SELECT * FROM players ORDER BY name ASC`;
-    
     // Handle season filtering for matches
     let allMatches;
-    let seasonId: number | null = null;
+    const seasonId: number | null = null;
     let seasonData: any = null;
     
+
     if (seasonParam) {
+      const { listSeasons, getSeasonById } = await import('../../../lib/seasons');
+      const computedSeasons = listSeasons(32);
       if (seasonParam === 'current') {
-        // Get current active season
-        const currentSeason = await sql`SELECT * FROM seasons WHERE is_active = true LIMIT 1`;
-        if (currentSeason.length === 0) {
-          return NextResponse.json({ error: 'No active season found' }, { status: 404 });
-        }
-        seasonId = currentSeason[0].id;
+        const s = computedSeasons[0];
+        seasonData = s;
+        allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${new Date().toISOString()} ORDER BY date ASC`;
       } else if (seasonParam === 'lifetime') {
-        // No season filter for lifetime
-        seasonId = null;
+        allMatches = await sql`SELECT * FROM matches ORDER BY date ASC`;
       } else if (!isNaN(Number(seasonParam))) {
-        // Specific season ID
-        seasonId = Number(seasonParam);
-        const season = await sql`SELECT * FROM seasons WHERE id = ${seasonId}`;
-        if (season.length === 0) {
-          return NextResponse.json({ error: 'Season not found' }, { status: 404 });
-        }
-        seasonData = season[0];
+        const sid = Number(seasonParam);
+        const s = getSeasonById(sid);
+        if (!s) return NextResponse.json({ error: 'Season not found' }, { status: 404 });
+        seasonData = s;
+        allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${s.end_date} ORDER BY date ASC`;
       } else {
-        return NextResponse.json(
-          { error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' }, { status: 400 });
       }
-    }
-    
-    // Fetch matches with optional season filtering
-    if (seasonId !== null) {
-      allMatches = await sql`SELECT * FROM matches WHERE season_id = ${seasonId} ORDER BY date ASC`;
     } else {
       allMatches = await sql`SELECT * FROM matches ORDER BY date ASC`;
     }
+
     
+    // Fetch all exemptions once and index by player id for quick lookup
+    const exemptionsRows = await sql`SELECT player_id, start_date, end_date FROM inactivity_exemptions`;
+    const exemptionsByPlayer: Record<number, Array<{startDate: string; endDate?: string | null}>> = {};
+    for (const r of exemptionsRows) {
+      exemptionsByPlayer[r.player_id] = exemptionsByPlayer[r.player_id] || [];
+      exemptionsByPlayer[r.player_id].push({ startDate: r.start_date, endDate: r.end_date });
+    }
+
+    // Fetch all players (deferred until after season resolution so we avoid unnecessary queries)
+    const allPlayers = await sql`SELECT * FROM players ORDER BY name ASC`;
+
+    // Use UTC components to ensure date keys are stable across test environments
+    const toDateKeyLocal = (d: Date) => {
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
     const playerTrends = allPlayers.map(player => {
+      const playerExemptions = exemptionsByPlayer[player.id] || [];
       // Find matches where this player participated
       const playerMatches = allMatches.filter(match => 
         match.team_one_player_one_id === player.id ||
@@ -77,44 +84,70 @@ export async function GET(request: Request) {
         const isTeamOne = match.team_one_player_one_id === player.id || 
                          match.team_one_player_two_id === player.id || 
                          match.team_one_player_three_id === player.id;
-        
-        const gamesWon = isTeamOne ? match.team_one_games_won : match.team_two_games_won;
-        const gamesLost = isTeamOne ? match.team_two_games_won : match.team_one_games_won;
-        
-        cumulativeGamesWon += gamesWon;
-        cumulativeGamesLost += gamesLost;
-        
-        const totalGames = cumulativeGamesWon + cumulativeGamesLost;
-        const rawWinPercentage = totalGames > 0 ? (cumulativeGamesWon / totalGames) * 100 : 0;
-        
-        // Calculate inactivity penalty for this specific date
-        let inactivityPenalty = 0;
+
+        // Preserve cumulative stats before this match for gap penalty calculation
+        const prevWins = cumulativeGamesWon;
+        const prevLosses = cumulativeGamesLost;
+        const prevTotal = prevWins + prevLosses;
+        const prevRawWinPct = prevTotal > 0 ? (prevWins / prevTotal) * 100 : 0;
+
+        // If there's a gap since the last match, add weekly penalty points across the gap
         if (index > 0) {
-          // Find the previous match date for this player
           const currentMatchDate = new Date(match.date);
           const previousMatchDate = new Date(sortedMatches[index - 1].date);
-          
+
           const daysSinceLastMatch = Math.floor((currentMatchDate.getTime() - previousMatchDate.getTime()) / (1000 * 60 * 60 * 24));
           const weeksSinceLastMatch = Math.floor(daysSinceLastMatch / 7);
-          
-          // No penalty for first 2 weeks, then 5% per week up to 50%
+
           const gracePeriodWeeks = 2;
-          const penaltyWeeks = Math.max(0, weeksSinceLastMatch - gracePeriodWeeks);
           const penaltyPerWeek = 5;
           const maxPenalty = 50;
-          inactivityPenalty = Math.min(maxPenalty, penaltyWeeks * penaltyPerWeek);
+          const penaltyWeeks = Math.max(0, weeksSinceLastMatch - gracePeriodWeeks);
+
+          // Add a point for each inactive week boundary between previous match and the day before current match
+          for (let w = gracePeriodWeeks + 1; w <= weeksSinceLastMatch; w++) {
+            const weekPenalty = Math.min(maxPenalty, (w - gracePeriodWeeks) * penaltyPerWeek);
+            const weekDate = new Date(previousMatchDate);
+            weekDate.setDate(weekDate.getDate() + w * 7);
+
+            // Only include points strictly before the current match date
+            if (weekDate >= currentMatchDate) break;
+            const weekKey = toDateKeyLocal(weekDate);
+            const currentKey = toDateKeyLocal(currentMatchDate);
+            // Avoid placing a weekly point on the same local day as the match
+            if (weekKey === currentKey) continue;
+            // Respect exemptions on the week date
+            const effectivePenalty = isWithinExemption(weekDate, playerExemptions) ? 0 : weekPenalty;
+            const weekWinPct = Math.max(0, prevRawWinPct - effectivePenalty);
+            if (!dailyStats.has(weekKey)) {
+              dailyStats.set(weekKey, {
+                winPercentage: weekWinPct,
+                rawWinPercentage: prevRawWinPct,
+                totalWins: prevWins,
+                totalGames: prevTotal,
+                inactivityPenalty: effectivePenalty
+              });
+            }
+          }
         }
-        
-        const penalizedWinPercentage = Math.max(0, rawWinPercentage - inactivityPenalty);
-        
-        const dateKey = match.date ? new Date(match.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-        
+
+        // Now apply this match (no penalty on match date)
+        const gamesWon = isTeamOne ? match.team_one_games_won : match.team_two_games_won;
+        const gamesLost = isTeamOne ? match.team_two_games_won : match.team_one_games_won;
+
+        cumulativeGamesWon += gamesWon;
+        cumulativeGamesLost += gamesLost;
+
+        const totalGames = cumulativeGamesWon + cumulativeGamesLost;
+        const rawWinPercentage = totalGames > 0 ? (cumulativeGamesWon / totalGames) * 100 : 0;
+
+        const dateKey = match.date ? toDateKeyLocal(new Date(match.date)) : toDateKeyLocal(new Date());
         dailyStats.set(dateKey, {
-          winPercentage: penalizedWinPercentage,
-          rawWinPercentage: rawWinPercentage,
+          winPercentage: rawWinPercentage,
+          rawWinPercentage,
           totalWins: cumulativeGamesWon,
-          totalGames: totalGames,
-          inactivityPenalty: inactivityPenalty
+          totalGames,
+          inactivityPenalty: 0
         });
       });
       
@@ -138,19 +171,30 @@ export async function GET(request: Request) {
             // Get the last recorded stats
             const lastStats = Array.from(dailyStats.values()).pop();
             if (lastStats) {
-              // Add a data point for each week of inactivity
-              for (let week = gracePeriodWeeks + 1; week <= weeksSinceLastMatch; week++) {
-                const penaltyWeeks = week - gracePeriodWeeks;
-                const weeklyPenalty = Math.min(maxPenalty, penaltyWeeks * penaltyPerWeek);
-                const penalizedWinPercentage = Math.max(0, lastStats.rawWinPercentage - weeklyPenalty);
-                
-                // Calculate the date for this week of inactivity
-                const weekDate = new Date(lastMatchDate);
-                weekDate.setDate(weekDate.getDate() + (week * 7));
-                
-                // Don't add future dates beyond today
+                // Add a data point for each week of inactivity
+                for (let week = gracePeriodWeeks + 1; week <= weeksSinceLastMatch; week++) {
+                  const penaltyWeeks = week - gracePeriodWeeks;
+                  const weeklyPenalty = Math.min(maxPenalty, penaltyWeeks * penaltyPerWeek);
+                  const penalizedWinPercentage = Math.max(0, lastStats.rawWinPercentage - weeklyPenalty);
+                  
+                  // Calculate the date for this week of inactivity
+                  const weekDate = new Date(lastMatchDate);
+                  weekDate.setDate(weekDate.getDate() + (week * 7));
+                  
+                  // Don't add future dates beyond today
                 if (weekDate <= today) {
-                  const weekKey = weekDate.toISOString().split('T')[0];
+                  // If the player has an exemption covering this week date, skip penalty
+                  if (isWithinExemption(weekDate, playerExemptions)) {
+                    dailyStats.set(toDateKeyLocal(weekDate), {
+                      winPercentage: lastStats.rawWinPercentage,
+                      rawWinPercentage: lastStats.rawWinPercentage,
+                      totalWins: lastStats.totalWins,
+                      totalGames: lastStats.totalGames,
+                      inactivityPenalty: 0
+                    });
+                    continue;
+                  }
+                  const weekKey = toDateKeyLocal(weekDate);
                   dailyStats.set(weekKey, {
                     winPercentage: penalizedWinPercentage,
                     rawWinPercentage: lastStats.rawWinPercentage,
@@ -163,8 +207,13 @@ export async function GET(request: Request) {
 
               // Add current date with final penalty if it's different from the last weekly point
               const finalPenaltyWeeks = Math.max(0, weeksSinceLastMatch - gracePeriodWeeks);
-              const currentPenalty = Math.min(maxPenalty, finalPenaltyWeeks * penaltyPerWeek);
-              const todayKey = today.toISOString().split('T')[0];
+              let currentPenalty = Math.min(maxPenalty, finalPenaltyWeeks * penaltyPerWeek);
+              const todayKey = toDateKeyLocal(today);
+              
+              // If player has an exemption covering today, zero the current penalty
+              if (isWithinExemption(today, playerExemptions)) {
+                currentPenalty = 0;
+              }
               
               if (!dailyStats.has(todayKey)) {
                 const penalizedWinPercentage = Math.max(0, lastStats.rawWinPercentage - currentPenalty);
@@ -180,7 +229,12 @@ export async function GET(request: Request) {
           }
         } else if (seasonData) {
           // Historical season: use season-aware penalty series so penalties are distributed across the season
-          const series = calculateSeasonalPenaltySeries(playerMatches.map(m => ({ date: m.date })), seasonData, player.created_at || null);
+          const series = calculateSeasonalPenaltySeries(
+            playerMatches.map(m => ({ date: m.date })),
+            seasonData,
+            player.created_at || null,
+            playerExemptions
+          );
           // If we have any series points, merge them into dailyStats based on the last known raw stats
           const lastStats = Array.from(dailyStats.values()).pop();
           if (lastStats) {

@@ -21,7 +21,7 @@ export function getDatabase(overrideUrl?: string) {
   if (env !== 'production') {
     neonConfig.webSocketConstructor = ws;
   }
-
+  
   const sql = neon(dbUrl);
 
   return drizzle(sql, { schema });

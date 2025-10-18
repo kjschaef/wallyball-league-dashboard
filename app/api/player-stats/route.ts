@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { calculateInactivityPenalty, calculateSeasonalInactivityPenalty } from '../../../lib/inactivity-penalty';
+import { calculateInactivityPenalty, calculateSeasonalInactivityPenalty, isWithinExemption, calculateInactivityPenaltyWithExemptions } from '../../../lib/inactivity-penalty';
 
 interface PlayerStats {
   id: number;
@@ -88,64 +88,40 @@ export async function GET(request: Request) {
     const allPlayers = await sql`SELECT * FROM players ORDER BY created_at DESC`;
     
     // Handle season filtering
-    let seasonId: number | null = null;
+    const seasonId: number | null = null;
     let seasonData: any = null;
     let allMatches;
     
     const now = new Date();
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
     
+
     if (seasonParam) {
+      // Resolve season param against computed quarters
+      const { listSeasons, getSeasonById } = await import('../../../lib/seasons');
+      const computedSeasons = listSeasons(32);
       if (seasonParam === 'current') {
-        // Get current active season
-        const currentSeason = await sql`SELECT * FROM seasons WHERE is_active = true LIMIT 1`;
-        if (currentSeason.length === 0) {
-          return NextResponse.json(
-            { error: 'No active season found' },
-            { status: 404 }
-          );
-        }
-        seasonId = currentSeason[0].id;
-        seasonData = currentSeason[0] as any;
+        const s = computedSeasons[0];
+        seasonData = s;
+        allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${tomorrow} ORDER BY date DESC`;
       } else if (seasonParam === 'lifetime') {
-        // Explicitly requested lifetime stats - no season filter
-        seasonId = null;
+        allMatches = await sql`SELECT * FROM matches WHERE date <= ${tomorrow} ORDER BY date DESC`;
       } else if (!isNaN(Number(seasonParam))) {
-        // Specific season ID
-        seasonId = Number(seasonParam);
-        const season = await sql`SELECT * FROM seasons WHERE id = ${seasonId}`;
-        if (season.length === 0) {
-          return NextResponse.json(
-            { error: 'Season not found' },
-            { status: 404 }
-          );
-        }
-        seasonData = season[0] as any;
+        const sid = Number(seasonParam);
+        const s = getSeasonById(sid);
+        if (!s) return NextResponse.json({ error: 'Season not found' }, { status: 404 });
+        seasonData = s as any;
+        allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${s.end_date} ORDER BY date DESC`;
       } else {
-        return NextResponse.json(
-          { error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' }, { status: 400 });
       }
-    }
-    
-    // Fetch matches with optional season filtering
-    if (seasonId !== null) {
-      allMatches = await sql`
-        SELECT * FROM matches 
-        WHERE date <= ${tomorrow} AND season_id = ${seasonId}
-        ORDER BY date DESC
-      `;
     } else {
-      allMatches = await sql`
-        SELECT * FROM matches 
-        WHERE date <= ${tomorrow}
-        ORDER BY date DESC
-      `;
+      allMatches = await sql`SELECT * FROM matches WHERE date <= ${tomorrow} ORDER BY date DESC`;
     }
+
     
     
-    const playerStats: PlayerStats[] = allPlayers.map(player => {
+    const playerStats: PlayerStats[] = await Promise.all(allPlayers.map(async player => {
       try {
       // Find matches where this player participated
       const playerMatches = allMatches.filter(match => 
@@ -213,15 +189,22 @@ export async function GET(request: Request) {
       const isHistoricalSeason = seasonParam && seasonParam !== 'current' && seasonParam !== 'lifetime';
       
       if (!isHistoricalSeason) {
-        // Current season and lifetime stats use the standard penalty calculation
-        inactivityPenalty = calculateInactivityPenalty(processedMatches, player.created_at, player.name);
+        // Current season and lifetime stats: honor exemption windows when computing penalty
+        const exemptions = await sql`SELECT start_date, end_date FROM inactivity_exemptions WHERE player_id = ${player.id}`;
+        const windows = exemptions.map((e: any) => ({ startDate: e.start_date, endDate: e.end_date }));
+        // Be resilient to older test mocks that don't provide the new helper
+        const calcFn = (calculateInactivityPenaltyWithExemptions as any) || ((m: any, c: any) => calculateInactivityPenalty(m, c));
+        inactivityPenalty = calcFn(processedMatches, player.created_at, windows);
       } else if (seasonData) {
-        // Historical seasons use season-specific penalty calculation
+        // Historical seasons use season-specific penalty calculation (consider exemptions relative to season end)
+        const exemptions = await sql`SELECT start_date, end_date FROM inactivity_exemptions WHERE player_id = ${player.id}`;
+        const windows = exemptions.map((e: any) => ({ startDate: e.start_date, endDate: e.end_date }));
         inactivityPenalty = calculateSeasonalInactivityPenalty(
           processedMatches, 
           seasonData, 
           player.created_at, 
-          player.name
+          player.name,
+          windows
         );
       }
       
@@ -258,7 +241,7 @@ export async function GET(request: Request) {
           inactivityPenalty: 0
         };
       }
-    });
+    }));
     
     // Sort by win percentage descending
     playerStats.sort((a, b) => b.winPercentage - a.winPercentage);

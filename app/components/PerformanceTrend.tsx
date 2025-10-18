@@ -80,10 +80,15 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
         }
 
         let statsData = await statsResponse.json();
-        // Filter to players with at least 20 total games for dashboard charts
-        statsData = Array.isArray(statsData)
-          ? statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= 20)
-          : [];
+        // Adaptive threshold for chart: if many players (more than 6) have 20+ games,
+        // keep the 20-game minimum, otherwise show players with at least 1 game.
+        if (!Array.isArray(statsData)) {
+          statsData = [];
+        }
+        const count20 = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= 20).length;
+        const threshold = count20 > 6 ? 20 : 1;
+        console.log('Chart threshold:', threshold, '(players with >=20 games:', count20, ')');
+        statsData = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold);
         const trendsDataResponse = await trendsResponse.json();
 
         setPlayerStats(statsData);
@@ -133,6 +138,8 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
           }
           setDateRange(currentDateRange);
 
+          const isHistoricalSeason = season && season !== 'current' && season !== 'lifetime';
+
           const newChartData = currentDateRange.map((date, index) => {
             const dataPoint: any = { date };
             const isLatestDate = index === currentDateRange.length - 1;
@@ -152,9 +159,11 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                     return stats[metric];
                   })();
 
-                  if (isLatestDate && metric === 'winPercentage') {
+                  // Only override with the current player stat when there's no inactivity penalty
+                  if (isLatestDate && metric === 'winPercentage' && !isHistoricalSeason) {
                     const currentPlayer = statsData.find((p: any) => p.name === playerTrend.name);
-                    if (currentPlayer) {
+                    const totalsMatch = currentPlayer?.record?.totalGames === stats.totalGames;
+                    if (currentPlayer && totalsMatch) {
                       dataPoint[playerTrend.name] = currentPlayer.winPercentage;
                     } else {
                       dataPoint[playerTrend.name] = valueForMetric;
@@ -167,7 +176,6 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                   // Find the last known value for this player before this date
                   const previousDates = sortedDates.filter(d => d < date);
                   let lastKnownValue = null;
-
                   for (let i = previousDates.length - 1; i >= 0; i--) {
                     const prevStats = playerTrend.dailyStats[previousDates[i]];
                     if (prevStats) {
@@ -177,17 +185,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                   }
 
                   if (lastKnownValue !== null) {
-                    // For the latest date, use current stats from /api/player-stats to match player cards
-                    if (isLatestDate && metric === 'winPercentage') {
-                      const currentPlayer = statsData.find((p: any) => p.name === playerTrend.name);
-                      if (currentPlayer) {
-                        dataPoint[playerTrend.name] = currentPlayer.winPercentage;
-                      } else {
-                        dataPoint[playerTrend.name] = lastKnownValue;
-                      }
-                    } else {
-                      dataPoint[playerTrend.name] = lastKnownValue;
-                    }
+                    dataPoint[playerTrend.name] = lastKnownValue;
                   }
                 }
               }

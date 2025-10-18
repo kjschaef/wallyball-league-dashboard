@@ -73,7 +73,7 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
           <label className="text-xs text-gray-500 mb-1">Season</label>
           <select
             aria-label="Season"
-            className="w-56 bg-gray-50 border border-gray-200 px-3 py-2 rounded-md text-sm"
+            className="w-56 bg-gray-50 border border-gray-200 px-3 py-2 rounded-md text-sm h-10"
             value={selectedSeason || 'current'}
             onChange={e => { setSelectedSeason(e.target.value); onChange({ season: e.target.value }); }}
           >

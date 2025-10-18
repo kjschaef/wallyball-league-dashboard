@@ -7,6 +7,7 @@ import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
 import { FloatingActionButton } from './components/FloatingActionButton';
+import { InactivityExemptionModal } from './components/InactivityExemptionModal';
 import { PlayerSelectorDialog } from './components/PlayerSelectorDialog';
 
 interface MatchData {
@@ -31,6 +32,7 @@ interface Player {
 export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [showExemptionModal, setShowExemptionModal] = useState(false);
   const [showPlayerSelectorDialog, setShowPlayerSelectorDialog] = useState(false);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
@@ -295,9 +297,7 @@ export default function DashboardPage() {
         <div>
           <div className="bg-white p-4 rounded-lg border border-gray-200 h-full">
             <div className="space-y-3">
-              <div className="text-sm text-gray-600 mb-4">
-                May 18, 2025
-              </div>
+              
               <div className="space-y-2">
                 <WinPercentageRankings key={`rankings-${refreshKey}`} season={currentSeason} />
               </div>
@@ -314,6 +314,7 @@ export default function DashboardPage() {
         onRecordMatch={() => setShowRecordMatchModal(true)}
         onAddPlayer={handleAddPlayer}
         onTeamSuggestionClick={() => setShowPlayerSelectorDialog(true)}
+        onAddExemption={() => setShowExemptionModal(true)}
       />
 
       <RecordMatchModal 
@@ -343,6 +344,12 @@ export default function DashboardPage() {
         onCancel={() => setShowPlayerSelectorDialog(false)}
         onGenerateTeams={handleGenerateTeams}
         isLoading={isLoading}
+      />
+
+      <InactivityExemptionModal
+        isOpen={showExemptionModal}
+        onClose={() => setShowExemptionModal(false)}
+        onSaved={() => setRefreshKey(prev => prev + 1)}
       />
 
       <ChatBot className="w-full" onUseMatchup={handleUseTeams} onRecordMatch={handleRecordMatch} />
