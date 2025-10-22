@@ -138,18 +138,12 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
           </div>
         </div>
 
-        <div className="ml-auto flex items-center space-x-3">
+        <div className="ml-auto flex items-center">
           <button
             className="text-sm text-gray-600 hover:text-gray-900"
             onClick={() => onChange({ action: 'reset' })}
           >
             Reset
-          </button>
-          <button
-            className="px-3 py-2 bg-gray-900 text-white rounded-md text-sm"
-            onClick={() => onChange({ action: 'export' })}
-          >
-            Export
           </button>
         </div>
       </div>

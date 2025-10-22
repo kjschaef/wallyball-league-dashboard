@@ -67,8 +67,6 @@ describe('PerformanceControls', () => {
     fireEvent.click(resetBtn);
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ action: 'reset' }));
 
-    const exportBtn = screen.getByText('Export');
-    fireEvent.click(exportBtn);
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ action: 'export' }));
+    // Export button removed from UI; no export action expected
   });
 });
