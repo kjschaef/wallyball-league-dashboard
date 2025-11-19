@@ -1,8 +1,15 @@
-import OpenAI from "openai";
 import { WallyballRulesMCPServer } from '../../lib/mcp-server';
+import { createChatCompletion } from './modelClient';
+import {
+  playerPerformanceSystemPrompt,
+  teamMatchupsSystemPrompt,
+  rulesSystemPrompt,
+  matchAnalysisSystemPrompt,
+  imageLettersSystemPrompt,
+  imageAnalysisSystemPrompt
+} from './prompts';
 
-// Using GPT-5-Mini for all OpenAI API calls
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Model client handles OpenAI initialization and model selection
 
 // MCP server instance for rules queries
 let mcpServer: WallyballRulesMCPServer | null = null;
@@ -48,34 +55,8 @@ async function analyzePlayersWithMCP(playerIds: number[], analysisType: string):
   }
 }
 
-export interface PlayerStats {
-  id: number;
-  name: string;
-  yearsPlayed: number;
-  record: {
-    wins: number;
-    losses: number;
-    totalGames: number;
-
-  };
-  winPercentage: number;
-  totalPlayingTime: number;
-  streak: {
-    type: 'wins' | 'losses';
-    count: number;
-  };
-  actualWinPercentage?: number;
-  inactivityPenalty?: number;
-}
-
-export interface TeamSuggestion {
-  scenario?: string;
-  teamOne: PlayerStats[];
-  teamTwo: PlayerStats[];
-  balanceScore: number;
-  expectedWinProbability: number;
-  reasoning: string;
-}
+import { PlayerStats, TeamSuggestion } from './types';
+import { generateBalancedTeams } from './team-balancer';
 
 export async function analyzePlayerPerformance(
   players: PlayerStats[],
@@ -100,31 +81,20 @@ export async function analyzePlayerPerformance(
       rulesContext = `\n\nRelevant Wallyball Rules:\n${rules}`;
     }
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+    const response = await createChatCompletion({
+      model: "gpt-5",
       temperature: 0.2,
+      max_completion_tokens: 600,
       messages: [
         {
           role: "system",
-          content: `You are a wallyball performance analyst with access to official rules. Analyze player statistics and provide insights.
-
-Current player data: ${JSON.stringify(playerSummary, null, 2)}${rulesContext}
-
-Guidelines:
-- Focus on win percentages, streaks, and recent performance
-- Consider inactivity penalties in your analysis
-- Provide specific, actionable insights
-- Be concise but informative
-- Use volleyball/wallyball terminology appropriately
-- When asked about rules, reference the official Wallyball Rules 2012 document
-- If asked about specific rules or regulations, provide accurate information from the rules document`
+          content: playerPerformanceSystemPrompt(playerSummary, rulesContext)
         },
         {
           role: "user",
           content: query
         }
-      ],
-      max_completion_tokens: 500
+      ]
     });
 
     return response.choices[0].message.content || "Unable to analyze performance data.";
@@ -138,151 +108,10 @@ export async function suggestTeamMatchups(
   availablePlayers: PlayerStats[]
 ): Promise<TeamSuggestion[]> {
   try {
-    if (availablePlayers.length < 4) {
-      throw new Error(`Need at least 4 players for team suggestions`);
-    }
-
-    // Determine team sizes based on total players
-    let team1Size: number, team2Size: number;
-    if (availablePlayers.length === 4) {
-      team1Size = 2;
-      team2Size = 2;
-    } else if (availablePlayers.length === 5) {
-      team1Size = 2;
-      team2Size = 3;
-    } else {
-      // For 6+ players, use equal teams or as close as possible
-      const playersPerTeam = Math.floor(availablePlayers.length / 2);
-      team1Size = playersPerTeam;
-      team2Size = availablePlayers.length - playersPerTeam;
-    }
-
-    const playerIds = availablePlayers.map(p => p.id);
-
-    // Get MCP analysis for the selected players
-    const mcpAnalysis = await analyzePlayersWithMCP(playerIds, 'matchup_optimization');
-
-    const playerSummary = availablePlayers.map(p => ({
-      name: p.name,
-      winPercentage: p.winPercentage,
-      totalGames: p.record.totalGames,
-      streak: p.streak,
-      actualWinPercentage: p.actualWinPercentage || p.winPercentage,
-      inactivityPenalty: p.inactivityPenalty || 0
-    }));
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-5-mini",
-      temperature: 0.2,
-      messages: [
-        {
-          role: "system",
-          content: `You are a volleyball team formation expert. Create balanced team matchups from available players.
-
-Available players (${availablePlayers.length} total): ${JSON.stringify(playerSummary, null, 2)}
-
-MCP Performance Analysis:
-${mcpAnalysis}
-
-CRITICAL REQUIREMENTS:
-- Team 1 must have exactly ${team1Size} players
-- Team 2 must have exactly ${team2Size} players
-- Each player can only be on ONE team (absolutely NO duplicates between teams)
-- Use ALL ${availablePlayers.length} available players across both teams
-- NEVER put the same player on both teams
-- Each player ID should appear exactly once across all teams
-
-Team Formation Goals:
-1. Balance skill levels for competitive matches
-2. Consider current streaks, performance trends, and inactivity penalties
-3. Aim for matches where either team could realistically win
-4. Create unique team combinations (avoid same players together repeatedly)
-5. Provide a balance score (0-100, where 50 is perfectly balanced)
-6. Estimate win probability for team one
-
-IMPORTANT: Return 3 different team scenarios that use DIFFERENT combinations of players. 
-Do NOT suggest the same team composition with players in different orders.
-Do NOT suggest the same team more than once.
-
-Respond in JSON format:
-{
-  "matchups": [
-    {
-      "scenario": "Primary: Most Balanced",
-      "teamOne": ["player1", "player2"],
-      "teamTwo": ["player3", "player4"],
-      "balanceScore": 75,
-      "expectedWinProbability": 52,
-      "reasoning": "Brief explanation of team formation logic"
-    },
-    {
-      "scenario": "Alternative: Streak-Based", 
-      "teamOne": ["player2", "player3"],
-      "teamTwo": ["player1", "player4"],
-      "balanceScore": 68,
-      "expectedWinProbability": 48,
-      "reasoning": "Teams formed considering current streaks"
-    },
-    {
-      "scenario": "Variant: Mixed Experience",
-      "teamOne": ["player1", "player4"],
-      "teamTwo": ["player2", "player3"],
-      "balanceScore": 71,
-      "expectedWinProbability": 55,
-      "reasoning": "Alternative pairing for variety"
-    }
-  ]
-}`
-        },
-        {
-          role: "user",
-          content: `Create 3 UNIQUE balanced team matchup scenarios from these ${availablePlayers.length} players. Team 1 needs ${team1Size} players, Team 2 needs ${team2Size} players. 
-
-CRITICAL: 
-- NO player can appear on both teams in any scenario
-- Each scenario must use DIFFERENT team combinations (not just reordering the same players)
-- If you suggest Player A and Player B together on Team 1 in scenario 1, don't suggest them together again in scenarios 2 or 3`
-        }
-      ],
-      response_format: { type: "json_object" }
-    });
-
-    const result = JSON.parse(response.choices[0].message.content || '{}');
-
-    // Map player names back to PlayerStats objects and validate
-    const matchups = (result.matchups?.map((matchup: any) => {
-      const teamOne = (matchup.teamOne?.map((name: string) => 
-        availablePlayers.find(p => p.name === name)
-      ).filter((p: PlayerStats | undefined): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
-
-      const teamTwo = (matchup.teamTwo?.map((name: string) => 
-        availablePlayers.find(p => p.name === name)
-      ).filter((p: PlayerStats | undefined): p is PlayerStats => p !== undefined) || []) as PlayerStats[];
-
-      // Validate no duplicate players between teams
-      const allPlayerIds = [...teamOne.map(p => p.id), ...teamTwo.map(p => p.id)];
-      const hasDuplicates = allPlayerIds.length !== new Set(allPlayerIds).size;
-
-      if (hasDuplicates || teamOne.length !== team1Size || teamTwo.length !== team2Size) {
-        // Return fallback if validation fails
-        return createFallbackMatchup(availablePlayers, team1Size, team2Size);
-      }
-
-      return {
-        scenario: matchup.scenario,
-        teamOne,
-        teamTwo,
-        balanceScore: matchup.balanceScore || 50,
-        expectedWinProbability: matchup.expectedWinProbability || 50,
-        reasoning: matchup.reasoning || "Team formation based on balanced skill levels"
-      };
-    }) || []);
-
-    return matchups.length > 0 ? matchups : [createFallbackMatchup(availablePlayers, team1Size, team2Size)];
-
+    return generateBalancedTeams(availablePlayers);
   } catch (error) {
     console.error('Error suggesting team matchups:', error);
-    return [createFallbackMatchup(availablePlayers)];
+    return [];
   }
 }
 
@@ -343,23 +172,13 @@ export async function queryWallyballRules(query: string): Promise<string> {
   try {
     const relevantRules = await searchWallyballRules(query);
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+    const response = await createChatCompletion({
+      model: "gpt-5",
       temperature: 0.2,
       messages: [
         {
           role: "system",
-          content: `You are a Wallyball rules expert with access to the official Wallyball Rules 2012 document. 
-
-Relevant rules section:
-${relevantRules}
-
-Guidelines:
-- Provide accurate information based on the official rules
-- If the specific rule isn't found in the provided section, indicate this
-- Be clear and concise in your explanations
-- Reference specific rule numbers when available
-- Explain the reasoning behind rules when helpful`
+          content: rulesSystemPrompt(relevantRules)
         },
         {
           role: "user",
@@ -394,22 +213,13 @@ export async function generateMatchAnalysis(
       streak: p.streak
     }));
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+    const response = await createChatCompletion({
+      model: "gpt-5",
       temperature: 0.2,
       messages: [
         {
           role: "system",
-          content: `You are a volleyball match analyst. Analyze the upcoming match between two teams and provide insights.
-
-Team 1: ${JSON.stringify(team1Summary, null, 2)}
-Team 2: ${JSON.stringify(team2Summary, null, 2)}
-
-Provide:
-- Match prediction and key factors
-- Player matchups to watch
-- Strategic considerations
-- Expected competitiveness level`
+          content: matchAnalysisSystemPrompt(team1Summary, team2Summary)
         },
         {
           role: "user",
@@ -485,13 +295,13 @@ VALIDATION CHECKLIST:
 
 CRITICAL: Only focus on finding letters - do NOT try to identify teams or count tally marks yet.`;
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-5-mini',
+    const response = await createChatCompletion({
+      model: 'gpt-5',
       temperature: 0.2,
       messages: [
         {
           role: 'system',
-          content: 'You are a precise image analysis expert focused on letter identification. Always respond with valid JSON only.'
+          content: imageLettersSystemPrompt()
         },
         {
           role: 'user',
@@ -599,13 +409,13 @@ IMPORTANT: For each team, include:
 
 CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about tallies, use 0.`;
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-5-mini',
+    const response = await createChatCompletion({
+      model: 'gpt-5',
       temperature: 0.2,
       messages: [
         {
           role: 'system',
-          content: 'You are a precise match analysis expert. Always respond with valid JSON only.'
+          content: imageAnalysisSystemPrompt()
         },
         {
           role: 'user',
@@ -646,7 +456,7 @@ export async function analyzeMatchResultsImage(imageBuffer: Buffer, playerNames?
   try {
     // Create player names context
     let playerContext = '';
-    
+
     if (playerNames && playerNames.length > 0) {
       playerContext = `\n\nAvailable player names and their first letters:\n${playerNames.map(name => `${name} (${name.charAt(0).toUpperCase()})`).join('\n')}`;
     }
@@ -834,13 +644,13 @@ FINAL VALIDATION:
 REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first letter and the letter is found in the image!`
       : 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.';
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-5-mini',
+    const response = await createChatCompletion({
+      model: 'gpt-5',
       temperature: 0.2,
       messages: [
         {
           role: 'system',
-          content: 'You are a precise image analysis expert. Always respond with valid JSON only. Do not include any text before or after the JSON object.'
+          content: imageAnalysisSystemPrompt()
         },
         {
           role: 'user',
@@ -866,8 +676,8 @@ REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first le
       } catch (parseError) {
         console.log('JSON Parse Error:', parseError);
         console.log('Content that failed to parse:', content);
-        return { 
-          error: "Could not parse team groupings from the image.", 
+        return {
+          error: "Could not parse team groupings from the image.",
           rawResponse: content.substring(0, 500)
         };
       }
