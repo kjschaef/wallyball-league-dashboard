@@ -1,4 +1,4 @@
-import { WallyballRulesMCPServer } from '../../lib/mcp-server';
+import { WallyballRulesRAG } from '../../lib/rag';
 import { createChatCompletion } from './modelClient';
 import {
   playerPerformanceSystemPrompt,
@@ -11,57 +11,94 @@ import {
 
 // Model client handles OpenAI initialization and model selection
 
-// MCP server instance for rules queries
-let mcpServer: WallyballRulesMCPServer | null = null;
-
-async function getMCPServer(): Promise<WallyballRulesMCPServer | null> {
-  if (!mcpServer) {
-    try {
-      mcpServer = new WallyballRulesMCPServer();
-    } catch (error) {
-      console.error('Failed to initialize MCP server:', error);
-      return null;
-    }
-  }
-  return mcpServer;
-}
-
-async function searchWallyballRules(query: string): Promise<string> {
+async function searchWallyballRules(query: string): Promise<{ text: string; usedRules: boolean }> {
   try {
-    const server = await getMCPServer();
-    if (!server) {
-      return 'Wallyball rules document is not available at this time.';
-    }
-    // Simulate MCP server call
-    const result = server.searchRules(query);
-    return result.content[0]?.text || 'No rules found for that query.';
+    const rag = WallyballRulesRAG.getInstance();
+    const results = await rag.search(query);
+    return {
+      text: results.length > 0 ? results.join('\n\n---\n\n') : 'No relevant rules found.',
+      usedRules: results.length > 0
+    };
   } catch (error) {
-    console.error('Error searching Wallyball rules via MCP:', error);
-    return 'Wallyball rules document is not available at this time.';
+    console.error('Error searching Wallyball rules via RAG:', error);
+    return {
+      text: 'Wallyball rules document is not available at this time.',
+      usedRules: false
+    };
   }
 }
 
-async function analyzePlayersWithMCP(playerIds: number[], analysisType: string): Promise<string> {
-  try {
-    const server = await getMCPServer();
-    if (!server) {
-      return 'Player analysis service is not available at this time.';
-    }
-    const result = await server.analyzePlayerPerformance(playerIds, analysisType);
-    return result.content[0]?.text || 'No analysis available.';
-  } catch (error) {
-    console.error('Error analyzing players via MCP:', error);
-    return 'Player analysis service is not available at this time.';
-  }
-}
+// Player analysis via MCP is removed as we're focusing on RAG for rules only
+// and keeping player analysis logic within the main application flow.
 
 import { PlayerStats, TeamSuggestion } from './types';
+export type { PlayerStats }; // Re-export for use in other modules
 import { generateBalancedTeams } from './team-balancer';
+
+export async function detectIntent(query: string): Promise<'rules_query' | 'performance_analysis' | 'general_chat'> {
+  try {
+    const response = await createChatCompletion({
+      model: "gpt-4o-mini",
+      temperature: 0,
+      messages: [
+        {
+          role: "system",
+          content: `You are a classifier for a Wallyball league chatbot. Classify the user's query into one of the following categories:
+          
+          1. 'rules_query': The user is asking about the rules, regulations, court dimensions, scoring, legal plays, or how the game is played.
+          2. 'performance_analysis': The user is asking about player stats, team suggestions, matchups, win rates, or who is the best player.
+          3. 'general_chat': The user is saying hello, asking how you are, or making small talk that doesn't require specific data.
+          
+          Return ONLY the category name.`
+        },
+        {
+          role: "user",
+          content: query
+        }
+      ],
+      max_completion_tokens: 20
+    });
+
+    const content = response.choices[0].message.content?.trim().toLowerCase() || 'general_chat';
+    console.log(`[detectIntent] Query: "${query}" -> Raw LLM response: "${content}"`);
+
+    if (content.includes('rules')) return 'rules_query';
+    if (content.includes('performance') || content.includes('analysis')) return 'performance_analysis';
+    return 'general_chat';
+  } catch (error) {
+    console.error('Error detecting intent:', error);
+    // Fallback to performance analysis as it's the main feature
+    return 'performance_analysis';
+  }
+}
+
+async function shouldConsultRules(query: string): Promise<boolean> {
+  try {
+    const response = await createChatCompletion({
+      model: "gpt-4o-mini",
+      temperature: 0,
+      messages: [
+        {
+          role: "system",
+          content: "Analyze the user's query and determine if it references any rules, regulations, or legalities of Wallyball. Return 'YES' if it does, and 'NO' otherwise."
+        },
+        { role: "user", content: query }
+      ],
+      max_completion_tokens: 5
+    });
+    const content = response.choices[0].message.content?.trim().toUpperCase() || '';
+    console.log(`[shouldConsultRules] Query: "${query}" -> Raw LLM response: "${content}"`);
+    return content.includes('YES');
+  } catch (error) {
+    console.error('Error checking for rules:', error);
+    return false;
+  }
+}
 
 export async function analyzePlayerPerformance(
   players: PlayerStats[],
   query: string
-): Promise<string> {
+): Promise<{ response: string; usedRules: boolean }> {
   try {
     const playerSummary = players.map(p => ({
       name: p.name,
@@ -71,18 +108,22 @@ export async function analyzePlayerPerformance(
       yearsPlayed: p.yearsPlayed
     }));
 
-    // Check if the query is about rules and get context from MCP server
+    // Check if the query is about rules and get context from RAG
     let rulesContext = '';
-    const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game'];
-    const isRulesQuery = rulesKeywords.some(keyword => query.toLowerCase().includes(keyword));
+    let usedRules = false;
 
-    if (isRulesQuery) {
-      const rules = await searchWallyballRules(query);
-      rulesContext = `\n\nRelevant Wallyball Rules:\n${rules}`;
+    const needsRules = await shouldConsultRules(query);
+    console.log(`[analyzePlayerPerformance] needsRules: ${needsRules}`);
+
+    if (needsRules) {
+      const rulesResult = await searchWallyballRules(query);
+      console.log(`[analyzePlayerPerformance] RAG search found ${rulesResult.usedRules ? 'results' : 'NO results'}`);
+      rulesContext = `\n\nRelevant Wallyball Rules:\n${rulesResult.text}`;
+      usedRules = rulesResult.usedRules;
     }
 
     const response = await createChatCompletion({
-      model: "gpt-5",
+      model: "gpt-4o",
       temperature: 0.2,
       max_completion_tokens: 600,
       messages: [
@@ -97,10 +138,16 @@ export async function analyzePlayerPerformance(
       ]
     });
 
-    return response.choices[0].message.content || "Unable to analyze performance data.";
+    return {
+      response: response.choices[0].message.content || "Unable to analyze performance data.",
+      usedRules
+    };
   } catch (error) {
     console.error('Error analyzing player performance:', error);
-    return "I'm having trouble analyzing the performance data right now. Please try again.";
+    return {
+      response: "I'm having trouble analyzing the performance data right now. Please try again.",
+      usedRules: false
+    };
   }
 }
 
@@ -168,17 +215,17 @@ function createFallbackMatchup(availablePlayers: PlayerStats[], team1Size?: numb
   };
 }
 
-export async function queryWallyballRules(query: string): Promise<string> {
+export async function queryWallyballRules(query: string): Promise<{ response: string; usedRules: boolean }> {
   try {
-    const relevantRules = await searchWallyballRules(query);
+    const rulesResult = await searchWallyballRules(query);
 
     const response = await createChatCompletion({
-      model: "gpt-5",
+      model: "gpt-4o",
       temperature: 0.2,
       messages: [
         {
           role: "system",
-          content: rulesSystemPrompt(relevantRules)
+          content: rulesSystemPrompt(rulesResult.text)
         },
         {
           role: "user",
@@ -188,10 +235,16 @@ export async function queryWallyballRules(query: string): Promise<string> {
       max_completion_tokens: 400
     });
 
-    return response.choices[0].message.content || "Unable to find information about that rule.";
+    return {
+      response: response.choices[0].message.content || "Unable to find information about that rule.",
+      usedRules: rulesResult.usedRules
+    };
   } catch (error) {
     console.error('Error querying Wallyball rules:', error);
-    return "I'm having trouble accessing the rules document right now. Please try again.";
+    return {
+      response: "I'm having trouble accessing the rules document right now. Please try again.",
+      usedRules: false
+    };
   }
 }
 
@@ -214,7 +267,7 @@ export async function generateMatchAnalysis(
     }));
 
     const response = await createChatCompletion({
-      model: "gpt-5",
+      model: "gpt-4o",
       temperature: 0.2,
       messages: [
         {
@@ -296,7 +349,7 @@ VALIDATION CHECKLIST:
 CRITICAL: Only focus on finding letters - do NOT try to identify teams or count tally marks yet.`;
 
     const response = await createChatCompletion({
-      model: 'gpt-5',
+      model: 'gpt-4o',
       temperature: 0.2,
       messages: [
         {
@@ -410,7 +463,7 @@ IMPORTANT: For each team, include:
 CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about tallies, use 0.`;
 
     const response = await createChatCompletion({
-      model: 'gpt-5',
+      model: 'gpt-4o',
       temperature: 0.2,
       messages: [
         {
@@ -645,7 +698,7 @@ REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first le
       : 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.';
 
     const response = await createChatCompletion({
-      model: 'gpt-5',
+      model: 'gpt-4o',
       temperature: 0.2,
       messages: [
         {

@@ -17,7 +17,7 @@ export interface ChatOptions {
  */
 export async function createChatCompletion(opts: ChatOptions) {
   try {
-    const model = opts.model || process.env.OPENAI_MODEL || 'gpt-5';
+    const model = opts.model || process.env.OPENAI_MODEL || 'gpt-4o';
 
     // Build request payload; copy allowed fields to avoid passing undefined
     const payload: any = {

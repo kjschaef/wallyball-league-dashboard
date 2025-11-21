@@ -4,6 +4,7 @@ import {
   suggestTeamMatchups,
   queryWallyballRules,
   PlayerStats,
+  detectIntent
 } from '../../lib/openai';
 
 interface ChatRequest {
@@ -99,22 +100,27 @@ export async function POST(request: NextRequest) {
         responseType = 'team_suggestion';
         additionalData = teamSuggestions;
       }
-    } else if (lowerMessage.includes('match') && lowerMessage.includes('analysis')) {
-      response = "Please specify which teams you'd like me to analyze, or use the team suggestion feature first.";
-      responseType = 'match_analysis';
     } else {
-      // Check for rules queries
-      const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game', 'scoring', 'boundary', 'rotation'];
-      const isRulesQuery = rulesKeywords.some(keyword => lowerMessage.includes(keyword));
+      // Use LLM to detect intent
+      const intent = await detectIntent(message);
+      console.log('Detected intent:', intent);
 
-      if (isRulesQuery) {
+      if (intent === 'rules_query') {
         // Rules query
-        response = await queryWallyballRules(message);
+        const rulesResult = await queryWallyballRules(message);
+        response = rulesResult.response;
         responseType = 'rules_query';
+        additionalData = { usedRules: rulesResult.usedRules };
+        console.log('Rules result usedRules:', rulesResult.usedRules);
       } else {
-        // General performance analysis
-        response = await analyzePlayerPerformance(allPlayers, message);
+        // General performance analysis or general chat
+        // We treat general chat as performance analysis for now to keep the persona consistent
+        // and allow access to player context if needed
+        const analysisResult = await analyzePlayerPerformance(allPlayers, message);
+        response = analysisResult.response;
         responseType = 'performance_analysis';
+        additionalData = { usedRules: analysisResult.usedRules };
+        console.log('Analysis result usedRules:', analysisResult.usedRules);
       }
     }
 

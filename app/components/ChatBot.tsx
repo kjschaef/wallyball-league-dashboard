@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Gavel, Flame, Upload } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Gavel, Flame, Upload, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
 import { PlayerSelectorDialog } from './PlayerSelectorDialog';
@@ -17,8 +17,9 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   type?: string;
-  additionalData?: TeamSuggestion | TeamSuggestion[] | MatchResult | MatchResult[] | MatchResultsResponse | TeamGrouping[];
+  additionalData?: any;
   imagePreview?: string;
+  usedRules?: boolean;
 }
 
 interface Player {
@@ -204,7 +205,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
       if (data.status === 'ready') {
         setMessages([{
           role: 'assistant',
-          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n• Player performance analysis\n• Team matchup suggestions\n• Answering questions about wallyball rules\n\nFor example, try asking:\n• "Who are the top players?"\n• "Suggest balanced teams for today"\n• "Is the backwall allowed in regular play?"\n• "Is it legal to touch the net?"`,
+          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n- Player performance analysis\n- Team matchup suggestions\n- Answering questions about wallyball rules\n\nFor example, try asking:\n- "Who are the top players?"\n- "Suggest balanced teams for today"\n- "What are the rules around hitting the backwall in regular play?"`,
           timestamp: new Date().toISOString(),
           type: 'welcome'
         }]);
@@ -254,13 +255,28 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
 
       const data = await response.json();
 
+      console.log('[DEBUG_UI] Chatbot response data:', data);
+      console.log('[DEBUG_UI] additionalData:', data.additionalData);
+      console.log('[DEBUG_UI] usedRules from additionalData:', data.additionalData?.usedRules);
+
+      // Explicitly check for usedRules in additionalData
+      const hasUsedRules = data.additionalData && typeof data.additionalData === 'object' && 'usedRules' in data.additionalData;
+      const usedRulesValue = hasUsedRules ? (data.additionalData as any).usedRules : false;
+
+      console.log('[DEBUG_UI] hasUsedRules:', hasUsedRules);
+      console.log('[DEBUG_UI] usedRulesValue:', usedRulesValue);
+
       const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: data.response,
         timestamp: data.timestamp,
         type: data.type,
-        additionalData: data.additionalData
+        additionalData: data.additionalData,
+        usedRules: usedRulesValue
       };
+
+      console.log('[DEBUG_UI] Created assistant message:', assistantMessage);
+      console.log('[DEBUG_UI] Assistant message usedRules:', assistantMessage.usedRules);
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
@@ -486,7 +502,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => handleQuickAction("Is the backwall allowed in regular play?")}
+        onClick={() => handleQuickAction("What are the rules around hitting the backwall in regular play?")}
         disabled={isLoading}
         className="text-xs"
       >
@@ -920,7 +936,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
                         {message.role === 'assistant' ? (
                           // For team suggestions, only show cards, not the text
                           message.type === 'team_suggestion' ? null : (
-                            <div className="text-sm prose prose-sm max-w-none prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-ul:text-inherit prose-ol:text-inherit prose-li:text-inherit">
+                            <div className="text-sm prose prose-sm max-w-none prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-ul:text-inherit prose-ol:text-inherit prose-li:text-inherit prose-headings:mb-2 prose-headings:mt-2 prose-p:mb-2 prose-p:mt-0 prose-ul:my-2 prose-li:my-0">
                               <ReactMarkdown>
                                 {message.content}
                               </ReactMarkdown>
@@ -993,6 +1009,28 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
                             return null;
                           })()
                         )}
+                        {(() => {
+                          if (message.role === 'assistant') {
+                            console.log(`[DEBUG_UI] Rendering message ${index}: usedRules=${message.usedRules}`);
+                          }
+                          return null;
+                        })()}
+
+                        {/* Fallback check: check both top-level property and additionalData */}
+                        {(message.usedRules || (message.additionalData && (message.additionalData as any).usedRules)) && message.role === 'assistant' && (
+                          <div className="mt-3 flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                            <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                            <span className="text-xs text-blue-800 flex-1">Referenced official rules document</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 text-xs px-2 border-blue-300 hover:bg-blue-100"
+                              onClick={() => window.open('/Wallyball_Rules_2012.pdf', '_blank')}
+                            >
+                              Open PDF
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">
@@ -1026,11 +1064,14 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
 
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 rounded-lg p-3">
-                    <div className="flex items-center gap-2">
-                      <Bot className="h-4 w-4" />
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Thinking...</span>
+                  <div className="bg-gray-100 rounded-lg p-4 max-w-[80%]">
+                    <div className="flex items-center gap-3">
+                      <Bot className="h-5 w-5 text-gray-500" />
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
