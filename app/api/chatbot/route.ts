@@ -3,9 +3,10 @@ import {
   analyzePlayerPerformance,
   suggestTeamMatchups,
   queryWallyballRules,
-  PlayerStats,
+
   detectIntent
 } from '../../lib/openai';
+import { PlayerStats } from '../../lib/types';
 
 interface ChatRequest {
   message: string;
