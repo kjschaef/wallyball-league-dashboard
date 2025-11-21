@@ -3,8 +3,10 @@ import {
   analyzePlayerPerformance,
   suggestTeamMatchups,
   queryWallyballRules,
-  PlayerStats,
+
+  detectIntent
 } from '../../lib/openai';
+import { PlayerStats } from '../../lib/types';
 
 interface ChatRequest {
   message: string;
@@ -82,7 +84,7 @@ export async function POST(request: NextRequest) {
     // Check for team suggestions first (higher priority)
     if (lowerMessage.includes('team') && (lowerMessage.includes('suggest') || lowerMessage.includes('matchup') || lowerMessage.includes('who should play'))) {
       // Team suggestion request
-      const availablePlayers = context?.players 
+      const availablePlayers = context?.players
         ? allPlayers.filter(p => context.players!.includes(p.id))
         : allPlayers;
 
@@ -92,29 +94,34 @@ export async function POST(request: NextRequest) {
       } else {
         const teamSuggestions = await suggestTeamMatchups(availablePlayers);
 
-        response = `Here are my suggested team matchups for multiple matches:\n\n${teamSuggestions.map((suggestion, index) => 
+        response = `Here are my suggested team matchups for multiple matches:\n\n${teamSuggestions.map((suggestion, index) =>
           `**${suggestion.scenario || `Matchup ${index + 1}`}**\n**Team 1:** ${suggestion.teamOne?.map(p => p?.name).filter(Boolean).join(', ') || 'Team assignment failed'}\n**Team 2:** ${suggestion.teamTwo?.map(p => p?.name).filter(Boolean).join(', ') || 'Team assignment failed'}\n**Balance Score:** ${suggestion.balanceScore || 0}/100\n**Expected Win Probability:** Team 1 has a ${suggestion.expectedWinProbability || 50}% chance\n**Reasoning:** ${suggestion.reasoning || 'No reasoning provided'}`
         ).join('\n\n---\n\n')}`;
 
         responseType = 'team_suggestion';
         additionalData = teamSuggestions;
       }
-    } else if (lowerMessage.includes('match') && lowerMessage.includes('analysis')) {
-      response = "Please specify which teams you'd like me to analyze, or use the team suggestion feature first.";
-      responseType = 'match_analysis';
     } else {
-      // Check for rules queries
-      const rulesKeywords = ['rule', 'regulation', 'official', 'legal', 'allowed', 'forbidden', 'court', 'net', 'serve', 'point', 'game', 'scoring', 'boundary', 'rotation'];
-      const isRulesQuery = rulesKeywords.some(keyword => lowerMessage.includes(keyword));
+      // Use LLM to detect intent
+      const intent = await detectIntent(message);
+      console.log('Detected intent:', intent);
 
-      if (isRulesQuery) {
+      if (intent === 'rules_query') {
         // Rules query
-        response = await queryWallyballRules(message);
+        const rulesResult = await queryWallyballRules(message);
+        response = rulesResult.response;
         responseType = 'rules_query';
+        additionalData = { usedRules: rulesResult.usedRules };
+        console.log('Rules result usedRules:', rulesResult.usedRules);
       } else {
-      // General performance analysis
-        response = await analyzePlayerPerformance(allPlayers, message);
+        // General performance analysis or general chat
+        // We treat general chat as performance analysis for now to keep the persona consistent
+        // and allow access to player context if needed
+        const analysisResult = await analyzePlayerPerformance(allPlayers, message);
+        response = analysisResult.response;
         responseType = 'performance_analysis';
+        additionalData = { usedRules: analysisResult.usedRules };
+        console.log('Analysis result usedRules:', analysisResult.usedRules);
       }
     }
 
@@ -129,7 +136,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Chatbot API error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to process chat message',
         response: 'I apologize, but I encountered an error processing your request. Please try again.',
         type: 'error'
@@ -148,7 +155,7 @@ export async function GET() {
       playerCount: playerStats.length,
       capabilities: [
         'Player performance analysis',
-        'Team matchup suggestions', 
+        'Team matchup suggestions',
         'Match predictions',
         'Statistical comparisons',
         'Performance trends',

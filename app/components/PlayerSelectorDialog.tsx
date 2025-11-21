@@ -62,8 +62,8 @@ export function PlayerSelectorDialog({
                     onClick={() => onTogglePlayer(player.id)}
                     className={`
                       px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                      ${isSelected 
-                        ? 'bg-blue-500 text-white' 
+                      ${isSelected
+                        ? 'bg-blue-500 text-white'
                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                       }
                     `}
@@ -87,7 +87,7 @@ export function PlayerSelectorDialog({
               <Button variant="outline" onClick={onCancel}>
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={onGenerateTeams}
                 disabled={selectedPlayers.length < 4 || isLoading}
               >

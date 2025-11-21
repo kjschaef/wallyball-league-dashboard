@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -87,22 +88,9 @@ function BestPerformingTeams({
   teams: TeamPerformance[] | null;
   minGames: number;
 }) {
-  const formatTeamName = (players: string[]): string => {
-    if (players.length <= 2) {
-      return players.join(" and ");
-    }
-    const lastPlayer = players[players.length - 1];
-    const otherPlayers = players.slice(0, -1);
-    return `${otherPlayers.join(", ")} and ${lastPlayer}`;
-  };
-
-  const getWinPercentageColor = (percentage: number): string => {
-    if (percentage > 53) return "text-green-600";
-    if (percentage >= 45) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  if (!teams) {
+  // Normalize/validate input to avoid runtime errors when the API
+  // returns an unexpected shape (e.g. an error object).
+  if (teams === undefined) {
     return (
       <Card>
         <CardHeader>
@@ -128,7 +116,36 @@ function BestPerformingTeams({
     );
   }
 
-  const qualifiedTeams = (teams || [])
+  if (!Array.isArray(teams)) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Best Performing Teams (Min. {minGames} Matches)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-red-600">Failed to load team performance (unexpected response shape).</div>
+        </CardContent>
+      </Card>
+    );
+  }
+  const formatTeamName = (players: string[]): string => {
+    if (players.length <= 2) {
+      return players.join(" and ");
+    }
+    const lastPlayer = players[players.length - 1];
+    const otherPlayers = players.slice(0, -1);
+    return `${otherPlayers.join(", ")} and ${lastPlayer}`;
+  };
+
+  const getWinPercentageColor = (percentage: number): string => {
+    if (percentage > 53) return "text-green-600";
+    if (percentage >= 45) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const teamsArr = teams;
+
+  const qualifiedTeams = teamsArr
     .filter((team) => team.totalIndividualGames >= minGames)
     .sort((a, b) => b.gameWinPercentage - a.gameWinPercentage)
     .slice(0, 5);
@@ -194,6 +211,20 @@ export default function ResultsPage() {
     queryFn: () => fetch("/api/inactivity-exemptions").then((res) => res.json()),
   });
 
+  const { data: players } = useQuery<any[]>({
+    queryKey: ["/api/players"],
+    queryFn: () => fetch('/api/players').then(res => res.json()).catch(() => []),
+  });
+
+  const playerMap = useMemo(() => {
+    const m = new Map<number, string>();
+    const list = Array.isArray(players) ? players : [];
+    list.forEach((p: any) => {
+      if (p && typeof p.id !== 'undefined') m.set(p.id, p.name || `#${p.id}`);
+    });
+    return m;
+  }, [players]);
+
   const handleDelete = async (id: number) => {
     await fetch(`/api/inactivity-exemptions?id=${id}` , { method: 'DELETE' });
     refetch();
@@ -220,7 +251,7 @@ export default function ResultsPage() {
             {exemptions.map((ex) => (
               <div key={ex.id} className="flex justify-between items-center border rounded p-2">
                 <div className="text-sm">
-                  <div className="font-medium">Player #{ex.playerId}</div>
+                  <div className="font-medium">{playerMap.get(ex.playerId) || `Player #${ex.playerId}`}</div>
                   <div className="text-gray-600">{ex.reason || '—'}</div>
                   <div className="text-gray-600">
                     {(() => {

@@ -7,30 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Loader2, Users, TrendingUp, Award } from 'lucide-react';
 import { PlayerGrid } from './PlayerGrid';
 
-interface Player {
-  id: number;
-  name: string;
-  winPercentage: number;
-  record: {
-    wins: number;
-    losses: number;
-    totalGames: number;
-  };
-  streak: {
-    type: 'activity';
-    count: number;
-  };
-  actualWinPercentage?: number;
-  inactivityPenalty?: number;
-}
-
-interface TeamSuggestion {
-  teamOne: Player[];
-  teamTwo: Player[];
-  balanceScore: number;
-  expectedWinProbability: number;
-  reasoning: string;
-}
+import { PlayerStats, TeamSuggestion } from '@/lib/types';
+import { Progress } from '@/components/ui/progress';
 
 interface TeamSuggestionModalProps {
   isOpen: boolean;
@@ -39,7 +17,7 @@ interface TeamSuggestionModalProps {
 }
 
 export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggestionModalProps) {
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<PlayerStats[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
   const [teamSuggestion, setTeamSuggestion] = useState<TeamSuggestion | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,8 +40,8 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
   };
 
   const togglePlayer = (playerId: number) => {
-    setSelectedPlayers(prev => 
-      prev.includes(playerId) 
+    setSelectedPlayers(prev =>
+      prev.includes(playerId)
         ? prev.filter(id => id !== playerId)
         : [...prev, playerId]
     );
@@ -167,7 +145,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                 <Button variant="outline" onClick={handleClose}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={generateTeamSuggestion}
                   disabled={selectedPlayers.length < 6 || isLoading}
                 >
@@ -241,9 +219,19 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
               </Card>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">AI Analysis:</h4>
-              <p className="text-sm text-gray-700">{teamSuggestion.reasoning}</p>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="text-sm font-medium text-gray-700 w-24">Balance Score</div>
+                <div className="flex-1">
+                  <Progress value={teamSuggestion.balanceScore} className="h-2" />
+                </div>
+                <div className="text-sm font-bold text-blue-600">{teamSuggestion.balanceScore}/100</div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-1">AI Analysis:</h4>
+                <p className="text-sm text-gray-700">{teamSuggestion.reasoning}</p>
+              </div>
             </div>
 
             <div className="flex justify-between pt-4 border-t">

@@ -9,7 +9,7 @@ interface Player {
     losses: number;
   };
   streak?: {
-    type: 'activity';
+    type: string;
     count: number;
   };
   inactivityPenalty?: number;
@@ -24,13 +24,13 @@ interface PlayerGridProps {
   multiSelect?: boolean;
 }
 
-export function PlayerGrid({ 
-  players, 
-  selectedPlayers, 
-  onPlayerToggle, 
-  maxPlayers, 
-  title, 
-  multiSelect = true 
+export function PlayerGrid({
+  players,
+  selectedPlayers,
+  onPlayerToggle,
+  maxPlayers,
+  title,
+  multiSelect = true
 }: PlayerGridProps) {
   const handlePlayerClick = (playerId: number) => {
     if (selectedPlayers.includes(playerId)) {
@@ -63,7 +63,7 @@ export function PlayerGrid({
             return 'text-red-600';
           };
 
-          const getStreakColor = (streak?: { type: 'activity'; count: number }) => {
+          const getStreakColor = (streak?: { type: string; count: number }) => {
             if (!streak) return 'text-gray-500';
             // Activity streaks are always positive (green)
             return streak.count >= 3 ? 'text-green-600' : 'text-green-500';
@@ -77,13 +77,12 @@ export function PlayerGrid({
               tabIndex={canSelect ? 0 : -1}
               role="button"
               aria-pressed={isSelected}
-              className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                isSelected
-                  ? 'border-blue-500 bg-blue-50'
-                  : canSelect
-                    ? 'border-gray-200 hover:border-gray-300'
-                    : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
-              }`}
+              className={`p-3 border rounded-lg cursor-pointer transition-all ${isSelected
+                ? 'border-blue-500 bg-blue-50'
+                : canSelect
+                  ? 'border-gray-200 hover:border-gray-300'
+                  : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
+                }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-medium">{player.name}</h3>
