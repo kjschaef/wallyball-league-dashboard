@@ -13,11 +13,11 @@ export interface ChatOptions {
 
 /**
  * Centralized chat completion wrapper.
- * Chooses a default model via `OPENAI_MODEL` or falls back to `gpt-5`.
+ * Chooses a default model via `OPENAI_MODEL` or falls back to `gpt-5-mini`.
  */
 export async function createChatCompletion(opts: ChatOptions) {
   try {
-    const model = opts.model || process.env.OPENAI_MODEL || 'gpt-4o';
+    const model = opts.model || process.env.OPENAI_MODEL || 'gpt-5-mini';
 
     // Build request payload; copy allowed fields to avoid passing undefined
     const payload: any = {

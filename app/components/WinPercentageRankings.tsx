@@ -44,9 +44,9 @@ const getPlayerColor = (playerName: string, allPlayers: string[]) => {
 
 export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {}) {
   const [rankings, setRankings] = useState<Array<{
-    id: number; 
-    name: string; 
-    winPercentage: number; 
+    id: number;
+    name: string;
+    winPercentage: number;
     matches: number;
     hasInactivityPenalty?: boolean;
     penaltyPercentage?: number;
@@ -82,11 +82,11 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
           const matches = await matchesResponse.json();
           // Get the most recent day's matches
           if (matches.length > 0) {
-            const sortedMatches = [...matches].sort((a, b) => 
+            const sortedMatches = [...matches].sort((a, b) =>
               new Date(b.date).getTime() - new Date(a.date).getTime()
             );
             const mostRecentDate = new Date(sortedMatches[0].date).toDateString();
-            const lastDayMatches = sortedMatches.filter(match => 
+            const lastDayMatches = sortedMatches.filter(match =>
               new Date(match.date).toDateString() === mostRecentDate
             );
 
@@ -147,41 +147,41 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2">
+    <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
       {rankings.slice(0, 16).map((player, index) => {
         const isInRecentMatch = recentMatchPlayers.includes(player.name);
         const playerColor = getPlayerColor(player.name, originalPlayerOrder);
-        const borderStyle = isInRecentMatch 
+        const borderStyle = isInRecentMatch
           ? { borderColor: playerColor, borderWidth: '2px' }
           : {};
 
         return (
-          <div 
-            key={player.id} 
-            className="bg-white border border-gray-200 rounded-lg p-2.5 hover:shadow-sm transition-shadow min-w-0"
+          <div
+            key={player.id}
+            className="bg-white border border-gray-200 rounded-lg p-2 hover:shadow-sm transition-shadow w-full sm:w-[200px] flex-grow flex-shrink-0"
             style={borderStyle}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center space-x-2 min-w-0 flex-1">
-                <div className="bg-gray-100 rounded-full w-4 h-4 flex items-center justify-center text-xs font-medium text-gray-700 flex-shrink-0">
+                <div className="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium text-gray-700 flex-shrink-0">
                   {index + 1}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div 
-                    className="font-medium text-xs truncate" 
+                  <div
+                    className="font-medium text-xs truncate"
                     style={{ color: playerColor }}
                   >
                     {player.name}
                   </div>
-                  <div className="text-xs text-gray-500">{player.matches} games</div>
+                  <div className="text-[10px] text-gray-500">{player.matches} games</div>
                 </div>
               </div>
-              <div className="text-right flex-shrink-0 ml-2">
-                <div className="text-xs font-bold text-gray-900">
+              <div className="text-right flex-shrink-0">
+                <div className="text-sm font-bold text-gray-900">
                   {player.winPercentage.toFixed(1)}%
                 </div>
                 {player.penaltyPercentage !== undefined && (
-                  <div className="text-xs text-orange-600 font-medium">
+                  <div className="text-[10px] text-orange-600 font-medium">
                     -{player.penaltyPercentage}%
                   </div>
                 )}

@@ -63,6 +63,17 @@ export const inactivityExemptions = pgTable("inactivity_exemptions", {
   startIdx: index("inactivity_exemption_start_idx").on(table.startDate),
 }));
 
+// Daily summaries cache
+export const dailySummaries = pgTable("daily_summaries", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull(), // YYYY-MM-DD
+  summary: text("summary").notNull(),
+  lastMatchId: integer("last_match_id"), // For cache invalidation
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  dateIdx: index("daily_summary_date_idx").on(table.date),
+}));
+
 export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
 export const insertMatchSchema = createInsertSchema(matches);
@@ -73,6 +84,8 @@ export const insertPlayerAchievementSchema = createInsertSchema(playerAchievemen
 export const selectPlayerAchievementSchema = createSelectSchema(playerAchievements);
 export const insertInactivityExemptionSchema = createInsertSchema(inactivityExemptions);
 export const selectInactivityExemptionSchema = createSelectSchema(inactivityExemptions);
+export const insertDailySummarySchema = createInsertSchema(dailySummaries);
+export const selectDailySummarySchema = createSelectSchema(dailySummaries);
 
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
@@ -84,3 +97,5 @@ export type PlayerAchievement = typeof playerAchievements.$inferSelect;
 export type NewPlayerAchievement = typeof playerAchievements.$inferInsert;
 export type InactivityExemption = typeof inactivityExemptions.$inferSelect;
 export type NewInactivityExemption = typeof inactivityExemptions.$inferInsert;
+export type DailySummary = typeof dailySummaries.$inferSelect;
+export type NewDailySummary = typeof dailySummaries.$inferInsert;

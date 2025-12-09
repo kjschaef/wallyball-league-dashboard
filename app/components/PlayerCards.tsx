@@ -56,46 +56,43 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     player.inactivityPenalty !== undefined && player.inactivityPenalty > 0;
 
   return (
-    <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50/50 border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+    <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50/50 border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-      <CardHeader className="relative pb-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-gray-800">
+      <div className="relative p-3">
+        <div className="flex items-start justify-between mb-2">
+          <div className="space-y-0.5">
+            <h3 className="text-base font-bold text-gray-900 group-hover:text-gray-800 leading-tight">
               {player.name}
-            </CardTitle>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>
-                  {player.yearsPlayed}{" "}
-                  {player.yearsPlayed === 1 ? "year" : "years"}
-                </span>
+            </h3>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center gap-0.5">
+                <Calendar className="h-3 w-3" />
+                <span>{player.yearsPlayed}y</span>
               </div>
-              <div className="flex items-center gap-1">
-                <TrendingUp className="h-3.5 w-3.5" />
-                <span>{player.record.totalGames} games</span>
+              <div className="flex items-center gap-0.5">
+                <TrendingUp className="h-3 w-3" />
+                <span>{player.record.totalGames}G</span>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
-              className="p-2 hover:bg-white/80 rounded-lg transition-colors shadow-sm"
+              className="p-1 hover:bg-white/80 rounded transition-colors shadow-sm"
               onClick={() => onEdit(player)}
               title="Edit player"
             >
-              <Edit className="h-4 w-4 text-gray-600" />
+              <Edit className="h-3.5 w-3.5 text-gray-600" />
             </button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button
-                  className="p-2 hover:bg-red-50 rounded-lg transition-colors shadow-sm"
+                  className="p-1 hover:bg-red-50 rounded transition-colors shadow-sm"
                   title="Delete player"
                 >
-                  <Trash2 className="h-4 w-4 text-gray-600 hover:text-red-600" />
+                  <Trash2 className="h-3.5 w-3.5 text-gray-600 hover:text-red-600" />
                 </button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -119,87 +116,84 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             </AlertDialog>
           </div>
         </div>
-      </CardHeader>
 
-      <CardContent className="relative pt-0 space-y-6">
-        {/* Win Percentage - Main Feature */}
-        <div className="text-center">
-          <div className="relative inline-block">
-            <div
-              className={`text-4xl font-bold bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} bg-clip-text text-transparent`}
-            >
-              {player.winPercentage.toFixed(1)}%
+        <div className="space-y-3">
+          {/* Win Percentage - Main Feature */}
+          <div className="text-center">
+            <div className="relative inline-block">
+              <div
+                className={`text-2xl font-bold bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} bg-clip-text text-transparent leading-none`}
+              >
+                {player.winPercentage.toFixed(1)}%
+              </div>
+              <p className="text-[10px] text-gray-500">Win Rate</p>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Win Percentage</p>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5 overflow-hidden">
+              <div
+                className={`h-full bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} transition-all duration-500 ease-out`}
+                style={{
+                  width: `${Math.min(100, Math.max(0, player.winPercentage))}%`,
+                }}
+              />
+            </div>
           </div>
 
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-3 overflow-hidden">
-            <div
-              className={`h-full bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} transition-all duration-500 ease-out`}
-              style={{
-                width: `${Math.min(100, Math.max(0, player.winPercentage))}%`,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Inactivity Penalty */}
-        {showInactivityPenalty && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-4 w-4 text-amber-600" />
-              <p className="text-sm font-medium text-amber-800">
-                Inactivity Penalty
+          {/* Inactivity Penalty */}
+          {showInactivityPenalty && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-2">
+              <div className="flex items-center gap-1 mb-0.5">
+                <Clock className="h-3 w-3 text-amber-600" />
+                <p className="text-xs font-medium text-amber-800">
+                  Penalty
+                </p>
+              </div>
+              <p className="text-[10px] text-amber-700 leading-tight">
+                Base: {player.actualWinPercentage?.toFixed(1)}% (-{player.inactivityPenalty?.toFixed(1)}%)
               </p>
             </div>
-            <p className="text-sm text-amber-700">
-              Base: {player.actualWinPercentage?.toFixed(1)}% (minus{" "}
-              {player.inactivityPenalty?.toFixed(1)}% penalty)
-            </p>
-          </div>
-        )}
+          )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/60 rounded-xl p-4 border border-gray-100">
-            <p className="text-sm font-medium text-gray-600 mb-2">Record</p>
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-lg font-bold text-emerald-600">
-                {player.record.wins}
-              </span>
-              <span className="text-gray-400">-</span>
-              <span className="text-lg font-bold text-rose-600">
-                {player.record.losses}
-              </span>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-white/60 rounded-lg p-2 border border-gray-100">
+              <p className="text-[10px] font-medium text-gray-600 mb-0.5">Record</p>
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-sm font-bold text-emerald-600">
+                  {player.record.wins}
+                </span>
+                <span className="text-gray-400 text-xs">-</span>
+                <span className="text-sm font-bold text-rose-600">
+                  {player.record.losses}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white/60 rounded-lg p-2 border border-gray-100">
+              <p className="text-[10px] font-medium text-gray-600 mb-0.5">
+                Time
+              </p>
+              <div className="text-center">
+                <span className="text-sm font-bold text-blue-600">
+                  {player.totalPlayingTime}
+                </span>
+                <span className="text-[10px] text-gray-500 ml-0.5">h</span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white/60 rounded-xl p-4 border border-gray-100">
-            <p className="text-sm font-medium text-gray-600 mb-2">
-              Playing Time
+          {/* Streak */}
+          <div className="bg-white/60 rounded-lg p-2 border border-gray-100 flex justify-between items-center">
+            <p className="text-[10px] font-medium text-gray-600">
+              Streak
             </p>
-            <div className="text-center">
-              <span className="text-lg font-bold text-blue-600">
-                {player.totalPlayingTime}
-              </span>
-              <span className="text-sm text-gray-500 ml-1">hrs</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Streak */}
-        <div className="bg-white/60 rounded-xl p-4 border border-gray-100">
-          <p className="text-sm font-medium text-gray-600 mb-2">
-            Current Streak
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-gray-900">
-              {player.streak.count} weeks
+            <span className="text-sm font-bold text-gray-900">
+              {player.streak.count}w
             </span>
           </div>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
@@ -294,22 +288,23 @@ export function PlayerCards() {
     return (
       <div className="space-y-6">
         <h2 className="text-3xl font-bold text-gray-900">Player Statistics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
           {Array.from({ length: 6 }).map((_, index) => (
-            <Card
-              key={index}
-              className="p-6 animate-pulse bg-gradient-to-br from-gray-50 to-gray-100"
-            >
-              <div className="space-y-4">
-                <div className="h-6 bg-gray-200 rounded-lg w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-12 bg-gray-200 rounded-lg w-full"></div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="h-20 bg-gray-200 rounded-xl"></div>
-                  <div className="h-20 bg-gray-200 rounded-xl"></div>
+            <div key={index} className="w-full sm:w-[200px] flex-grow">
+              <Card
+                className="p-6 animate-pulse bg-gradient-to-br from-gray-50 to-gray-100"
+              >
+                <div className="space-y-4">
+                  <div className="h-6 bg-gray-200 rounded-lg w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-12 bg-gray-200 rounded-lg w-full"></div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="h-20 bg-gray-200 rounded-xl"></div>
+                    <div className="h-20 bg-gray-200 rounded-xl"></div>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </div>
           ))}
         </div>
       </div>
@@ -345,14 +340,15 @@ export function PlayerCards() {
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-bold text-gray-900">Player Statistics</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
         {playerStats.map((player) => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            onEdit={handleEditPlayer}
-            onDelete={handleDeletePlayer}
-          />
+          <div key={player.id} className="w-full sm:w-[200px] flex-grow">
+            <PlayerCard
+              player={player}
+              onEdit={handleEditPlayer}
+              onDelete={handleDeletePlayer}
+            />
+          </div>
         ))}
       </div>
 
@@ -397,8 +393,8 @@ export function PlayerCards() {
                   defaultValue={
                     editingPlayer
                       ? (
-                          new Date().getFullYear() - editingPlayer.yearsPlayed
-                        ).toString()
+                        new Date().getFullYear() - editingPlayer.yearsPlayed
+                      ).toString()
                       : ""
                   }
                   className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"

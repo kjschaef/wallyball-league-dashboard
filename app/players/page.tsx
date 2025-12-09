@@ -38,7 +38,7 @@ export default function PlayersPage() {
         throw new Error('Failed to fetch players');
       }
       const data = await response.json();
-      
+
       setPlayers(data);
       setLoading(false);
     } catch (error) {
@@ -50,7 +50,7 @@ export default function PlayersPage() {
 
   const handleAddPlayer = async () => {
     if (!newPlayerName.trim()) return;
-    
+
     try {
       const response = await fetch('/api/players', {
         method: 'POST',
@@ -62,14 +62,14 @@ export default function PlayersPage() {
           startYear: newPlayerStartYear || null
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to add player');
       }
-      
+
       // Refresh player list
       fetchPlayers();
-      
+
       // Reset form
       setNewPlayerName('');
       setNewPlayerStartYear(undefined);
@@ -89,11 +89,11 @@ export default function PlayersPage() {
         },
         body: JSON.stringify(player),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update player');
       }
-      
+
       fetchPlayers(); // Refresh the list
     } catch (error) {
       console.error('Error updating player:', error);
@@ -105,16 +105,16 @@ export default function PlayersPage() {
     if (!confirm('Are you sure you want to delete this player? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       const response = await fetch(`/api/players/${id}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete player');
       }
-      
+
       fetchPlayers(); // Refresh the list
     } catch (error) {
       console.error('Error deleting player:', error);
@@ -123,10 +123,10 @@ export default function PlayersPage() {
   };
 
   // Filter players based on search query
-  const filteredPlayers = players.filter(player => 
+  const filteredPlayers = players.filter(player =>
     player.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
@@ -159,18 +159,19 @@ export default function PlayersPage() {
       </div>
 
       {/* Player grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
         {filteredPlayers.map((player) => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            onEdit={handleEditPlayer}
-            onDelete={handleDeletePlayer}
-          />
+          <div key={player.id} className="w-full sm:w-[200px] flex-grow">
+            <PlayerCard
+              player={player}
+              onEdit={handleEditPlayer}
+              onDelete={handleDeletePlayer}
+            />
+          </div>
         ))}
-        
+
         {filteredPlayers.length === 0 && (
-          <div className="col-span-full text-center py-10 text-gray-500">
+          <div className="w-full text-center py-10 text-gray-500">
             No players found. Add a new player to get started.
           </div>
         )}
@@ -181,7 +182,7 @@ export default function PlayersPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Add New Player</h2>
-            
+
             <div className="space-y-4">
               <div>
                 <label htmlFor="player-name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -195,7 +196,7 @@ export default function PlayersPage() {
                   onChange={(e) => setNewPlayerName(e.target.value)}
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="start-year" className="block text-sm font-medium text-gray-700 mb-1">
                   Start Year (optional)
@@ -211,7 +212,7 @@ export default function PlayersPage() {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end mt-6 space-x-2">
               <button
                 className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
