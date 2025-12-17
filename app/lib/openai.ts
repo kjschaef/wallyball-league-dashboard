@@ -56,7 +56,10 @@ async function searchWallyballRules(query: string): Promise<{ text: string; used
 }
 
 import { PlayerStats } from './types';
+import { generateBalancedTeams } from './team-balancer';
+
 export type { PlayerStats }; // Re-export for use in other modules
+export const suggestTeamMatchups = generateBalancedTeams;
 
 export async function detectIntent(query: string): Promise<'rules_query' | 'performance_analysis' | 'general_chat'> {
   try {
