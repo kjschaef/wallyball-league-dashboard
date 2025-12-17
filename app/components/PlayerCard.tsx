@@ -12,9 +12,9 @@ interface Player {
 }
 
 interface PlayerCardProps {
-  player: Player & { 
-    matches: Array<{ won: boolean, date: string }>, 
-    stats: { won: number, lost: number, totalMatchTime?: number } 
+  player: Player & {
+    matches: Array<{ won: boolean, date: string }>,
+    stats: { won: number, lost: number, totalMatchTime?: number }
   };
   onEdit?: (player: Player) => void;
   onDelete?: (id: number) => void;
@@ -27,35 +27,35 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
 
   const { stats, matches } = player;
   const total = stats.won + stats.lost;
-  
+
   // Filter out future-dated matches and ensure proper formatting
   const validMatches = filterFutureMatches(matches.map(match => ({ date: match.date })));
-  
+
   // Calculate inactivity penalty using the centralized logic
-  const { 
-    weeksInactive, 
+  const {
+    weeksInactive,
     penaltyPercentage,
     decayFactor
   } = calculateInactivityPenaltyWithDecay(validMatches, player.createdAt?.toString() || null);
-  
+
   const hasInactivityPenalty = penaltyPercentage > 0;
-  
+
   // Apply decay factor to win percentage
   const winRateBase = total > 0 ? (stats.won / total) * 100 : 0;
-  const winRate = hasInactivityPenalty 
-    ? winRateBase * decayFactor 
+  const winRate = hasInactivityPenalty
+    ? winRateBase * decayFactor
     : winRateBase;
-  
+
   // Count unique days on which matches were played
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _uniqueDays = new Set(
     matches.map(match => new Date(match.date).toLocaleDateString())
   ).size;
-  
 
 
-  const yearsPlayed = player.startYear 
-    ? new Date().getFullYear() - player.startYear 
+
+  const yearsPlayed = player.startYear
+    ? new Date().getFullYear() - player.startYear
     : null;
 
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -71,23 +71,23 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="p-5">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-3">
-            <h3 className="text-lg font-bold">{player.name}</h3>
+      <div className="p-3">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-bold">{player.name}</h3>
             {yearsPlayed !== null && (
-              <span className="text-sm text-gray-500">
-                Years played: {yearsPlayed}
+              <span className="text-xs text-gray-500">
+                {yearsPlayed}y
               </span>
             )}
           </div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-1">
             <button
               onClick={() => onEdit ? onEdit(player) : setShowEditDialog(true)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 p-1"
               aria-label="Edit player"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </button>
@@ -97,10 +97,10 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                   onDelete?.(player.id);
                 }
               }}
-              className="text-red-500 hover:text-red-700"
+              className="text-red-500 hover:text-red-700 p-1"
               aria-label="Delete player"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>
@@ -136,15 +136,15 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                   />
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setShowEditDialog(false)}
                     className="w-full py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   >
                     Update
@@ -155,64 +155,62 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="space-y-1">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <div className="space-y-0.5">
                 <div className="text-left">
-                  <span className="text-sm text-gray-500 block">Record</span>
-                  <div className="flex items-start gap-2">
-                    <span className="font-medium">
+                  <span className="text-xs text-gray-500 block">Record</span>
+                  <div className="flex items-start gap-1.5">
+                    <span className="font-medium text-sm">
                       <span className="text-green-600">{stats.won}</span>
                       {" - "}
                       <span className="text-red-600">{stats.lost}</span>
                     </span>
-                    <span className="text-xs text-gray-500 mt-1">
-                      {total} games
+                    <span className="text-[10px] text-gray-500 mt-0.5">
+                      {total} G
                     </span>
                   </div>
                 </div>
                 {stats.totalMatchTime !== undefined && (
                   <div className="text-left">
-                    <span className="text-sm text-gray-500 block">Total Playing Time</span>
-                    <div 
-                      className="flex items-start gap-2"
+                    <span className="text-xs text-gray-500 block">Time</span>
+                    <div
+                      className="flex items-start gap-1.5"
                       title="Based on 90-minute daily sessions"
                     >
-                      <span className="font-medium">
-                        {stats.totalMatchTime} hours
+                      <span className="font-medium text-sm">
+                        {stats.totalMatchTime}h
                       </span>
                     </div>
                   </div>
                 )}
               </div>
             </div>
-            
+
             {/* Achievements as small icons */}
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-0.5">
               <PlayerAchievements playerId={player.id} compact />
             </div>
           </div>
 
-          <div className="text-right">
-            <span className="text-sm text-gray-500 block mb-1">Win Percentage</span>
-            <span className={`text-3xl font-bold ${
-              winRate > 53 ? 'text-green-600' : 
-              winRate >= 45 ? 'text-yellow-600' : 
-              'text-red-600'
-            }`}>{winRate.toFixed(1)}%</span>
+          <div className="text-right flex flex-col justify-end">
+            <span className="text-xs text-gray-500 block mb-0.5">Win %</span>
+            <span className={`text-xl font-bold ${winRate > 53 ? 'text-green-600' :
+                winRate >= 45 ? 'text-yellow-600' :
+                  'text-red-600'
+              }`}>{winRate.toFixed(1)}%</span>
             {weeksInactive > 0 && hasInactivityPenalty && (
-              <div className="text-xs text-red-500 mt-1">
-                Actual: {winRateBase.toFixed(1)}% (-{(penaltyPercentage * 100).toFixed(1)}% inactive)
+              <div className="text-[10px] text-red-500 leading-tight">
+                Act: {winRateBase.toFixed(1)}%
               </div>
             )}
-            <div className="w-full bg-gray-200 mt-2 rounded-full h-2.5">
-              <div 
-                className={`h-2.5 rounded-full ${
-                  winRate > 53 ? 'bg-green-600' : 
-                  winRate >= 45 ? 'bg-yellow-600' : 
-                  'bg-red-600'
-                }`} 
+            <div className="w-full bg-gray-200 mt-1.5 rounded-full h-1.5">
+              <div
+                className={`h-1.5 rounded-full ${winRate > 53 ? 'bg-green-600' :
+                    winRate >= 45 ? 'bg-yellow-600' :
+                      'bg-red-600'
+                  }`}
                 style={{ width: `${Math.min(100, Math.max(0, winRate))}%` }}
               />
             </div>

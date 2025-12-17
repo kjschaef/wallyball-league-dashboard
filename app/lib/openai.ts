@@ -2,14 +2,41 @@ import { WallyballRulesRAG } from '../../lib/rag';
 import { createChatCompletion } from './modelClient';
 import {
   playerPerformanceSystemPrompt,
-  teamMatchupsSystemPrompt,
   rulesSystemPrompt,
-  matchAnalysisSystemPrompt,
   imageLettersSystemPrompt,
-  imageAnalysisSystemPrompt
+  imageAnalysisSystemPrompt,
+  dailySummarySystemPrompt
 } from './prompts';
 
 // Model client handles OpenAI initialization and model selection
+
+export async function generateDailySummary(
+  matches: any[],
+  playerStats: any[],
+  seasonInfo?: { name: string; start_date: string; end_date: string }
+): Promise<string> {
+  try {
+    const response = await createChatCompletion({
+      model: "gpt-5-mini",
+      messages: [
+        {
+          role: "system",
+          content: dailySummarySystemPrompt(matches, playerStats, seasonInfo)
+        },
+        {
+          role: "user",
+          content: "Generate the daily summary."
+        }
+      ],
+      max_completion_tokens: 5000
+    });
+
+    return response.choices[0].message.content || "Unable to generate daily summary.";
+  } catch (error) {
+    console.error('Error generating daily summary:', error);
+    return "I'm having trouble generating the daily summary right now. Please try again later.";
+  }
+}
 
 async function searchWallyballRules(query: string): Promise<{ text: string; usedRules: boolean }> {
   try {
@@ -28,18 +55,16 @@ async function searchWallyballRules(query: string): Promise<{ text: string; used
   }
 }
 
-// Player analysis via MCP is removed as we're focusing on RAG for rules only
-// and keeping player analysis logic within the main application flow.
-
-import { PlayerStats, TeamSuggestion } from './types';
-export type { PlayerStats }; // Re-export for use in other modules
+import { PlayerStats } from './types';
 import { generateBalancedTeams } from './team-balancer';
+
+export type { PlayerStats }; // Re-export for use in other modules
+export const suggestTeamMatchups = generateBalancedTeams;
 
 export async function detectIntent(query: string): Promise<'rules_query' | 'performance_analysis' | 'general_chat'> {
   try {
     const response = await createChatCompletion({
-      model: "gpt-4o-mini",
-      temperature: 0,
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
@@ -56,7 +81,7 @@ export async function detectIntent(query: string): Promise<'rules_query' | 'perf
           content: query
         }
       ],
-      max_completion_tokens: 20
+      max_completion_tokens: 1000
     });
 
     const content = response.choices[0].message.content?.trim().toLowerCase() || 'general_chat';
@@ -75,8 +100,7 @@ export async function detectIntent(query: string): Promise<'rules_query' | 'perf
 async function shouldConsultRules(query: string): Promise<boolean> {
   try {
     const response = await createChatCompletion({
-      model: "gpt-4o-mini",
-      temperature: 0,
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
@@ -84,7 +108,7 @@ async function shouldConsultRules(query: string): Promise<boolean> {
         },
         { role: "user", content: query }
       ],
-      max_completion_tokens: 5
+      max_completion_tokens: 1000
     });
     const content = response.choices[0].message.content?.trim().toUpperCase() || '';
     console.log(`[shouldConsultRules] Query: "${query}" -> Raw LLM response: "${content}"`);
@@ -96,17 +120,24 @@ async function shouldConsultRules(query: string): Promise<boolean> {
 }
 
 export async function analyzePlayerPerformance(
-  players: PlayerStats[],
+  lifetimePlayers: PlayerStats[],
+  currentSeasonPlayers: PlayerStats[],
   query: string
 ): Promise<{ response: string; usedRules: boolean }> {
   try {
-    const playerSummary = players.map(p => ({
+    const formatPlayerSummary = (players: PlayerStats[]) => players.map(p => ({
       name: p.name,
       winPercentage: p.winPercentage,
       totalGames: p.record.totalGames,
       streak: `${p.streak.count} ${p.streak.type}`,
       yearsPlayed: p.yearsPlayed
     }));
+
+    const lifetimeSummary = formatPlayerSummary(lifetimePlayers);
+    const currentSeasonSummary = formatPlayerSummary(currentSeasonPlayers);
+
+    console.log('[analyzePlayerPerformance] First lifetime player raw:', JSON.stringify(lifetimePlayers[0], null, 2));
+    console.log('[analyzePlayerPerformance] First lifetime summary:', JSON.stringify(lifetimeSummary[0], null, 2));
 
     // Check if the query is about rules and get context from RAG
     let rulesContext = '';
@@ -123,13 +154,12 @@ export async function analyzePlayerPerformance(
     }
 
     const response = await createChatCompletion({
-      model: "gpt-4o",
-      temperature: 0.2,
-      max_completion_tokens: 600,
+      model: "gpt-5-mini",
+      max_completion_tokens: 5000,
       messages: [
         {
           role: "system",
-          content: playerPerformanceSystemPrompt(playerSummary, rulesContext)
+          content: playerPerformanceSystemPrompt(lifetimeSummary, currentSeasonSummary, rulesContext)
         },
         {
           role: "user",
@@ -137,6 +167,8 @@ export async function analyzePlayerPerformance(
         }
       ]
     });
+
+    console.log('[analyzePlayerPerformance] Response:', JSON.stringify(response, null, 2));
 
     return {
       response: response.choices[0].message.content || "Unable to analyze performance data.",
@@ -151,77 +183,12 @@ export async function analyzePlayerPerformance(
   }
 }
 
-export async function suggestTeamMatchups(
-  availablePlayers: PlayerStats[]
-): Promise<TeamSuggestion[]> {
-  try {
-    return generateBalancedTeams(availablePlayers);
-  } catch (error) {
-    console.error('Error suggesting team matchups:', error);
-    return [];
-  }
-}
-
-function createFallbackMatchup(availablePlayers: PlayerStats[], team1Size?: number, team2Size?: number): TeamSuggestion {
-  // Determine team sizes if not provided
-  let actualTeam1Size: number, actualTeam2Size: number;
-
-  if (team1Size && team2Size) {
-    actualTeam1Size = team1Size;
-    actualTeam2Size = team2Size;
-  } else if (availablePlayers.length === 4) {
-    actualTeam1Size = 2;
-    actualTeam2Size = 2;
-  } else if (availablePlayers.length === 5) {
-    actualTeam1Size = 2;
-    actualTeam2Size = 3;
-  } else {
-    const playersPerTeam = Math.floor(availablePlayers.length / 2);
-    actualTeam1Size = playersPerTeam;
-    actualTeam2Size = availablePlayers.length - playersPerTeam;
-  }
-
-  // Fallback: create balanced teams based on win percentage using snake draft
-  const sortedPlayers = [...availablePlayers].sort((a, b) => b.winPercentage - a.winPercentage);
-  const teamOne = [];
-  const teamTwo = [];
-
-  // Snake draft pattern for better balance
-  let pickForTeamOne = true;
-  for (let i = 0; i < availablePlayers.length; i++) {
-    if (pickForTeamOne && teamOne.length < actualTeam1Size) {
-      teamOne.push(sortedPlayers[i]);
-    } else if (!pickForTeamOne && teamTwo.length < actualTeam2Size) {
-      teamTwo.push(sortedPlayers[i]);
-    } else if (teamOne.length < actualTeam1Size) {
-      teamOne.push(sortedPlayers[i]);
-    } else {
-      teamTwo.push(sortedPlayers[i]);
-    }
-
-    // Alternate picks when both teams can still pick
-    if (teamOne.length < actualTeam1Size && teamTwo.length < actualTeam2Size) {
-      pickForTeamOne = !pickForTeamOne;
-    }
-  }
-
-  return {
-    scenario: "Fallback: Snake Draft Selection",
-    teamOne,
-    teamTwo,
-    balanceScore: 50,
-    expectedWinProbability: 50,
-    reasoning: `Balanced teams created using snake draft: ${actualTeam1Size}v${actualTeam2Size} formation`
-  };
-}
-
 export async function queryWallyballRules(query: string): Promise<{ response: string; usedRules: boolean }> {
   try {
     const rulesResult = await searchWallyballRules(query);
 
     const response = await createChatCompletion({
-      model: "gpt-4o",
-      temperature: 0.2,
+      model: "gpt-5-mini",
       messages: [
         {
           role: "system",
@@ -232,8 +199,10 @@ export async function queryWallyballRules(query: string): Promise<{ response: st
           content: query
         }
       ],
-      max_completion_tokens: 400
+      max_completion_tokens: 2000
     });
+
+    console.log('[queryWallyballRules] Response:', JSON.stringify(response, null, 2));
 
     return {
       response: response.choices[0].message.content || "Unable to find information about that rule.",
@@ -245,47 +214,6 @@ export async function queryWallyballRules(query: string): Promise<{ response: st
       response: "I'm having trouble accessing the rules document right now. Please try again.",
       usedRules: false
     };
-  }
-}
-
-export async function generateMatchAnalysis(
-  teamOne: PlayerStats[],
-  teamTwo: PlayerStats[],
-  context?: string
-): Promise<string> {
-  try {
-    const team1Summary = teamOne.map(p => ({
-      name: p.name,
-      winPercentage: p.winPercentage,
-      streak: p.streak
-    }));
-
-    const team2Summary = teamTwo.map(p => ({
-      name: p.name,
-      winPercentage: p.winPercentage,
-      streak: p.streak
-    }));
-
-    const response = await createChatCompletion({
-      model: "gpt-4o",
-      temperature: 0.2,
-      messages: [
-        {
-          role: "system",
-          content: matchAnalysisSystemPrompt(team1Summary, team2Summary)
-        },
-        {
-          role: "user",
-          content: context || "Analyze this upcoming match and provide insights."
-        }
-      ],
-      max_completion_tokens: 400
-    });
-
-    return response.choices[0].message.content || "Unable to analyze match data.";
-  } catch (error) {
-    console.error('Error generating match analysis:', error);
-    return "I'm having trouble analyzing the match data right now. Please try again.";
   }
 }
 
@@ -349,8 +277,7 @@ VALIDATION CHECKLIST:
 CRITICAL: Only focus on finding letters - do NOT try to identify teams or count tally marks yet.`;
 
     const response = await createChatCompletion({
-      model: 'gpt-4o',
-      temperature: 0.2,
+      model: 'gpt-5-mini',
       messages: [
         {
           role: 'system',
@@ -369,7 +296,7 @@ CRITICAL: Only focus on finding letters - do NOT try to identify teams or count 
           ],
         },
       ],
-      max_completion_tokens: 500,
+      max_completion_tokens: 2000,
       response_format: { type: "json_object" }
     });
 
@@ -463,8 +390,7 @@ IMPORTANT: For each team, include:
 CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about tallies, use 0.`;
 
     const response = await createChatCompletion({
-      model: 'gpt-4o',
-      temperature: 0.2,
+      model: 'gpt-5-mini',
       messages: [
         {
           role: 'system',
@@ -483,7 +409,7 @@ CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about t
           ],
         },
       ],
-      max_completion_tokens: 800,
+      max_completion_tokens: 2000,
       response_format: { type: "json_object" }
     });
 
@@ -698,8 +624,7 @@ REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first le
       : 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.';
 
     const response = await createChatCompletion({
-      model: 'gpt-4o',
-      temperature: 0.2,
+      model: 'gpt-5-mini',
       messages: [
         {
           role: 'system',
@@ -718,7 +643,7 @@ REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first le
           ],
         },
       ],
-      max_completion_tokens: 1000,
+      max_completion_tokens: 2000,
       response_format: { type: "json_object" }
     });
 

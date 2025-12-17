@@ -9,6 +9,7 @@ import { ChatBot } from './components/ChatBot';
 import { FloatingActionButton } from './components/FloatingActionButton';
 import { InactivityExemptionModal } from './components/InactivityExemptionModal';
 import { PlayerSelectorDialog } from './components/PlayerSelectorDialog';
+import { AISummaryPanel } from './components/AISummaryPanel';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -37,15 +38,19 @@ export default function DashboardPage() {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Season management state
   const [currentSeason, setCurrentSeason] = useState<string | undefined>('current'); // 'current', 'lifetime', or season ID
-  
+
   const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | undefined>(undefined);
   const [prefilledWins, setPrefilledWins] = useState<{ teamOneWins: number, teamTwoWins: number } | undefined>(undefined);
-  
+
   // Add refresh trigger for dashboard components
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // ChatBot state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatInitialMessage, setChatInitialMessage] = useState('');
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -57,7 +62,7 @@ export default function DashboardPage() {
         console.error('Failed to fetch players:', error);
       }
     };
-    
+
     fetchPlayers();
   }, []);
 
@@ -110,7 +115,7 @@ export default function DashboardPage() {
     setShowAddPlayerModal(true); // Show the Add Player modal
   };
 
-  
+
 
   const handleUseTeams = (teamOne: number[], teamTwo: number[]) => {
     setSuggestedTeams({ teamOne, teamTwo });
@@ -125,9 +130,9 @@ export default function DashboardPage() {
   };
 
   const handleTogglePlayer = (playerId: number) => {
-    setSelectedPlayers(prev => 
-      prev.includes(playerId) 
-        ? prev.filter(id => id !== playerId) 
+    setSelectedPlayers(prev =>
+      prev.includes(playerId)
+        ? prev.filter(id => id !== playerId)
         : [...prev, playerId]
     );
   };
@@ -138,7 +143,7 @@ export default function DashboardPage() {
       const response = await fetch('/api/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message: `Create balanced team matchups for wallyball using players with IDs: ${selectedPlayers.join(', ')}. I need exactly ONE team suggestion with no duplicate players between teams. Each player should only appear on one team.`,
           context: {
             type: 'team_suggestion',
@@ -152,11 +157,11 @@ export default function DashboardPage() {
       }
 
       const data = await response.json();
-      
+
       // Extract the first matchup from additionalData
       if (data.additionalData && data.additionalData.length > 0) {
         const firstMatchup = data.additionalData[0];
-        setSuggestedTeams({ 
+        setSuggestedTeams({
           teamOne: firstMatchup.teamOne.map((player: any) => player.id),
           teamTwo: firstMatchup.teamTwo.map((player: any) => player.id)
         });
@@ -228,15 +233,15 @@ export default function DashboardPage() {
               />
             </div>
             <div className="flex gap-2 pt-2">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 type="submit"
                 disabled={isSubmitting}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
@@ -277,27 +282,32 @@ export default function DashboardPage() {
     }
   };
 
+  const handleAskAI = () => {
+    setChatInitialMessage("Write a full, detailed league report covering recent games, player highlights, and standing changes.");
+    setIsChatOpen(true);
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center border-b border-gray-200 pb-4">
         <h1 className="text-2xl font-bold text-gray-800">Win Percentage</h1>
       </div>
 
-
+      <AISummaryPanel onAskAI={handleAskAI} />
 
       <div className="grid grid-cols-1 gap-6">
         {/* Chart */}
         <div>
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
             <PerformanceTrend key={`trend-${refreshKey}`} season={currentSeason} onSeasonChange={setCurrentSeason} />
           </div>
-          </div>
+        </div>
 
         {/* Rankings */}
         <div>
           <div className="bg-white p-4 rounded-lg border border-gray-200 h-full">
             <div className="space-y-3">
-              
+
               <div className="space-y-2">
                 <WinPercentageRankings key={`rankings-${refreshKey}`} season={currentSeason} />
               </div>
@@ -310,14 +320,14 @@ export default function DashboardPage() {
         <RecentMatches key={`recent-${refreshKey}`} />
       </div>
 
-      <FloatingActionButton 
+      <FloatingActionButton
         onRecordMatch={() => setShowRecordMatchModal(true)}
         onAddPlayer={handleAddPlayer}
         onTeamSuggestionClick={() => setShowPlayerSelectorDialog(true)}
         onAddExemption={() => setShowExemptionModal(true)}
       />
 
-      <RecordMatchModal 
+      <RecordMatchModal
         isOpen={showRecordMatchModal}
         onClose={() => {
           setShowRecordMatchModal(false);
@@ -329,7 +339,7 @@ export default function DashboardPage() {
         prefilledWins={prefilledWins}
       />
 
-       <AddPlayerModal // Add the AddPlayerModal here
+      <AddPlayerModal // Add the AddPlayerModal here
         isOpen={showAddPlayerModal}
         onClose={() => setShowAddPlayerModal(false)}
         onSubmit={handleAddPlayerSubmit}
@@ -352,7 +362,19 @@ export default function DashboardPage() {
         onSaved={() => setRefreshKey(prev => prev + 1)}
       />
 
-      <ChatBot className="w-full" onUseMatchup={handleUseTeams} onRecordMatch={handleRecordMatch} />
+      <ChatBot
+        className="w-full"
+        onUseMatchup={handleUseTeams}
+        onRecordMatch={handleRecordMatch}
+        isOpen={isChatOpen}
+        onOpenChange={(open) => {
+          setIsChatOpen(open);
+          if (!open) {
+            setChatInitialMessage('');
+          }
+        }}
+        initialMessage={chatInitialMessage}
+      />
     </div>
   );
 }

@@ -48,6 +48,9 @@ interface ChatBotProps {
   className?: string;
   onUseMatchup?: (teamOne: number[], teamTwo: number[]) => void;
   onRecordMatch?: (teamOne: number[], teamTwo: number[], teamOneWins: number, teamTwoWins: number) => void;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialMessage?: string;
 }
 
 function isMatchResult(data: any): data is MatchResult {
@@ -62,9 +65,17 @@ function isTeamGrouping(data: any): data is TeamGrouping {
   return data && typeof data === 'object' && 'teamNumber' in data && 'players' in data && 'letters' in data;
 }
 
-export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen, onOpenChange: setControlledIsOpen, initialMessage }: ChatBotProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen ?? internalIsOpen;
+  const setIsOpen = setControlledIsOpen ?? setInternalIsOpen;
+
+  const [defaultMessages, setDefaultMessages] = useState<ChatMessage[]>([]);
+  const [reportMessages, setReportMessages] = useState<ChatMessage[]>([]);
+
+  const isReportMode = !!initialMessage;
+  const messages = isReportMode ? reportMessages : defaultMessages;
+  const setMessages = isReportMode ? setReportMessages : setDefaultMessages;
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [chatStatus, setChatStatus] = useState<{ status: string; playerCount: number } | null>(null);
@@ -194,22 +205,28 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
       fetchChatStatus();
       fetchPlayers();
     }
-  }, [isOpen, chatStatus]);
+
+    // Ensure welcome message is shown in default mode
+    if (isOpen && chatStatus?.status === 'ready' && !initialMessage && defaultMessages.length === 0) {
+      setDefaultMessages([{
+        role: 'assistant',
+        content: `Hi! I'm your volleyball team assistant. I have access to data for ${chatStatus.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n- Player performance analysis\n- Team matchup suggestions\n- Answering questions about wallyball rules\n\nFor example, try asking:\n- "Who are the top players?"\n- "Suggest balanced teams for today"\n- "What are the rules around hitting the backwall in regular play?"`,
+        timestamp: new Date().toISOString(),
+        type: 'welcome'
+      }]);
+    }
+
+    if (isOpen && initialMessage && reportMessages.length === 0) {
+      // Auto-send the initial message only if no report exists
+      sendMessage(initialMessage);
+    }
+  }, [isOpen, chatStatus, initialMessage, reportMessages.length, defaultMessages.length]);
 
   const fetchChatStatus = async () => {
     try {
       const response = await fetch('/api/chatbot');
       const data = await response.json();
       setChatStatus(data);
-
-      if (data.status === 'ready') {
-        setMessages([{
-          role: 'assistant',
-          content: `Hi! I'm your volleyball team assistant. I have access to data for ${data.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n- Player performance analysis\n- Team matchup suggestions\n- Answering questions about wallyball rules\n\nFor example, try asking:\n- "Who are the top players?"\n- "Suggest balanced teams for today"\n- "What are the rules around hitting the backwall in regular play?"`,
-          timestamp: new Date().toISOString(),
-          type: 'welcome'
-        }]);
-      }
     } catch (error) {
       console.error('Failed to fetch chat status:', error);
     }
@@ -225,12 +242,13 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (messageOverride?: string) => {
+    const messageToSend = messageOverride || input;
+    if (!messageToSend.trim() || isLoading) return;
 
     // Check if this is a team suggestion request
-    if (isTeamSuggestionRequest(input)) {
-      setPendingTeamSuggestionPrompt(input);
+    if (isTeamSuggestionRequest(messageToSend)) {
+      setPendingTeamSuggestionPrompt(messageToSend);
       setShowPlayerSelector(true);
       setInput('');
       return;
@@ -238,7 +256,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
 
     const userMessage: ChatMessage = {
       role: 'user',
-      content: input,
+      content: messageToSend,
       timestamp: new Date().toISOString()
     };
 
@@ -250,7 +268,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
       const response = await fetch('/api/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input })
+        body: JSON.stringify({ message: messageToSend })
       });
 
       const data = await response.json();
@@ -1099,7 +1117,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch }: ChatBotProps) {
                   <Upload className="h-4 w-4" />
                 </Button>
                 <Button
-                  onClick={sendMessage}
+                  onClick={() => sendMessage()}
                   disabled={isLoading || !input.trim()}
                   size="icon"
                 >

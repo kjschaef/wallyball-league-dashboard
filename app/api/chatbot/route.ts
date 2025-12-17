@@ -16,7 +16,7 @@ interface ChatRequest {
   };
 }
 
-async function fetchPlayerStats(): Promise<PlayerStats[]> {
+async function fetchPlayerStats(season?: string): Promise<PlayerStats[]> {
   try {
     // Construct the base URL properly for different environments
     let baseUrl: string;
@@ -33,7 +33,11 @@ async function fetchPlayerStats(): Promise<PlayerStats[]> {
       baseUrl = 'http://localhost:5000';
     }
 
-    const url = `${baseUrl}/api/player-stats`;
+    let url = `${baseUrl}/api/player-stats`;
+    if (season) {
+      url += `?season=${season}`;
+    }
+
     // fetch player stats from internal API
     const response = await fetch(url, {
       cache: 'no-store'
@@ -64,10 +68,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch current player statistics
-    const allPlayers = await fetchPlayerStats();
+    // Fetch current player statistics (Lifetime and Current Season)
+    const [lifetimeStats, currentSeasonStats] = await Promise.all([
+      fetchPlayerStats(), // Default is lifetime
+      fetchPlayerStats('current') // Explicitly ask for current season
+    ]);
 
-    if (allPlayers.length === 0) {
+    if (lifetimeStats.length === 0) {
       return NextResponse.json({
         response: "I don't have access to any player data right now. Please make sure there are players in the system and try again.",
         type: 'error'
@@ -83,10 +90,13 @@ export async function POST(request: NextRequest) {
 
     // Check for team suggestions first (higher priority)
     if (lowerMessage.includes('team') && (lowerMessage.includes('suggest') || lowerMessage.includes('matchup') || lowerMessage.includes('who should play'))) {
-      // Team suggestion request
+      // Team suggestion request - use Current Season stats for better relevance on "who is playing well now"
+      // But fallback to lifetime if current season has little data? 
+      // For now, let's stick to lifetime for balancing as it has more data points for skill estimation,
+      // unless we want to prioritize recent form. Let's stick to lifetime for consistency in balancing.
       const availablePlayers = context?.players
-        ? allPlayers.filter(p => context.players!.includes(p.id))
-        : allPlayers;
+        ? lifetimeStats.filter(p => context.players!.includes(p.id))
+        : lifetimeStats;
 
       if (availablePlayers.length < 4) {
         response = "I need at least 4 players to suggest balanced teams. Please let me know which players are available today.";
@@ -117,7 +127,7 @@ export async function POST(request: NextRequest) {
         // General performance analysis or general chat
         // We treat general chat as performance analysis for now to keep the persona consistent
         // and allow access to player context if needed
-        const analysisResult = await analyzePlayerPerformance(allPlayers, message);
+        const analysisResult = await analyzePlayerPerformance(lifetimeStats, currentSeasonStats, message);
         response = analysisResult.response;
         responseType = 'performance_analysis';
         additionalData = { usedRules: analysisResult.usedRules };
@@ -129,7 +139,7 @@ export async function POST(request: NextRequest) {
       response,
       type: responseType,
       timestamp: new Date().toISOString(),
-      playerCount: allPlayers.length,
+      playerCount: lifetimeStats.length,
       additionalData
     });
 
