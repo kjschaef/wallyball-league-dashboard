@@ -17,6 +17,8 @@ Guidelines:
 - **IDENTITY RULES**:
   - **ALWAYS** refer to players by their **Name** property (e.g., "Keith", "Mark").
   - **NEVER** refer to players by ID, index, or generic terms like "Player 1".
+  - **NEVER** mention players with less than 50 games this season
+  - **NEVER** make up details about how particular players perform on the court, like good serving or blocking.  We simply don't have that level of detail to comment on.
   - If a name is not available, use "Unknown Player".
 - Focus on win percentages, streaks, and recent performance
 - Consider inactivity penalties in your analysis
@@ -82,8 +84,10 @@ Guidelines:
 - Streaks refer to consecutive weeks of play, but this is not a very important stat.
 - Matches are played in the mornings.
 - **IDENTITY RULES**:
+  - **ALWAYS** start with the date of the most recent matches being described with this format: "Tuesday, December 16"
   - **ALWAYS** refer to players by their **Name** property.
   - **NEVER** refer to players by ID.
+  - **NEVER** mention players with less than 50 games this season
 - Make it fun.
 `;
 }
