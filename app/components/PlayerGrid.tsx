@@ -12,7 +12,6 @@ interface Player {
     type: string;
     count: number;
   };
-  inactivityPenalty?: number;
 }
 
 interface PlayerGridProps {
@@ -106,11 +105,7 @@ export function PlayerGrid({
                 </div>
               )}
 
-              {player.inactivityPenalty && player.inactivityPenalty > 0 && (
-                <div className="text-xs text-orange-600 mt-1">
-                  -{player.inactivityPenalty}% inactivity
-                </div>
-              )}
+
             </div>
           );
         })}

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { calculateInactivityPenaltyWithDecay, filterFutureMatches } from '../../lib/inactivity-penalty';
 import { PlayerAchievements } from './PlayerAchievements';
 
 interface Player {
@@ -25,34 +24,11 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const [editedName, setEditedName] = useState(player.name);
   const [editedStartYear, setEditedStartYear] = useState(player.startYear?.toString() || '');
 
-  const { stats, matches } = player;
+  const { stats } = player;
   const total = stats.won + stats.lost;
 
-  // Filter out future-dated matches and ensure proper formatting
-  const validMatches = filterFutureMatches(matches.map(match => ({ date: match.date })));
-
-  // Calculate inactivity penalty using the centralized logic
-  const {
-    weeksInactive,
-    penaltyPercentage,
-    decayFactor
-  } = calculateInactivityPenaltyWithDecay(validMatches, player.createdAt?.toString() || null);
-
-  const hasInactivityPenalty = penaltyPercentage > 0;
-
-  // Apply decay factor to win percentage
-  const winRateBase = total > 0 ? (stats.won / total) * 100 : 0;
-  const winRate = hasInactivityPenalty
-    ? winRateBase * decayFactor
-    : winRateBase;
-
-  // Count unique days on which matches were played
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _uniqueDays = new Set(
-    matches.map(match => new Date(match.date).toLocaleDateString())
-  ).size;
-
-
+  // Calculate win percentage
+  const winRate = total > 0 ? (stats.won / total) * 100 : 0;
 
   const yearsPlayed = player.startYear
     ? new Date().getFullYear() - player.startYear
@@ -197,19 +173,14 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           <div className="text-right flex flex-col justify-end">
             <span className="text-xs text-gray-500 block mb-0.5">Win %</span>
             <span className={`text-xl font-bold ${winRate > 53 ? 'text-green-600' :
-                winRate >= 45 ? 'text-yellow-600' :
-                  'text-red-600'
+              winRate >= 45 ? 'text-yellow-600' :
+                'text-red-600'
               }`}>{winRate.toFixed(1)}%</span>
-            {weeksInactive > 0 && hasInactivityPenalty && (
-              <div className="text-[10px] text-red-500 leading-tight">
-                Act: {winRateBase.toFixed(1)}%
-              </div>
-            )}
             <div className="w-full bg-gray-200 mt-1.5 rounded-full h-1.5">
               <div
                 className={`h-1.5 rounded-full ${winRate > 53 ? 'bg-green-600' :
-                    winRate >= 45 ? 'bg-yellow-600' :
-                      'bg-red-600'
+                  winRate >= 45 ? 'bg-yellow-600' :
+                    'bg-red-600'
                   }`}
                 style={{ width: `${Math.min(100, Math.max(0, winRate))}%` }}
               />

@@ -7,7 +7,6 @@ import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
 import { FloatingActionButton } from './components/FloatingActionButton';
-import { InactivityExemptionModal } from './components/InactivityExemptionModal';
 import { PlayerSelectorDialog } from './components/PlayerSelectorDialog';
 import { AISummaryPanel } from './components/AISummaryPanel';
 
@@ -33,7 +32,6 @@ interface Player {
 export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
-  const [showExemptionModal, setShowExemptionModal] = useState(false);
   const [showPlayerSelectorDialog, setShowPlayerSelectorDialog] = useState(false);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
@@ -324,7 +322,6 @@ export default function DashboardPage() {
         onRecordMatch={() => setShowRecordMatchModal(true)}
         onAddPlayer={handleAddPlayer}
         onTeamSuggestionClick={() => setShowPlayerSelectorDialog(true)}
-        onAddExemption={() => setShowExemptionModal(true)}
       />
 
       <RecordMatchModal
@@ -356,11 +353,7 @@ export default function DashboardPage() {
         isLoading={isLoading}
       />
 
-      <InactivityExemptionModal
-        isOpen={showExemptionModal}
-        onClose={() => setShowExemptionModal(false)}
-        onSaved={() => setRefreshKey(prev => prev + 1)}
-      />
+
 
       <ChatBot
         className="w-full"

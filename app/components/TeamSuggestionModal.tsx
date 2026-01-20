@@ -124,8 +124,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                 name: p.name,
                 winPercentage: p.winPercentage,
                 record: p.record,
-                streak: p.streak,
-                inactivityPenalty: p.inactivityPenalty
+                streak: p.streak
               }))}
               selectedPlayers={selectedPlayers}
               onPlayerToggle={togglePlayer}

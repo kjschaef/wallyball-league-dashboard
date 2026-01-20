@@ -71,31 +71,70 @@ export function listSeasons(numberOfQuarters = 8, earliestDate?: string): Season
     }
   }
 
-  // Map to SeasonInfo with ids starting at 1 (current = 1)
-  const mapped: SeasonInfo[] = seasons.map((s, idx) => ({
-    id: idx + 1,
+  // Create map of quarters with deterministic IDs
+  // ID Format: YYYYQ (e.g. 20251 for 2025 Q1)
+  const quarterSeasons: SeasonInfo[] = seasons.map((s, idx) => ({
+    id: s.year * 10 + s.quarter,
     name: `${s.year} Q${s.quarter}`,
     start_date: s.start_date,
     end_date: s.end_date,
     is_active: idx === 0
   }));
 
-  return mapped;
+  // Extract unique years and create annual seasons
+  // ID Format: YYYY0 (e.g. 20250 for 2025 Full Year)
+  const years = Array.from(new Set(seasons.map(s => s.year))).sort((a, b) => b - a);
+  const annualSeasons: SeasonInfo[] = years.map(year => ({
+    id: year * 10,
+    name: `${year}`,
+    start_date: `${year}-01-01`,
+    end_date: `${year}-12-31`,
+    is_active: false
+  }));
+
+  // Combine
+  return [...quarterSeasons, ...annualSeasons];
 }
 
 export function getSeasonById(id: number): SeasonInfo | null {
   if (id === 0) return { id: 0, name: 'Lifetime', start_date: '', end_date: '' };
-  const seasons = listSeasons(64);
-  return seasons.find(s => s.id === id) || null;
-}
 
-export function getSeasonIdFromMatch(matchDate: string, seasons: SeasonInfo[]): number | null {
-  const date = new Date(matchDate);
-  for (const season of seasons) {
-    if (!season.start_date || !season.end_date) continue;
-    const start = new Date(season.start_date + 'T00:00:00');
-    const end = new Date(season.end_date + 'T23:59:59');
-    if (date >= start && date <= end) return season.id;
+  // Parse deterministic ID
+  const quarter = id % 10;
+  const year = Math.floor(id / 10);
+
+  if (quarter === 0) {
+    // Annual Season
+    return {
+      id,
+      name: `${year}`,
+      start_date: `${year}-01-01`,
+      end_date: `${year}-12-31`,
+      is_active: false
+    };
+  } else if (quarter >= 1 && quarter <= 4) {
+    // Quarterly Season
+    const start_date = (quarter === 1) ? `${year}-01-01` : (quarter === 2) ? `${year}-04-01` : (quarter === 3) ? `${year}-07-01` : `${year}-10-01`;
+    const end_date = (quarter === 1) ? `${year}-03-31` : (quarter === 2) ? `${year}-06-30` : (quarter === 3) ? `${year}-09-30` : `${year}-12-31`;
+    return {
+      id,
+      name: `${year} Q${quarter}`,
+      start_date,
+      end_date,
+      is_active: false // We can't easily determine active here without 'now', defaulting false is usually fine for lookup
+    };
   }
+
   return null;
 }
+
+export function getSeasonIdFromMatch(matchDate: string, _seasons?: SeasonInfo[]): number | null {
+  const date = new Date(matchDate);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const quarter = month >= 10 ? 4 : month >= 7 ? 3 : month >= 4 ? 2 : 1;
+
+  // Returns the Quarter ID by default as it's the primary unit
+  return year * 10 + quarter;
+}
+

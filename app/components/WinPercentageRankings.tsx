@@ -107,14 +107,11 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
         const threshold = count50 > 0 ? 50 : 1;
         console.log('Leaderboard threshold:', threshold, '(players with >=50 games:', count50, ')');
         const formattedRankings = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold).map((player: any) => {
-          console.log('Player:', player.name, 'inactivityPenalty:', player.inactivityPenalty);
           return {
             id: player.id,
             name: player.name,
             winPercentage: player.winPercentage,
-            matches: player.record.totalGames,
-            hasInactivityPenalty: player.inactivityPenalty && player.inactivityPenalty > 0,
-            penaltyPercentage: player.inactivityPenalty > 0 ? player.inactivityPenalty : undefined
+            matches: player.record.totalGames
           };
         });
 
@@ -123,9 +120,7 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
         console.error('Error fetching data:', error);
         setRankings(mockRankings.map(ranking => ({
           ...ranking,
-          matches: ranking.games,
-          hasInactivityPenalty: false,
-          penaltyPercentage: 0
+          matches: ranking.games
         })));
       } finally {
         setLoading(false);
@@ -134,13 +129,6 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
 
     fetchData();
   }, [season]);
-
-  const formatTooltipContent = (value: number, name: string) => {
-    if (name === 'winPercentage') {
-      return [`${value}%`, 'Win %'];
-    }
-    return [value, name];
-  };
 
   if (loading) {
     return <div className="flex justify-center py-10">Loading rankings...</div>;
@@ -180,11 +168,6 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
                 <div className="text-sm font-bold text-gray-900">
                   {player.winPercentage.toFixed(1)}%
                 </div>
-                {player.penaltyPercentage !== undefined && (
-                  <div className="text-[10px] text-orange-600 font-medium">
-                    -{player.penaltyPercentage}%
-                  </div>
-                )}
               </div>
             </div>
           </div>

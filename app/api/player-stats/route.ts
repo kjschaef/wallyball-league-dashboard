@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { calculatePlayerStats } from '../../lib/stats';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
 
   try {
@@ -17,8 +19,7 @@ export async function GET(request: Request) {
     const allPlayers = await sql`SELECT * FROM players ORDER BY created_at DESC`;
 
     // Handle season filtering
-    const seasonId: number | null = null;
-    let seasonData: any = null;
+    let seasonData: unknown = null;
     let allMatches;
 
     const now = new Date();

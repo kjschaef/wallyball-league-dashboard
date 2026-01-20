@@ -5,33 +5,40 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = searchParams.get('limit');
   const stats = searchParams.get('stats');
-  
+
   try {
     if (!process.env.DATABASE_URL) {
       throw new Error('Database URL not configured');
     }
-    
+
     const sql = neon(process.env.DATABASE_URL);
-    
+
     // If stats requested, return aggregated statistics
     if (stats === 'true') {
-      const allMatches = await sql`SELECT team_one_games_won, team_two_games_won FROM matches`;
+      const allMatches = await sql`SELECT team_one_games_won, team_two_games_won, date FROM matches`;
       const totalMatches = allMatches.length;
-      const totalGames = allMatches.reduce((sum, match) => 
+      const totalGames = allMatches.reduce((sum, match) =>
         sum + (match.team_one_games_won || 0) + (match.team_two_games_won || 0), 0
       );
-      const avgGamesPerMatch = totalMatches > 0 ? Number((totalGames / totalMatches).toFixed(1)) : 0;
-      
+
+      // Count distinct days with matches
+      const uniqueDays = new Set(
+        allMatches.map(match =>
+          match.date ? new Date(match.date).toISOString().split('T')[0] : null
+        ).filter(Boolean)
+      );
+      const totalDaysPlayed = uniqueDays.size;
+
       return NextResponse.json({
         totalMatches,
         totalGames,
-        avgGamesPerMatch
+        totalDaysPlayed
       });
     }
-    
+
     // Fetch matches from database
     let allMatches;
-    
+
     if (limit) {
       const limitNum = parseInt(limit);
       if (!isNaN(limitNum) && limitNum > 0) {
@@ -42,11 +49,11 @@ export async function GET(request: Request) {
     } else {
       allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
     }
-    
+
     // Get all players to map IDs to names
     const allPlayers = await sql`SELECT * FROM players`;
     const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
-    
+
     // Process matches to include player names
     const processedMatches = allMatches.map(match => {
       const teamOnePlayers = [
@@ -54,13 +61,13 @@ export async function GET(request: Request) {
         match.team_one_player_two_id && playerMap.get(match.team_one_player_two_id),
         match.team_one_player_three_id && playerMap.get(match.team_one_player_three_id)
       ].filter(Boolean);
-      
+
       const teamTwoPlayers = [
         match.team_two_player_one_id && playerMap.get(match.team_two_player_one_id),
         match.team_two_player_two_id && playerMap.get(match.team_two_player_two_id),
         match.team_two_player_three_id && playerMap.get(match.team_two_player_three_id)
       ].filter(Boolean);
-      
+
       return {
         id: match.id,
         teamOnePlayerOneId: match.team_one_player_one_id,
@@ -76,7 +83,7 @@ export async function GET(request: Request) {
         teamTwoPlayers
       };
     });
-    
+
     return NextResponse.json(processedMatches);
   } catch (error) {
     console.error('Error fetching matches:', error);
@@ -102,11 +109,11 @@ async function getPlayerIdsFromNames(sql: any, playerNames: string[]) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
+
     if (!process.env.DATABASE_URL) {
       throw new Error('Database URL not configured');
     }
-    
+
     const sql = neon(process.env.DATABASE_URL);
 
     const teamOnePlayerIds: (number | null)[] = [null, null, null];
@@ -171,20 +178,20 @@ export async function POST(request: Request) {
     // Get player names for the response
     const allPlayers = await sql`SELECT * FROM players`;
     const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
-    
+
     const match = newMatches[0];
     const teamOnePlayers = [
       match.team_one_player_one_id && playerMap.get(match.team_one_player_one_id),
       match.team_one_player_two_id && playerMap.get(match.team_one_player_two_id),
       match.team_one_player_three_id && playerMap.get(match.team_one_player_three_id)
     ].filter(Boolean);
-    
+
     const teamTwoPlayers = [
       match.team_two_player_one_id && playerMap.get(match.team_two_player_one_id),
       match.team_two_player_two_id && playerMap.get(match.team_two_player_two_id),
       match.team_two_player_three_id && playerMap.get(match.team_two_player_three_id)
     ].filter(Boolean);
-    
+
     const responseMatch = {
       id: match.id,
       teamOnePlayerOneId: match.team_one_player_one_id,
@@ -199,7 +206,7 @@ export async function POST(request: Request) {
       teamOnePlayers,
       teamTwoPlayers
     };
-    
+
     return NextResponse.json(responseMatch, { status: 201 });
   } catch (error) {
     console.error('Error creating match:', error);

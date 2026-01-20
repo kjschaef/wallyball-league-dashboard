@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { listSeasons } from '../../../lib/seasons';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     if (!process.env.DATABASE_URL) {

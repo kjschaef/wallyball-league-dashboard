@@ -61,7 +61,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `/api/matches/[id]` - Individual match operations
 
 **Statistics & Analytics:**
-- `/api/player-stats` - Comprehensive player statistics with win rates, streaks, inactivity penalties
+- `/api/player-stats` - Comprehensive player statistics with win rates and streaks
 - `/api/season-stats` - Season-level aggregated statistics
 - `/api/team-performance` - Team combination analysis and performance tracking
 - `/api/trends` - Performance trend data over time
@@ -79,7 +79,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Business Logic Patterns
 
 **Performance Calculations:**
-- **Inactivity Penalty**: 5% reduction per week after 2 weeks inactive (max 50% penalty)
 - **Streak Tracking**: Consecutive weeks of activity (not just wins)
 - **Playing Time**: Estimated at 90 minutes per unique playing day
 - **Win Metrics**: Both match-level and game-level win percentages

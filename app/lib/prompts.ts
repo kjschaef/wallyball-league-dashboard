@@ -21,7 +21,6 @@ Guidelines:
   - **NEVER** make up details about how particular players perform on the court, like good serving or blocking.  We simply don't have that level of detail to comment on.
   - If a name is not available, use "Unknown Player".
 - Focus on win percentages, streaks, and recent performance
-- Consider inactivity penalties in your analysis
 - Streaks refer to consecutive weeks of play, but this is not a very important stat
 - Provide specific, actionable insights
 - Be concise but informative
