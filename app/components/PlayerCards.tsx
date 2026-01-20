@@ -18,7 +18,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Edit, Trash2, TrendingUp, Clock, Calendar } from "lucide-react";
+import { Edit, Trash2, TrendingUp, Calendar } from "lucide-react";
 
 interface PlayerStats {
   id: number;
@@ -36,7 +36,6 @@ interface PlayerStats {
     count: number;
   };
   actualWinPercentage?: number;
-  inactivityPenalty?: number;
 }
 
 const getWinPercentageGradient = (percentage: number): string => {
@@ -52,8 +51,6 @@ interface PlayerCardProps {
 }
 
 function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
-  const showInactivityPenalty =
-    player.inactivityPenalty !== undefined && player.inactivityPenalty > 0;
 
   return (
     <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50/50 border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
@@ -140,20 +137,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             </div>
           </div>
 
-          {/* Inactivity Penalty */}
-          {showInactivityPenalty && (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-2">
-              <div className="flex items-center gap-1 mb-0.5">
-                <Clock className="h-3 w-3 text-amber-600" />
-                <p className="text-xs font-medium text-amber-800">
-                  Penalty
-                </p>
-              </div>
-              <p className="text-[10px] text-amber-700 leading-tight">
-                Base: {player.actualWinPercentage?.toFixed(1)}% (-{player.inactivityPenalty?.toFixed(1)}%)
-              </p>
-            </div>
-          )}
+
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-2">

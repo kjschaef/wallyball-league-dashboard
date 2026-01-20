@@ -46,7 +46,6 @@ interface PlayerStats {
   };
   winPercentage: number;
   actualWinPercentage?: number;
-  inactivityPenalty?: number;
 }
 
 export function PerformanceTrend({ isExporting: _isExporting = false, season: initialSeason, onSeasonChange }: PerformanceTrendProps) {
@@ -159,7 +158,6 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                     return stats[metric];
                   })();
 
-                  // Only override with the current player stat when there's no inactivity penalty
                   if (isLatestDate && metric === 'winPercentage' && !isHistoricalSeason) {
                     const currentPlayer = statsData.find((p: any) => p.name === playerTrend.name);
                     const totalsMatch = currentPlayer?.record?.totalGames === stats.totalGames;

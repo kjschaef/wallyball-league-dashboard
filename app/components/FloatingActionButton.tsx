@@ -8,13 +8,12 @@ interface FloatingActionButtonProps {
   onRecordMatch: () => void;
   onAddPlayer?: () => void;
   onTeamSuggestionClick?: () => void;
-  onAddExemption?: () => void;
 }
 
-export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggestionClick, onAddExemption }: FloatingActionButtonProps) {
+export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggestionClick }: FloatingActionButtonProps) {
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const handleOptionClick = (action: 'addPlayer' | 'recordMatch' | 'teamSuggestion' | 'addExemption') => {
+  const handleOptionClick = (action: 'addPlayer' | 'recordMatch' | 'teamSuggestion') => {
     setShowDropdown(false);
     if (action === 'addPlayer' && onAddPlayer) {
       onAddPlayer();
@@ -22,8 +21,6 @@ export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggest
       onRecordMatch();
     } else if (action === 'teamSuggestion' && onTeamSuggestionClick) {
       onTeamSuggestionClick();
-    } else if (action === 'addExemption' && onAddExemption) {
-      onAddExemption();
     }
   };
 
@@ -43,15 +40,9 @@ export function FloatingActionButton({ onRecordMatch, onAddPlayer, onTeamSuggest
           >
             Record Match
           </button>
-          <button
-            onClick={() => handleOptionClick('addExemption')}
-            className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors duration-150"
-          >
-            Add Inactivity Exemption
-          </button>
         </div>
       )}
-      
+
       <button
         onClick={() => setShowDropdown(!showDropdown)}
         className="bg-gray-900 hover:bg-gray-800 text-white rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center"

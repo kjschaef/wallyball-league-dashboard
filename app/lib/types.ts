@@ -14,7 +14,6 @@ export interface PlayerStats {
     count: number;
   };
   actualWinPercentage?: number;
-  inactivityPenalty?: number;
 }
 
 export interface TeamSuggestion {

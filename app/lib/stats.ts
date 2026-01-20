@@ -1,5 +1,3 @@
-import { calculateInactivityPenalty, calculateSeasonalInactivityPenalty, calculateInactivityPenaltyWithExemptions } from '../../lib/inactivity-penalty';
-
 export interface PlayerStats {
     id: number;
     name: string;
@@ -16,7 +14,6 @@ export interface PlayerStats {
         count: number;
     };
     actualWinPercentage?: number;
-    inactivityPenalty?: number;
 }
 
 function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type: 'activity'; count: number } {
@@ -77,23 +74,6 @@ export async function calculatePlayerStats(
     seasonParam: string | null,
     seasonData: any
 ): Promise<PlayerStats[]> {
-    // Optimization: Fetch all exemptions in one query to avoid N+1 problem
-    const allExemptions = await sql`SELECT player_id, start_date, end_date FROM inactivity_exemptions`;
-
-    // Group exemptions by player_id
-    const exemptionsByPlayer = new Map<number, Array<{ startDate: string; endDate: string }>>();
-
-    for (const exemption of allExemptions) {
-        const playerId = exemption.player_id;
-        if (!exemptionsByPlayer.has(playerId)) {
-            exemptionsByPlayer.set(playerId, []);
-        }
-        exemptionsByPlayer.get(playerId)?.push({
-            startDate: exemption.start_date,
-            endDate: exemption.end_date
-        });
-    }
-
     const playerStats: PlayerStats[] = await Promise.all(allPlayers.map(async player => {
         try {
             // Find matches where this player participated
@@ -152,33 +132,8 @@ export async function calculatePlayerStats(
             // Calculate streak
             const streak = calculateStreak(processedMatches);
 
-            // Calculate win percentage and inactivity penalty (based on games won/lost)
-            const actualWinPercentage = gamesWon + gamesLost > 0 ? (gamesWon / (gamesWon + gamesLost)) * 100 : 0;
-
-            // Apply inactivity penalty based on season type
-            let inactivityPenalty = 0;
-            const isHistoricalSeason = seasonParam && seasonParam !== 'current' && seasonParam !== 'lifetime';
-
-            if (!isHistoricalSeason) {
-                // Current season and lifetime stats: honor exemption windows when computing penalty
-                const windows = exemptionsByPlayer.get(player.id) || [];
-
-                // Be resilient to older test mocks that don't provide the new helper
-                const calcFn = (calculateInactivityPenaltyWithExemptions as any) || ((m: any, c: any) => calculateInactivityPenalty(m, c));
-                inactivityPenalty = calcFn(processedMatches, player.created_at, windows);
-            } else if (seasonData) {
-                // Historical seasons use season-specific penalty calculation (consider exemptions relative to season end)
-                const windows = exemptionsByPlayer.get(player.id) || [];
-                inactivityPenalty = calculateSeasonalInactivityPenalty(
-                    processedMatches,
-                    seasonData,
-                    player.created_at,
-                    player.name,
-                    windows
-                );
-            }
-
-            const winPercentage = Math.max(0, actualWinPercentage - inactivityPenalty);
+            // Calculate win percentage
+            const winPercentage = gamesWon + gamesLost > 0 ? (gamesWon / (gamesWon + gamesLost)) * 100 : 0;
 
             return {
                 id: player.id,
@@ -189,11 +144,10 @@ export async function calculatePlayerStats(
                     losses: gamesLost,
                     totalGames
                 },
-                winPercentage: winPercentage,
+                winPercentage,
                 totalPlayingTime,
                 streak,
-                actualWinPercentage: actualWinPercentage,
-                inactivityPenalty
+                actualWinPercentage: winPercentage
             };
         } catch (error) {
             console.error(`Error processing player ${player.name} (ID ${player.id}):`, error);
@@ -206,8 +160,7 @@ export async function calculatePlayerStats(
                 winPercentage: 0,
                 totalPlayingTime: 0,
                 streak: { type: 'activity' as const, count: 0 },
-                actualWinPercentage: 0,
-                inactivityPenalty: 0
+                actualWinPercentage: 0
             };
         }
     }));

@@ -36,7 +36,6 @@ interface Player {
     count: number;
   };
   actualWinPercentage?: number;
-  inactivityPenalty?: number;
 }
 
 interface AmbiguousLetter {
