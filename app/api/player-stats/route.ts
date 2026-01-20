@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { calculatePlayerStats } from '../../lib/stats';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
 
   try {
