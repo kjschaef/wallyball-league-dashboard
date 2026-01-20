@@ -14,7 +14,6 @@ export function generateBalancedTeams(availablePlayers: PlayerStats[]): TeamSugg
     // Determine team sizes
     const totalPlayers = availablePlayers.length;
     const team1Size = Math.floor(totalPlayers / 2);
-    const team2Size = totalPlayers - team1Size;
 
     // Generate all valid combinations for Team 1
     const combinations = getCombinations(availablePlayers, team1Size);

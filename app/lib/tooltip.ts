@@ -1,11 +1,11 @@
 export function formatTooltip(
   value: number,
   name: string,
-  props: any,
+  _props: unknown,
   metric: string,
-  trendsData: any[],
-  playerStats: any[],
-  dateRange: string[]
+  _trendsData: unknown[],
+  _playerStats: unknown[],
+  _dateRange: string[]
 ) {
   const formattedValue = Number(value.toFixed(1));
 

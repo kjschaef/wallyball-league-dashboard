@@ -130,13 +130,6 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
     fetchData();
   }, [season]);
 
-  const formatTooltipContent = (value: number, name: string) => {
-    if (name === 'winPercentage') {
-      return [`${value}%`, 'Win %'];
-    }
-    return [value, name];
-  };
-
   if (loading) {
     return <div className="flex justify-center py-10">Loading rankings...</div>;
   }

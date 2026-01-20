@@ -13,7 +13,6 @@ export async function GET(request: Request) {
 
     // Handle season filtering for matches
     let allMatches;
-    let seasonData: any = null;
 
 
     if (seasonParam) {
@@ -21,7 +20,6 @@ export async function GET(request: Request) {
       const computedSeasons = listSeasons(32);
       if (seasonParam === 'current') {
         const s = computedSeasons[0];
-        seasonData = s;
         allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${new Date().toISOString()} ORDER BY date ASC`;
       } else if (seasonParam === 'lifetime') {
         allMatches = await sql`SELECT * FROM matches ORDER BY date ASC`;
@@ -29,7 +27,6 @@ export async function GET(request: Request) {
         const sid = Number(seasonParam);
         const s = getSeasonById(sid);
         if (!s) return NextResponse.json({ error: 'Season not found' }, { status: 404 });
-        seasonData = s;
         allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${s.end_date} ORDER BY date ASC`;
       } else {
         return NextResponse.json({ error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' }, { status: 400 });

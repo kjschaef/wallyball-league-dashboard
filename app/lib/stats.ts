@@ -68,16 +68,16 @@ function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type
 }
 
 export async function calculatePlayerStats(
-    allPlayers: any[],
-    allMatches: any[],
-    sql: any,
-    seasonParam: string | null,
-    seasonData: any
+    allPlayers: unknown[],
+    allMatches: unknown[],
+    _sql: unknown,
+    _seasonParam: string | null,
+    _seasonData: unknown
 ): Promise<PlayerStats[]> {
-    const playerStats: PlayerStats[] = await Promise.all(allPlayers.map(async player => {
+    const playerStats: PlayerStats[] = await Promise.all((allPlayers as any[]).map(async player => {
         try {
             // Find matches where this player participated
-            const playerMatches = allMatches.filter(match =>
+            const playerMatches = (allMatches as any[]).filter(match =>
                 match.team_one_player_one_id === player.id ||
                 match.team_one_player_two_id === player.id ||
                 match.team_one_player_three_id === player.id ||

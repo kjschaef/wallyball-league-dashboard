@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { MessageCircle, Send, Bot, User, Users, TrendingUp, Loader2, ThumbsUp, ThumbsDown, Gavel, Flame, Upload, FileText } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Users, TrendingUp, ThumbsUp, ThumbsDown, Gavel, Flame, Upload, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
 import { PlayerSelectorDialog } from './PlayerSelectorDialog';
@@ -38,10 +38,7 @@ interface Player {
   actualWinPercentage?: number;
 }
 
-interface AmbiguousLetter {
-  letter: string;
-  possiblePlayers: string[];
-}
+
 
 interface ChatBotProps {
   className?: string;

@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -13,7 +12,7 @@ import { PlayerCards } from "../components/PlayerCards";
 interface SeasonStats {
   totalMatches: number;
   totalGames: number;
-  avgGamesPerMatch: number;
+  totalDaysPlayed: number;
 }
 
 interface TeamPerformance {
@@ -34,7 +33,7 @@ function SeasonStatistics({ stats }: { stats: SeasonStats | null }) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Season Statistics</CardTitle>
+          <CardTitle>Lifetime Games</CardTitle>
         </CardHeader>
         <CardContent>
           <div data-testid="loading-stats" className="grid grid-cols-3 gap-4">
@@ -59,7 +58,7 @@ function SeasonStatistics({ stats }: { stats: SeasonStats | null }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Season Statistics</CardTitle>
+        <CardTitle>Lifetime Games</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-4">
@@ -72,8 +71,8 @@ function SeasonStatistics({ stats }: { stats: SeasonStats | null }) {
             <p className="text-2xl font-bold">{stats.totalGames}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-gray-600">Avg Games per Match</p>
-            <p className="text-2xl font-bold">{stats.avgGamesPerMatch}</p>
+            <p className="text-sm text-gray-600">Total Days Played</p>
+            <p className="text-2xl font-bold">{stats.totalDaysPlayed}</p>
           </div>
         </div>
       </CardContent>
@@ -206,70 +205,15 @@ export default function ResultsPage() {
     queryFn: () => fetch("/api/team-performance").then((res) => res.json()),
   });
 
-  const { data: exemptions, refetch } = useQuery<any[]>({
-    queryKey: ["/api/inactivity-exemptions"],
-    queryFn: () => fetch("/api/inactivity-exemptions").then((res) => res.json()),
-  });
-
-  const { data: players } = useQuery<any[]>({
-    queryKey: ["/api/players"],
-    queryFn: () => fetch('/api/players').then(res => res.json()).catch(() => []),
-  });
-
-  const playerMap = useMemo(() => {
-    const m = new Map<number, string>();
-    const list = Array.isArray(players) ? players : [];
-    list.forEach((p: any) => {
-      if (p && typeof p.id !== 'undefined') m.set(p.id, p.name || `#${p.id}`);
-    });
-    return m;
-  }, [players]);
-
-  const handleDelete = async (id: number) => {
-    await fetch(`/api/inactivity-exemptions?id=${id}` , { method: 'DELETE' });
-    refetch();
-  };
-
   return (
     <div className="space-y-6 p-6">
       <h1 className="text-3xl font-bold tracking-tight">Results & Standings</h1>
 
       <SeasonStatistics stats={seasonStats || null} />
 
-      <BestPerformingTeams teams={teamPerformance || null} minGames={10} />
+      <BestPerformingTeams teams={teamPerformance || null} minGames={20} />
 
       <PlayerCards />
-
-      <div className="bg-white border rounded p-4">
-        <h2 className="text-xl font-semibold mb-3">Inactivity Exemptions</h2>
-        {!exemptions ? (
-          <div className="text-gray-500">Loading...</div>
-        ) : exemptions.length === 0 ? (
-          <div className="text-gray-500">No exemptions added yet.</div>
-        ) : (
-          <div className="space-y-2">
-            {exemptions.map((ex) => (
-              <div key={ex.id} className="flex justify-between items-center border rounded p-2">
-                <div className="text-sm">
-                  <div className="font-medium">{playerMap.get(ex.playerId) || `Player #${ex.playerId}`}</div>
-                  <div className="text-gray-600">{ex.reason || '—'}</div>
-                  <div className="text-gray-600">
-                    {(() => {
-                      const start = ex.startDate ? new Date(ex.startDate).toLocaleDateString() : null;
-                      const end = ex.endDate ? new Date(ex.endDate).toLocaleDateString() : null;
-                      if (start && end) return `${start} — ${end}`;
-                      if (start) return `Starts ${start}`;
-                      if (end) return `Ends ${end}`;
-                      return '—';
-                    })()}
-                  </div>
-                </div>
-                <button className="text-red-600 text-sm" onClick={() => handleDelete(ex.id)}>Delete</button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

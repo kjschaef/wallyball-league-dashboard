@@ -15,9 +15,8 @@ interface Props {
 export function PerformanceControls({ season, metric, compare, onChange }: Props) {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [activeSeasonId, setActiveSeasonId] = useState<number | null>(null);
-  const [players, setPlayers] = useState<Array<{id: number; name: string}>>([]);
+  const [players, setPlayers] = useState<Array<{ id: number; name: string }>>([]);
   const [selectedSeason, setSelectedSeason] = useState<string | undefined>(season);
-  const [query, setQuery] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -36,7 +35,7 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
             onChange({ season: 'current' });
           }
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
@@ -47,7 +46,7 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
         if (!res.ok) return;
         const data = await res.json();
         if (mounted) setPlayers(data || []);
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
@@ -70,7 +69,7 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
     <div className="controls bg-white shadow-sm rounded-md p-4">
       <div className="primary flex flex-wrap items-end gap-4">
         <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Season</label>
+          <label id="season-label" className="text-xs text-gray-500 mb-1">Season</label>
           <select
             aria-label="Season"
             className="w-56 bg-gray-50 border border-gray-200 px-3 py-2 rounded-md text-sm h-10"
@@ -86,7 +85,7 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
         </div>
 
         <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Metric</label>
+          <label id="metric-label" className="text-xs text-gray-500 mb-1">Metric</label>
           <div className="inline-flex rounded-md shadow-sm bg-gray-100" role="tablist">
             <button
               onClick={() => onChange({ metric: 'winPercentage' })}
@@ -106,7 +105,7 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
         {/* Penalties and smoothing controls removed */}
 
         <div className="flex flex-col" style={{ minWidth: 220 }}>
-          <label className="text-xs text-gray-500 mb-1">Compare</label>
+          <label id="compare-label" className="text-xs text-gray-500 mb-1">Compare</label>
           <div>
             <Select
               isMulti

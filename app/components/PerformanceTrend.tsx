@@ -241,7 +241,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
               tickFormatter={(date) => {
                 try {
                   return format(parseISO(date), "MMM d");
-                } catch (_e) {
+                } catch {
                   return date;
                 }
               }}
@@ -254,7 +254,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
               labelFormatter={(date) => {
                 try {
                   return format(parseISO(date as string), "MMM d, yyyy");
-                } catch (_e) {
+                } catch {
                   return date;
                 }
               }}

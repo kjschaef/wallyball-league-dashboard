@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import {
   AlertDialog,
@@ -48,14 +48,21 @@ interface PlayerCardProps {
   player: PlayerStats;
   onEdit: (player: PlayerStats) => void;
   onDelete: (playerId: number) => void;
+  isInactive?: boolean;
 }
 
-function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
+function PlayerCard({ player, onEdit, onDelete, isInactive = false }: PlayerCardProps) {
 
   return (
-    <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50/50 border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+    <Card className={`group relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 ${isInactive
+      ? 'bg-gradient-to-br from-gray-100 to-gray-200/90'
+      : 'bg-gradient-to-br from-white to-gray-50/50'
+      }`}>
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className={`absolute inset-0 transition-opacity duration-300 ${isInactive
+        ? 'bg-gradient-to-br from-gray-300/30 to-gray-400/30 opacity-0 group-hover:opacity-100'
+        : 'bg-gradient-to-br from-blue-50/30 to-purple-50/30 opacity-0 group-hover:opacity-100'
+        }`} />
 
       <div className="relative p-3">
         <div className="flex items-start justify-between mb-2">
@@ -141,7 +148,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-white/60 rounded-lg p-2 border border-gray-100">
+            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-2 border`}>
               <p className="text-[10px] font-medium text-gray-600 mb-0.5">Record</p>
               <div className="flex items-center justify-center gap-1">
                 <span className="text-sm font-bold text-emerald-600">
@@ -154,7 +161,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               </div>
             </div>
 
-            <div className="bg-white/60 rounded-lg p-2 border border-gray-100">
+            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-2 border`}>
               <p className="text-[10px] font-medium text-gray-600 mb-0.5">
                 Time
               </p>
@@ -168,7 +175,7 @@ function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           </div>
 
           {/* Streak */}
-          <div className="bg-white/60 rounded-lg p-2 border border-gray-100 flex justify-between items-center">
+          <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-2 border flex justify-between items-center`}>
             <p className="text-[10px] font-medium text-gray-600">
               Streak
             </p>
@@ -321,20 +328,57 @@ export function PlayerCards() {
     );
   }
 
+  // Split players into main (50+ games) and inactive (<50 games)
+  const mainPlayers = playerStats.filter((player) => player.record.totalGames >= 50);
+  const inactivePlayers = playerStats.filter((player) => player.record.totalGames < 50);
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold text-gray-900">Player Statistics</h2>
-      <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-        {playerStats.map((player) => (
-          <div key={player.id} className="w-full sm:w-[200px] flex-grow">
-            <PlayerCard
-              player={player}
-              onEdit={handleEditPlayer}
-              onDelete={handleDeletePlayer}
-            />
+    <div className="space-y-8">
+      {/* Main Players Section */}
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold text-gray-900">Player Statistics</h2>
+        {mainPlayers.length > 0 ? (
+          <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+            {mainPlayers.map((player) => (
+              <div key={player.id} className="w-full sm:w-[200px] flex-grow">
+                <PlayerCard
+                  player={player}
+                  onEdit={handleEditPlayer}
+                  onDelete={handleDeletePlayer}
+                />
+              </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <div className="p-6 text-center border border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
+            <p className="text-gray-600">No players with 50+ games yet.</p>
+          </div>
+        )}
       </div>
+
+      {/* Inactive Players Section */}
+      {inactivePlayers.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-gray-700">Inactive Players</h2>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              &lt;50 games
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-4 justify-center sm:justify-start opacity-80">
+            {inactivePlayers.map((player) => (
+              <div key={player.id} className="w-full sm:w-[200px] flex-grow">
+                <PlayerCard
+                  player={player}
+                  onEdit={handleEditPlayer}
+                  onDelete={handleDeletePlayer}
+                  isInactive={true}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Edit Player Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
