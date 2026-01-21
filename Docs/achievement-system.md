@@ -151,7 +151,7 @@ Achievement criteria are evaluated using the following logic:
 4. **70% Win Rate**
    - Win percentage is calculated as (wins / total games)
    - Achievement requires a minimum number of games played
-   - Applies inactivity penalties before evaluation
+
 
 5. **Team Player**
    - Unique teammates are tracked across all matches

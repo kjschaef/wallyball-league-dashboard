@@ -27,11 +27,7 @@ jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => createMockSql()),
 }));
 
-// Mock the inactivity penalty calculation
-jest.mock('@/lib/inactivity-penalty', () => ({
-  calculateInactivityPenalty: jest.fn().mockReturnValue(0),
-  calculateSeasonalInactivityPenalty: jest.fn().mockReturnValue(0),
-}));
+
 
 process.env.DATABASE_URL = 'mock-database-url';
 
@@ -235,7 +231,7 @@ describe('/api/player-stats with seasonal filtering', () => {
       const playerStats = await response.json();
 
       const alice = playerStats.find((p: any) => p.name === 'Alice');
-      
+
       // Should return current season stats (Q3)
       expect(alice.record.wins).toBe(4);
       expect(alice.record.losses).toBe(1);

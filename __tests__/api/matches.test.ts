@@ -9,7 +9,7 @@ const createMockSql = () => {
   return Object.assign(
     jest.fn().mockImplementation((strings: TemplateStringsArray, ...values: any[]) => {
       const query = strings.join('');
-      if (query.includes('SELECT team_one_games_won, team_two_games_won FROM matches')) {
+      if (query.includes('SELECT team_one_games_won, team_two_games_won, date FROM matches')) {
         return mockSql('stats');
       } else if (query.includes('SELECT * FROM matches ORDER BY date DESC LIMIT')) {
         return mockSql('matches-limit');
@@ -125,9 +125,9 @@ describe('/api/matches', () => {
 
     it('should return correct statistics for normal matches', async () => {
       const mockMatchesForStats = [
-        { team_one_games_won: 2, team_two_games_won: 1 },
-        { team_one_games_won: 3, team_two_games_won: 2 },
-        { team_one_games_won: 1, team_two_games_won: 3 },
+        { team_one_games_won: 2, team_two_games_won: 1, date: '2023-01-01T00:00:00Z' },
+        { team_one_games_won: 3, team_two_games_won: 2, date: '2023-01-02T00:00:00Z' },
+        { team_one_games_won: 1, team_two_games_won: 3, date: '2023-01-03T00:00:00Z' },
       ];
 
       mockSql.mockImplementation((queryType) => {
@@ -145,7 +145,7 @@ describe('/api/matches', () => {
       expect(data).toEqual({
         totalMatches: 3,
         totalGames: 12, // (2+1) + (3+2) + (1+3) = 12
-        avgGamesPerMatch: 4.0
+        totalDaysPlayed: 3
       });
 
       // Verify the correct query was made
@@ -154,10 +154,10 @@ describe('/api/matches', () => {
 
     it('should handle null values correctly', async () => {
       const mockMatchesWithNulls = [
-        { team_one_games_won: 2, team_two_games_won: 1 },
-        { team_one_games_won: null, team_two_games_won: 2 },
-        { team_one_games_won: 1, team_two_games_won: null },
-        { team_one_games_won: null, team_two_games_won: null },
+        { team_one_games_won: 2, team_two_games_won: 1, date: '2023-01-01T00:00:00Z' },
+        { team_one_games_won: null, team_two_games_won: 2, date: '2023-01-01T12:00:00Z' }, // same day
+        { team_one_games_won: 1, team_two_games_won: null, date: '2023-01-02T00:00:00Z' },
+        { team_one_games_won: null, team_two_games_won: null, date: null },
       ];
 
       mockSql.mockImplementation((queryType) => {
@@ -175,7 +175,7 @@ describe('/api/matches', () => {
       expect(data).toEqual({
         totalMatches: 4,
         totalGames: 6, // 2+1 + 0+2 + 1+0 + 0+0 = 6
-        avgGamesPerMatch: 1.5
+        totalDaysPlayed: 2
       });
     });
 
@@ -195,13 +195,13 @@ describe('/api/matches', () => {
       expect(data).toEqual({
         totalMatches: 0,
         totalGames: 0,
-        avgGamesPerMatch: 0
+        totalDaysPlayed: 0
       });
     });
 
     it('should handle single match correctly', async () => {
       const mockSingleMatch = [
-        { team_one_games_won: 3, team_two_games_won: 1 }
+        { team_one_games_won: 3, team_two_games_won: 1, date: '2023-01-01T00:00:00Z' }
       ];
 
       mockSql.mockImplementation((queryType) => {
@@ -219,7 +219,7 @@ describe('/api/matches', () => {
       expect(data).toEqual({
         totalMatches: 1,
         totalGames: 4,
-        avgGamesPerMatch: 4.0
+        totalDaysPlayed: 1
       });
     });
   });
@@ -228,11 +228,11 @@ describe('/api/matches', () => {
     it('should return identical counts whether using stats=true or calculating from match list', async () => {
       // Mock data that represents the real scenario
       const mockRealMatches = [
-        { team_one_games_won: 2, team_two_games_won: 1 },
-        { team_one_games_won: 3, team_two_games_won: 2 },
-        { team_one_games_won: 1, team_two_games_won: 3 },
-        { team_one_games_won: 2, team_two_games_won: 0 },
-        { team_one_games_won: 1, team_two_games_won: 2 },
+        { team_one_games_won: 2, team_two_games_won: 1, date: '2023-01-01T00:00:00Z' },
+        { team_one_games_won: 3, team_two_games_won: 2, date: '2023-01-02T00:00:00Z' },
+        { team_one_games_won: 1, team_two_games_won: 3, date: '2023-01-03T00:00:00Z' },
+        { team_one_games_won: 2, team_two_games_won: 0, date: '2023-01-04T00:00:00Z' },
+        { team_one_games_won: 1, team_two_games_won: 2, date: '2023-01-05T00:00:00Z' },
       ];
 
       const mockFullMatches = mockRealMatches.map((match, index) => ({
@@ -261,7 +261,7 @@ describe('/api/matches', () => {
         }
         return Promise.resolve([]);
       });
-      
+
       const statsRequest = new NextRequest('http://localhost:3000/api/matches?stats=true');
       const statsResponse = await GET(statsRequest);
       const statsData = await statsResponse.json();
@@ -284,17 +284,17 @@ describe('/api/matches', () => {
       // Calculate stats from matches data
       const calculatedTotalMatches = matchesData.length;
       const calculatedTotalGames = matchesData.reduce(
-        (sum: number, match: any) => sum + match.teamOneGamesWon + match.teamTwoGamesWon, 
+        (sum: number, match: any) => sum + match.teamOneGamesWon + match.teamTwoGamesWon,
         0
       );
-      const calculatedAvgGames = calculatedTotalMatches > 0 
-        ? Number((calculatedTotalGames / calculatedTotalMatches).toFixed(1)) 
+      const calculatedAvgGames = calculatedTotalMatches > 0
+        ? Number((calculatedTotalGames / calculatedTotalMatches).toFixed(1))
         : 0;
 
       // These should be identical - this test would have caught the original bug
       expect(statsData.totalMatches).toBe(calculatedTotalMatches);
       expect(statsData.totalGames).toBe(calculatedTotalGames);
-      expect(statsData.avgGamesPerMatch).toBe(calculatedAvgGames);
+      expect(statsData.totalDaysPlayed).toBe(5);
 
       // Additional verification of expected values
       expect(statsData.totalMatches).toBe(5);

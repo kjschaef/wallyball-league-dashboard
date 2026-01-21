@@ -18,7 +18,7 @@ The Player Management feature allows users to create, view, edit, and delete pla
 3. Users can edit existing player information
 4. Users can delete players (with associated match records)
 5. Player cards display performance statistics
-6. Players are ranked by win percentage with inactivity penalties applied
+6. Players are ranked by win percentage
 7. Each player card shows achievements earned
 
 ### Implementation
@@ -28,10 +28,10 @@ The Player Management feature allows users to create, view, edit, and delete pla
   - Player name
   - Start year
   - Win/loss record
-  - Win percentage (adjusted for inactivity)
+  - Win percentage
   - Achievement badges
   - Recent performance trend
-- Player sorting uses the `calculatePenalizedWinPercentage` function
+- Player sorting uses the win percentage calculation
 
 ## Match Recording
 
@@ -68,7 +68,7 @@ The Performance Analytics feature provides graphical representations of player a
 
 1. Display win percentage trends for players
 2. Allow filtering between recent data and all-time data
-3. Apply inactivity penalties to performance metrics
+
 4. Show team performance statistics
 5. Calculate and display season statistics
 6. Export analytics as images for sharing
@@ -77,7 +77,7 @@ The Performance Analytics feature provides graphical representations of player a
 
 - Performance data is calculated from match records
 - Charts are implemented using Recharts
-- Win percentage calculations include inactivity penalties
+- Win percentage calculations are based on total wins and losses
 - Analytics can be exported as PNG images using html2canvas
 - Performance trends support viewing by:
   - Win percentage
@@ -130,30 +130,7 @@ The Team Composition Analysis feature evaluates the performance of different tea
 - Minimum game threshold (6 games) for team ranking to ensure statistical relevance
 - Common matchups are identified and their outcomes displayed
 
-## Inactivity System
 
-### Description
-
-The Inactivity System applies graduated penalties to player statistics based on periods of inactivity, encouraging regular participation.
-
-### Requirements
-
-1. Track player activity based on match participation dates
-2. Apply graduated penalties to win percentages for inactive players
-3. Provide a 2-week grace period before penalties begin
-4. Cap penalties at 50% reduction
-5. Transparently display inactivity information
-
-### Implementation
-
-- Inactivity is tracked using the most recent match date for each player
-- Penalty calculation:
-  - No penalty for first 2 weeks of inactivity
-  - 5% penalty per week after grace period
-  - Maximum penalty capped at 50%
-- The `calculateInactivityPenalty` utility function handles calculations
-- Penalties are applied to win percentage displays and sorting
-- Inactivity information is shown in performance trends with penalty explanation
 
 ## Data Visualization
 

@@ -9,10 +9,11 @@ interface Props {
   season?: string;
   metric: 'winPercentage' | 'totalWins';
   compare: number[];
-  onChange: (opts: Partial<{ season: string; metric: any; compare: number[]; action?: string }>) => void;
+  showAllPlayers?: boolean;
+  onChange: (opts: Partial<{ season: string; metric: any; compare: number[]; showAllPlayers: boolean; action?: string }>) => void;
 }
 
-export function PerformanceControls({ season, metric, compare, onChange }: Props) {
+export function PerformanceControls({ season, metric, compare, showAllPlayers = false, onChange }: Props) {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [activeSeasonId, setActiveSeasonId] = useState<number | null>(null);
   const [players, setPlayers] = useState<Array<{ id: number; name: string }>>([]);
@@ -134,6 +135,27 @@ export function PerformanceControls({ season, metric, compare, onChange }: Props
               }}
               closeMenuOnSelect={false}
             />
+          </div>
+        </div>
+
+        <div className="flex flex-col ml-6">
+          <div className="flex items-center h-10 pb-1">
+            <button
+              role="switch"
+
+              aria-checked={showAllPlayers}
+              onClick={() => onChange({ showAllPlayers: !showAllPlayers })}
+              className={`${showAllPlayers ? 'bg-blue-600' : 'bg-gray-200'}
+                relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2`}
+            >
+              <span className="sr-only">Show all players</span>
+              <span
+                aria-hidden="true"
+                className={`${showAllPlayers ? 'translate-x-5' : 'translate-x-0'}
+                  pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+              />
+            </button>
+            <span className="ml-2 text-sm text-gray-700">Show All Players</span>
           </div>
         </div>
 

@@ -13,8 +13,6 @@ const createMockSql = () => {
         return mockSql('players');
       } else if (query.includes('select * from matches')) {
         return mockSql('matches');
-      } else if (query.includes('from inactivity_exemptions')) {
-        return mockSql('exemptions', values[0]);
       }
       return mockSql('unknown');
     }),
@@ -28,13 +26,7 @@ jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => createMockSql()),
 }));
 
-// Mock the inactivity penalty calculation
-jest.mock('@/lib/inactivity-penalty', () => ({
-  calculateInactivityPenalty: jest.fn().mockReturnValue(0), // Default to no penalty
-  calculateSeasonalInactivityPenalty: jest.fn().mockReturnValue(0),
-  calculateInactivityPenaltyWithExemptions: jest.fn().mockReturnValue(0),
-  isWithinExemption: jest.fn().mockReturnValue(false),
-}));
+
 
 // Mock Next.js environment
 process.env.DATABASE_URL = 'mock-database-url';
@@ -43,9 +35,6 @@ describe('/api/player-stats', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSql.mockImplementation((queryType) => {
-      if (queryType === 'exemptions') {
-        return Promise.resolve([]);
-      }
       return Promise.resolve([]);
     });
   });
@@ -115,7 +104,7 @@ describe('/api/player-stats', () => {
       // Alice: Match1(3won+2lost) + Match2(1won+4lost) = 10 total games
       // Bob: Match1(2won+3lost) = 5 total games  
       // Charlie: Match2(4won+1lost) = 5 total games
-      
+
       expect(alice.record.totalGames).toBe(10);  // 4 won + 6 lost
       expect(bob.record.totalGames).toBe(5);     // 2 won + 3 lost
       expect(charlie.record.totalGames).toBe(5); // 4 won + 1 lost
@@ -611,13 +600,13 @@ describe('/api/player-stats', () => {
       // BUG DETECTED: Total wins should equal total losses in a balanced system
       const totalWins = playerStats.reduce((sum: number, player: any) => sum + player.record.wins, 0);
       const totalLosses = playerStats.reduce((sum: number, player: any) => sum + player.record.losses, 0);
-      
+
       // This test revealed a bug: uneven team sizes break the wins/losses balance
       // Match 4 (2v1) creates: 4 wins, 5 losses instead of balanced 4.5 wins, 4.5 losses per logical game
       expect(totalWins).toBe(35);   // Current buggy behavior: 35 wins
       expect(totalLosses).toBe(36); // Current buggy behavior: 36 losses
       // TODO: Fix API to handle uneven teams properly so totalWins === totalLosses
-      
+
       // Expected individual totals: Alice=13, Bob=13, Charlie=14, Diana=10, Eve=10, Frank=11 = 71 total
     });
   });
@@ -658,128 +647,14 @@ describe('/api/player-stats', () => {
       const playerStats = await response.json();
 
       const alice = playerStats[0];
-      
+
       // Alice won 3, lost 2, so win percentage should be 3/5 = 60%
       expect(alice.winPercentage).toBe(60);
       expect(alice.actualWinPercentage).toBe(60);
     });
   });
 
-  describe('Inactivity exemption integration', () => {
-    it('applies exemption windows when computing current/lifetime penalties', async () => {
-      const penaltyModule = require('@/lib/inactivity-penalty');
-      const penaltyWithExemptionsMock = penaltyModule.calculateInactivityPenaltyWithExemptions as jest.Mock;
-      penaltyWithExemptionsMock.mockReset();
-      penaltyWithExemptionsMock.mockReturnValue(0);
-      penaltyWithExemptionsMock.mockReturnValueOnce(20);
 
-      const mockPlayers = [
-        { id: 1, name: 'Alice', start_year: 2020, created_at: '2020-01-01T00:00:00.000Z' },
-      ];
-      const mockMatches = [
-        {
-          id: 1,
-          team_one_player_one_id: 1,
-          team_one_player_two_id: null,
-          team_one_player_three_id: null,
-          team_two_player_one_id: 2,
-          team_two_player_two_id: null,
-          team_two_player_three_id: null,
-          team_one_games_won: 3,
-          team_two_games_won: 0,
-          date: '2023-12-01T00:00:00.000Z',
-        },
-      ];
-
-      mockSql.mockImplementation((queryType, value) => {
-        if (queryType === 'players') {
-          return Promise.resolve(mockPlayers);
-        }
-        if (queryType === 'matches') {
-          return Promise.resolve(mockMatches);
-        }
-        if (queryType === 'exemptions') {
-          expect(value).toBe(1);
-          return Promise.resolve([
-            {
-              start_date: '2024-01-01T00:00:00.000Z',
-              end_date: '2024-01-15T00:00:00.000Z',
-            },
-          ]);
-        }
-        return Promise.resolve([]);
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/player-stats');
-      const response = await GET(request);
-      const stats = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(stats[0].inactivityPenalty).toBe(20);
-      expect(stats[0].winPercentage).toBe(80); // 100 - 20
-      expect(penaltyWithExemptionsMock).toHaveBeenCalledTimes(1);
-      const callArgs = penaltyWithExemptionsMock.mock.calls[0];
-      expect(Array.isArray(callArgs[2])).toBe(true);
-      expect(callArgs[2]).toEqual([
-        { startDate: '2024-01-01T00:00:00.000Z', endDate: '2024-01-15T00:00:00.000Z' },
-      ]);
-    });
-
-    it('uses seasonal inactivity penalties for historical seasons', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z'));
-      const penaltyModule = require('@/lib/inactivity-penalty');
-      const seasonalPenaltyMock = penaltyModule.calculateSeasonalInactivityPenalty as jest.Mock;
-      seasonalPenaltyMock.mockReset();
-      seasonalPenaltyMock.mockReturnValue(0);
-      seasonalPenaltyMock.mockReturnValueOnce(12);
-      const penaltyWithExemptionsMock = penaltyModule.calculateInactivityPenaltyWithExemptions as jest.Mock;
-      penaltyWithExemptionsMock.mockReset();
-      penaltyWithExemptionsMock.mockReturnValue(0);
-
-      const mockPlayers = [
-        { id: 1, name: 'Alice', start_year: 2020, created_at: '2020-01-01T00:00:00.000Z' },
-      ];
-      const mockMatches = [
-        {
-          id: 1,
-          team_one_player_one_id: 1,
-          team_one_player_two_id: null,
-          team_one_player_three_id: null,
-          team_two_player_one_id: 2,
-          team_two_player_two_id: null,
-          team_two_player_three_id: null,
-          team_one_games_won: 3,
-          team_two_games_won: 1,
-          date: '2024-11-10T00:00:00.000Z',
-        },
-      ];
-
-      mockSql.mockImplementation((queryType) => {
-        if (queryType === 'players') {
-          return Promise.resolve(mockPlayers);
-        }
-        if (queryType === 'matches') {
-          return Promise.resolve(mockMatches);
-        }
-        if (queryType === 'exemptions') {
-          return Promise.resolve([
-            { start_date: '2024-10-01T00:00:00.000Z', end_date: '2024-10-31T00:00:00.000Z' },
-          ]);
-        }
-        return Promise.resolve([]);
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/player-stats?season=2');
-      const response = await GET(request);
-      const stats = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(stats[0].inactivityPenalty).toBe(12);
-      expect(seasonalPenaltyMock).toHaveBeenCalledTimes(1);
-      expect(penaltyWithExemptionsMock).not.toHaveBeenCalled();
-      jest.useRealTimers();
-    });
-  });
 
   describe('Player visibility regression tests', () => {
     it('REGRESSION TEST - Jarod D. should appear in player-stats even with few games', async () => {
@@ -851,10 +726,10 @@ describe('/api/player-stats', () => {
 
       // Find Jarod's stats
       const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
-      
+
       // This should NOT be undefined - this is the bug we're testing for
       expect(jarod).toBeDefined();
-      
+
       // Verify Jarod's stats are calculated correctly
       // Match 226: Jarod lost 3-4 (3 wins, 4 losses)
       // Match 227: Jarod lost 0-1 (0 wins, 1 loss) 
@@ -874,7 +749,7 @@ describe('/api/player-stats', () => {
       const mark = playerStats.find((p: any) => p.name === 'Mark');
 
       expect(chad).toBeDefined();
-      expect(paul).toBeDefined(); 
+      expect(paul).toBeDefined();
       expect(mark).toBeDefined();
     });
 
@@ -933,10 +808,10 @@ describe('/api/player-stats', () => {
 
       expect(response.status).toBe(200);
       expect(playerStats).toHaveLength(6); // All 6 players should be returned
-      
+
       const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
       expect(jarod).toBeDefined();
-      
+
       // Calculate expected stats:
       // Match 227: Jarod on team two, lost 0-1 (0 wins, 1 loss)
       // Match 226: Jarod on team one, lost 3-4 (3 wins, 4 losses) 
@@ -975,24 +850,24 @@ describe('/api/player-stats', () => {
       const playerStats = await response.json();
 
       expect(response.status).toBe(200);
-      
+
       // CRITICAL: Both players should appear even if they have no matches
       expect(playerStats).toHaveLength(2);
-      
+
       const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
       const alice = playerStats.find((p: any) => p.name === 'Alice');
-      
+
       // Both players should exist in the response
       expect(jarod).toBeDefined();
       expect(alice).toBeDefined();
-      
+
       // Players with no matches should have zero stats
       expect(jarod.record).toEqual({
         wins: 0,
         losses: 0,
         totalGames: 0
       });
-      
+
       expect(jarod.winPercentage).toBe(0);
     });
   });
