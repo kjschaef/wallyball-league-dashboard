@@ -10,7 +10,7 @@ The Performance Analytics feature provides comprehensive data visualization and 
    - Win percentage trends over time
    - Total wins tracking 
    - Weekly or cumulative data views
-   - Inactivity penalty visualization
+
 
 2. **Player Performance Radar**
    - Multi-dimensional player comparison
@@ -24,7 +24,7 @@ The Performance Analytics feature provides comprehensive data visualization and 
    - Win rate calculations for different team compositions
 
 4. **Advanced Performance Metrics**
-   - Win Rate (with inactivity penalty)
+   - Win Rate
    - Consistency (streak analysis)
    - Improvement (recent vs. historical performance)
    - Play Volume (participation frequency)
@@ -78,10 +78,11 @@ const performanceMetrics: PerformanceMetric[] = [
   {
     name: "winRate",
     displayName: "Win Rate",
-    description: "Percentage of games won, adjusted for inactivity",
+    description: "Percentage of games won",
     calculate: (player) => {
-      const { penalizedWinRate } = calculatePenalizedWinPercentage(player);
-      return penalizedWinRate;
+      // Calculate win percentage directly
+      const total = player.stats.won + player.stats.lost;
+      return total > 0 ? (player.stats.won / total) * 100 : 0;
     },
     scale: [0, 100],
   },
@@ -139,32 +140,7 @@ const getHeadToHeadStats = () => {
 };
 ```
 
-### Inactivity Penalty System
 
-Performance analytics incorporates inactivity penalties to provide a more accurate representation of player performance:
-
-```typescript
-// Calculate inactivity penalty:
-const daysSinceLastActivity = Math.floor(
-  (currentDate.getTime() - lastActivityDate.getTime()) / (24 * 60 * 60 * 1000)
-);
-
-// No penalty for first 2 weeks
-const gracePeriodDays = 14;
-const excessInactiveDays = Math.max(0, daysSinceLastActivity - gracePeriodDays);
-
-// Calculate weeks inactive beyond grace period (5% per week)
-const weeksInactive = Math.floor(excessInactiveDays / 7);
-const penaltyPerWeek = 0.05; // 5% per week
-const maxPenalty = 0.5; // 50% maximum penalty
-
-// Calculate penalty gradually
-const inactivityPenalty = Math.min(maxPenalty, weeksInactive * penaltyPerWeek);
-const decayFactor = 1 - inactivityPenalty;
-
-// Apply penalty to metrics
-processedDataPoint[player.name] = lastValue * decayFactor;
-```
 
 ### Dashboard Share Feature
 
@@ -248,8 +224,6 @@ The performance analytics interface provides these user interactions:
 
 3. **Data Interpretation**
    - Hover over chart elements to see detailed metrics
-   - View inactivity penalty information when applicable
-   - Compare raw and adjusted performance values
 
 4. **Data Export**
    - Click "Share as Image" to download dashboard as PNG
@@ -258,7 +232,7 @@ The performance analytics interface provides these user interactions:
 ## Best Practices
 
 1. **Data Accuracy**
-   - Apply inactivity penalties to prevent misleading statistics
+
    - Use consistent calculation methods across the application
    - Clearly indicate data sources and filtering
    - Provide sufficient context for performance metrics

@@ -39,6 +39,7 @@ export default function DashboardPage() {
 
   // Season management state
   const [currentSeason, setCurrentSeason] = useState<string | undefined>('current'); // 'current', 'lifetime', or season ID
+  const [showAllPlayers, setShowAllPlayers] = useState(false);
 
   const [suggestedTeams, setSuggestedTeams] = useState<{ teamOne: number[], teamTwo: number[] } | undefined>(undefined);
   const [prefilledWins, setPrefilledWins] = useState<{ teamOneWins: number, teamTwoWins: number } | undefined>(undefined);
@@ -297,7 +298,7 @@ export default function DashboardPage() {
         {/* Chart */}
         <div>
           <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <PerformanceTrend key={`trend-${refreshKey}`} season={currentSeason} onSeasonChange={setCurrentSeason} />
+            <PerformanceTrend key={`trend-${refreshKey}`} season={currentSeason} showAllPlayers={showAllPlayers} onSeasonChange={setCurrentSeason} onShowAllPlayersChange={setShowAllPlayers} />
           </div>
         </div>
 
@@ -307,7 +308,7 @@ export default function DashboardPage() {
             <div className="space-y-3">
 
               <div className="space-y-2">
-                <WinPercentageRankings key={`rankings-${refreshKey}`} season={currentSeason} />
+                <WinPercentageRankings key={`rankings-${refreshKey}`} season={currentSeason} showAllPlayers={showAllPlayers} />
               </div>
             </div>
           </div>

@@ -15,7 +15,7 @@ The Player Management feature provides comprehensive capabilities for tracking a
 2. **Player Performance Tracking**
    - Win/loss record tracking
    - Win percentage calculation
-   - Adjustment for periods of inactivity
+
    - Performance trend visualization
 
 3. **Player Achievements**
@@ -55,34 +55,13 @@ The player management feature utilizes the following components:
 - **Players Page**: Manages the list of players and provides CRUD operations
 - **Player Dialog**: Form for creating and editing player information
 
-### Performance Calculation
 
-The win percentage calculation includes an inactivity penalty:
-
-```typescript
-export function calculatePenalizedWinPercentage(player) {
-  // Calculate base win percentage
-  const total = player.stats.won + player.stats.lost;
-  const baseWinRate = total > 0 ? (player.stats.won / total) * 100 : 0;
-  
-  // Apply inactivity penalty
-  const { penaltyPercentage, decayFactor } = calculateInactivityPenalty(player);
-  const penalizedWinRate = baseWinRate * decayFactor;
-  
-  return {
-    baseWinRate,
-    penalizedWinRate,
-    penaltyPercentage,
-    decayFactor
-  };
-}
-```
 
 ## User Interaction Flow
 
 1. User navigates to the Players page
 2. User can:
-   - View the list of players sorted by penalized win percentage
+   - View the list of players sorted by win percentage
    - Click "Add Player" to create a new player
    - Click "Edit" on a player card to modify player details
    - Click "Delete" on a player card to remove the player
@@ -96,7 +75,7 @@ The Players page displays player cards in a responsive grid layout. Each player 
 - Player name
 - Start year
 - Win/loss record
-- Win percentage (with inactivity adjustment)
+- Win percentage
 - Achievement badges
 - Edit and delete options
 

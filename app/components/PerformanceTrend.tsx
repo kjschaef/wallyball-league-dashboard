@@ -33,7 +33,9 @@ const COLORS = [
 interface PerformanceTrendProps {
   isExporting?: boolean;
   season?: string;
+  showAllPlayers?: boolean;
   onSeasonChange?: (season: string | undefined) => void;
+  onShowAllPlayersChange?: (showAll: boolean) => void;
 }
 
 interface PlayerStats {
@@ -48,7 +50,7 @@ interface PlayerStats {
   actualWinPercentage?: number;
 }
 
-export function PerformanceTrend({ isExporting: _isExporting = false, season: initialSeason, onSeasonChange }: PerformanceTrendProps) {
+export function PerformanceTrend({ isExporting: _isExporting = false, season: initialSeason, showAllPlayers = false, onSeasonChange, onShowAllPlayersChange }: PerformanceTrendProps) {
   const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   const [chartData, setChartData] = useState<Array<{ date: string;[key: string]: unknown }>>([]);
@@ -85,8 +87,9 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
           statsData = [];
         }
         const count50 = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= 50).length;
-        const threshold = count50 > 0 ? 50 : 1;
-        console.log('Chart threshold:', threshold, '(players with >=20 games:', count50, ')');
+        // If showAllPlayers is true, use threshold 1, otherwise use adaptive logic
+        const threshold = showAllPlayers ? 1 : (count50 > 0 ? 50 : 1);
+        console.log('Chart threshold:', threshold, '(players with >=50 games:', count50, ', showAll:', showAllPlayers, ')');
         statsData = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold);
         const trendsDataResponse = await trendsResponse.json();
 
@@ -203,7 +206,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
     };
 
     fetchData();
-  }, [metric, season]);
+  }, [metric, season, showAllPlayers]);
 
   if (loading) {
     return (
@@ -218,7 +221,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
   return (
     <div>
       <div className="mb-6">
-        <PerformanceControls season={season} metric={metric} compare={compare} onChange={(opts) => {
+        <PerformanceControls season={season} metric={metric} compare={compare} showAllPlayers={showAllPlayers} onChange={(opts) => {
           if (opts.season !== undefined) {
             const newSeason = opts.season as string | undefined;
             setSeason(newSeason);
@@ -226,8 +229,12 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
           }
           if (opts.metric !== undefined) setMetric(opts.metric);
           if (opts.compare !== undefined) setCompare(opts.compare);
+          if (opts.showAllPlayers !== undefined) {
+            if (onShowAllPlayersChange) onShowAllPlayersChange(opts.showAllPlayers);
+          }
           if (opts.action === 'reset') {
             setMetric('winPercentage'); setCompare([]); setSeason(undefined);
+            if (onShowAllPlayersChange) onShowAllPlayersChange(false);
           }
         }} />
       </div>

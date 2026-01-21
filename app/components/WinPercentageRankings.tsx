@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 interface WinPercentageRankingsProps {
   season?: string;
+  showAllPlayers?: boolean;
 }
 
 // Mock data for the rankings as shown in the screenshot
@@ -42,7 +43,7 @@ const getPlayerColor = (playerName: string, allPlayers: string[]) => {
   return originalIndex >= 0 ? CHART_COLORS[originalIndex % CHART_COLORS.length] : CHART_COLORS[0];
 };
 
-export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {}) {
+export function WinPercentageRankings({ season, showAllPlayers = false }: WinPercentageRankingsProps = {}) {
   const [rankings, setRankings] = useState<Array<{
     id: number;
     name: string;
@@ -104,8 +105,9 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
         // Adaptive threshold: show players with >=1 game by default, but if any
         // player has >=50 games, use 50-game minimum to keep leaderboard focused.
         const count50 = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= 50).length;
-        const threshold = count50 > 0 ? 50 : 1;
-        console.log('Leaderboard threshold:', threshold, '(players with >=50 games:', count50, ')');
+        // If showAllPlayers is true, use threshold 1, otherwise use adaptive logic
+        const threshold = showAllPlayers ? 1 : (count50 > 0 ? 50 : 1);
+        console.log('Leaderboard threshold:', threshold, '(players with >=50 games:', count50, ', showAll:', showAllPlayers, ')');
         const formattedRankings = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold).map((player: any) => {
           return {
             id: player.id,
@@ -128,7 +130,7 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
     };
 
     fetchData();
-  }, [season]);
+  }, [season, showAllPlayers]);
 
   if (loading) {
     return <div className="flex justify-center py-10">Loading rankings...</div>;
@@ -136,7 +138,7 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
 
   return (
     <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-      {rankings.slice(0, 16).map((player, index) => {
+      {rankings.map((player, index) => {
         const isInRecentMatch = recentMatchPlayers.includes(player.name);
         const playerColor = getPlayerColor(player.name, originalPlayerOrder);
         const borderStyle = isInRecentMatch
@@ -146,7 +148,7 @@ export function WinPercentageRankings({ season }: WinPercentageRankingsProps = {
         return (
           <div
             key={player.id}
-            className="bg-white border border-gray-200 rounded-lg p-2 hover:shadow-sm transition-shadow w-full sm:w-[200px] flex-grow flex-shrink-0"
+            className={`${player.matches < 50 ? 'bg-gray-100 opacity-90' : 'bg-white'} border border-gray-200 rounded-lg p-2 hover:shadow-sm transition-shadow w-full sm:w-[200px] flex-grow flex-shrink-0`}
             style={borderStyle}
           >
             <div className="flex items-center justify-between gap-2">

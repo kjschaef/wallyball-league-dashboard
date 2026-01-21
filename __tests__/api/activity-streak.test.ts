@@ -26,11 +26,7 @@ jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => createMockSql()),
 }));
 
-// Mock the inactivity penalty calculation
-jest.mock('@/lib/inactivity-penalty', () => ({
-  calculateInactivityPenalty: jest.fn().mockReturnValue(0),
-  calculateSeasonalInactivityPenalty: jest.fn().mockReturnValue(0),
-}));
+
 
 // Mock Next.js environment
 process.env.DATABASE_URL = 'mock-database-url';
