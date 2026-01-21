@@ -14,6 +14,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { PerformanceControls } from './PerformanceControls';
 import { formatTooltip } from '../lib/tooltip';
+import { getPlayerThreshold } from '../lib/playerFiltering';
 
 const COLORS = [
   "#FF6B6B", // Coral Red
@@ -59,6 +60,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
   const [loading, setLoading] = useState(true);
   const [season, setSeason] = useState<string | undefined>(initialSeason);
   const [compare, setCompare] = useState<number[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch player stats and historical trends with contextual penalties
   // Keep internal season in sync with prop changes
@@ -69,6 +71,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setError(null);
         // Build URLs with optional season parameter
         const seasonParam = season ? `season=${season}` : '';
         const [statsResponse, trendsResponse] = await Promise.all([
@@ -86,10 +89,9 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
         if (!Array.isArray(statsData)) {
           statsData = [];
         }
-        const count50 = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= 50).length;
-        // If showAllPlayers is true, use threshold 1, otherwise use adaptive logic
-        const threshold = showAllPlayers ? 1 : (count50 > 0 ? 50 : 1);
-        console.log('Chart threshold:', threshold, '(players with >=50 games:', count50, ', showAll:', showAllPlayers, ')');
+        // Adaptive threshold for chart using shared utility
+        const threshold = getPlayerThreshold(statsData, showAllPlayers);
+        console.log('Chart threshold:', threshold, '(showAll:', showAllPlayers, ')');
         statsData = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold);
         const trendsDataResponse = await trendsResponse.json();
 
@@ -199,6 +201,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        setError('Failed to load performance data. Please try refreshing the page.');
         setPlayerStats([]);
       } finally {
         setLoading(false);
@@ -239,62 +242,72 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
         }} />
       </div>
 
-      <div className="h-[400px] w-full">
-        <ResponsiveContainer>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="date"
-              tickFormatter={(date) => {
-                try {
-                  return format(parseISO(date), "MMM d");
-                } catch {
-                  return date;
-                }
-              }}
-            />
-            <YAxis
-              domain={metric === 'winPercentage' ? [0, 100] : [0, 'auto']}
-              tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
-            />
-            <Tooltip
-              labelFormatter={(date) => {
-                try {
-                  return format(parseISO(date as string), "MMM d, yyyy");
-                } catch {
-                  return date;
-                }
-              }}
-              formatter={(value: number, name: string, props: any) =>
-                formatTooltip(value, name, props, metric, trendsData, playerStats, dateRange)
-              }
-              itemSorter={(item) => {
-                // Sort by value in descending order (highest win% at top)
-                return -Number(item.value);
-              }}
-            />
-            <Legend />
-            {playerStats.map((player, index) => {
-              const isCompared = compare.length === 0 ? true : compare.includes(player.id);
-              const strokeOpacity = compare.length === 0 ? 1 : (isCompared ? 1 : 0.18);
-              const strokeWidth = isCompared ? 3 : 1;
-              return (
-                <Line
-                  key={player.id}
-                  type="monotone"
-                  dataKey={player.name}
-                  stroke={COLORS[index % COLORS.length]}
-                  strokeWidth={strokeWidth}
-                  strokeOpacity={strokeOpacity}
-                  activeDot={{ r: isCompared ? 6 : 0 }}
-                  dot={false}
-                  connectNulls={true}
+
+
+      {
+        error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        ) : (
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(date) => {
+                    try {
+                      return format(parseISO(date), "MMM d");
+                    } catch {
+                      return date;
+                    }
+                  }}
                 />
-              );
-            })}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+                <YAxis
+                  domain={metric === 'winPercentage' ? [0, 100] : [0, 'auto']}
+                  tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
+                />
+                <Tooltip
+                  labelFormatter={(date) => {
+                    try {
+                      return format(parseISO(date as string), "MMM d, yyyy");
+                    } catch {
+                      return date;
+                    }
+                  }}
+                  formatter={(value: number, name: string, props: any) =>
+                    formatTooltip(value, name, props, metric, trendsData, playerStats, dateRange)
+                  }
+                  itemSorter={(item) => {
+                    // Sort by value in descending order (highest win% at top)
+                    return -Number(item.value);
+                  }}
+                />
+                <Legend />
+                {playerStats.map((player, index) => {
+                  const isCompared = compare.length === 0 ? true : compare.includes(player.id);
+                  const strokeOpacity = compare.length === 0 ? 1 : (isCompared ? 1 : 0.18);
+                  const strokeWidth = isCompared ? 3 : 1;
+                  return (
+                    <Line
+                      key={player.id}
+                      type="monotone"
+                      dataKey={player.name}
+                      stroke={COLORS[index % COLORS.length]}
+                      strokeWidth={strokeWidth}
+                      strokeOpacity={strokeOpacity}
+                      activeDot={{ r: isCompared ? 6 : 0 }}
+                      dot={false}
+                      connectNulls={true}
+                    />
+                  );
+                })}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+    </div >
   );
 }

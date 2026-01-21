@@ -1,0 +1,1 @@
+export const MINIMUM_GAMES_THRESHOLD = 50;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getPlayerThreshold } from '../lib/playerFiltering';
 
 interface WinPercentageRankingsProps {
   season?: string;
@@ -101,13 +102,9 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
 
         setRecentMatchPlayers(recentPlayers);
 
-        // Format the player stats data (already sorted by win percentage)
-        // Adaptive threshold: show players with >=1 game by default, but if any
-        // player has >=50 games, use 50-game minimum to keep leaderboard focused.
-        const count50 = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= 50).length;
-        // If showAllPlayers is true, use threshold 1, otherwise use adaptive logic
-        const threshold = showAllPlayers ? 1 : (count50 > 0 ? 50 : 1);
-        console.log('Leaderboard threshold:', threshold, '(players with >=50 games:', count50, ', showAll:', showAllPlayers, ')');
+        // Formatted threshold calculation using shared utility
+        const threshold = getPlayerThreshold(playerStats, showAllPlayers);
+        console.log('Leaderboard threshold:', threshold, '(showAll:', showAllPlayers, ')');
         const formattedRankings = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold).map((player: any) => {
           return {
             id: player.id,
