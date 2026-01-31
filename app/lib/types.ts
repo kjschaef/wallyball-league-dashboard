@@ -9,10 +9,7 @@ export interface PlayerStats {
   };
   winPercentage: number;
   totalPlayingTime: number;
-  streak: {
-    type: 'wins' | 'losses';
-    count: number;
-  };
+
   actualWinPercentage?: number;
 }
 

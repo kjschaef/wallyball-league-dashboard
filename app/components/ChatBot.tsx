@@ -31,10 +31,7 @@ interface Player {
     losses: number;
     totalGames: number;
   };
-  streak: {
-    type: 'wins' | 'losses';
-    count: number;
-  };
+
   actualWinPercentage?: number;
 }
 
@@ -503,16 +500,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
         <Users className="w-3 h-3 mr-1" />
         Team Suggestions
       </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => handleQuickAction("Which players are on activity streaks?")}
-        disabled={isLoading}
-        className="text-xs"
-      >
-        <Flame className="w-3 h-3 mr-1" />
-        Streaks
-      </Button>
+
       <Button
         variant="outline"
         size="sm"

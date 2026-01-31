@@ -68,7 +68,7 @@ const performanceMetrics: PerformanceMetric[] = [
     displayName: 'Consistency',
     description: 'How consistent player performance is',
     calculate: (player) => {
-      // Simplified: in real app would analyze streaks
+      // Simplified: in real app would analyze performance variance
       return player.matches.length > 10 ? 65 + Math.random() * 25 : 40 + Math.random() * 30;
     },
     scale: [0, 100]
@@ -116,7 +116,7 @@ export function PlayerPerformanceRadar() {
     // Here using mock data for visualization
     const selectedPlayer = mockPlayers[0]; // Using Troy for visualization
     setPlayer(selectedPlayer);
-    
+
     if (selectedPlayer) {
       // Calculate radar metrics
       const metrics = performanceMetrics.map(metric => ({
@@ -125,10 +125,10 @@ export function PlayerPerformanceRadar() {
         description: metric.description,
         fullMark: 100
       }));
-      
+
       setRadarData(metrics);
     }
-    
+
     setLoading(false);
   }, []);
 
@@ -155,11 +155,11 @@ export function PlayerPerformanceRadar() {
           </RadarChart>
         </ResponsiveContainer>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-2">
         {radarData.map((item) => (
-          <div 
-            key={item.metric} 
+          <div
+            key={item.metric}
             className="bg-gray-100 p-2 rounded"
             title={item.description}
           >

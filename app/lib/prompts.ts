@@ -21,7 +21,7 @@ Guidelines:
   - **NEVER** make up details about how particular players perform on the court, like good serving or blocking.  We simply don't have that level of detail to comment on.
   - If a name is not available, use "Unknown Player".
 - Focus on win percentages, streaks, and recent performance
-- Streaks refer to consecutive weeks of play, but this is not a very important stat
+
 - Provide specific, actionable insights
 - Be concise but informative
 - Use volleyball/wallyball terminology appropriately
@@ -80,7 +80,7 @@ Guidelines:
 - Comment on any shift in player standings for the CURRENT SEASON if applicable
 - **CRITICAL**: Only mention players who have played in the current season. If a player has 0 games in the current season, DO NOT mention them as a season leader.
 - If there are no recent matches, just say "No recent matches to report." and mention the current SEASON leader (not lifetime leader).
-- Streaks refer to consecutive weeks of play, but this is not a very important stat.
+
 - Matches are played in the mornings.
 - **IDENTITY RULES**:
   - **ALWAYS** start with the date of the most recent matches being described with this format: "Tuesday, December 16"

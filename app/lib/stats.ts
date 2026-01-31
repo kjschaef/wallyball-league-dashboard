@@ -9,63 +9,11 @@ export interface PlayerStats {
     };
     winPercentage: number;
     totalPlayingTime: number;
-    streak: {
-        type: 'activity';
-        count: number;
-    };
+
     actualWinPercentage?: number;
 }
 
-function calculateStreak(matches: Array<{ won: boolean; date: string }>): { type: 'activity'; count: number } {
-    if (matches.length === 0) return { type: 'activity', count: 0 };
 
-    // Group matches by week (using ISO week format YYYY-MM-DD for Monday of each week)
-    const matchesByWeek = new Set<string>();
-
-    for (const match of matches) {
-        const matchDate = new Date(match.date);
-        // Get Monday of the week containing this match
-        const monday = new Date(matchDate);
-        const dayOfWeek = matchDate.getDay();
-        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Handle Sunday (0) as 6 days from Monday
-        monday.setDate(matchDate.getDate() - daysToSubtract);
-        monday.setHours(0, 0, 0, 0);
-
-        const weekKey = monday.toISOString().split('T')[0];
-        matchesByWeek.add(weekKey);
-    }
-
-    // Convert to sorted array (oldest first for streak calculation)
-    const sortedWeeks = Array.from(matchesByWeek).sort((a, b) => a.localeCompare(b));
-
-    if (sortedWeeks.length === 0) return { type: 'activity', count: 0 };
-    if (sortedWeeks.length === 1) return { type: 'activity', count: 1 };
-
-    // Find the longest consecutive streak of weeks
-    let maxStreak = 1;
-    let currentStreak = 1;
-
-    for (let i = 1; i < sortedWeeks.length; i++) {
-        const currentWeek = new Date(sortedWeeks[i]);
-        const previousWeek = new Date(sortedWeeks[i - 1]);
-
-        // Check if current week is exactly 7 days after previous week
-        const expectedCurrentWeek = new Date(previousWeek);
-        expectedCurrentWeek.setDate(expectedCurrentWeek.getDate() + 7);
-
-        if (currentWeek.getTime() === expectedCurrentWeek.getTime()) {
-            currentStreak++;
-            maxStreak = Math.max(maxStreak, currentStreak);
-        } else {
-            currentStreak = 1; // Reset streak
-        }
-    }
-
-    return {
-        type: 'activity', // Counting consecutive weeks of activity
-        count: maxStreak
-    };
-}
 
 export async function calculatePlayerStats(
     allPlayers: unknown[],
@@ -129,8 +77,7 @@ export async function calculatePlayerStats(
             }));
             const totalPlayingTime = Math.round((uniqueDays.size * 90) / 60); // Convert to hours
 
-            // Calculate streak
-            const streak = calculateStreak(processedMatches);
+
 
             // Calculate win percentage
             const winPercentage = gamesWon + gamesLost > 0 ? (gamesWon / (gamesWon + gamesLost)) * 100 : 0;
@@ -146,7 +93,7 @@ export async function calculatePlayerStats(
                 },
                 winPercentage,
                 totalPlayingTime,
-                streak,
+
                 actualWinPercentage: winPercentage
             };
         } catch (error) {
@@ -159,7 +106,7 @@ export async function calculatePlayerStats(
                 record: { wins: 0, losses: 0, totalGames: 0 },
                 winPercentage: 0,
                 totalPlayingTime: 0,
-                streak: { type: 'activity' as const, count: 0 },
+
                 actualWinPercentage: 0
             };
         }

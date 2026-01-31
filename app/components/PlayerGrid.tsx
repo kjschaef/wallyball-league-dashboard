@@ -8,10 +8,7 @@ interface Player {
     wins: number;
     losses: number;
   };
-  streak?: {
-    type: string;
-    count: number;
-  };
+
 }
 
 interface PlayerGridProps {
@@ -62,11 +59,7 @@ export function PlayerGrid({
             return 'text-red-600';
           };
 
-          const getStreakColor = (streak?: { type: string; count: number }) => {
-            if (!streak) return 'text-gray-500';
-            // Activity streaks are always positive (green)
-            return streak.count >= 3 ? 'text-green-600' : 'text-green-500';
-          };
+
 
           return (
             <div
@@ -92,15 +85,10 @@ export function PlayerGrid({
                 )}
               </div>
 
-              {(player.record || player.streak) && (
+              {(player.record) && (
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   {player.record && (
                     <span>{player.record.wins}W - {player.record.losses}L</span>
-                  )}
-                  {player.streak && (
-                    <span className={getStreakColor(player.streak)}>
-                      {player.streak.count} weeks
-                    </span>
                   )}
                 </div>
               )}

@@ -124,7 +124,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                 name: p.name,
                 winPercentage: p.winPercentage,
                 record: p.record,
-                streak: p.streak
+
               }))}
               selectedPlayers={selectedPlayers}
               onPlayerToggle={togglePlayer}
@@ -188,7 +188,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                     <div key={player.id} className="flex justify-between items-center p-2 bg-blue-50 rounded">
                       <span className="font-medium">{player.name}</span>
                       <div className="text-sm text-gray-600">
-                        {player.winPercentage}% • {player.streak.count} weeks active
+                        {player.winPercentage}%
                       </div>
                     </div>
                   ))}
@@ -207,7 +207,7 @@ export function TeamSuggestionModal({ isOpen, onClose, onUseTeams }: TeamSuggest
                     <div key={player.id} className="flex justify-between items-center p-2 bg-green-50 rounded">
                       <span className="font-medium">{player.name}</span>
                       <div className="text-sm text-gray-600">
-                        {player.winPercentage}% • {player.streak.count} weeks active
+                        {player.winPercentage}%
                       </div>
                     </div>
                   ))}
