@@ -270,67 +270,10 @@ describe('/api/player-stats with seasonal filtering', () => {
         expect(player.record.wins).toBe(0);
         expect(player.record.losses).toBe(0);
         expect(player.record.totalGames).toBe(0);
-        expect(player.streak.count).toBe(0);
+
       });
     });
   });
 
-  describe('Seasonal streak calculations', () => {
-    it('should calculate streaks within season boundaries only', async () => {
-      const mockMatches = [
-        // Week 1 Q3
-        {
-          id: 1,
-          team_one_player_one_id: 1,
-          team_one_player_two_id: null,
-          team_one_player_three_id: null,
-          team_two_player_one_id: 2,
-          team_two_player_two_id: null,
-          team_two_player_three_id: null,
-          team_one_games_won: 3,
-          team_two_games_won: 1,
-          date: '2025-07-07T10:00:00.000Z', // Monday week 1 of Q3
-          season_id: 3
-        },
-        // Week 2 Q3
-        {
-          id: 2,
-          team_one_player_one_id: 1,
-          team_one_player_two_id: null,
-          team_one_player_three_id: null,
-          team_two_player_one_id: 2,
-          team_two_player_two_id: null,
-          team_two_player_three_id: null,
-          team_one_games_won: 2,
-          team_two_games_won: 2,
-          date: '2025-07-14T10:00:00.000Z', // Monday week 2 of Q3
-          season_id: 3
-        }
-      ];
 
-      mockSql.mockImplementation((queryType) => {
-        if (queryType === 'players') {
-          return Promise.resolve(mockPlayers);
-        }
-        if (queryType === 'seasons') {
-          return Promise.resolve(mockSeasons);
-        }
-        if (queryType === 'matches') {
-          return Promise.resolve(mockMatches);
-        }
-        return Promise.resolve([]);
-      });
-
-      const request = new NextRequest('http://localhost:3000/api/player-stats?season=3');
-      const response = await GET(request);
-      const playerStats = await response.json();
-
-      const alice = playerStats.find((p: any) => p.name === 'Alice');
-      const bob = playerStats.find((p: any) => p.name === 'Bob');
-
-      // Both players should have 2-week streak within Q3
-      expect(alice.streak.count).toBe(2);
-      expect(bob.streak.count).toBe(2);
-    });
-  });
 });

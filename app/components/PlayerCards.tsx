@@ -18,7 +18,8 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Edit, Trash2, TrendingUp, Calendar } from "lucide-react";
+import { Edit, Trash2, TrendingUp, Calendar, Trophy } from "lucide-react";
+import { useSeasonChampions } from "../hooks/useSeasonChampions";
 
 interface PlayerStats {
   id: number;
@@ -31,10 +32,7 @@ interface PlayerStats {
   };
   winPercentage: number;
   totalPlayingTime: number;
-  streak: {
-    type: "wins" | "losses";
-    count: number;
-  };
+
   actualWinPercentage?: number;
 }
 
@@ -49,9 +47,10 @@ interface PlayerCardProps {
   onEdit: (player: PlayerStats) => void;
   onDelete: (playerId: number) => void;
   isInactive?: boolean;
+  championshipCount?: number;
 }
 
-function PlayerCard({ player, onEdit, onDelete, isInactive = false }: PlayerCardProps) {
+function PlayerCard({ player, onEdit, onDelete, isInactive = false, championshipCount = 0 }: PlayerCardProps) {
 
   return (
     <Card className={`group relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 ${isInactive
@@ -70,14 +69,15 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false }: PlayerCard
             <h3 className="text-base font-bold text-gray-900 group-hover:text-gray-800 leading-tight">
               {player.name}
             </h3>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+
+            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
               <div className="flex items-center gap-0.5">
                 <Calendar className="h-3 w-3" />
                 <span>{player.yearsPlayed}y</span>
               </div>
               <div className="flex items-center gap-0.5">
                 <TrendingUp className="h-3 w-3" />
-                <span>{player.record.totalGames}G</span>
+                <span>{player.record.totalGames} games</span>
               </div>
             </div>
           </div>
@@ -174,15 +174,25 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false }: PlayerCard
             </div>
           </div>
 
-          {/* Streak */}
-          <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-2 border flex justify-between items-center`}>
-            <p className="text-[10px] font-medium text-gray-600">
-              Streak
-            </p>
-            <span className="text-sm font-bold text-gray-900">
-              {player.streak.count}w
-            </span>
-          </div>
+
+
+          {/* Championships */}
+          {championshipCount > 0 && (
+            <div className="flex justify-center pt-1" title={`${championshipCount} Season Championship${championshipCount !== 1 ? 's' : ''}`}>
+              {championshipCount <= 3 ? (
+                <div className="flex gap-1">
+                  {Array.from({ length: championshipCount }).map((_, i) => (
+                    <span key={i} className="text-lg leading-none filter drop-shadow-sm">🏆</span>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 bg-yellow-50 px-3 py-1 rounded-full border border-yellow-200 shadow-sm">
+                  <span className="text-lg leading-none">🏆</span>
+                  <span className="text-sm font-bold text-yellow-700">x{championshipCount}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </Card>
@@ -202,6 +212,19 @@ export function PlayerCards() {
     queryKey: ["/api/player-stats"],
     queryFn: () => fetch("/api/player-stats").then((res) => res.json()),
   });
+
+  const { data: winners = [] } = useSeasonChampions();
+
+  // Calculate championship counts
+  const championshipCounts = new Map<number, number>();
+  if (winners) {
+    winners.forEach((w) => {
+      if (w.player && w.status === 'complete' && !w.isAnnual) {
+        const count = championshipCounts.get(w.player.id) || 0;
+        championshipCounts.set(w.player.id, count + 1);
+      }
+    });
+  }
 
   const updatePlayerMutation = useMutation({
     mutationFn: async (updatedPlayer: {
@@ -278,7 +301,7 @@ export function PlayerCards() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h2 className="text-3xl font-bold text-gray-900">Player Statistics</h2>
+        <h2 className="text-3xl font-bold text-gray-900">Lifetime Player Statistics</h2>
         <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="w-full sm:w-[200px] flex-grow">
@@ -305,7 +328,7 @@ export function PlayerCards() {
   if (error) {
     return (
       <div className="space-y-6">
-        <h2 className="text-3xl font-bold text-gray-900">Player Statistics</h2>
+        <h2 className="text-3xl font-bold text-gray-900">Lifetime Player Statistics</h2>
         <div className="p-6 border border-red-200 rounded-xl bg-gradient-to-r from-red-50 to-rose-50">
           <p className="text-red-800 font-medium">
             Failed to load player statistics. Please try again later.
@@ -318,7 +341,7 @@ export function PlayerCards() {
   if (!playerStats || playerStats.length === 0) {
     return (
       <div className="space-y-6">
-        <h2 className="text-3xl font-bold text-gray-900">Player Statistics</h2>
+        <h2 className="text-3xl font-bold text-gray-900">Lifetime Player Statistics</h2>
         <div className="p-12 text-center border border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
           <p className="text-gray-600 text-lg">
             No players found. Add some players to see their statistics.
@@ -336,7 +359,7 @@ export function PlayerCards() {
     <div className="space-y-8">
       {/* Main Players Section */}
       <div className="space-y-6">
-        <h2 className="text-3xl font-bold text-gray-900">Player Statistics</h2>
+        <h2 className="text-3xl font-bold text-gray-900">Lifetime Player Statistics</h2>
         {mainPlayers.length > 0 ? (
           <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
             {mainPlayers.map((player) => (
@@ -345,6 +368,7 @@ export function PlayerCards() {
                   player={player}
                   onEdit={handleEditPlayer}
                   onDelete={handleDeletePlayer}
+                  championshipCount={championshipCounts.get(player.id) || 0}
                 />
               </div>
             ))}
@@ -373,6 +397,7 @@ export function PlayerCards() {
                   onEdit={handleEditPlayer}
                   onDelete={handleDeletePlayer}
                   isInactive={true}
+                  championshipCount={championshipCounts.get(player.id) || 0}
                 />
               </div>
             ))}

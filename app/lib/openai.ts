@@ -129,7 +129,6 @@ export async function analyzePlayerPerformance(
       name: p.name,
       winPercentage: p.winPercentage,
       totalGames: p.record.totalGames,
-      streak: `${p.streak.count} ${p.streak.type}`,
       yearsPlayed: p.yearsPlayed
     }));
 

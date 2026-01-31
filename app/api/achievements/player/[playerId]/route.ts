@@ -9,13 +9,7 @@ const mockAchievements = [
     icon: '🏆',
     unlockedAt: '2023-01-15T12:34:56Z'
   },
-  {
-    id: 2,
-    name: 'Win Streak',
-    description: 'Win 3 matches in a row',
-    icon: '🔥',
-    unlockedAt: '2023-02-10T15:30:00Z'
-  },
+
   {
     id: 3,
     name: 'Team Player',
