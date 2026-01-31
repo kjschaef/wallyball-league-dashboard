@@ -82,8 +82,7 @@ export async function GET() {
         const simplifiedStats = playerStats.map(p => ({
             name: p.name,
             winPercentage: p.winPercentage,
-            record: p.record,
-            streak: p.streak
+            record: p.record
         }));
 
         const summary = await generateDailySummary(recentMatches, simplifiedStats);

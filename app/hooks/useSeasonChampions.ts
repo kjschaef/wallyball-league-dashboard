@@ -28,6 +28,11 @@ export interface Winner {
     status: 'complete' | 'incomplete';
 }
 
+// Validate year is reasonable (2000-2100)
+const isValidYear = (year: number): boolean => {
+    return !isNaN(year) && year >= 2000 && year <= 2100;
+};
+
 export function useSeasonChampions() {
     return useQuery({
         queryKey: ['season-champions'],
@@ -36,12 +41,13 @@ export function useSeasonChampions() {
             if (!seasonsRes.ok) throw new Error('Failed to fetch seasons');
             const seasons: Season[] = await seasonsRes.json();
 
-            const winnersData: Winner[] = [];
+            const currentYear = new Date().getFullYear();
 
-            await Promise.all(seasons.map(async (season) => {
-                const isAnnual = /^\d{4}$/.test(season.name);
-                const currentYear = new Date().getFullYear();
-                const seasonYear = parseInt(season.name) || 0;
+            // Use Promise.all with return values instead of mutating array
+            const results = await Promise.all(seasons.map(async (season): Promise<Winner | null> => {
+                const yearMatch = /^\d{4}$/.test(season.name);
+                const seasonYear = parseInt(season.name, 10);
+                const isAnnual = yearMatch && isValidYear(seasonYear);
 
                 let status: 'complete' | 'incomplete' = 'complete';
 
@@ -52,41 +58,54 @@ export function useSeasonChampions() {
                 }
 
                 if (status === 'incomplete') {
-                    winnersData.push({
+                    return {
                         seasonId: season.id,
                         seasonName: season.name,
                         player: null,
                         isAnnual,
                         status
-                    });
-                    return;
+                    };
                 }
 
                 try {
                     const statsRes = await fetch(`/api/player-stats?season=${season.id}`);
-                    if (!statsRes.ok) return;
+                    if (!statsRes.ok) {
+                        console.warn(`Failed to fetch stats for season ${season.name}: ${statsRes.status}`);
+                        return null;
+                    }
                     const stats: PlayerStats[] = await statsRes.json();
 
                     const threshold = getPlayerThreshold(stats, false);
+                    if (typeof threshold !== 'number' || isNaN(threshold)) {
+                        console.warn(`Invalid threshold for season ${season.name}`);
+                        return null;
+                    }
+
                     const eligiblePlayers = stats.filter(p => (p.record?.totalGames ?? 0) >= threshold);
                     const sortedPlayers = eligiblePlayers.sort((a, b) => b.winPercentage - a.winPercentage);
 
                     if (sortedPlayers.length > 0) {
-                        winnersData.push({
+                        return {
                             seasonId: season.id,
                             seasonName: season.name,
                             player: sortedPlayers[0],
                             isAnnual,
                             status: 'complete'
-                        });
+                        };
                     }
+                    return null;
                 } catch (e) {
-                    console.error(`Failed to fetch stats for season ${season.name}`, e);
+                    console.warn(`Error fetching stats for season ${season.name}:`, e);
+                    return null;
                 }
             }));
 
-            return winnersData.sort((a, b) => b.seasonId - a.seasonId);
+            // Filter out nulls and sort by seasonId descending
+            return results
+                .filter((r): r is Winner => r !== null)
+                .sort((a, b) => b.seasonId - a.seasonId);
         },
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 }
+
