@@ -77,6 +77,7 @@ ${JSON.stringify(playerStats, null, 2)}
 Guidelines:
 - Write 3-4 sentences.
 - Be concise and direct, mention the players by name.
+- Include light-hearted trash talk banter.
 - Comment on any shift in player standings for the CURRENT SEASON if applicable
 - **CRITICAL**: Only mention players who have played in the current season. If a player has 0 games in the current season, DO NOT mention them as a season leader.
 - If there are no recent matches, just say "No recent matches to report." and mention the current SEASON leader (not lifetime leader).
