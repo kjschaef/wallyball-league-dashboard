@@ -21,6 +21,20 @@ export async function GET(request: Request) {
 
     // Build match query with optional season filtering
     let allMatches;
+    const fetchAll = () => sql`
+      SELECT
+        id,
+        team_one_player_one_id,
+        team_one_player_two_id,
+        team_one_player_three_id,
+        team_two_player_one_id,
+        team_two_player_two_id,
+        team_two_player_three_id,
+        team_one_games_won,
+        team_two_games_won
+      FROM matches
+    `;
+
     if (seasonParam && !isNaN(Number(seasonParam))) {
       const season = getSeasonById(Number(seasonParam));
       if (!season) {
@@ -28,10 +42,10 @@ export async function GET(request: Request) {
       }
       if (season.start_date && season.end_date) {
         allMatches = await sql`
-          SELECT 
+          SELECT
             id,
             team_one_player_one_id,
-            team_one_player_two_id, 
+            team_one_player_two_id,
             team_one_player_three_id,
             team_two_player_one_id,
             team_two_player_two_id,
@@ -42,36 +56,12 @@ export async function GET(request: Request) {
           WHERE date >= ${season.start_date} AND date <= ${season.end_date}
         `;
       } else {
-        // Lifetime season (id=0) — fetch all
-        allMatches = await sql`
-          SELECT 
-            id,
-            team_one_player_one_id,
-            team_one_player_two_id, 
-            team_one_player_three_id,
-            team_two_player_one_id,
-            team_two_player_two_id,
-            team_two_player_three_id,
-            team_one_games_won,
-            team_two_games_won
-          FROM matches
-        `;
+        // Lifetime season (id=0) or season without date bounds — fetch all
+        allMatches = await fetchAll();
       }
     } else {
       // No season param — fetch all matches
-      allMatches = await sql`
-        SELECT 
-          id,
-          team_one_player_one_id,
-          team_one_player_two_id, 
-          team_one_player_three_id,
-          team_two_player_one_id,
-          team_two_player_two_id,
-          team_two_player_three_id,
-          team_one_games_won,
-          team_two_games_won
-        FROM matches
-      `;
+      allMatches = await fetchAll();
     }
 
     // Get all players to map IDs to names

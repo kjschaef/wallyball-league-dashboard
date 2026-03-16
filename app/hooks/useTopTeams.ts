@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { MINIMUM_TEAM_GAMES_THRESHOLD } from '../lib/constants';
+import { MINIMUM_TEAM_GAMES_THRESHOLD, TOP_TEAMS_PER_SEASON } from '../lib/constants';
 
 interface Season {
     id: number;
@@ -59,7 +59,7 @@ export function useTopTeams() {
                     const qualified = teams
                         .filter(t => t.totalIndividualGames >= MINIMUM_TEAM_GAMES_THRESHOLD)
                         .sort((a, b) => b.gameWinPercentage - a.gameWinPercentage)
-                        .slice(0, 3);
+                        .slice(0, TOP_TEAMS_PER_SEASON);
 
                     return {
                         seasonId: season.id,
