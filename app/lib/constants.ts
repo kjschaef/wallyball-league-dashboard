@@ -1,1 +1,2 @@
 export const MINIMUM_GAMES_THRESHOLD = 50;
+export const MINIMUM_TEAM_GAMES_THRESHOLD = 12;

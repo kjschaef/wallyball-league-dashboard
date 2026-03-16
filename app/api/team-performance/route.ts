@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from "@neondatabase/serverless";
+import { getSeasonById } from '../../../lib/seasons';
 
 interface TeamStats {
   playerIds: number[];
@@ -12,24 +13,66 @@ interface TeamStats {
   totalGames: number;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    
-    // Get all matches with player data
-    const allMatches = await sql`
-      SELECT 
-        id,
-        team_one_player_one_id,
-        team_one_player_two_id, 
-        team_one_player_three_id,
-        team_two_player_one_id,
-        team_two_player_two_id,
-        team_two_player_three_id,
-        team_one_games_won,
-        team_two_games_won
-      FROM matches
-    `;
+    const { searchParams } = new URL(request.url);
+    const seasonParam = searchParams.get('season');
+
+    // Build match query with optional season filtering
+    let allMatches;
+    if (seasonParam && !isNaN(Number(seasonParam))) {
+      const season = getSeasonById(Number(seasonParam));
+      if (!season) {
+        return NextResponse.json({ error: 'Season not found' }, { status: 404 });
+      }
+      if (season.start_date && season.end_date) {
+        allMatches = await sql`
+          SELECT 
+            id,
+            team_one_player_one_id,
+            team_one_player_two_id, 
+            team_one_player_three_id,
+            team_two_player_one_id,
+            team_two_player_two_id,
+            team_two_player_three_id,
+            team_one_games_won,
+            team_two_games_won
+          FROM matches
+          WHERE date >= ${season.start_date} AND date <= ${season.end_date}
+        `;
+      } else {
+        // Lifetime season (id=0) — fetch all
+        allMatches = await sql`
+          SELECT 
+            id,
+            team_one_player_one_id,
+            team_one_player_two_id, 
+            team_one_player_three_id,
+            team_two_player_one_id,
+            team_two_player_two_id,
+            team_two_player_three_id,
+            team_one_games_won,
+            team_two_games_won
+          FROM matches
+        `;
+      }
+    } else {
+      // No season param — fetch all matches
+      allMatches = await sql`
+        SELECT 
+          id,
+          team_one_player_one_id,
+          team_one_player_two_id, 
+          team_one_player_three_id,
+          team_two_player_one_id,
+          team_two_player_two_id,
+          team_two_player_three_id,
+          team_one_games_won,
+          team_two_games_won
+        FROM matches
+      `;
+    }
 
     // Get all players to map IDs to names
     const allPlayers = await sql`SELECT id, name FROM players`;
@@ -46,17 +89,17 @@ export async function GET() {
         match.team_one_player_two_id,
         match.team_one_player_three_id
       ].filter((id): id is number => id !== null);
-      
+
       const teamTwoIds = [
         match.team_two_player_one_id,
         match.team_two_player_two_id,
         match.team_two_player_three_id
       ].filter((id): id is number => id !== null);
-      
+
       // Create sorted team keys for consistent identification
       const teamOneKey = [...teamOneIds].sort((a: number, b: number) => a - b).join(',');
       const teamTwoKey = [...teamTwoIds].sort((a: number, b: number) => a - b).join(',');
-      
+
       // Get player names and sort them
       const teamOnePlayers = teamOneIds.map((id: number) => playerMap.get(id) || 'Unknown').sort();
       const teamTwoPlayers = teamTwoIds.map((id: number) => playerMap.get(id) || 'Unknown').sort();
@@ -74,7 +117,7 @@ export async function GET() {
           totalGames: 0
         });
       }
-      
+
       if (!teamStats.has(teamTwoKey)) {
         teamStats.set(teamTwoKey, {
           playerIds: teamTwoIds,
@@ -129,10 +172,10 @@ export async function GET() {
       totalIndividualGames: stats.totalGames,
       gameWinPercentage: stats.totalGames > 0 ? Number(((stats.gameWins / stats.totalGames) * 100).toFixed(1)) : 0
     }))
-    .sort((a, b) => b.winPercentage - a.winPercentage); // Sort by win percentage descending
+      .sort((a, b) => b.winPercentage - a.winPercentage); // Sort by win percentage descending
 
     return NextResponse.json(teamPerformanceArray);
-    
+
   } catch (error) {
     console.error('Error fetching team performance:', error);
     return NextResponse.json(
