@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "tests": [
+    {
+      "path": "__tests__/api/matches.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/matches/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/player-stats.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/player-stats/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/player-trends.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/player-trends/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/seasonal-player-stats.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/player-stats/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/seasons.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/seasons/current/route.ts",
+        "app/api/seasons/route.ts",
+        "lib/seasons.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/team-performance.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/team-performance/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/components/SeasonSelector.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/SeasonSelector.tsx"
+      ]
+    },
+    {
+      "path": "app/components/__tests__/PerformanceControls.test.tsx",
+      "kind": "component",
+      "covers": [
+        "app/components/PerformanceControls.tsx"
+      ]
+    },
+    {
+      "path": "app/lib/__tests__/tooltip.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/tooltip.ts"
+      ]
+    }
+  ],
+  "coverageByFile": {
+    "app/api/matches/route.ts": [
+      "__tests__/api/matches.test.ts"
+    ],
+    "app/api/player-stats/route.ts": [
+      "__tests__/api/player-stats.test.ts",
+      "__tests__/api/seasonal-player-stats.test.ts"
+    ],
+    "app/api/player-trends/route.ts": [
+      "__tests__/api/player-trends.test.ts"
+    ],
+    "app/api/seasons/current/route.ts": [
+      "__tests__/api/seasons.test.ts"
+    ],
+    "app/api/seasons/route.ts": [
+      "__tests__/api/seasons.test.ts"
+    ],
+    "app/api/team-performance/route.ts": [
+      "__tests__/api/team-performance.test.ts"
+    ],
+    "app/components/PerformanceControls.tsx": [
+      "app/components/__tests__/PerformanceControls.test.tsx"
+    ],
+    "app/components/SeasonSelector.tsx": [
+      "__tests__/components/SeasonSelector.test.tsx"
+    ],
+    "app/lib/tooltip.ts": [
+      "app/lib/__tests__/tooltip.test.ts"
+    ],
+    "lib/seasons.ts": [
+      "__tests__/api/seasons.test.ts"
+    ]
+  },
+  "coverageByArea": [
+    {
+      "taskId": "player-crud",
+      "tests": [],
+      "gaps": [
+        "app/api/players/route.ts",
+        "app/api/players/[id]/route.ts",
+        "app/players/page.tsx",
+        "app/page.tsx",
+        "db/schema.ts"
+      ]
+    },
+    {
+      "taskId": "match-recording",
+      "tests": [
+        "__tests__/api/matches.test.ts"
+      ],
+      "gaps": [
+        "app/components/RecordMatchModal.tsx",
+        "app/api/games/route.ts",
+        "app/page.tsx",
+        "db/schema.ts"
+      ]
+    },
+    {
+      "taskId": "stats-rankings",
+      "tests": [
+        "__tests__/api/player-stats.test.ts",
+        "__tests__/api/player-trends.test.ts",
+        "__tests__/api/seasonal-player-stats.test.ts",
+        "__tests__/api/team-performance.test.ts",
+        "app/components/__tests__/PerformanceControls.test.tsx"
+      ],
+      "gaps": [
+        "app/lib/stats.ts",
+        "app/components/WinPercentageRankings.tsx",
+        "app/components/PerformanceTrend.tsx"
+      ]
+    },
+    {
+      "taskId": "season-logic",
+      "tests": [
+        "__tests__/api/seasonal-player-stats.test.ts",
+        "__tests__/api/seasons.test.ts",
+        "__tests__/components/SeasonSelector.test.tsx"
+      ],
+      "gaps": [
+        "app/hooks/useTopTeams.ts"
+      ]
+    },
+    {
+      "taskId": "ai-chatbot",
+      "tests": [],
+      "gaps": [
+        "app/api/chatbot/route.ts",
+        "app/components/ChatBot.tsx",
+        "app/lib/openai.ts",
+        "app/lib/prompts.ts",
+        "lib/rag.ts"
+      ]
+    },
+    {
+      "taskId": "achievements",
+      "tests": [],
+      "gaps": [
+        "app/api/achievements/player/[playerId]/route.ts",
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/components/PlayerAchievements.tsx",
+        "db/schema.ts"
+      ]
+    }
+  ]
+}

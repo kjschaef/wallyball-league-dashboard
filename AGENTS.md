@@ -1,44 +1,41 @@
-# Repository Guidelines
+# Agent Router
 
-This document describes contribution expectations for the Wallyball League Dashboard repository.
+Read in this order unless the task is trivial:
 
-## Project Structure & Module Organization
-- `app/`: Next.js application source (pages/app routes, components).
-- `lib/`: shared utilities and helper modules.
-- `db/`, `migrations/`: database schema and migration scripts.
-- `__tests__/` and `test_*.js`: unit/integration tests.
-- `attached_assets/`, `Docs/`: images and documentation.
+1. `agent-context/index.json`
+2. `agent-context/tasks.json`
+3. `agent-context/routes.json` or `agent-context/data-model.json` as needed
+4. `agent-context/graph.json` when you need coupling or blast radius
 
-## Build, Test, and Development Commands
-- `npm run dev` — run Next.js in development on port 5001.
-- `npm run build` — production build (`next build`).
-- `npm run start` — start built app on port 5000.
-- `npm test` — run Jest test suite.
-- `npm run test:watch` — Jest in watch mode.
-- `npm run test:coverage` — generate test coverage report.
-- `npm run lint` — run ESLint across the repo (`npx eslint . --ext .ts,.tsx,.js,.jsx`).
-- `npm run lint:fix` — run ESLint autofix (`--fix`).
+Use `Docs/` as secondary human-oriented documentation. Do not default to it for repo navigation.
 
-## Coding Style & Naming Conventions
-- Language: TypeScript + React (Next.js). Follow existing `.eslintrc.cjs` and `tsconfig.json`.
-- Indentation: 2 spaces. Use camelCase for variables, PascalCase for React components.
-- Files: use `.ts`/`.tsx` for typed modules, `.js` only for scripts/tests if needed.
-- Formatting: project does not include Prettier; use ESLint autofix (`npx eslint --fix`) or editor formatter.
+## Repo Summary
 
-## Testing Guidelines
-- Framework: Jest with React Testing Library (`@testing-library/*`).
-- Test files: name `*.test.ts`, `*.test.tsx`, or `*.test.js` and place near the unit under test or in `__tests__/`.
-- Coverage: aim to cover critical business logic (use `npm run test:coverage`).
+- Next.js app-router project with API routes under `app/api`.
+- Main dashboard orchestration lives in `app/page.tsx`.
+- Shared app logic lives in `app/lib`; cross-cutting season logic lives in `lib/seasons.ts`.
+- Database schema source of truth is `db/schema.ts`; historical context lives in `migrations/`.
+- Tests are primarily under `__tests__/api`, `__tests__/components`, and local `__tests__` folders.
 
-## Commit & Pull Request Guidelines
-- Commit style: short imperative subject, optional scope, one-line summary, blank line, longer body. Example:
-  `feat(stats): add player summary (#123)`
-- PR checklist: link issue, describe change, include screenshots for UI changes, add tests for new logic, request reviewers.
+## Canonical Commands
 
-## Security & Configuration Tips
-- Do not commit secrets. Use `.env.local` for local variables and refer to `.env.example`.
-- Review `drizzle.config.ts` and DB migrations when changing schemas.
+- `npm run dev`
+- `npm run build`
+- `npm test`
+- `npm run lint`
+- `npm run context:generate`
+- `npm run context:check`
 
-The repository includes a GitHub Action that runs `npm run lint` on pull requests to `main`.
+## High-Value Invariants
 
-If you want, I can also add a PR template—tell me which to add.
+- `app/page.tsx` is a high-fan-in client entrypoint for dashboard state, season filters, modals, and AI flows.
+- Season IDs and date windows are computed from `lib/seasons.ts`; do not assume an active `seasons` table is the runtime source of truth.
+- Some API routes return enriched shapes, not raw table rows. Check current response contracts before changing UI consumers.
+- Ranking logic uses game-level semantics from `app/lib/stats.ts`; confirm whether a task needs games, matches, or both.
+- If code changes alter routes, schema, key task entrypoints, or coupling, regenerate the agent context bundle and commit it.
+
+## Context Maintenance
+
+- Generated files live in `agent-context/*.json`.
+- Manual context lives in `agent-context/overrides.yaml` and `agent-context/notes.md`.
+- CI runs `npm run context:check` on PRs to prevent stale context from merging.

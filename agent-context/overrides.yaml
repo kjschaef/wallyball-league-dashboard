@@ -1,0 +1,59 @@
+overrides:
+  - match: app/page.tsx
+    taskTags: player-crud, match-recording, stats-rankings, season-logic, ai-chatbot
+    notes:
+      - Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints.
+    priority: 100
+    relatedFiles:
+      - app/components/RecordMatchModal.tsx
+      - app/components/PlayerSelectorDialog.tsx
+      - app/components/WinPercentageRankings.tsx
+      - app/components/PerformanceTrend.tsx
+      - app/components/ChatBot.tsx
+  - match: lib/seasons.ts
+    taskTags: season-logic, stats-rankings, ai-chatbot
+    notes:
+      - Season identity is computed from dates and deterministic IDs, not from an active seasons table.
+    priority: 95
+    relatedFiles:
+      - app/api/seasons/route.ts
+      - app/api/seasons/current/route.ts
+      - app/api/player-stats/route.ts
+      - app/api/team-performance/route.ts
+  - match: app/api/players/route.ts
+    taskTags: player-crud, stats-rankings
+    notes:
+      - Returns players enriched with matches and stats; it is not a thin CRUD-only route.
+    priority: 90
+    relatedFiles:
+      - app/players/page.tsx
+      - app/components/PlayerGrid.tsx
+      - app/components/PlayerCard.tsx
+  - match: app/api/matches/route.ts
+    taskTags: match-recording, stats-rankings
+    notes:
+      - Accepts both manual match payloads and image-analysis payloads before inserting a match.
+    priority: 90
+    relatedFiles:
+      - app/api/chatbot/image/route.ts
+      - app/components/RecordMatchModal.tsx
+      - __tests__/api/matches.test.ts
+  - match: app/lib/stats.ts
+    taskTags: stats-rankings, season-logic
+    notes:
+      - This module calculates game-level records from match rows and is a source of ranking semantics.
+    priority: 90
+    relatedFiles:
+      - app/api/player-stats/route.ts
+      - __tests__/api/player-stats.test.ts
+      - __tests__/api/seasonal-player-stats.test.ts
+  - match: app/api/chatbot/route.ts
+    taskTags: ai-chatbot, match-recording
+    notes:
+      - Chatbot behavior is coupled to team suggestion flows and prompt classification, not just free-form chat.
+    priority: 85
+    relatedFiles:
+      - app/components/ChatBot.tsx
+      - app/components/TeamSuggestionModal.tsx
+      - app/lib/openai.ts
+      - app/lib/prompts.ts

@@ -23,3 +23,5 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Check agent context
+        run: npm run context:check

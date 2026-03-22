@@ -1,0 +1,224 @@
+{
+  "schemaVersion": 1,
+  "routes": [
+    {
+      "kind": "page",
+      "route": "/",
+      "file": "app/page.tsx",
+      "params": [],
+      "likelySourceFiles": [
+        "app/components/AISummaryPanel.tsx",
+        "app/components/ChatBot.tsx",
+        "app/components/FloatingActionButton.tsx",
+        "app/components/PerformanceTrend.tsx",
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/components/RecentMatches.tsx",
+        "app/components/RecordMatchModal.tsx",
+        "app/components/WinPercentageRankings.tsx"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/achievements/check/[playerId]",
+      "file": "app/api/achievements/check/[playerId]/route.ts",
+      "params": [
+        "playerId"
+      ],
+      "likelySourceFiles": [
+        "db/index.ts",
+        "db/schema.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/achievements/player/[playerId]",
+      "file": "app/api/achievements/player/[playerId]/route.ts",
+      "params": [
+        "playerId"
+      ],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
+      "route": "/api/chatbot",
+      "file": "app/api/chatbot/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "app/lib/openai.ts",
+        "app/lib/types.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/chatbot/image",
+      "file": "app/api/chatbot/image/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "app/lib/openai.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/daily-summary",
+      "file": "app/api/daily-summary/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "app/lib/openai.ts",
+        "app/lib/stats.ts",
+        "lib/seasons.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/feedback",
+      "file": "app/api/feedback/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
+      "route": "/api/games",
+      "file": "app/api/games/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "db/index.ts",
+        "db/schema.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/games/[id]",
+      "file": "app/api/games/[id]/route.ts",
+      "params": [
+        "id"
+      ],
+      "likelySourceFiles": [
+        "db/index.ts",
+        "db/schema.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/matches",
+      "file": "app/api/matches/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
+      "route": "/api/matches/[id]",
+      "file": "app/api/matches/[id]/route.ts",
+      "params": [
+        "id"
+      ],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
+      "route": "/api/player-stats",
+      "file": "app/api/player-stats/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "app/lib/stats.ts",
+        "lib/seasons.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/player-trends",
+      "file": "app/api/player-trends/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "lib/seasons.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/players",
+      "file": "app/api/players/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
+      "route": "/api/players/[id]",
+      "file": "app/api/players/[id]/route.ts",
+      "params": [
+        "id"
+      ],
+      "likelySourceFiles": [
+        "db/index.ts",
+        "db/schema.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/seasons",
+      "file": "app/api/seasons/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "lib/seasons.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/seasons/current",
+      "file": "app/api/seasons/current/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "lib/seasons.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/team-performance",
+      "file": "app/api/team-performance/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "lib/seasons.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/trends",
+      "file": "app/api/trends/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "page",
+      "route": "/dashboard",
+      "file": "app/dashboard/page.tsx",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "page",
+      "route": "/games",
+      "file": "app/games/page.tsx",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "page",
+      "route": "/players",
+      "file": "app/players/page.tsx",
+      "params": [],
+      "likelySourceFiles": [
+        "app/components/PlayerCard.tsx"
+      ]
+    },
+    {
+      "kind": "page",
+      "route": "/results",
+      "file": "app/results/page.tsx",
+      "params": [],
+      "likelySourceFiles": [
+        "app/components/PlayerCards.tsx",
+        "app/components/SeasonWinners.tsx",
+        "app/components/TopTeams.tsx",
+        "app/components/ui/card.tsx"
+      ]
+    }
+  ]
+}

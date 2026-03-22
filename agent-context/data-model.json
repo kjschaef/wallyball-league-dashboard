@@ -1,0 +1,239 @@
+{
+  "schemaVersion": 1,
+  "schemaFile": "db/schema.ts",
+  "tables": [
+    {
+      "symbol": "achievements",
+      "table": "achievements",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "name",
+          "kind": "text",
+          "column": "name",
+          "references": null
+        },
+        {
+          "field": "description",
+          "kind": "text",
+          "column": "description",
+          "references": null
+        },
+        {
+          "field": "icon",
+          "kind": "text",
+          "column": "icon",
+          "references": null
+        },
+        {
+          "field": "condition",
+          "kind": "text",
+          "column": "condition",
+          "references": null
+        }
+      ],
+      "selectType": "Achievement",
+      "insertType": "NewAchievement",
+      "migrationTouchpoints": [
+        "migrations/0000_light_toro.sql",
+        "migrations/relations.ts",
+        "migrations/schema.ts"
+      ]
+    },
+    {
+      "symbol": "dailySummaries",
+      "table": "daily_summaries",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "date",
+          "kind": "text",
+          "column": "date",
+          "references": null
+        },
+        {
+          "field": "summary",
+          "kind": "text",
+          "column": "summary",
+          "references": null
+        },
+        {
+          "field": "lastMatchId",
+          "kind": "integer",
+          "column": "last_match_id",
+          "references": null
+        },
+        {
+          "field": "createdAt",
+          "kind": "timestamp",
+          "column": "created_at",
+          "references": null
+        }
+      ],
+      "selectType": "DailySummary",
+      "insertType": "NewDailySummary",
+      "migrationTouchpoints": [
+        "migrations/add_daily_summaries.sql"
+      ]
+    },
+    {
+      "symbol": "matches",
+      "table": "matches",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "teamOnePlayerOneId",
+          "kind": "integer",
+          "column": "team_one_player_one_id",
+          "references": "players"
+        },
+        {
+          "field": "teamOnePlayerTwoId",
+          "kind": "integer",
+          "column": "team_one_player_two_id",
+          "references": "players"
+        },
+        {
+          "field": "teamOnePlayerThreeId",
+          "kind": "integer",
+          "column": "team_one_player_three_id",
+          "references": "players"
+        },
+        {
+          "field": "teamTwoPlayerOneId",
+          "kind": "integer",
+          "column": "team_two_player_one_id",
+          "references": "players"
+        },
+        {
+          "field": "teamTwoPlayerTwoId",
+          "kind": "integer",
+          "column": "team_two_player_two_id",
+          "references": "players"
+        },
+        {
+          "field": "teamTwoPlayerThreeId",
+          "kind": "integer",
+          "column": "team_two_player_three_id",
+          "references": "players"
+        },
+        {
+          "field": "teamOneGamesWon",
+          "kind": "integer",
+          "column": "team_one_games_won",
+          "references": null
+        },
+        {
+          "field": "teamTwoGamesWon",
+          "kind": "integer",
+          "column": "team_two_games_won",
+          "references": null
+        },
+        {
+          "field": "date",
+          "kind": "timestamp",
+          "column": "date",
+          "references": null
+        }
+      ],
+      "selectType": "Match",
+      "insertType": "NewMatch",
+      "migrationTouchpoints": [
+        "migrations/0000_light_toro.sql",
+        "migrations/005_remove_seasons.sql",
+        "migrations/add_daily_summaries.sql",
+        "migrations/relations.ts",
+        "migrations/schema.ts"
+      ]
+    },
+    {
+      "symbol": "playerAchievements",
+      "table": "player_achievements",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "playerId",
+          "kind": "integer",
+          "column": "player_id",
+          "references": "players"
+        },
+        {
+          "field": "achievementId",
+          "kind": "integer",
+          "column": "achievement_id",
+          "references": "achievements"
+        },
+        {
+          "field": "unlockedAt",
+          "kind": "timestamp",
+          "column": "unlocked_at",
+          "references": null
+        }
+      ],
+      "selectType": "PlayerAchievement",
+      "insertType": "NewPlayerAchievement",
+      "migrationTouchpoints": [
+        "migrations/0000_light_toro.sql",
+        "migrations/schema.ts"
+      ]
+    },
+    {
+      "symbol": "players",
+      "table": "players",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "name",
+          "kind": "text",
+          "column": "name",
+          "references": null
+        },
+        {
+          "field": "startYear",
+          "kind": "integer",
+          "column": "start_year",
+          "references": null
+        },
+        {
+          "field": "createdAt",
+          "kind": "timestamp",
+          "column": "created_at",
+          "references": null
+        }
+      ],
+      "selectType": "Player",
+      "insertType": "NewPlayer",
+      "migrationTouchpoints": [
+        "migrations/0000_light_toro.sql",
+        "migrations/004_add_inactivity_exemptions.sql",
+        "migrations/relations.ts",
+        "migrations/schema.ts"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1075 @@
+{
+  "schemaVersion": 1,
+  "nodes": [
+    {
+      "file": "app/api/achievements/check/[playerId]/route.ts",
+      "type": "api-route",
+      "tags": [
+        "achievements",
+        "players"
+      ],
+      "imports": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/achievements/player/[playerId]/route.ts",
+      "type": "api-route",
+      "tags": [
+        "achievements",
+        "players"
+      ],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/chatbot/image/route.ts",
+      "type": "api-route",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/lib/openai.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/openai.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/chatbot/route.ts",
+      "type": "api-route",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/lib/openai.ts",
+        "app/lib/types.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/components/ChatBot.tsx",
+        "app/components/TeamSuggestionModal.tsx",
+        "app/lib/openai.ts",
+        "app/lib/prompts.ts",
+        "app/lib/types.ts"
+      ],
+      "overrideNotes": [
+        "Chatbot behavior is coupled to team suggestion flows and prompt classification, not just free-form chat."
+      ]
+    },
+    {
+      "file": "app/api/daily-summary/route.ts",
+      "type": "api-route",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/lib/openai.ts",
+        "app/lib/stats.ts",
+        "lib/seasons.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/openai.ts",
+        "app/lib/stats.ts",
+        "lib/seasons.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/feedback/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/games/[id]/route.ts",
+      "type": "api-route",
+      "tags": [
+        "matches"
+      ],
+      "imports": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/games/route.ts",
+      "type": "api-route",
+      "tags": [
+        "matches"
+      ],
+      "imports": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/matches/[id]/route.ts",
+      "type": "api-route",
+      "tags": [
+        "matches"
+      ],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/matches/route.ts",
+      "type": "api-route",
+      "tags": [
+        "matches"
+      ],
+      "imports": [],
+      "importedBy": [
+        "__tests__/api/matches.test.ts"
+      ],
+      "related": [
+        "__tests__/api/matches.test.ts",
+        "app/api/chatbot/image/route.ts",
+        "app/components/RecordMatchModal.tsx"
+      ],
+      "overrideNotes": [
+        "Accepts both manual match payloads and image-analysis payloads before inserting a match."
+      ]
+    },
+    {
+      "file": "app/api/player-stats/route.ts",
+      "type": "api-route",
+      "tags": [
+        "players",
+        "stats"
+      ],
+      "imports": [
+        "app/lib/stats.ts",
+        "lib/seasons.ts"
+      ],
+      "importedBy": [
+        "__tests__/api/player-stats.test.ts",
+        "__tests__/api/seasonal-player-stats.test.ts"
+      ],
+      "related": [
+        "__tests__/api/player-stats.test.ts",
+        "__tests__/api/seasonal-player-stats.test.ts",
+        "app/lib/stats.ts",
+        "lib/seasons.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/player-trends/route.ts",
+      "type": "api-route",
+      "tags": [
+        "players",
+        "stats"
+      ],
+      "imports": [
+        "lib/seasons.ts"
+      ],
+      "importedBy": [
+        "__tests__/api/player-trends.test.ts"
+      ],
+      "related": [
+        "__tests__/api/player-trends.test.ts",
+        "lib/seasons.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/players/[id]/route.ts",
+      "type": "api-route",
+      "tags": [
+        "players"
+      ],
+      "imports": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/players/route.ts",
+      "type": "api-route",
+      "tags": [
+        "players"
+      ],
+      "imports": [],
+      "importedBy": [],
+      "related": [
+        "app/components/PlayerCard.tsx",
+        "app/components/PlayerGrid.tsx",
+        "app/players/page.tsx"
+      ],
+      "overrideNotes": [
+        "Returns players enriched with matches and stats; it is not a thin CRUD-only route."
+      ]
+    },
+    {
+      "file": "app/api/seasons/current/route.ts",
+      "type": "api-route",
+      "tags": [
+        "seasons"
+      ],
+      "imports": [
+        "lib/seasons.ts"
+      ],
+      "importedBy": [
+        "__tests__/api/seasons.test.ts"
+      ],
+      "related": [
+        "__tests__/api/seasons.test.ts",
+        "lib/seasons.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/seasons/route.ts",
+      "type": "api-route",
+      "tags": [
+        "seasons"
+      ],
+      "imports": [
+        "lib/seasons.ts"
+      ],
+      "importedBy": [
+        "__tests__/api/seasons.test.ts"
+      ],
+      "related": [
+        "__tests__/api/seasons.test.ts",
+        "lib/seasons.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/team-performance/route.ts",
+      "type": "api-route",
+      "tags": [
+        "stats"
+      ],
+      "imports": [
+        "lib/seasons.ts"
+      ],
+      "importedBy": [
+        "__tests__/api/team-performance.test.ts"
+      ],
+      "related": [
+        "__tests__/api/team-performance.test.ts",
+        "lib/seasons.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/trends/route.ts",
+      "type": "api-route",
+      "tags": [
+        "stats"
+      ],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/AISummaryPanel.tsx",
+      "type": "component",
+      "tags": [
+        "ai"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/ChatBot.tsx",
+      "type": "component",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/components/PlayerSelectorDialog.tsx"
+      ],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/FloatingActionButton.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/GameHistory.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/components/RecentMatches.tsx"
+      ],
+      "related": [
+        "app/components/RecentMatches.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/Navbar.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/layout.tsx"
+      ],
+      "related": [
+        "app/layout.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PerformanceControls.tsx",
+      "type": "component",
+      "tags": [
+        "stats"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/components/PerformanceTrend.tsx",
+        "app/components/__tests__/PerformanceControls.test.tsx"
+      ],
+      "related": [
+        "app/components/PerformanceTrend.tsx",
+        "app/components/__tests__/PerformanceControls.test.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PerformanceTrend.tsx",
+      "type": "component",
+      "tags": [
+        "stats"
+      ],
+      "imports": [
+        "app/components/PerformanceControls.tsx",
+        "app/lib/playerFiltering.ts",
+        "app/lib/tooltip.ts"
+      ],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/components/PerformanceControls.tsx",
+        "app/lib/playerFiltering.ts",
+        "app/lib/tooltip.ts",
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PlayerAchievements.tsx",
+      "type": "component",
+      "tags": [
+        "achievements",
+        "players"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/components/PlayerCard.tsx"
+      ],
+      "related": [
+        "app/components/PlayerCard.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PlayerCard.tsx",
+      "type": "component",
+      "tags": [
+        "players"
+      ],
+      "imports": [
+        "app/components/PlayerAchievements.tsx"
+      ],
+      "importedBy": [
+        "app/players/page.tsx"
+      ],
+      "related": [
+        "app/components/PlayerAchievements.tsx",
+        "app/players/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PlayerCards.tsx",
+      "type": "component",
+      "tags": [
+        "players"
+      ],
+      "imports": [
+        "app/hooks/useSeasonChampions.ts"
+      ],
+      "importedBy": [
+        "app/results/page.tsx"
+      ],
+      "related": [
+        "app/hooks/useSeasonChampions.ts",
+        "app/results/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PlayerGrid.tsx",
+      "type": "component",
+      "tags": [
+        "players"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/components/TeamSuggestionModal.tsx"
+      ],
+      "related": [
+        "app/components/TeamSuggestionModal.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PlayerPerformanceRadar.tsx",
+      "type": "component",
+      "tags": [
+        "players",
+        "stats"
+      ],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PlayerSelector.tsx",
+      "type": "component",
+      "tags": [
+        "players"
+      ],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PlayerSelectorDialog.tsx",
+      "type": "component",
+      "tags": [
+        "players"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/components/ChatBot.tsx",
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/components/ChatBot.tsx",
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/Providers.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/layout.tsx"
+      ],
+      "related": [
+        "app/layout.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/RecentMatches.tsx",
+      "type": "component",
+      "tags": [
+        "matches"
+      ],
+      "imports": [
+        "app/components/GameHistory.tsx"
+      ],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/components/GameHistory.tsx",
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/RecordMatchModal.tsx",
+      "type": "component",
+      "tags": [
+        "matches"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/SeasonSelector.tsx",
+      "type": "component",
+      "tags": [
+        "seasons"
+      ],
+      "imports": [],
+      "importedBy": [
+        "__tests__/components/SeasonSelector.test.tsx"
+      ],
+      "related": [
+        "__tests__/components/SeasonSelector.test.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/SeasonWinners.tsx",
+      "type": "component",
+      "tags": [
+        "seasons"
+      ],
+      "imports": [
+        "app/hooks/useSeasonChampions.ts"
+      ],
+      "importedBy": [
+        "app/results/page.tsx"
+      ],
+      "related": [
+        "app/hooks/useSeasonChampions.ts",
+        "app/results/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/TeamSuggestionModal.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [
+        "app/components/PlayerGrid.tsx"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/components/PlayerGrid.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/TopTeams.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [
+        "app/hooks/useTopTeams.ts",
+        "app/lib/constants.ts"
+      ],
+      "importedBy": [
+        "app/results/page.tsx"
+      ],
+      "related": [
+        "app/hooks/useTopTeams.ts",
+        "app/lib/constants.ts",
+        "app/results/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/WinPercentageRankings.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [
+        "app/lib/playerFiltering.ts"
+      ],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/lib/playerFiltering.ts",
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/dashboard/page.tsx",
+      "type": "page",
+      "tags": [],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/games/page.tsx",
+      "type": "page",
+      "tags": [
+        "matches"
+      ],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/hooks/useSeasonChampions.ts",
+      "type": "hook",
+      "tags": [
+        "seasons"
+      ],
+      "imports": [
+        "app/lib/playerFiltering.ts"
+      ],
+      "importedBy": [
+        "app/components/PlayerCards.tsx",
+        "app/components/SeasonWinners.tsx"
+      ],
+      "related": [
+        "app/components/PlayerCards.tsx",
+        "app/components/SeasonWinners.tsx",
+        "app/lib/playerFiltering.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/hooks/useTopTeams.ts",
+      "type": "hook",
+      "tags": [],
+      "imports": [
+        "app/lib/constants.ts"
+      ],
+      "importedBy": [
+        "app/components/TopTeams.tsx"
+      ],
+      "related": [
+        "app/components/TopTeams.tsx",
+        "app/lib/constants.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/__tests__/tooltip.test.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/tooltip.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/tooltip.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/constants.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/components/TopTeams.tsx",
+        "app/hooks/useTopTeams.ts",
+        "app/lib/playerFiltering.ts"
+      ],
+      "related": [
+        "app/components/TopTeams.tsx",
+        "app/hooks/useTopTeams.ts",
+        "app/lib/playerFiltering.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/modelClient.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/lib/openai.ts"
+      ],
+      "related": [
+        "app/lib/openai.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/openai.ts",
+      "type": "app-lib",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/lib/modelClient.ts",
+        "app/lib/prompts.ts",
+        "app/lib/team-balancer.ts",
+        "app/lib/types.ts",
+        "lib/rag.ts"
+      ],
+      "importedBy": [
+        "app/api/chatbot/image/route.ts",
+        "app/api/chatbot/route.ts",
+        "app/api/daily-summary/route.ts"
+      ],
+      "related": [
+        "app/api/chatbot/image/route.ts",
+        "app/api/chatbot/route.ts",
+        "app/api/daily-summary/route.ts",
+        "app/lib/modelClient.ts",
+        "app/lib/prompts.ts",
+        "app/lib/team-balancer.ts",
+        "app/lib/types.ts",
+        "lib/rag.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/playerFiltering.ts",
+      "type": "app-lib",
+      "tags": [
+        "players"
+      ],
+      "imports": [
+        "app/lib/constants.ts"
+      ],
+      "importedBy": [
+        "app/components/PerformanceTrend.tsx",
+        "app/components/WinPercentageRankings.tsx",
+        "app/hooks/useSeasonChampions.ts"
+      ],
+      "related": [
+        "app/components/PerformanceTrend.tsx",
+        "app/components/WinPercentageRankings.tsx",
+        "app/hooks/useSeasonChampions.ts",
+        "app/lib/constants.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/prompts.ts",
+      "type": "app-lib",
+      "tags": [
+        "ai"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/lib/openai.ts"
+      ],
+      "related": [
+        "app/lib/openai.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/stats.ts",
+      "type": "app-lib",
+      "tags": [
+        "stats"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/api/daily-summary/route.ts",
+        "app/api/player-stats/route.ts"
+      ],
+      "related": [
+        "__tests__/api/player-stats.test.ts",
+        "__tests__/api/seasonal-player-stats.test.ts",
+        "app/api/daily-summary/route.ts",
+        "app/api/player-stats/route.ts"
+      ],
+      "overrideNotes": [
+        "This module calculates game-level records from match rows and is a source of ranking semantics."
+      ]
+    },
+    {
+      "file": "app/lib/team-balancer.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/types.ts"
+      ],
+      "importedBy": [
+        "app/lib/openai.ts"
+      ],
+      "related": [
+        "app/lib/openai.ts",
+        "app/lib/types.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/tooltip.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/components/PerformanceTrend.tsx",
+        "app/lib/__tests__/tooltip.test.ts"
+      ],
+      "related": [
+        "app/components/PerformanceTrend.tsx",
+        "app/lib/__tests__/tooltip.test.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/types.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/api/chatbot/route.ts",
+        "app/lib/openai.ts",
+        "app/lib/team-balancer.ts"
+      ],
+      "related": [
+        "app/api/chatbot/route.ts",
+        "app/lib/openai.ts",
+        "app/lib/team-balancer.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/utils.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/components/ui/alert-dialog.tsx",
+        "app/components/ui/button.tsx",
+        "app/components/ui/card.tsx",
+        "app/components/ui/dialog.tsx",
+        "app/components/ui/input.tsx",
+        "app/components/ui/label.tsx"
+      ],
+      "related": [
+        "app/components/ui/alert-dialog.tsx",
+        "app/components/ui/button.tsx",
+        "app/components/ui/card.tsx",
+        "app/components/ui/dialog.tsx",
+        "app/components/ui/input.tsx",
+        "app/components/ui/label.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/page.tsx",
+      "type": "page",
+      "tags": [],
+      "imports": [
+        "app/components/AISummaryPanel.tsx",
+        "app/components/ChatBot.tsx",
+        "app/components/FloatingActionButton.tsx",
+        "app/components/PerformanceTrend.tsx",
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/components/RecentMatches.tsx",
+        "app/components/RecordMatchModal.tsx",
+        "app/components/WinPercentageRankings.tsx"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/components/AISummaryPanel.tsx",
+        "app/components/ChatBot.tsx",
+        "app/components/FloatingActionButton.tsx",
+        "app/components/PerformanceTrend.tsx",
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/components/RecentMatches.tsx",
+        "app/components/RecordMatchModal.tsx",
+        "app/components/WinPercentageRankings.tsx"
+      ],
+      "overrideNotes": [
+        "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints."
+      ]
+    },
+    {
+      "file": "app/players/page.tsx",
+      "type": "page",
+      "tags": [
+        "players"
+      ],
+      "imports": [
+        "app/components/PlayerCard.tsx"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/components/PlayerCard.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/results/page.tsx",
+      "type": "page",
+      "tags": [],
+      "imports": [
+        "app/components/PlayerCards.tsx",
+        "app/components/SeasonWinners.tsx",
+        "app/components/TopTeams.tsx"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/components/PlayerCards.tsx",
+        "app/components/SeasonWinners.tsx",
+        "app/components/TopTeams.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "db/config.ts",
+      "type": "db",
+      "tags": [
+        "database"
+      ],
+      "imports": [
+        "db/schema.ts"
+      ],
+      "importedBy": [
+        "db/index.ts"
+      ],
+      "related": [
+        "db/index.ts",
+        "db/schema.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "db/index.ts",
+      "type": "db",
+      "tags": [
+        "database"
+      ],
+      "imports": [
+        "db/config.ts"
+      ],
+      "importedBy": [
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/api/games/[id]/route.ts",
+        "app/api/games/route.ts",
+        "app/api/players/[id]/route.ts"
+      ],
+      "related": [
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/api/games/[id]/route.ts",
+        "app/api/games/route.ts",
+        "app/api/players/[id]/route.ts",
+        "db/config.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "db/schema.ts",
+      "type": "db",
+      "tags": [
+        "database"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/api/games/[id]/route.ts",
+        "app/api/games/route.ts",
+        "app/api/players/[id]/route.ts",
+        "db/config.ts"
+      ],
+      "related": [
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/api/games/[id]/route.ts",
+        "app/api/games/route.ts",
+        "app/api/players/[id]/route.ts",
+        "db/config.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "lib/rag.ts",
+      "type": "lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/lib/openai.ts"
+      ],
+      "related": [
+        "app/lib/openai.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "lib/seasons.ts",
+      "type": "lib",
+      "tags": [
+        "seasons"
+      ],
+      "imports": [],
+      "importedBy": [
+        "__tests__/api/seasons.test.ts",
+        "app/api/daily-summary/route.ts",
+        "app/api/player-stats/route.ts",
+        "app/api/player-trends/route.ts",
+        "app/api/seasons/current/route.ts",
+        "app/api/seasons/route.ts",
+        "app/api/team-performance/route.ts"
+      ],
+      "related": [
+        "__tests__/api/seasons.test.ts",
+        "app/api/daily-summary/route.ts",
+        "app/api/player-stats/route.ts",
+        "app/api/player-trends/route.ts",
+        "app/api/seasons/current/route.ts",
+        "app/api/seasons/route.ts",
+        "app/api/team-performance/route.ts"
+      ],
+      "overrideNotes": [
+        "Season identity is computed from dates and deterministic IDs, not from an active seasons table."
+      ]
+    }
+  ]
+}
