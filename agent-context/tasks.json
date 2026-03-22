@@ -1,0 +1,274 @@
+{
+  "schemaVersion": 1,
+  "tasks": [
+    {
+      "taskId": "player-crud",
+      "title": "Player CRUD",
+      "triggers": [
+        "player",
+        "players",
+        "add player",
+        "edit player",
+        "delete player"
+      ],
+      "startFiles": [
+        "app/api/players/route.ts",
+        "app/api/players/[id]/route.ts",
+        "app/players/page.tsx",
+        "app/page.tsx",
+        "db/schema.ts"
+      ],
+      "secondaryFiles": [
+        "app/components/AISummaryPanel.tsx",
+        "app/components/ChatBot.tsx",
+        "app/components/FloatingActionButton.tsx",
+        "app/components/PerformanceTrend.tsx",
+        "app/components/PlayerAchievements.tsx",
+        "app/components/PlayerCard.tsx",
+        "app/components/PlayerCards.tsx",
+        "app/components/PlayerGrid.tsx",
+        "app/components/PlayerPerformanceRadar.tsx",
+        "app/components/PlayerSelector.tsx",
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/components/RecentMatches.tsx"
+      ],
+      "testCommands": [
+        "npm test"
+      ],
+      "mappedTests": [],
+      "riskAreas": [
+        "API responses are enriched and consumed directly by UI components.",
+        "Deleting players is blocked when match history exists."
+      ],
+      "notes": [
+        "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints.",
+        "Returns players enriched with matches and stats; it is not a thin CRUD-only route."
+      ]
+    },
+    {
+      "taskId": "match-recording",
+      "title": "Match Recording",
+      "triggers": [
+        "match",
+        "record match",
+        "games",
+        "score entry",
+        "record result"
+      ],
+      "startFiles": [
+        "app/components/RecordMatchModal.tsx",
+        "app/api/matches/route.ts",
+        "app/api/games/route.ts",
+        "app/page.tsx",
+        "db/schema.ts"
+      ],
+      "secondaryFiles": [
+        "__tests__/api/matches.test.ts",
+        "app/api/chatbot/image/route.ts",
+        "app/components/AISummaryPanel.tsx",
+        "app/components/ChatBot.tsx",
+        "app/components/FloatingActionButton.tsx",
+        "app/components/GameHistory.tsx",
+        "app/components/PerformanceTrend.tsx",
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/components/RecentMatches.tsx",
+        "app/components/TeamSuggestionModal.tsx",
+        "app/components/WinPercentageRankings.tsx",
+        "app/lib/openai.ts"
+      ],
+      "testCommands": [
+        "npm test -- __tests__/api/matches.test.ts"
+      ],
+      "mappedTests": [
+        "__tests__/api/matches.test.ts"
+      ],
+      "riskAreas": [
+        "Team slots are positional and support up to three players per side.",
+        "POST /api/matches accepts both direct form payloads and image-analysis payloads."
+      ],
+      "notes": [
+        "Accepts both manual match payloads and image-analysis payloads before inserting a match.",
+        "Chatbot behavior is coupled to team suggestion flows and prompt classification, not just free-form chat.",
+        "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints."
+      ]
+    },
+    {
+      "taskId": "stats-rankings",
+      "title": "Stats and Rankings",
+      "triggers": [
+        "stats",
+        "rankings",
+        "trend",
+        "win percentage",
+        "performance"
+      ],
+      "startFiles": [
+        "app/api/player-stats/route.ts",
+        "app/lib/stats.ts",
+        "app/components/WinPercentageRankings.tsx",
+        "app/components/PerformanceTrend.tsx",
+        "app/api/team-performance/route.ts"
+      ],
+      "secondaryFiles": [
+        "__tests__/api/matches.test.ts",
+        "__tests__/api/player-stats.test.ts",
+        "__tests__/api/seasonal-player-stats.test.ts",
+        "app/api/chatbot/image/route.ts",
+        "app/api/daily-summary/route.ts",
+        "app/api/seasons/current/route.ts",
+        "app/api/seasons/route.ts",
+        "app/components/ChatBot.tsx",
+        "app/components/PerformanceControls.tsx",
+        "app/components/PlayerCard.tsx",
+        "app/components/PlayerCards.tsx",
+        "app/components/PlayerGrid.tsx"
+      ],
+      "testCommands": [
+        "npm test -- __tests__/api/player-stats.test.ts __tests__/api/player-trends.test.ts __tests__/api/seasonal-player-stats.test.ts __tests__/api/team-performance.test.ts app/components/__tests__/PerformanceControls.test.tsx"
+      ],
+      "mappedTests": [
+        "__tests__/api/player-stats.test.ts",
+        "__tests__/api/player-trends.test.ts",
+        "__tests__/api/seasonal-player-stats.test.ts",
+        "__tests__/api/team-performance.test.ts",
+        "app/components/__tests__/PerformanceControls.test.tsx"
+      ],
+      "riskAreas": [
+        "The repo mixes match-level and game-level statistics; verify semantics before editing.",
+        "Several ranking surfaces depend on season filtering and shared player stat shapes."
+      ],
+      "notes": [
+        "Accepts both manual match payloads and image-analysis payloads before inserting a match.",
+        "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints.",
+        "Returns players enriched with matches and stats; it is not a thin CRUD-only route.",
+        "Season identity is computed from dates and deterministic IDs, not from an active seasons table.",
+        "This module calculates game-level records from match rows and is a source of ranking semantics."
+      ]
+    },
+    {
+      "taskId": "season-logic",
+      "title": "Season Logic",
+      "triggers": [
+        "season",
+        "quarter",
+        "current season",
+        "historical season"
+      ],
+      "startFiles": [
+        "lib/seasons.ts",
+        "app/api/seasons/route.ts",
+        "app/api/seasons/current/route.ts",
+        "app/components/SeasonSelector.tsx",
+        "app/hooks/useTopTeams.ts"
+      ],
+      "secondaryFiles": [
+        "__tests__/api/player-stats.test.ts",
+        "__tests__/api/seasonal-player-stats.test.ts",
+        "__tests__/api/seasons.test.ts",
+        "__tests__/components/SeasonSelector.test.tsx",
+        "app/api/daily-summary/route.ts",
+        "app/api/player-stats/route.ts",
+        "app/api/player-trends/route.ts",
+        "app/api/team-performance/route.ts",
+        "app/components/AISummaryPanel.tsx",
+        "app/components/ChatBot.tsx",
+        "app/components/FloatingActionButton.tsx",
+        "app/components/PerformanceTrend.tsx"
+      ],
+      "testCommands": [
+        "npm test -- __tests__/api/seasonal-player-stats.test.ts __tests__/api/seasons.test.ts __tests__/components/SeasonSelector.test.tsx"
+      ],
+      "mappedTests": [
+        "__tests__/api/seasonal-player-stats.test.ts",
+        "__tests__/api/seasons.test.ts",
+        "__tests__/components/SeasonSelector.test.tsx"
+      ],
+      "riskAreas": [
+        "Season IDs are computed, not stored as an actively managed table.",
+        "Quarterly, annual, current, and lifetime season modes share the same APIs."
+      ],
+      "notes": [
+        "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints.",
+        "Season identity is computed from dates and deterministic IDs, not from an active seasons table.",
+        "This module calculates game-level records from match rows and is a source of ranking semantics."
+      ]
+    },
+    {
+      "taskId": "ai-chatbot",
+      "title": "AI and Chatbot",
+      "triggers": [
+        "ai",
+        "chatbot",
+        "summary",
+        "prompt",
+        "image analysis",
+        "team suggestion"
+      ],
+      "startFiles": [
+        "app/api/chatbot/route.ts",
+        "app/components/ChatBot.tsx",
+        "app/lib/openai.ts",
+        "app/lib/prompts.ts",
+        "lib/rag.ts"
+      ],
+      "secondaryFiles": [
+        "app/api/chatbot/image/route.ts",
+        "app/api/daily-summary/route.ts",
+        "app/api/player-stats/route.ts",
+        "app/api/seasons/current/route.ts",
+        "app/api/seasons/route.ts",
+        "app/api/team-performance/route.ts",
+        "app/components/AISummaryPanel.tsx",
+        "app/components/FloatingActionButton.tsx",
+        "app/components/PerformanceTrend.tsx",
+        "app/components/PlayerGrid.tsx",
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/components/RecentMatches.tsx"
+      ],
+      "testCommands": [
+        "npm test"
+      ],
+      "mappedTests": [],
+      "riskAreas": [
+        "Prompt behavior depends on season-aware stat payloads and RAG content.",
+        "The dashboard root page launches AI flows and team suggestion workflows."
+      ],
+      "notes": [
+        "Chatbot behavior is coupled to team suggestion flows and prompt classification, not just free-form chat.",
+        "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints.",
+        "Season identity is computed from dates and deterministic IDs, not from an active seasons table."
+      ]
+    },
+    {
+      "taskId": "achievements",
+      "title": "Achievements",
+      "triggers": [
+        "achievement",
+        "badge",
+        "milestone"
+      ],
+      "startFiles": [
+        "app/api/achievements/player/[playerId]/route.ts",
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/components/PlayerAchievements.tsx",
+        "db/schema.ts"
+      ],
+      "secondaryFiles": [
+        "app/api/games/[id]/route.ts",
+        "app/api/games/route.ts",
+        "app/api/players/[id]/route.ts",
+        "app/components/PlayerCard.tsx",
+        "db/config.ts"
+      ],
+      "testCommands": [
+        "npm test"
+      ],
+      "mappedTests": [],
+      "riskAreas": [
+        "Achievement state spans both definitions and player-achievement joins.",
+        "UI and APIs assume achievement metadata and unlock timestamps are present together."
+      ],
+      "notes": []
+    }
+  ]
+}

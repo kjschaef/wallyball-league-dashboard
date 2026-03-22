@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "repo": {
+    "name": "volleyball-league-management-next",
+    "contextGoal": "Minimize lookup tokens for agents making changes in this repo.",
+    "defaultReadOrder": [
+      "AGENTS.md",
+      "agent-context/index.json",
+      "agent-context/tasks.json"
+    ],
+    "routeCount": 23,
+    "taskCount": 6
+  },
+  "commands": [
+    {
+      "name": "dev",
+      "command": "npm run dev"
+    },
+    {
+      "name": "build",
+      "command": "npm run build"
+    },
+    {
+      "name": "test",
+      "command": "npm test"
+    },
+    {
+      "name": "lint",
+      "command": "npm run lint"
+    },
+    {
+      "name": "context:generate",
+      "command": "npm run context:generate"
+    },
+    {
+      "name": "context:check",
+      "command": "npm run context:check"
+    }
+  ],
+  "subsystems": [
+    {
+      "id": "dashboard",
+      "files": [
+        "app/page.tsx",
+        "app/components/RecordMatchModal.tsx",
+        "app/components/WinPercentageRankings.tsx"
+      ]
+    },
+    {
+      "id": "api",
+      "files": [
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/api/achievements/player/[playerId]/route.ts",
+        "app/api/chatbot/route.ts",
+        "app/api/chatbot/image/route.ts",
+        "app/api/daily-summary/route.ts",
+        "app/api/feedback/route.ts",
+        "app/api/games/route.ts",
+        "app/api/games/[id]/route.ts"
+      ]
+    },
+    {
+      "id": "stats",
+      "files": [
+        "app/api/player-stats/route.ts",
+        "app/lib/stats.ts",
+        "app/api/team-performance/route.ts"
+      ]
+    },
+    {
+      "id": "seasons",
+      "files": [
+        "lib/seasons.ts",
+        "app/api/seasons/route.ts",
+        "app/components/SeasonSelector.tsx"
+      ]
+    },
+    {
+      "id": "ai",
+      "files": [
+        "app/api/chatbot/route.ts",
+        "app/components/ChatBot.tsx",
+        "app/lib/openai.ts"
+      ]
+    }
+  ],
+  "entrypoints": [
+    {
+      "id": "dashboard-root",
+      "file": "app/page.tsx",
+      "reason": "Primary client-side orchestration surface."
+    },
+    {
+      "id": "routes-index",
+      "file": "agent-context/routes.json",
+      "reason": "Fast lookup for app pages and API handlers."
+    },
+    {
+      "id": "data-model",
+      "file": "db/schema.ts",
+      "reason": "Primary schema and type source of truth."
+    },
+    {
+      "id": "tasks-index",
+      "file": "agent-context/tasks.json",
+      "reason": "Task-to-entrypoint routing for common changes."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "agent-context/index.json",
+      "generated": true
+    },
+    {
+      "path": "agent-context/routes.json",
+      "generated": true
+    },
+    {
+      "path": "agent-context/data-model.json",
+      "generated": true
+    },
+    {
+      "path": "agent-context/tasks.json",
+      "generated": true
+    },
+    {
+      "path": "agent-context/tests.json",
+      "generated": true
+    },
+    {
+      "path": "agent-context/graph.json",
+      "generated": true
+    },
+    {
+      "path": "agent-context/overrides.yaml",
+      "generated": false
+    },
+    {
+      "path": "agent-context/notes.md",
+      "generated": false
+    }
+  ]
+}
