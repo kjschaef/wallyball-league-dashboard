@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateDailySummary } from '../../lib/openai';
+import { generateDailySummary, PlayerSummaryStats, RecentMatch } from '../../lib/openai';
 import { neon } from '@neondatabase/serverless';
 import { calculatePlayerStats } from '../../lib/stats';
 import { getCurrentSeasonByDate } from '../../../lib/seasons';
@@ -23,10 +23,18 @@ export async function GET() {
         // Get current season info to filter matches
         const currentSeason = getCurrentSeasonByDate(now);
 
-        const [allMatches, allPlayers] = await Promise.all([
-            sql`SELECT * FROM matches WHERE date >= ${currentSeason.start_date} AND date <= ${tomorrow} ORDER BY date DESC, id DESC`,
+        const [allTimeMatches, allPlayers] = await Promise.all([
+            sql`SELECT * FROM matches ORDER BY date DESC, id DESC`,
             sql`SELECT * FROM players ORDER BY created_at DESC`
         ]);
+
+        // Filter to current season in JS — avoids a second DB round trip
+        const seasonStart = new Date(currentSeason.start_date).getTime();
+        const tomorrowTime = tomorrow.getTime();
+        const allMatches = allTimeMatches.filter((m: any) => {
+            const t = new Date(m.date).getTime();
+            return t >= seasonStart && t <= tomorrowTime;
+        });
 
         // Get the most recent match date for cache key
         let cacheKey = 'no-matches';
@@ -63,40 +71,39 @@ export async function GET() {
 
         console.log('[daily-summary] Generating new summary for', cacheKey);
 
-        // Fetch all-time matches for lifetime stats
-        const allTimeMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
-
-        // Calculate player stats (season and lifetime)
-        const [playerStats, lifetimePlayerStats] = await Promise.all([
-            calculatePlayerStats(allPlayers, allMatches, sql, 'current', null),
-            calculatePlayerStats(allPlayers, allTimeMatches, sql, 'lifetime', null)
-        ]);
+        // Calculate season stats; attempt lifetime stats with fallback
+        let lifetimePlayerStats;
+        try {
+            lifetimePlayerStats = await calculatePlayerStats(allPlayers, allTimeMatches, sql, 'lifetime', null);
+        } catch (err) {
+            console.error('[daily-summary] ✗ Failed to calculate lifetime stats, falling back to season stats:', err);
+            lifetimePlayerStats = null;
+        }
+        const playerStats = await calculatePlayerStats(allPlayers, allMatches, sql, 'current', null);
 
         // Get matches from the last day with games
-        let recentMatches: any[] = [];
+        let recentMatches: RecentMatch[] = [];
         if (allMatches.length > 0) {
             const matches = allMatches.map((m: any) => ({
                 ...m,
                 date: new Date(m.date).toISOString()
             }));
-
             const mostRecentDate = new Date(matches[0].date).toISOString().split('T')[0];
             recentMatches = matches.filter((m: any) => new Date(m.date).toISOString().split('T')[0] === mostRecentDate);
         }
 
-        // Optimize payload for LLM: only send essential stats
-        const seasonStats = playerStats.map(p => ({
+        // Build lifetime lookup and merge with season stats
+        const lifetimeLookup = new Map(
+            (lifetimePlayerStats ?? playerStats).map(p => [p.name, p.record.totalGames])
+        );
+        const mergedStats: PlayerSummaryStats[] = playerStats.map(p => ({
             name: p.name,
+            seasonGames: p.record.totalGames,
+            lifetimeGames: lifetimeLookup.get(p.name) ?? p.record.totalGames,
             winPercentage: p.winPercentage,
-            seasonGames: p.record.totalGames
         }));
 
-        const lifetimeStats = lifetimePlayerStats.map(p => ({
-            name: p.name,
-            lifetimeGames: p.record.totalGames
-        }));
-
-        const summary = await generateDailySummary(recentMatches, seasonStats, lifetimeStats);
+        const summary = await generateDailySummary(recentMatches, mergedStats);
 
         // Cache the generated summary
         try {

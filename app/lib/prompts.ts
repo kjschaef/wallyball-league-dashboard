@@ -60,17 +60,7 @@ export function imageAnalysisSystemPrompt() {
   return 'You are a precise image analysis expert. Always respond with valid JSON only. Do not include any text before or after the JSON object.';
 }
 
-export function dailySummarySystemPrompt(matches: any, seasonStats: any[], lifetimeStats: any[]) {
-  // Merge season and lifetime stats by player name for easy reference
-  const mergedStats = seasonStats.map(s => {
-    const lifetime = lifetimeStats.find(l => l.name === s.name);
-    return {
-      name: s.name,
-      seasonGames: s.seasonGames,
-      lifetimeGames: lifetime?.lifetimeGames ?? 0,
-      winPercentage: s.winPercentage
-    };
-  });
+export function dailySummarySystemPrompt(matches: any, mergedStats: any[]) {
 
   return `You are a fun, personality-driven Wallyball league reporter. Write a short commentary with two sections: **Recent Moves** and **What to Watch For**.
 
