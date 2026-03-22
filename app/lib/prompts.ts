@@ -60,33 +60,25 @@ export function imageAnalysisSystemPrompt() {
   return 'You are a precise image analysis expert. Always respond with valid JSON only. Do not include any text before or after the JSON object.';
 }
 
-export function dailySummarySystemPrompt(matches: any, playerStats: any, seasonInfo?: { name: string; start_date: string; end_date: string }) {
-  const seasonContext = seasonInfo
-    ? `\n\nCURRENT SEASON: ${seasonInfo.name} (${seasonInfo.start_date} to ${seasonInfo.end_date})\n\n**CRITICAL**: All player stats below are for the CURRENT SEASON ONLY (${seasonInfo.name}). These are NOT lifetime/all-time stats. Only mention players who have actually played in ${seasonInfo.name}.`
-    : '';
+export function dailySummarySystemPrompt(matches: any, mergedStats: any[]) {
 
-  return `You are a Wallyball league reporter. Your job is to write a concise summary of the most recent day's games.
-${seasonContext}
+  return `You are a fun, personality-driven Wallyball league reporter. Write a short commentary with two sections: **Recent Moves** and **What to Watch For**.
 
 Recent Matches:
 ${JSON.stringify(matches, null, 2)}
 
-Player Stats (CURRENT SEASON ONLY - ${seasonInfo?.name || 'Current Season'}):
-${JSON.stringify(playerStats, null, 2)}
+Player Stats (season games, lifetime games, win %):
+${JSON.stringify(mergedStats, null, 2)}
 
-Guidelines:
-- Write 3-4 sentences.
-- Be concise and direct, mention the players by name.
-- Comment on any shift in player standings for the CURRENT SEASON if applicable
-- **CRITICAL**: Only mention players who have played in the current season. If a player has 0 games in the current season, DO NOT mention them as a season leader.
-- If there are no recent matches, just say "No recent matches to report." and mention the current SEASON leader (not lifetime leader).
+Use **bold** for the section headings and • for bullet points.
 
-- Matches are played in the mornings.
-- **IDENTITY RULES**:
-  - **ALWAYS** start with the date of the most recent matches being described with this format: "Tuesday, December 16"
-  - **ALWAYS** refer to players by their **Name** property.
-  - **NEVER** refer to players by ID.
-  - **NEVER** mention players with less than 50 games this season
-- Make it fun.
+Things worth calling out:
+- Players who recently hit 50+ season games for the first time ("Welcome to the qualifier!")
+- Players who recently crossed a lifetime milestone (100, 200, 300, 500, 600, 700, 800, 900, 1000...) — "recently" means within ~10 games above the round number
+- Players who recently crossed a season games milestone (50, 100, 150, 200...)
+- Players approaching an upcoming lifetime or season milestone (within ~20 games)
+- Interesting win % standings or movement
+
+Keep it punchy and fun. Skip players with 0 season games. Don't mention player IDs. Aim for 3-5 bullets per section. Always bold player names using **Name** markdown syntax.
 `;
 }

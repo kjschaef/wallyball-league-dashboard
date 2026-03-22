@@ -10,10 +10,29 @@ import {
 
 // Model client handles OpenAI initialization and model selection
 
+export interface PlayerSummaryStats {
+  name: string;
+  seasonGames: number;
+  lifetimeGames: number;
+  winPercentage: number;
+}
+
+export interface RecentMatch {
+  id: number;
+  date: string;
+  team_one_games_won: number;
+  team_two_games_won: number;
+  team_one_player_one_id: number | null;
+  team_one_player_two_id: number | null;
+  team_one_player_three_id: number | null;
+  team_two_player_one_id: number | null;
+  team_two_player_two_id: number | null;
+  team_two_player_three_id: number | null;
+}
+
 export async function generateDailySummary(
-  matches: any[],
-  playerStats: any[],
-  seasonInfo?: { name: string; start_date: string; end_date: string }
+  matches: RecentMatch[],
+  mergedStats: PlayerSummaryStats[]
 ): Promise<string> {
   try {
     const response = await createChatCompletion({
@@ -21,7 +40,7 @@ export async function generateDailySummary(
       messages: [
         {
           role: "system",
-          content: dailySummarySystemPrompt(matches, playerStats, seasonInfo)
+          content: dailySummarySystemPrompt(matches, mergedStats)
         },
         {
           role: "user",
