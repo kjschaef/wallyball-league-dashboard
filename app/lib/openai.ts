@@ -12,8 +12,8 @@ import {
 
 export async function generateDailySummary(
   matches: any[],
-  playerStats: any[],
-  seasonInfo?: { name: string; start_date: string; end_date: string }
+  seasonStats: any[],
+  lifetimeStats: any[]
 ): Promise<string> {
   try {
     const response = await createChatCompletion({
@@ -21,7 +21,7 @@ export async function generateDailySummary(
       messages: [
         {
           role: "system",
-          content: dailySummarySystemPrompt(matches, playerStats, seasonInfo)
+          content: dailySummarySystemPrompt(matches, seasonStats, lifetimeStats)
         },
         {
           role: "user",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { SparklesIcon } from '@heroicons/react/24/solid';
+import ReactMarkdown from 'react-markdown';
 
 interface AISummaryPanelProps {
     onAskAI?: () => void;
@@ -61,7 +62,7 @@ export function AISummaryPanel({ onAskAI }: AISummaryPanelProps) {
                     </h2>
                 </div>
                 <div className="prose prose-sm max-w-none text-gray-700 mb-3">
-                    <p className="whitespace-pre-line">{summary}</p>
+                    <ReactMarkdown>{summary}</ReactMarkdown>
                 </div>
                 {onAskAI && (
                     <button

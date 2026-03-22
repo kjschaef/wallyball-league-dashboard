@@ -63,8 +63,14 @@ export async function GET() {
 
         console.log('[daily-summary] Generating new summary for', cacheKey);
 
-        // Calculate player stats
-        const playerStats = await calculatePlayerStats(allPlayers, allMatches, sql, 'current', null);
+        // Fetch all-time matches for lifetime stats
+        const allTimeMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
+
+        // Calculate player stats (season and lifetime)
+        const [playerStats, lifetimePlayerStats] = await Promise.all([
+            calculatePlayerStats(allPlayers, allMatches, sql, 'current', null),
+            calculatePlayerStats(allPlayers, allTimeMatches, sql, 'lifetime', null)
+        ]);
 
         // Get matches from the last day with games
         let recentMatches: any[] = [];
@@ -79,13 +85,18 @@ export async function GET() {
         }
 
         // Optimize payload for LLM: only send essential stats
-        const simplifiedStats = playerStats.map(p => ({
+        const seasonStats = playerStats.map(p => ({
             name: p.name,
             winPercentage: p.winPercentage,
-            record: p.record
+            seasonGames: p.record.totalGames
         }));
 
-        const summary = await generateDailySummary(recentMatches, simplifiedStats);
+        const lifetimeStats = lifetimePlayerStats.map(p => ({
+            name: p.name,
+            lifetimeGames: p.record.totalGames
+        }));
+
+        const summary = await generateDailySummary(recentMatches, seasonStats, lifetimeStats);
 
         // Cache the generated summary
         try {
