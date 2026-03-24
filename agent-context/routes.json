@@ -40,6 +40,13 @@
     },
     {
       "kind": "api",
+      "route": "/api/auth",
+      "file": "app/api/auth/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
       "route": "/api/chatbot",
       "file": "app/api/chatbot/route.ts",
       "params": [],
@@ -171,6 +178,20 @@
     },
     {
       "kind": "api",
+      "route": "/api/settings",
+      "file": "app/api/settings/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
+      "route": "/api/signups",
+      "file": "app/api/signups/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
       "route": "/api/team-performance",
       "file": "app/api/team-performance/route.ts",
       "params": [],
@@ -218,6 +239,24 @@
         "app/components/SeasonWinners.tsx",
         "app/components/TopTeams.tsx",
         "app/components/ui/card.tsx"
+      ]
+    },
+    {
+      "kind": "page",
+      "route": "/settings",
+      "file": "app/settings/page.tsx",
+      "params": [],
+      "likelySourceFiles": [
+        "app/components/AdminLoginModal.tsx"
+      ]
+    },
+    {
+      "kind": "page",
+      "route": "/signups",
+      "file": "app/signups/page.tsx",
+      "params": [],
+      "likelySourceFiles": [
+        "app/components/AdminLoginModal.tsx"
       ]
     }
   ]

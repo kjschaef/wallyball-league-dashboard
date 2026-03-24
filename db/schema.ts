@@ -63,6 +63,27 @@ export const dailySummaries = pgTable("daily_summaries", {
   dateIdx: index("daily_summary_date_idx").on(table.date),
 }));
 
+// Site settings
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  adminPasswordHash: text("admin_password_hash"),
+  signupOpenDayOfWeek: integer("signup_open_day_of_week").default(0), // 0 = Sunday
+  signupOpenTime: text("signup_open_time").default("12:00"), // HH:mm
+  availableDays: text("available_days").default(JSON.stringify(["Monday", "Tuesday", "Thursday"])),
+});
+
+// Weekly signups
+export const weeklySignups = pgTable("weekly_signups", {
+  id: serial("id").primaryKey(),
+  playerId: integer("player_id").references(() => players.id).notNull(),
+  date: text("date").notNull(), // YYYY-MM-DD
+  status: text("status").notNull().default("registered"), // "registered" or "waitlisted"
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  dateIdx: index("weekly_signup_date_idx").on(table.date),
+  playerDateIdx: index("weekly_signup_player_date_idx").on(table.playerId, table.date),
+}));
+
 export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
 export const insertMatchSchema = createInsertSchema(matches);
@@ -75,6 +96,12 @@ export const selectPlayerAchievementSchema = createSelectSchema(playerAchievemen
 export const insertDailySummarySchema = createInsertSchema(dailySummaries);
 export const selectDailySummarySchema = createSelectSchema(dailySummaries);
 
+export const insertSiteSettingSchema = createInsertSchema(siteSettings);
+export const selectSiteSettingSchema = createSelectSchema(siteSettings);
+
+export const insertWeeklySignupSchema = createInsertSchema(weeklySignups);
+export const selectWeeklySignupSchema = createSelectSchema(weeklySignups);
+
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type Match = typeof matches.$inferSelect;
@@ -86,3 +113,9 @@ export type NewPlayerAchievement = typeof playerAchievements.$inferInsert;
 
 export type DailySummary = typeof dailySummaries.$inferSelect;
 export type NewDailySummary = typeof dailySummaries.$inferInsert;
+
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type NewSiteSetting = typeof siteSettings.$inferInsert;
+
+export type WeeklySignup = typeof weeklySignups.$inferSelect;
+export type NewWeeklySignup = typeof weeklySignups.$inferInsert;
