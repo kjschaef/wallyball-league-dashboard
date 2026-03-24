@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AdminLoginModal } from '../components/AdminLoginModal';
-import { X, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface Settings {
   signupOpenDayOfWeek: number;
@@ -72,8 +72,12 @@ export default function SettingsPage() {
         const data = await response.json();
         throw new Error(data.error || 'Failed to save settings');
       }
-    } catch (error: any) {
-      setMessage({ text: error.message, type: 'error' });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setMessage({ text: error.message, type: 'error' });
+      } else {
+        setMessage({ text: String(error), type: 'error' });
+      }
     } finally {
       setIsSaving(false);
     }

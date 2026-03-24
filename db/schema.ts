@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, index, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const players = pgTable("players", {

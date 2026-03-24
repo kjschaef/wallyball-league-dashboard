@@ -25,10 +25,6 @@ interface Settings {
   availableDays: string[];
 }
 
-const DAY_MAP: Record<string, Day> = {
-  "Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, "Friday": 5, "Saturday": 6
-};
-
 export default function SignupsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [now, setNow] = useState<Date | null>(null);
@@ -71,11 +67,11 @@ export default function SignupsPage() {
     const dates: string[] = [];
     
     // 1. Current Week (Sun to Sat)
-    let currentWeekStart = new Date(now);
+    const currentWeekStart = new Date(now);
     currentWeekStart.setDate(now.getDate() - now.getDay()); // Sunday
     
     // 2. Next Week (Sun to Sat)
-    let nextWeekStart = new Date(currentWeekStart);
+    const nextWeekStart = new Date(currentWeekStart);
     nextWeekStart.setDate(currentWeekStart.getDate() + 7);
     
     const generateWeekDates = (weekStart: Date) => {
@@ -192,7 +188,7 @@ export default function SignupsPage() {
   const nextOpenDate = settings ? (() => {
     const baseNow = new Date();
     const [hours, minutes] = settings.signupOpenTime.split(':').map(Number);
-    let openDateTime = new Date();
+    const openDateTime = new Date();
     openDateTime.setHours(hours, minutes, 0, 0);
 
     let daysUntilOpen = (settings.signupOpenDayOfWeek - openDateTime.getDay() + 7) % 7;
@@ -214,7 +210,7 @@ export default function SignupsPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       {isCountdownActive && nextOpenDate && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 flex flex-col items-center justify-center text-blue-800 shadow-sm">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-blue-600 mb-2 mt-1">Next Week's Signups Open In</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-blue-600 mb-2 mt-1">Next Week&apos;s Signups Open In</h2>
             <div className="text-4xl font-mono font-bold tabular-nums mb-2">
                 {days > 0 && `${days}d `}
                 {hours.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
