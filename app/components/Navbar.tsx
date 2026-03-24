@@ -36,6 +36,18 @@ export function Navbar() {
           >
             Results
           </Link>
+          <Link 
+            href="/signups" 
+            className={`px-3 py-2 rounded ${isActive('/signups') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+          >
+            Signups
+          </Link>
+          <Link 
+            href="/settings" 
+            className={`px-3 py-2 rounded ${isActive('/settings') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+          >
+            Settings
+          </Link>
         </div>
       </div>
     </nav>

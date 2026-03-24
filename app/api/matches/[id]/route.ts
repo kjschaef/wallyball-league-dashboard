@@ -1,5 +1,6 @@
 
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
 
 export async function GET(
@@ -81,6 +82,10 @@ export async function PUT(
 ) {
   const resolvedParams = await params;
   const matchId = parseInt(resolvedParams.id);
+  
+  const isAdmin = cookies().get('admin_token')?.value === 'true';
+  if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const body = await request.json();
 
   if (isNaN(matchId)) {
@@ -171,6 +176,9 @@ export async function DELETE(
 ) {
   const resolvedParams = await params;
   const matchId = parseInt(resolvedParams.id);
+
+  const isAdmin = cookies().get('admin_token')?.value === 'true';
+  if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   if (isNaN(matchId)) {
     return NextResponse.json(

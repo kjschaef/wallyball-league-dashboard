@@ -231,8 +231,91 @@
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
         "migrations/004_add_inactivity_exemptions.sql",
+        "migrations/007_add_signups.sql",
         "migrations/relations.ts",
         "migrations/schema.ts"
+      ]
+    },
+    {
+      "symbol": "siteSettings",
+      "table": "site_settings",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "adminPasswordHash",
+          "kind": "text",
+          "column": "admin_password_hash",
+          "references": null
+        },
+        {
+          "field": "signupOpenDayOfWeek",
+          "kind": "integer",
+          "column": "signup_open_day_of_week",
+          "references": null
+        },
+        {
+          "field": "signupOpenTime",
+          "kind": "text",
+          "column": "signup_open_time",
+          "references": null
+        },
+        {
+          "field": "availableDays",
+          "kind": "text",
+          "column": "available_days",
+          "references": null
+        }
+      ],
+      "selectType": "SiteSetting",
+      "insertType": "NewSiteSetting",
+      "migrationTouchpoints": [
+        "migrations/007_add_signups.sql"
+      ]
+    },
+    {
+      "symbol": "weeklySignups",
+      "table": "weekly_signups",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "playerId",
+          "kind": "integer",
+          "column": "player_id",
+          "references": "players"
+        },
+        {
+          "field": "date",
+          "kind": "text",
+          "column": "date",
+          "references": null
+        },
+        {
+          "field": "status",
+          "kind": "text",
+          "column": "status",
+          "references": null
+        },
+        {
+          "field": "createdAt",
+          "kind": "timestamp",
+          "column": "created_at",
+          "references": null
+        }
+      ],
+      "selectType": "WeeklySignup",
+      "insertType": "NewWeeklySignup",
+      "migrationTouchpoints": [
+        "migrations/007_add_signups.sql"
       ]
     }
   ]

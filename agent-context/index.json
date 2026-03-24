@@ -8,7 +8,7 @@
       "agent-context/index.json",
       "agent-context/tasks.json"
     ],
-    "routeCount": 23,
+    "routeCount": 28,
     "taskCount": 6
   },
   "commands": [
@@ -51,12 +51,12 @@
       "files": [
         "app/api/achievements/check/[playerId]/route.ts",
         "app/api/achievements/player/[playerId]/route.ts",
+        "app/api/auth/route.ts",
         "app/api/chatbot/route.ts",
         "app/api/chatbot/image/route.ts",
         "app/api/daily-summary/route.ts",
         "app/api/feedback/route.ts",
-        "app/api/games/route.ts",
-        "app/api/games/[id]/route.ts"
+        "app/api/games/route.ts"
       ]
     },
     {

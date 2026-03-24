@@ -32,6 +32,15 @@
       "overrideNotes": []
     },
     {
+      "file": "app/api/auth/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
       "file": "app/api/chatbot/image/route.ts",
       "type": "api-route",
       "tags": [
@@ -273,6 +282,24 @@
       "overrideNotes": []
     },
     {
+      "file": "app/api/settings/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/signups/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
       "file": "app/api/team-performance/route.ts",
       "type": "api-route",
       "tags": [
@@ -299,6 +326,21 @@
       "imports": [],
       "importedBy": [],
       "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/AdminLoginModal.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/settings/page.tsx",
+        "app/signups/page.tsx"
+      ],
+      "related": [
+        "app/settings/page.tsx",
+        "app/signups/page.tsx"
+      ],
       "overrideNotes": []
     },
     {
@@ -961,6 +1003,32 @@
         "app/components/PlayerCards.tsx",
         "app/components/SeasonWinners.tsx",
         "app/components/TopTeams.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/settings/page.tsx",
+      "type": "page",
+      "tags": [],
+      "imports": [
+        "app/components/AdminLoginModal.tsx"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/components/AdminLoginModal.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/signups/page.tsx",
+      "type": "page",
+      "tags": [],
+      "imports": [
+        "app/components/AdminLoginModal.tsx"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/components/AdminLoginModal.tsx"
       ],
       "overrideNotes": []
     },

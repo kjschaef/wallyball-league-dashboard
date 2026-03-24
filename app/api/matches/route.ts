@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
 
 export async function GET(request: Request) {
@@ -108,6 +109,9 @@ async function getPlayerIdsFromNames(sql: any, playerNames: string[]) {
 
 export async function POST(request: Request) {
   try {
+    const isAdmin = cookies().get('admin_token')?.value === 'true';
+    if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const body = await request.json();
 
     if (!process.env.DATABASE_URL) {
