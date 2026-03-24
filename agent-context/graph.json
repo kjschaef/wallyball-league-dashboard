@@ -294,9 +294,16 @@
       "file": "app/api/signups/route.ts",
       "type": "api-route",
       "tags": [],
-      "imports": [],
-      "importedBy": [],
-      "related": [],
+      "imports": [
+        "app/lib/signups.ts"
+      ],
+      "importedBy": [
+        "__tests__/api/signups.test.ts"
+      ],
+      "related": [
+        "__tests__/api/signups.test.ts",
+        "app/lib/signups.ts"
+      ],
       "overrideNotes": []
     },
     {
@@ -744,6 +751,19 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/__tests__/signups.test.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/signups.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/signups.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/__tests__/tooltip.test.ts",
       "type": "app-lib",
       "tags": [],
@@ -850,6 +870,23 @@
       ],
       "related": [
         "app/lib/openai.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/signups.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/api/signups/route.ts",
+        "app/lib/__tests__/signups.test.ts",
+        "app/signups/page.tsx"
+      ],
+      "related": [
+        "app/api/signups/route.ts",
+        "app/lib/__tests__/signups.test.ts",
+        "app/signups/page.tsx"
       ],
       "overrideNotes": []
     },
@@ -1024,11 +1061,13 @@
       "type": "page",
       "tags": [],
       "imports": [
-        "app/components/AdminLoginModal.tsx"
+        "app/components/AdminLoginModal.tsx",
+        "app/lib/signups.ts"
       ],
       "importedBy": [],
       "related": [
-        "app/components/AdminLoginModal.tsx"
+        "app/components/AdminLoginModal.tsx",
+        "app/lib/signups.ts"
       ],
       "overrideNotes": []
     },

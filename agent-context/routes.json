@@ -188,7 +188,9 @@
       "route": "/api/signups",
       "file": "app/api/signups/route.ts",
       "params": [],
-      "likelySourceFiles": []
+      "likelySourceFiles": [
+        "app/lib/signups.ts"
+      ]
     },
     {
       "kind": "api",
@@ -256,7 +258,8 @@
       "file": "app/signups/page.tsx",
       "params": [],
       "likelySourceFiles": [
-        "app/components/AdminLoginModal.tsx"
+        "app/components/AdminLoginModal.tsx",
+        "app/lib/signups.ts"
       ]
     }
   ]

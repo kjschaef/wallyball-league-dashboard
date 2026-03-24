@@ -265,6 +265,18 @@
           "references": null
         },
         {
+          "field": "signupCloseDayOfWeek",
+          "kind": "integer",
+          "column": "signup_close_day_of_week",
+          "references": null
+        },
+        {
+          "field": "signupCloseTime",
+          "kind": "text",
+          "column": "signup_close_time",
+          "references": null
+        },
+        {
           "field": "availableDays",
           "kind": "text",
           "column": "available_days",
@@ -274,7 +286,8 @@
       "selectType": "SiteSetting",
       "insertType": "NewSiteSetting",
       "migrationTouchpoints": [
-        "migrations/007_add_signups.sql"
+        "migrations/007_add_signups.sql",
+        "migrations/008_add_signup_close_settings.sql"
       ]
     },
     {
