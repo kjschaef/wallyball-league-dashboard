@@ -231,6 +231,7 @@
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
         "migrations/004_add_inactivity_exemptions.sql",
+        "migrations/007_add_signups.sql",
         "migrations/relations.ts",
         "migrations/schema.ts"
       ]
@@ -272,7 +273,9 @@
       ],
       "selectType": "SiteSetting",
       "insertType": "NewSiteSetting",
-      "migrationTouchpoints": []
+      "migrationTouchpoints": [
+        "migrations/007_add_signups.sql"
+      ]
     },
     {
       "symbol": "weeklySignups",
@@ -311,7 +314,9 @@
       ],
       "selectType": "WeeklySignup",
       "insertType": "NewWeeklySignup",
-      "migrationTouchpoints": []
+      "migrationTouchpoints": [
+        "migrations/007_add_signups.sql"
+      ]
     }
   ]
 }
