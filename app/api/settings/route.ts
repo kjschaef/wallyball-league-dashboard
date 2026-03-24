@@ -17,6 +17,8 @@ export async function GET() {
       return NextResponse.json({
         signupOpenDayOfWeek: settings[0].signup_open_day_of_week,
         signupOpenTime: settings[0].signup_open_time,
+        signupCloseDayOfWeek: settings[0].signup_close_day_of_week ?? 0,
+        signupCloseTime: settings[0].signup_close_time ?? '16:00',
         availableDays: JSON.parse(settings[0].available_days || '["Monday", "Tuesday", "Thursday"]')
       });
     }
@@ -25,6 +27,8 @@ export async function GET() {
     return NextResponse.json({
       signupOpenDayOfWeek: 0, // Sunday
       signupOpenTime: '12:00', // Noon
+      signupCloseDayOfWeek: 0, // Sunday
+      signupCloseTime: '16:00', // 4 PM
       availableDays: ["Monday", "Tuesday", "Thursday"]
     });
   } catch (error) {
@@ -62,16 +66,20 @@ export async function PUT(request: Request) {
         SET 
           signup_open_day_of_week = COALESCE(${body.signupOpenDayOfWeek}, signup_open_day_of_week),
           signup_open_time = COALESCE(${body.signupOpenTime}, signup_open_time),
+          signup_close_day_of_week = COALESCE(${body.signupCloseDayOfWeek}, signup_close_day_of_week),
+          signup_close_time = COALESCE(${body.signupCloseTime}, signup_close_time),
           available_days = COALESCE(${JSON.stringify(body.availableDays)}, available_days),
           admin_password_hash = COALESCE(${body.adminPassword}, admin_password_hash)
         WHERE id = ${existing[0].id}
       `;
     } else {
       await sql`
-        INSERT INTO site_settings (signup_open_day_of_week, signup_open_time, available_days, admin_password_hash)
+        INSERT INTO site_settings (signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days, admin_password_hash)
         VALUES (
           ${body.signupOpenDayOfWeek ?? 0}, 
           ${body.signupOpenTime || '12:00'}, 
+          ${body.signupCloseDayOfWeek ?? 0},
+          ${body.signupCloseTime || '16:00'},
           ${JSON.stringify(body.availableDays || ["Monday", "Tuesday", "Thursday"])},
           ${body.adminPassword || 'admin'}
         )

@@ -1,26 +1,12 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
-
-function getEstNow() {
-  return new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
-}
-
-function isSignupOpen(targetDateStr: string, openDayOfWeek: number, openTime: string) {
-  const targetDate = new Date(`${targetDateStr}T12:00:00-05:00`); // using roughly EST offset for date math
-  const [hours, minutes] = openTime.split(':').map(Number);
-  
-  // Find the Sunday that starts this target date's calendar week
-  const weekStartSunday = new Date(targetDate);
-  weekStartSunday.setDate(targetDate.getDate() - targetDate.getDay());
-  
-  // The signups for this calendar week open on the openDayOfWeek of the PRECEDING week
-  const openDateTime = new Date(weekStartSunday);
-  openDateTime.setDate(weekStartSunday.getDate() - 7 + openDayOfWeek);
-  openDateTime.setHours(hours, minutes, 0, 0);
-  
-  return getEstNow() >= openDateTime;
-}
+import {
+  getEasternWallTimeNow,
+  getSignupCycleState,
+  isDateInSignupWeek,
+  type SignupSettings,
+} from '../../lib/signups';
 
 export async function GET(request: Request) {
   try {
@@ -78,13 +64,33 @@ export async function POST(request: Request) {
     const sql = neon(process.env.DATABASE_URL);
 
     // Check if open
-    const settings = await sql`SELECT signup_open_day_of_week, signup_open_time FROM site_settings LIMIT 1`;
+    const settings = await sql`
+      SELECT signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days
+      FROM site_settings
+      LIMIT 1
+    `;
     const isAdmin = cookies().get('admin_token')?.value === 'true';
     
-    if (settings.length > 0 && !isAdmin) {
-      const { signup_open_day_of_week, signup_open_time } = settings[0];
-      if (!isSignupOpen(date, signup_open_day_of_week, signup_open_time)) {
-        return NextResponse.json({ error: 'Signups are not open yet for this date' }, { status: 403 });
+    if (!isAdmin) {
+      const signupSettings: SignupSettings = settings.length > 0
+        ? {
+            signupOpenDayOfWeek: settings[0].signup_open_day_of_week ?? 0,
+            signupOpenTime: settings[0].signup_open_time ?? '12:00',
+            signupCloseDayOfWeek: settings[0].signup_close_day_of_week ?? 0,
+            signupCloseTime: settings[0].signup_close_time ?? '16:00',
+            availableDays: JSON.parse(settings[0].available_days || '["Monday","Tuesday","Thursday"]'),
+          }
+        : {
+            signupOpenDayOfWeek: 0,
+            signupOpenTime: '12:00',
+            signupCloseDayOfWeek: 0,
+            signupCloseTime: '16:00',
+            availableDays: ['Monday', 'Tuesday', 'Thursday'],
+          };
+
+      const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
+      if (!signupState.isOpen || !isDateInSignupWeek(date, signupState.signupWeekSunday, signupSettings.availableDays)) {
+        return NextResponse.json({ error: 'Signups are closed for this date' }, { status: 403 });
       }
     }
 

@@ -39,6 +39,13 @@
       ]
     },
     {
+      "path": "__tests__/api/signups.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/signups/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/team-performance.test.ts",
       "kind": "test",
       "covers": [
@@ -57,6 +64,13 @@
       "kind": "component",
       "covers": [
         "app/components/PerformanceControls.tsx"
+      ]
+    },
+    {
+      "path": "app/lib/__tests__/signups.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/signups.ts"
       ]
     },
     {
@@ -84,6 +98,9 @@
     "app/api/seasons/route.ts": [
       "__tests__/api/seasons.test.ts"
     ],
+    "app/api/signups/route.ts": [
+      "__tests__/api/signups.test.ts"
+    ],
     "app/api/team-performance/route.ts": [
       "__tests__/api/team-performance.test.ts"
     ],
@@ -92,6 +109,9 @@
     ],
     "app/components/SeasonSelector.tsx": [
       "__tests__/components/SeasonSelector.test.tsx"
+    ],
+    "app/lib/signups.ts": [
+      "app/lib/__tests__/signups.test.ts"
     ],
     "app/lib/tooltip.ts": [
       "app/lib/__tests__/tooltip.test.ts"

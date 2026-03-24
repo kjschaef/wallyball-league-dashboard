@@ -69,6 +69,8 @@ export const siteSettings = pgTable("site_settings", {
   adminPasswordHash: text("admin_password_hash"),
   signupOpenDayOfWeek: integer("signup_open_day_of_week").default(0), // 0 = Sunday
   signupOpenTime: text("signup_open_time").default("12:00"), // HH:mm
+  signupCloseDayOfWeek: integer("signup_close_day_of_week").default(0), // 0 = Sunday
+  signupCloseTime: text("signup_close_time").default("16:00"), // HH:mm
   availableDays: text("available_days").default(JSON.stringify(["Monday", "Tuesday", "Thursday"])),
 });
 

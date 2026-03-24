@@ -7,6 +7,8 @@ import { Check } from 'lucide-react';
 interface Settings {
   signupOpenDayOfWeek: number;
   signupOpenTime: string;
+  signupCloseDayOfWeek: number;
+  signupCloseTime: string;
   availableDays: string[];
 }
 
@@ -16,6 +18,8 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     signupOpenDayOfWeek: 0,
     signupOpenTime: '12:00',
+    signupCloseDayOfWeek: 0,
+    signupCloseTime: '16:00',
     availableDays: ["Monday", "Tuesday", "Thursday"]
   });
   const [adminPassword, setAdminPassword] = useState('');
@@ -132,6 +136,31 @@ export default function SettingsPage() {
               type="time"
               value={settings.signupOpenTime}
               onChange={(e) => setSettings({...settings, signupOpenTime: e.target.value})}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Signups Close Day</label>
+            <select
+              value={settings.signupCloseDayOfWeek}
+              onChange={(e) => setSettings({...settings, signupCloseDayOfWeek: parseInt(e.target.value)})}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              {DAYS_OF_WEEK.map((day, idx) => (
+                <option key={day} value={idx}>{day}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Signups Close Time (EST)</label>
+            <input
+              type="time"
+              value={settings.signupCloseTime}
+              onChange={(e) => setSettings({...settings, signupCloseTime: e.target.value})}
               className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
