@@ -8,13 +8,13 @@
       "params": [],
       "likelySourceFiles": [
         "app/components/AISummaryPanel.tsx",
+        "app/components/AdminLoginModal.tsx",
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
         "app/components/PlayerSelectorDialog.tsx",
         "app/components/RecentMatches.tsx",
-        "app/components/RecordMatchModal.tsx",
-        "app/components/WinPercentageRankings.tsx"
+        "app/components/RecordMatchModal.tsx"
       ]
     },
     {

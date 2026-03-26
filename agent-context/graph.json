@@ -36,8 +36,12 @@
       "type": "api-route",
       "tags": [],
       "imports": [],
-      "importedBy": [],
-      "related": [],
+      "importedBy": [
+        "__tests__/api/auth.test.ts"
+      ],
+      "related": [
+        "__tests__/api/auth.test.ts"
+      ],
       "overrideNotes": []
     },
     {
@@ -88,8 +92,11 @@
         "app/lib/stats.ts",
         "lib/seasons.ts"
       ],
-      "importedBy": [],
+      "importedBy": [
+        "__tests__/api/daily-summary.test.ts"
+      ],
       "related": [
+        "__tests__/api/daily-summary.test.ts",
         "app/lib/openai.ts",
         "app/lib/stats.ts",
         "lib/seasons.ts"
@@ -286,8 +293,12 @@
       "type": "api-route",
       "tags": [],
       "imports": [],
-      "importedBy": [],
-      "related": [],
+      "importedBy": [
+        "__tests__/api/settings.test.ts"
+      ],
+      "related": [
+        "__tests__/api/settings.test.ts"
+      ],
       "overrideNotes": []
     },
     {
@@ -341,10 +352,12 @@
       "tags": [],
       "imports": [],
       "importedBy": [
+        "app/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
       "related": [
+        "app/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
@@ -988,6 +1001,7 @@
       "tags": [],
       "imports": [
         "app/components/AISummaryPanel.tsx",
+        "app/components/AdminLoginModal.tsx",
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
@@ -999,6 +1013,7 @@
       "importedBy": [],
       "related": [
         "app/components/AISummaryPanel.tsx",
+        "app/components/AdminLoginModal.tsx",
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
@@ -1050,8 +1065,11 @@
       "imports": [
         "app/components/AdminLoginModal.tsx"
       ],
-      "importedBy": [],
+      "importedBy": [
+        "__tests__/components/SettingsPage.test.tsx"
+      ],
       "related": [
+        "__tests__/components/SettingsPage.test.tsx",
         "app/components/AdminLoginModal.tsx"
       ],
       "overrideNotes": []
@@ -1064,8 +1082,11 @@
         "app/components/AdminLoginModal.tsx",
         "app/lib/signups.ts"
       ],
-      "importedBy": [],
+      "importedBy": [
+        "__tests__/components/SignupsPage.test.tsx"
+      ],
       "related": [
+        "__tests__/components/SignupsPage.test.tsx",
         "app/components/AdminLoginModal.tsx",
         "app/lib/signups.ts"
       ],

@@ -2,6 +2,20 @@
   "schemaVersion": 1,
   "tests": [
     {
+      "path": "__tests__/api/auth.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/auth/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/daily-summary.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/daily-summary/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/matches.test.ts",
       "kind": "test",
       "covers": [
@@ -39,6 +53,13 @@
       ]
     },
     {
+      "path": "__tests__/api/settings.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/settings/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/signups.test.ts",
       "kind": "test",
       "covers": [
@@ -57,6 +78,20 @@
       "kind": "test",
       "covers": [
         "app/components/SeasonSelector.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/components/SettingsPage.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/settings/page.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/components/SignupsPage.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/signups/page.tsx"
       ]
     },
     {
@@ -82,6 +117,12 @@
     }
   ],
   "coverageByFile": {
+    "app/api/auth/route.ts": [
+      "__tests__/api/auth.test.ts"
+    ],
+    "app/api/daily-summary/route.ts": [
+      "__tests__/api/daily-summary.test.ts"
+    ],
     "app/api/matches/route.ts": [
       "__tests__/api/matches.test.ts"
     ],
@@ -97,6 +138,9 @@
     ],
     "app/api/seasons/route.ts": [
       "__tests__/api/seasons.test.ts"
+    ],
+    "app/api/settings/route.ts": [
+      "__tests__/api/settings.test.ts"
     ],
     "app/api/signups/route.ts": [
       "__tests__/api/signups.test.ts"
@@ -115,6 +159,12 @@
     ],
     "app/lib/tooltip.ts": [
       "app/lib/__tests__/tooltip.test.ts"
+    ],
+    "app/settings/page.tsx": [
+      "__tests__/components/SettingsPage.test.tsx"
+    ],
+    "app/signups/page.tsx": [
+      "__tests__/components/SignupsPage.test.tsx"
     ],
     "lib/seasons.ts": [
       "__tests__/api/seasons.test.ts"

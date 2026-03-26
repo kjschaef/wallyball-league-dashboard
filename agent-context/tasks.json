@@ -20,6 +20,7 @@
       ],
       "secondaryFiles": [
         "app/components/AISummaryPanel.tsx",
+        "app/components/AdminLoginModal.tsx",
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
@@ -29,8 +30,7 @@
         "app/components/PlayerGrid.tsx",
         "app/components/PlayerPerformanceRadar.tsx",
         "app/components/PlayerSelector.tsx",
-        "app/components/PlayerSelectorDialog.tsx",
-        "app/components/RecentMatches.tsx"
+        "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
         "npm test"
@@ -66,6 +66,7 @@
         "__tests__/api/matches.test.ts",
         "app/api/chatbot/image/route.ts",
         "app/components/AISummaryPanel.tsx",
+        "app/components/AdminLoginModal.tsx",
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/GameHistory.tsx",
@@ -73,8 +74,7 @@
         "app/components/PlayerSelectorDialog.tsx",
         "app/components/RecentMatches.tsx",
         "app/components/TeamSuggestionModal.tsx",
-        "app/components/WinPercentageRankings.tsx",
-        "app/lib/openai.ts"
+        "app/components/WinPercentageRankings.tsx"
       ],
       "testCommands": [
         "npm test -- __tests__/api/matches.test.ts"
@@ -171,9 +171,9 @@
         "app/api/player-trends/route.ts",
         "app/api/team-performance/route.ts",
         "app/components/AISummaryPanel.tsx",
+        "app/components/AdminLoginModal.tsx",
         "app/components/ChatBot.tsx",
-        "app/components/FloatingActionButton.tsx",
-        "app/components/PerformanceTrend.tsx"
+        "app/components/FloatingActionButton.tsx"
       ],
       "testCommands": [
         "npm test -- __tests__/api/seasonal-player-stats.test.ts __tests__/api/seasons.test.ts __tests__/components/SeasonSelector.test.tsx"
@@ -219,11 +219,11 @@
         "app/api/seasons/route.ts",
         "app/api/team-performance/route.ts",
         "app/components/AISummaryPanel.tsx",
+        "app/components/AdminLoginModal.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
         "app/components/PlayerGrid.tsx",
-        "app/components/PlayerSelectorDialog.tsx",
-        "app/components/RecentMatches.tsx"
+        "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
         "npm test"
