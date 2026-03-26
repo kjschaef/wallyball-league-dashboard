@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ReferenceArea,
   ResponsiveContainer
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
@@ -61,6 +62,106 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
   const [season, setSeason] = useState<string | undefined>(initialSeason);
   const [compare, setCompare] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [zoomRange, setZoomRange] = useState<{ start: string; end: string } | null>(null);
+  const [dragSelection, setDragSelection] = useState<{ start: string | null; end: string | null }>({
+    start: null,
+    end: null,
+  });
+  const [shouldAnimateLines, setShouldAnimateLines] = useState(true);
+
+  const resetZoom = () => {
+    setShouldAnimateLines(true);
+    setZoomRange(null);
+    setDragSelection({ start: null, end: null });
+  };
+
+  const getDateIndex = (date: string) => chartData.findIndex((point) => point.date === date);
+
+  const visibleChartData = (() => {
+    if (!zoomRange) return chartData;
+
+    const startIndex = getDateIndex(zoomRange.start);
+    const endIndex = getDateIndex(zoomRange.end);
+
+    if (startIndex === -1 || endIndex === -1) {
+      return chartData;
+    }
+
+    const [left, right] = startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
+    return chartData.slice(left, right + 1);
+  })();
+
+  const yAxisDomain = (() => {
+    const values = visibleChartData.flatMap((point) =>
+      playerStats
+        .map((player) => point[player.name])
+        .filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
+    );
+
+    if (values.length === 0) {
+      return metric === 'winPercentage' ? [0, 100] : [0, 10];
+    }
+
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+
+    if (metric === 'winPercentage') {
+      const padding = Math.max(2, (maxValue - minValue) * 0.1 || 5);
+      return [
+        Math.max(0, Math.floor((minValue - padding) * 10) / 10),
+        Math.min(100, Math.ceil((maxValue + padding) * 10) / 10),
+      ];
+    }
+
+    const padding = Math.max(1, Math.ceil((maxValue - minValue) * 0.1));
+    return [
+      Math.max(0, Math.floor(minValue - padding)),
+      Math.ceil(maxValue + padding),
+    ];
+  })();
+
+  const handleChartMouseDown = (state: { activeLabel?: string }) => {
+    if (!state.activeLabel) return;
+
+    setShouldAnimateLines(false);
+    setDragSelection({
+      start: state.activeLabel,
+      end: state.activeLabel,
+    });
+  };
+
+  const handleChartMouseMove = (state: { activeLabel?: string }) => {
+    if (!dragSelection.start || !state.activeLabel) return;
+
+    setDragSelection((current) => (
+      current.start
+        ? { ...current, end: state.activeLabel ?? current.end }
+        : current
+    ));
+  };
+
+  const handleChartMouseUp = () => {
+    if (!dragSelection.start || !dragSelection.end) {
+      setDragSelection({ start: null, end: null });
+      return;
+    }
+
+    const startIndex = getDateIndex(dragSelection.start);
+    const endIndex = getDateIndex(dragSelection.end);
+
+    if (startIndex === -1 || endIndex === -1 || startIndex === endIndex) {
+      setDragSelection({ start: null, end: null });
+      return;
+    }
+
+    const [left, right] = startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
+    setShouldAnimateLines(true);
+    setZoomRange({
+      start: chartData[left].date,
+      end: chartData[right].date,
+    });
+    setDragSelection({ start: null, end: null });
+  };
 
   // Fetch player stats and historical trends with contextual penalties
   // Keep internal season in sync with prop changes
@@ -198,6 +299,9 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
           });
 
           setChartData(newChartData);
+          setShouldAnimateLines(true);
+          setZoomRange(null);
+          setDragSelection({ start: null, end: null });
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -252,8 +356,25 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
           </div>
         ) : (
           <div className="h-[400px] w-full">
+            <div className="mb-3 flex items-center justify-between gap-3 text-sm text-gray-600">
+              <span>Click and drag across the chart to zoom into a date range.</span>
+              {zoomRange && (
+                <button
+                  type="button"
+                  onClick={resetZoom}
+                  className="rounded border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  Reset zoom
+                </button>
+              )}
+            </div>
             <ResponsiveContainer>
-              <LineChart data={chartData}>
+              <LineChart
+                data={visibleChartData}
+                onMouseDown={handleChartMouseDown}
+                onMouseMove={handleChartMouseMove}
+                onMouseUp={handleChartMouseUp}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
@@ -266,7 +387,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                   }}
                 />
                 <YAxis
-                  domain={metric === 'winPercentage' ? [0, 100] : [0, 'auto']}
+                  domain={yAxisDomain}
                   tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
                 />
                 <Tooltip
@@ -286,6 +407,15 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                   }}
                 />
                 <Legend />
+                {dragSelection.start && dragSelection.end && (
+                  <ReferenceArea
+                    x1={dragSelection.start}
+                    x2={dragSelection.end}
+                    strokeOpacity={0.3}
+                    fill="#2563eb"
+                    fillOpacity={0.12}
+                  />
+                )}
                 {playerStats.map((player, index) => {
                   const isCompared = compare.length === 0 ? true : compare.includes(player.id);
                   const strokeOpacity = compare.length === 0 ? 1 : (isCompared ? 1 : 0.18);
@@ -295,6 +425,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                       key={player.id}
                       type="monotone"
                       dataKey={player.name}
+                      isAnimationActive={shouldAnimateLines}
                       stroke={COLORS[index % COLORS.length]}
                       strokeWidth={strokeWidth}
                       strokeOpacity={strokeOpacity}
