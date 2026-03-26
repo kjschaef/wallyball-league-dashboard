@@ -78,6 +78,7 @@ Things worth calling out:
 - Players who recently crossed a season games milestone (50, 100, 150, 200...)
 - Players approaching an upcoming lifetime or season milestone (within ~20 games)
 - Interesting win % standings or movement
+- Recent top 10 player ranking swaps
 
 Keep it punchy and fun. Skip players with 0 season games. Don't mention player IDs. Aim for 3-5 bullets per section. Always bold player names using **Name** markdown syntax.
 `;
