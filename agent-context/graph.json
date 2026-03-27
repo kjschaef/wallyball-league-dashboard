@@ -319,12 +319,18 @@
       "tags": [],
       "imports": [],
       "importedBy": [
+        "app/components/PlayerCards.tsx",
+        "app/games/page.tsx",
         "app/page.tsx",
+        "app/players/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
       "related": [
+        "app/components/PlayerCards.tsx",
+        "app/games/page.tsx",
         "app/page.tsx",
+        "app/players/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
@@ -480,12 +486,14 @@
         "players"
       ],
       "imports": [
+        "app/components/AdminLoginModal.tsx",
         "app/hooks/useSeasonChampions.ts"
       ],
       "importedBy": [
         "app/results/page.tsx"
       ],
       "related": [
+        "app/components/AdminLoginModal.tsx",
         "app/hooks/useSeasonChampions.ts",
         "app/results/page.tsx"
       ],
@@ -683,9 +691,13 @@
       "tags": [
         "matches"
       ],
-      "imports": [],
+      "imports": [
+        "app/components/AdminLoginModal.tsx"
+      ],
       "importedBy": [],
-      "related": [],
+      "related": [
+        "app/components/AdminLoginModal.tsx"
+      ],
       "overrideNotes": []
     },
     {
@@ -990,10 +1002,12 @@
         "players"
       ],
       "imports": [
+        "app/components/AdminLoginModal.tsx",
         "app/components/PlayerCard.tsx"
       ],
       "importedBy": [],
       "related": [
+        "app/components/AdminLoginModal.tsx",
         "app/components/PlayerCard.tsx"
       ],
       "overrideNotes": []

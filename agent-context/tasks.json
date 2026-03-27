@@ -33,10 +33,11 @@
         "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/components/DashboardPage.test.tsx"
+        "npm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx"
       ],
       "mappedTests": [
-        "__tests__/components/DashboardPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx",
+        "__tests__/components/PlayersPage.test.tsx"
       ],
       "riskAreas": [
         "API responses are enriched and consumed directly by UI components.",

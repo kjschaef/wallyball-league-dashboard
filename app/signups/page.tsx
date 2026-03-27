@@ -36,7 +36,7 @@ export default function SignupsPage() {
   
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
   const [showAdminModal, setShowAdminModal] = useState(false);
-  const [actionPending, setActionPending] = useState<(() => Promise<void>) | null>(null);
+  const [actionPending, setActionPending] = useState<(() => Promise<boolean>) | null>(null);
 
   useEffect(() => {
     setNow(getEasternWallTimeNow());
@@ -64,7 +64,7 @@ export default function SignupsPage() {
 
   const handleSignup = async (date: string) => {
     if (!selectedPlayerId) return alert('Please select a player first');
-    const doSignup = async () => {
+    const doSignup = async (): Promise<boolean> => {
       const res = await fetch('/api/signups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,13 +73,15 @@ export default function SignupsPage() {
       if (res.status === 401 || res.status === 403) {
         setActionPending(() => doSignup);
         setShowAdminModal(true);
-        return;
+        return false;
       }
       if (res.ok) {
         await fetchData();
+        return true;
       } else {
         const data = await res.json();
         alert(data.error || 'Failed to sign up');
+        return false;
       }
     };
     await doSignup();
@@ -87,7 +89,7 @@ export default function SignupsPage() {
 
   const handleDelete = async (signupId: number) => {
     if (!confirm('Are you sure you want to remove this player?')) return;
-    const doDelete = async () => {
+    const doDelete = async (): Promise<boolean> => {
       const res = await fetch('/api/signups', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -96,24 +98,31 @@ export default function SignupsPage() {
       if (res.status === 401) {
         setActionPending(() => doDelete);
         setShowAdminModal(true);
-        return;
+        return false;
       }
       if (res.ok) {
         await fetchData();
+        return true;
       } else {
         const data = await res.json();
         alert(data.error || 'Failed to remove player');
+        return false;
       }
     };
     await doDelete();
   };
 
-  const executePendingAction = async () => {
-    setShowAdminModal(false);
-    if (actionPending) {
-      await actionPending();
+  const executePendingAction = async (): Promise<boolean> => {
+    if (!actionPending) {
+      return false;
+    }
+
+    const didComplete = await actionPending();
+    if (didComplete) {
       setActionPending(null);
     }
+
+    return didComplete;
   };
 
   if (isLoading) return <div className="p-8 text-center text-gray-500">Loading signups...</div>;
