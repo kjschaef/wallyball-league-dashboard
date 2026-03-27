@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -46,8 +47,14 @@ function SeasonStatistics({ stats }: { stats: SeasonStats | null }) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <CardTitle>Lifetime Games</CardTitle>
+        <Link
+          href="/games"
+          className="text-sm font-medium text-blue-600 transition hover:text-blue-700 hover:underline"
+        >
+          View all games
+        </Link>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-4">
@@ -91,5 +98,4 @@ export default function ResultsPage() {
     </div>
   );
 }
-
 

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { GameHistory } from './GameHistory';
 
@@ -90,7 +91,15 @@ export function RecentMatches() {
       <h2 className="text-xl font-medium text-gray-800">
         Last Games Played - {titleDate}
       </h2>
-      <GameHistory games={matches} />
+      <div className="space-y-3">
+        <GameHistory games={matches} />
+        <Link
+          href="/games"
+          className="block rounded-lg border border-gray-200 bg-white px-4 py-3 text-center font-medium text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+        >
+          View all games
+        </Link>
+      </div>
     </div>
   );
 }

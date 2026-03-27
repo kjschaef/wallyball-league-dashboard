@@ -19,7 +19,7 @@ interface Match {
 interface RecordMatchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (match: Match) => void;
+  onSubmit: (match: Match) => Promise<boolean>;
   suggestedTeams?: {
     teamOne: number[];
     teamTwo: number[];
@@ -94,6 +94,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
   const [teamOneGamesWon, setTeamOneGamesWon] = useState(0);
   const [teamTwoGamesWon, setTeamTwoGamesWon] = useState(0);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -155,12 +156,20 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
   };
 
   const handleClose = () => {
+    if (isSubmitting) {
+      return;
+    }
+
     resetForm();
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
     
     if (teamOnePlayers.length === 0 || teamTwoPlayers.length === 0) {
       alert("Please select at least one player for each team");
@@ -174,16 +183,24 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
       return;
     }
 
-    onSubmit({
-      teamOnePlayers,
-      teamTwoPlayers,
-      teamOneGamesWon,
-      teamTwoGamesWon,
-      date
-    });
+    setIsSubmitting(true);
 
-    resetForm();
-    onClose();
+    try {
+      const shouldClose = await onSubmit({
+        teamOnePlayers,
+        teamTwoPlayers,
+        teamOneGamesWon,
+        teamTwoGamesWon,
+        date
+      });
+
+      if (shouldClose) {
+        resetForm();
+        onClose();
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -200,6 +217,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
             </div>
             <button
               onClick={handleClose}
+              disabled={isSubmitting}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="h-6 w-6" />
@@ -356,9 +374,10 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors"
+            disabled={isSubmitting}
+            className="w-full bg-gray-900 text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Record Game
+            {isSubmitting ? 'Recording...' : 'Record Game'}
           </button>
         </form>
       </div>

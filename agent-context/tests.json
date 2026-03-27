@@ -2,6 +2,20 @@
   "schemaVersion": 1,
   "tests": [
     {
+      "path": "__tests__/api/auth.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/auth/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/daily-summary.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/daily-summary/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/matches.test.ts",
       "kind": "test",
       "covers": [
@@ -39,6 +53,13 @@
       ]
     },
     {
+      "path": "__tests__/api/settings.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/settings/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/signups.test.ts",
       "kind": "test",
       "covers": [
@@ -53,6 +74,27 @@
       ]
     },
     {
+      "path": "__tests__/components/DashboardPage.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/page.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/components/GamesPage.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/games/page.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/components/PlayersPage.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/players/page.tsx"
+      ]
+    },
+    {
       "path": "__tests__/components/SeasonSelector.test.tsx",
       "kind": "test",
       "covers": [
@@ -60,10 +102,31 @@
       ]
     },
     {
+      "path": "__tests__/components/SettingsPage.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/settings/page.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/components/SignupsPage.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/signups/page.tsx"
+      ]
+    },
+    {
       "path": "app/components/__tests__/PerformanceControls.test.tsx",
       "kind": "component",
       "covers": [
         "app/components/PerformanceControls.tsx"
+      ]
+    },
+    {
+      "path": "app/components/__tests__/PerformanceTrend.test.tsx",
+      "kind": "component",
+      "covers": [
+        "app/components/PerformanceTrend.tsx"
       ]
     },
     {
@@ -82,6 +145,12 @@
     }
   ],
   "coverageByFile": {
+    "app/api/auth/route.ts": [
+      "__tests__/api/auth.test.ts"
+    ],
+    "app/api/daily-summary/route.ts": [
+      "__tests__/api/daily-summary.test.ts"
+    ],
     "app/api/matches/route.ts": [
       "__tests__/api/matches.test.ts"
     ],
@@ -98,6 +167,9 @@
     "app/api/seasons/route.ts": [
       "__tests__/api/seasons.test.ts"
     ],
+    "app/api/settings/route.ts": [
+      "__tests__/api/settings.test.ts"
+    ],
     "app/api/signups/route.ts": [
       "__tests__/api/signups.test.ts"
     ],
@@ -107,14 +179,32 @@
     "app/components/PerformanceControls.tsx": [
       "app/components/__tests__/PerformanceControls.test.tsx"
     ],
+    "app/components/PerformanceTrend.tsx": [
+      "app/components/__tests__/PerformanceTrend.test.tsx"
+    ],
     "app/components/SeasonSelector.tsx": [
       "__tests__/components/SeasonSelector.test.tsx"
+    ],
+    "app/games/page.tsx": [
+      "__tests__/components/GamesPage.test.tsx"
     ],
     "app/lib/signups.ts": [
       "app/lib/__tests__/signups.test.ts"
     ],
     "app/lib/tooltip.ts": [
       "app/lib/__tests__/tooltip.test.ts"
+    ],
+    "app/page.tsx": [
+      "__tests__/components/DashboardPage.test.tsx"
+    ],
+    "app/players/page.tsx": [
+      "__tests__/components/PlayersPage.test.tsx"
+    ],
+    "app/settings/page.tsx": [
+      "__tests__/components/SettingsPage.test.tsx"
+    ],
+    "app/signups/page.tsx": [
+      "__tests__/components/SignupsPage.test.tsx"
     ],
     "lib/seasons.ts": [
       "__tests__/api/seasons.test.ts"
@@ -123,24 +213,25 @@
   "coverageByArea": [
     {
       "taskId": "player-crud",
-      "tests": [],
+      "tests": [
+        "__tests__/components/DashboardPage.test.tsx",
+        "__tests__/components/PlayersPage.test.tsx"
+      ],
       "gaps": [
         "app/api/players/route.ts",
         "app/api/players/[id]/route.ts",
-        "app/players/page.tsx",
-        "app/page.tsx",
         "db/schema.ts"
       ]
     },
     {
       "taskId": "match-recording",
       "tests": [
-        "__tests__/api/matches.test.ts"
+        "__tests__/api/matches.test.ts",
+        "__tests__/components/DashboardPage.test.tsx"
       ],
       "gaps": [
         "app/components/RecordMatchModal.tsx",
         "app/api/games/route.ts",
-        "app/page.tsx",
         "db/schema.ts"
       ]
     },
@@ -151,12 +242,12 @@
         "__tests__/api/player-trends.test.ts",
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/team-performance.test.ts",
-        "app/components/__tests__/PerformanceControls.test.tsx"
+        "app/components/__tests__/PerformanceControls.test.tsx",
+        "app/components/__tests__/PerformanceTrend.test.tsx"
       ],
       "gaps": [
         "app/lib/stats.ts",
-        "app/components/WinPercentageRankings.tsx",
-        "app/components/PerformanceTrend.tsx"
+        "app/components/WinPercentageRankings.tsx"
       ]
     },
     {
@@ -164,6 +255,7 @@
       "tests": [
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/seasons.test.ts",
+        "__tests__/components/DashboardPage.test.tsx",
         "__tests__/components/SeasonSelector.test.tsx"
       ],
       "gaps": [
@@ -172,7 +264,9 @@
     },
     {
       "taskId": "ai-chatbot",
-      "tests": [],
+      "tests": [
+        "__tests__/components/DashboardPage.test.tsx"
+      ],
       "gaps": [
         "app/api/chatbot/route.ts",
         "app/components/ChatBot.tsx",

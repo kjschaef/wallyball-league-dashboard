@@ -47,7 +47,7 @@ export default function SettingsPage() {
     fetchSettings();
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<boolean> => {
     setIsSaving(true);
     setMessage({ text: '', type: '' });
 
@@ -66,12 +66,13 @@ export default function SettingsPage() {
       if (response.status === 401) {
         setShowAdminModal(true);
         setIsSaving(false);
-        return;
+        return false;
       }
 
       if (response.ok) {
         setMessage({ text: 'Settings saved successfully!', type: 'success' });
         setAdminPassword('');
+        return true;
       } else {
         const data = await response.json();
         throw new Error(data.error || 'Failed to save settings');
@@ -82,6 +83,7 @@ export default function SettingsPage() {
       } else {
         setMessage({ text: String(error), type: 'error' });
       }
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -206,7 +208,9 @@ export default function SettingsPage() {
 
       <div className="flex justify-end">
         <button
-          onClick={handleSave}
+          onClick={() => {
+            void handleSave();
+          }}
           disabled={isSaving}
           className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
         >
@@ -217,9 +221,8 @@ export default function SettingsPage() {
       <AdminLoginModal
         isOpen={showAdminModal}
         onClose={() => setShowAdminModal(false)}
-        onSuccess={() => {
-          setShowAdminModal(false);
-          handleSave(); // Retry saving with the new session
+        onSuccess={async () => {
+          return handleSave();
         }}
       />
     </div>

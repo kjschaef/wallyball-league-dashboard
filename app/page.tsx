@@ -9,6 +9,7 @@ import { ChatBot } from './components/ChatBot';
 import { FloatingActionButton } from './components/FloatingActionButton';
 import { PlayerSelectorDialog } from './components/PlayerSelectorDialog';
 import { AISummaryPanel } from './components/AISummaryPanel';
+import { AdminLoginModal } from './components/AdminLoginModal';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -28,6 +29,19 @@ interface Player {
   name: string;
 }
 
+interface MatchSubmissionStatus {
+  tone: 'success' | 'error' | 'info';
+  message: string;
+}
+
+interface SuggestedTeamPlayer {
+  id: number;
+}
+
+interface SuggestedMatchup {
+  teamOne: SuggestedTeamPlayer[];
+  teamTwo: SuggestedTeamPlayer[];
+}
 
 export default function DashboardPage() {
   const [showRecordMatchModal, setShowRecordMatchModal] = useState(false);
@@ -50,63 +64,176 @@ export default function DashboardPage() {
   // ChatBot state
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInitialMessage, setChatInitialMessage] = useState('');
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+  const [pendingMatchData, setPendingMatchData] = useState<MatchData | null>(null);
+  const [pendingPlayerData, setPendingPlayerData] = useState<PlayerData | null>(null);
+  const [matchSubmissionStatus, setMatchSubmissionStatus] = useState<MatchSubmissionStatus | null>(null);
+
+  const openRecordMatchModal = () => {
+    setMatchSubmissionStatus(null);
+    setShowRecordMatchModal(true);
+  };
+
+  const resetMatchFlow = () => {
+    setSuggestedTeams(undefined);
+    setPrefilledWins(undefined);
+    setPendingMatchData(null);
+  };
+
+  const closeRecordMatchModal = () => {
+    setShowRecordMatchModal(false);
+    resetMatchFlow();
+  };
+
+  const closeAdminLoginModal = () => {
+    setShowAdminLoginModal(false);
+    setPendingMatchData(null);
+    setPendingPlayerData(null);
+    setMatchSubmissionStatus(null);
+  };
+
+  const fetchPlayers = async () => {
+    try {
+      const response = await fetch('/api/players');
+      const data = await response.json();
+      setAllPlayers(data);
+    } catch (error) {
+      console.error('Failed to fetch players:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const response = await fetch('/api/players');
-        const data = await response.json();
-        setAllPlayers(data);
-      } catch (error) {
-        console.error('Failed to fetch players:', error);
-      }
-    };
-
-    fetchPlayers();
+    void fetchPlayers();
   }, []);
 
-  const handleRecordMatchSubmit = async (matchData: MatchData) => {
-    try {
-      // Transform the array-based data to the API's expected format
-      const apiPayload = {
-        teamOnePlayerOneId: matchData.teamOnePlayers[0] || null,
-        teamOnePlayerTwoId: matchData.teamOnePlayers[1] || null,
-        teamOnePlayerThreeId: matchData.teamOnePlayers[2] || null,
-        teamTwoPlayerOneId: matchData.teamTwoPlayers[0] || null,
-        teamTwoPlayerTwoId: matchData.teamTwoPlayers[1] || null,
-        teamTwoPlayerThreeId: matchData.teamTwoPlayers[2] || null,
-        teamOneGamesWon: matchData.teamOneGamesWon,
-        teamTwoGamesWon: matchData.teamTwoGamesWon,
-        date: matchData.date
-      };
+  const createMatch = async (matchData: MatchData) => {
+    // Transform the array-based data to the API's expected format
+    const apiPayload = {
+      teamOnePlayerOneId: matchData.teamOnePlayers[0] || null,
+      teamOnePlayerTwoId: matchData.teamOnePlayers[1] || null,
+      teamOnePlayerThreeId: matchData.teamOnePlayers[2] || null,
+      teamTwoPlayerOneId: matchData.teamTwoPlayers[0] || null,
+      teamTwoPlayerTwoId: matchData.teamTwoPlayers[1] || null,
+      teamTwoPlayerThreeId: matchData.teamTwoPlayers[2] || null,
+      teamOneGamesWon: matchData.teamOneGamesWon,
+      teamTwoGamesWon: matchData.teamTwoGamesWon,
+      date: matchData.date
+    };
 
-      const response = await fetch('/api/matches', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(apiPayload),
-      });
+    return fetch('/api/matches', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(apiPayload),
+    });
+  };
+
+  const completeMatchRecording = (newMatch: unknown) => {
+    console.log('Match recorded:', newMatch);
+    setShowRecordMatchModal(false);
+    setShowAdminLoginModal(false);
+    resetMatchFlow();
+    setRefreshKey(prev => prev + 1);
+    setMatchSubmissionStatus({
+      tone: 'success',
+      message: 'Match recorded successfully.',
+    });
+  };
+
+  const createPlayer = (playerData: PlayerData) =>
+    fetch('/api/players', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(playerData),
+    });
+
+  const completePlayerCreation = async (playerData: PlayerData) => {
+    setPendingPlayerData(null);
+    setShowAdminLoginModal(false);
+    setShowAddPlayerModal(false);
+    await fetchPlayers();
+    alert(`Player "${playerData.name}" has been added successfully!`);
+  };
+
+  const handleRecordMatchSubmit = async (matchData: MatchData) => {
+    setMatchSubmissionStatus(null);
+
+    try {
+      const response = await createMatch(matchData);
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setPendingMatchData(matchData);
+          setShowAdminLoginModal(true);
+          setMatchSubmissionStatus({
+            tone: 'info',
+            message: 'Admin authentication required to record this match.',
+          });
+          return true;
+        }
+
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to record match');
       }
 
       const newMatch = await response.json();
-      console.log('Match recorded:', newMatch);
-      setShowRecordMatchModal(false);
-      setSuggestedTeams(undefined);
-      setPrefilledWins(undefined);
-
-      // Trigger refresh of all dashboard components
-      setRefreshKey(prev => prev + 1);
-
-      // Show success message
-      alert('Match recorded successfully!');
+      completeMatchRecording(newMatch);
+      return true;
     } catch (error) {
       console.error('Error recording match:', error);
-      alert(`Failed to record match: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setMatchSubmissionStatus({
+        tone: 'error',
+        message: `Failed to record match: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+      return false;
+    }
+  };
+
+  const handleAdminLoginSuccess = async () => {
+    if (pendingMatchData) {
+      setMatchSubmissionStatus(null);
+
+      try {
+        const response = await createMatch(pendingMatchData);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to record match');
+        }
+
+        const newMatch = await response.json();
+        completeMatchRecording(newMatch);
+        return true;
+      } catch (error) {
+        console.error('Error recording match after authentication:', error);
+        setMatchSubmissionStatus({
+          tone: 'error',
+          message: `Failed to record match: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        });
+        return false;
+      }
+    }
+
+    if (!pendingPlayerData) {
+      return false;
+    }
+
+    try {
+      const response = await createPlayer(pendingPlayerData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add player');
+      }
+
+      await response.json();
+      await completePlayerCreation(pendingPlayerData);
+      return true;
+    } catch (error) {
+      console.error('Error adding player after authentication:', error);
+      alert(`Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
     }
   };
 
@@ -118,14 +245,14 @@ export default function DashboardPage() {
 
   const handleUseTeams = (teamOne: number[], teamTwo: number[]) => {
     setSuggestedTeams({ teamOne, teamTwo });
-    setShowRecordMatchModal(true);
+    openRecordMatchModal();
   };
 
   const handleRecordMatch = (teamOne: number[], teamTwo: number[], teamOneWins: number, teamTwoWins: number) => {
     setSuggestedTeams({ teamOne, teamTwo });
     // Store the wins for the modal to use
     setPrefilledWins({ teamOneWins, teamTwoWins });
-    setShowRecordMatchModal(true);
+    openRecordMatchModal();
   };
 
   const handleTogglePlayer = (playerId: number) => {
@@ -159,13 +286,13 @@ export default function DashboardPage() {
 
       // Extract the first matchup from additionalData
       if (data.additionalData && data.additionalData.length > 0) {
-        const firstMatchup = data.additionalData[0];
+        const firstMatchup = data.additionalData[0] as SuggestedMatchup;
         setSuggestedTeams({
-          teamOne: firstMatchup.teamOne.map((player: any) => player.id),
-          teamTwo: firstMatchup.teamTwo.map((player: any) => player.id)
+          teamOne: firstMatchup.teamOne.map((player) => player.id),
+          teamTwo: firstMatchup.teamTwo.map((player) => player.id)
         });
         setShowPlayerSelectorDialog(false);
-        setShowRecordMatchModal(true);
+        openRecordMatchModal();
       } else {
         throw new Error('No team suggestions received');
       }
@@ -257,27 +384,25 @@ export default function DashboardPage() {
 
   const handleAddPlayerSubmit = async (playerData: PlayerData) => {
     try {
-      const response = await fetch('/api/players', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(playerData),
-      });
+      const response = await createPlayer(playerData);
 
-      if (!response.ok) {
-        throw new Error('Failed to add player');
+      if (!response.ok && response.status === 401) {
+        setPendingMatchData(null);
+        setPendingPlayerData(playerData);
+        setShowAdminLoginModal(true);
+        return;
       }
 
-      const newPlayer = await response.json();
-      console.log('Player added:', newPlayer);
-      setShowAddPlayerModal(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add player');
+      }
 
-      // Optionally show a success message
-      alert(`Player "${playerData.name}" has been added successfully!`);
+      await response.json();
+      await completePlayerCreation(playerData);
     } catch (error) {
       console.error('Error adding player:', error);
-      alert('Failed to add player. Please try again.');
+      alert(`Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -291,6 +416,21 @@ export default function DashboardPage() {
       <div className="flex justify-between items-center border-b border-gray-200 pb-4">
         <h1 className="text-2xl font-bold text-gray-800">Win Percentage</h1>
       </div>
+
+      {matchSubmissionStatus && (
+        <div
+          role={matchSubmissionStatus.tone === 'error' ? 'alert' : 'status'}
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            matchSubmissionStatus.tone === 'success'
+              ? 'border-green-200 bg-green-50 text-green-800'
+              : matchSubmissionStatus.tone === 'error'
+                ? 'border-red-200 bg-red-50 text-red-800'
+                : 'border-blue-200 bg-blue-50 text-blue-800'
+          }`}
+        >
+          {matchSubmissionStatus.message}
+        </div>
+      )}
 
       <AISummaryPanel onAskAI={handleAskAI} />
 
@@ -322,21 +462,22 @@ export default function DashboardPage() {
       </div>
 
       <FloatingActionButton
-        onRecordMatch={() => setShowRecordMatchModal(true)}
+        onRecordMatch={openRecordMatchModal}
         onAddPlayer={handleAddPlayer}
         onTeamSuggestionClick={() => setShowPlayerSelectorDialog(true)}
       />
 
       <RecordMatchModal
         isOpen={showRecordMatchModal}
-        onClose={() => {
-          setShowRecordMatchModal(false);
-          setSuggestedTeams(undefined);
-          setPrefilledWins(undefined);
-        }}
+        onClose={closeRecordMatchModal}
         onSubmit={handleRecordMatchSubmit}
         suggestedTeams={suggestedTeams}
         prefilledWins={prefilledWins}
+      />
+      <AdminLoginModal
+        isOpen={showAdminLoginModal}
+        onClose={closeAdminLoginModal}
+        onSuccess={handleAdminLoginSuccess}
       />
 
       <AddPlayerModal // Add the AddPlayerModal here
