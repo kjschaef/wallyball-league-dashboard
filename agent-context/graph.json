@@ -36,12 +36,8 @@
       "type": "api-route",
       "tags": [],
       "imports": [],
-      "importedBy": [
-        "__tests__/api/auth.test.ts"
-      ],
-      "related": [
-        "__tests__/api/auth.test.ts"
-      ],
+      "importedBy": [],
+      "related": [],
       "overrideNotes": []
     },
     {
@@ -92,11 +88,8 @@
         "app/lib/stats.ts",
         "lib/seasons.ts"
       ],
-      "importedBy": [
-        "__tests__/api/daily-summary.test.ts"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/api/daily-summary.test.ts",
         "app/lib/openai.ts",
         "app/lib/stats.ts",
         "lib/seasons.ts"
@@ -164,9 +157,7 @@
         "matches"
       ],
       "imports": [],
-      "importedBy": [
-        "__tests__/api/matches.test.ts"
-      ],
+      "importedBy": [],
       "related": [
         "__tests__/api/matches.test.ts",
         "app/api/chatbot/image/route.ts",
@@ -187,13 +178,8 @@
         "app/lib/stats.ts",
         "lib/seasons.ts"
       ],
-      "importedBy": [
-        "__tests__/api/player-stats.test.ts",
-        "__tests__/api/seasonal-player-stats.test.ts"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/api/player-stats.test.ts",
-        "__tests__/api/seasonal-player-stats.test.ts",
         "app/lib/stats.ts",
         "lib/seasons.ts"
       ],
@@ -209,11 +195,8 @@
       "imports": [
         "lib/seasons.ts"
       ],
-      "importedBy": [
-        "__tests__/api/player-trends.test.ts"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/api/player-trends.test.ts",
         "lib/seasons.ts"
       ],
       "overrideNotes": []
@@ -261,11 +244,8 @@
       "imports": [
         "lib/seasons.ts"
       ],
-      "importedBy": [
-        "__tests__/api/seasons.test.ts"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/api/seasons.test.ts",
         "lib/seasons.ts"
       ],
       "overrideNotes": []
@@ -279,11 +259,8 @@
       "imports": [
         "lib/seasons.ts"
       ],
-      "importedBy": [
-        "__tests__/api/seasons.test.ts"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/api/seasons.test.ts",
         "lib/seasons.ts"
       ],
       "overrideNotes": []
@@ -293,12 +270,8 @@
       "type": "api-route",
       "tags": [],
       "imports": [],
-      "importedBy": [
-        "__tests__/api/settings.test.ts"
-      ],
-      "related": [
-        "__tests__/api/settings.test.ts"
-      ],
+      "importedBy": [],
+      "related": [],
       "overrideNotes": []
     },
     {
@@ -308,11 +281,8 @@
       "imports": [
         "app/lib/signups.ts"
       ],
-      "importedBy": [
-        "__tests__/api/signups.test.ts"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/api/signups.test.ts",
         "app/lib/signups.ts"
       ],
       "overrideNotes": []
@@ -326,11 +296,8 @@
       "imports": [
         "lib/seasons.ts"
       ],
-      "importedBy": [
-        "__tests__/api/team-performance.test.ts"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/api/team-performance.test.ts",
         "lib/seasons.ts"
       ],
       "overrideNotes": []
@@ -443,12 +410,10 @@
       ],
       "imports": [],
       "importedBy": [
-        "app/components/PerformanceTrend.tsx",
-        "app/components/__tests__/PerformanceControls.test.tsx"
+        "app/components/PerformanceTrend.tsx"
       ],
       "related": [
-        "app/components/PerformanceTrend.tsx",
-        "app/components/__tests__/PerformanceControls.test.tsx"
+        "app/components/PerformanceTrend.tsx"
       ],
       "overrideNotes": []
     },
@@ -634,12 +599,8 @@
         "seasons"
       ],
       "imports": [],
-      "importedBy": [
-        "__tests__/components/SeasonSelector.test.tsx"
-      ],
-      "related": [
-        "__tests__/components/SeasonSelector.test.tsx"
-      ],
+      "importedBy": [],
+      "related": [],
       "overrideNotes": []
     },
     {
@@ -893,12 +854,10 @@
       "imports": [],
       "importedBy": [
         "app/api/signups/route.ts",
-        "app/lib/__tests__/signups.test.ts",
         "app/signups/page.tsx"
       ],
       "related": [
         "app/api/signups/route.ts",
-        "app/lib/__tests__/signups.test.ts",
         "app/signups/page.tsx"
       ],
       "overrideNotes": []
@@ -946,12 +905,10 @@
       "tags": [],
       "imports": [],
       "importedBy": [
-        "app/components/PerformanceTrend.tsx",
-        "app/lib/__tests__/tooltip.test.ts"
+        "app/components/PerformanceTrend.tsx"
       ],
       "related": [
-        "app/components/PerformanceTrend.tsx",
-        "app/lib/__tests__/tooltip.test.ts"
+        "app/components/PerformanceTrend.tsx"
       ],
       "overrideNotes": []
     },
@@ -1065,11 +1022,8 @@
       "imports": [
         "app/components/AdminLoginModal.tsx"
       ],
-      "importedBy": [
-        "__tests__/components/SettingsPage.test.tsx"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/components/SettingsPage.test.tsx",
         "app/components/AdminLoginModal.tsx"
       ],
       "overrideNotes": []
@@ -1082,11 +1036,8 @@
         "app/components/AdminLoginModal.tsx",
         "app/lib/signups.ts"
       ],
-      "importedBy": [
-        "__tests__/components/SignupsPage.test.tsx"
-      ],
+      "importedBy": [],
       "related": [
-        "__tests__/components/SignupsPage.test.tsx",
         "app/components/AdminLoginModal.tsx",
         "app/lib/signups.ts"
       ],
@@ -1178,7 +1129,6 @@
       ],
       "imports": [],
       "importedBy": [
-        "__tests__/api/seasons.test.ts",
         "app/api/daily-summary/route.ts",
         "app/api/player-stats/route.ts",
         "app/api/player-trends/route.ts",
@@ -1187,7 +1137,6 @@
         "app/api/team-performance/route.ts"
       ],
       "related": [
-        "__tests__/api/seasons.test.ts",
         "app/api/daily-summary/route.ts",
         "app/api/player-stats/route.ts",
         "app/api/player-trends/route.ts",

@@ -834,7 +834,7 @@ function buildGraph(
 ): { schemaVersion: number; nodes: GraphNode[] } {
   const nodes = keyFiles.map((filePath) => {
     const imports = (importMap.get(filePath) ?? []).filter((candidate) => keyFiles.includes(candidate));
-    const importedBy = reverseImports.get(filePath) ?? [];
+    const importedBy = (reverseImports.get(filePath) ?? []).filter((candidate) => !isTestFile(candidate));
     const overrideNotes = matchingOverrides(filePath, overrides).flatMap((entry) => entry.notes);
     const overrideRelated = matchingOverrides(filePath, overrides).flatMap((entry) => entry.relatedFiles);
     const related = stableUnique([...imports, ...importedBy, ...overrideRelated]).filter((value) => value !== filePath);

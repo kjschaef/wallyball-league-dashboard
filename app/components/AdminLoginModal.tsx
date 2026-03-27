@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 interface AdminLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => Promise<boolean>;
 }
 
 export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalProps) {
@@ -31,14 +31,17 @@ export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalP
       });
 
       if (response.ok) {
-        setPassword('');
-        onSuccess();
-        onClose();
+        const didRecordMatch = await onSuccess();
+
+        if (didRecordMatch) {
+          setPassword('');
+          onClose();
+        }
       } else {
         const data = await response.json();
         setError(data.error || 'Invalid password');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -46,7 +49,7 @@ export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalP
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[60] p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
         <button 
           onClick={onClose}

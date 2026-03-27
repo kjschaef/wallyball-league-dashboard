@@ -33,9 +33,11 @@
         "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
-        "npm test"
+        "npm test -- __tests__/components/DashboardPage.test.tsx"
       ],
-      "mappedTests": [],
+      "mappedTests": [
+        "__tests__/components/DashboardPage.test.tsx"
+      ],
       "riskAreas": [
         "API responses are enriched and consumed directly by UI components.",
         "Deleting players is blocked when match history exists."
@@ -77,10 +79,11 @@
         "app/components/WinPercentageRankings.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/api/matches.test.ts"
+        "npm test -- __tests__/api/matches.test.ts __tests__/components/DashboardPage.test.tsx"
       ],
       "mappedTests": [
-        "__tests__/api/matches.test.ts"
+        "__tests__/api/matches.test.ts",
+        "__tests__/components/DashboardPage.test.tsx"
       ],
       "riskAreas": [
         "Team slots are positional and support up to three players per side.",
@@ -124,14 +127,15 @@
         "app/components/PlayerGrid.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/api/player-stats.test.ts __tests__/api/player-trends.test.ts __tests__/api/seasonal-player-stats.test.ts __tests__/api/team-performance.test.ts app/components/__tests__/PerformanceControls.test.tsx"
+        "npm test -- __tests__/api/player-stats.test.ts __tests__/api/player-trends.test.ts __tests__/api/seasonal-player-stats.test.ts __tests__/api/team-performance.test.ts app/components/__tests__/PerformanceControls.test.tsx app/components/__tests__/PerformanceTrend.test.tsx"
       ],
       "mappedTests": [
         "__tests__/api/player-stats.test.ts",
         "__tests__/api/player-trends.test.ts",
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/team-performance.test.ts",
-        "app/components/__tests__/PerformanceControls.test.tsx"
+        "app/components/__tests__/PerformanceControls.test.tsx",
+        "app/components/__tests__/PerformanceTrend.test.tsx"
       ],
       "riskAreas": [
         "The repo mixes match-level and game-level statistics; verify semantics before editing.",
@@ -164,8 +168,6 @@
       "secondaryFiles": [
         "__tests__/api/player-stats.test.ts",
         "__tests__/api/seasonal-player-stats.test.ts",
-        "__tests__/api/seasons.test.ts",
-        "__tests__/components/SeasonSelector.test.tsx",
         "app/api/daily-summary/route.ts",
         "app/api/player-stats/route.ts",
         "app/api/player-trends/route.ts",
@@ -173,14 +175,17 @@
         "app/components/AISummaryPanel.tsx",
         "app/components/AdminLoginModal.tsx",
         "app/components/ChatBot.tsx",
-        "app/components/FloatingActionButton.tsx"
+        "app/components/FloatingActionButton.tsx",
+        "app/components/PerformanceTrend.tsx",
+        "app/components/PlayerCards.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/api/seasonal-player-stats.test.ts __tests__/api/seasons.test.ts __tests__/components/SeasonSelector.test.tsx"
+        "npm test -- __tests__/api/seasonal-player-stats.test.ts __tests__/api/seasons.test.ts __tests__/components/DashboardPage.test.tsx __tests__/components/SeasonSelector.test.tsx"
       ],
       "mappedTests": [
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/seasons.test.ts",
+        "__tests__/components/DashboardPage.test.tsx",
         "__tests__/components/SeasonSelector.test.tsx"
       ],
       "riskAreas": [
@@ -226,9 +231,11 @@
         "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
-        "npm test"
+        "npm test -- __tests__/components/DashboardPage.test.tsx"
       ],
-      "mappedTests": [],
+      "mappedTests": [
+        "__tests__/components/DashboardPage.test.tsx"
+      ],
       "riskAreas": [
         "Prompt behavior depends on season-aware stat payloads and RAG content.",
         "The dashboard root page launches AI flows and team suggestion workflows."

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { db } from '../../../../db';
 import { players, matches } from '../../../../db/schema';
 import { eq } from 'drizzle-orm';
@@ -97,6 +98,11 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const playerId = parseInt(params.id);
+  const isAdmin = cookies().get('admin_token')?.value === 'true';
+
+  if (!isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   
   if (isNaN(playerId)) {
     return NextResponse.json(
@@ -151,6 +157,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const playerId = parseInt(params.id);
+  const isAdmin = cookies().get('admin_token')?.value === 'true';
+
+  if (!isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   if (isNaN(playerId)) {
     return NextResponse.json(

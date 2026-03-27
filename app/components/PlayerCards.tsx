@@ -20,6 +20,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Edit, Trash2, TrendingUp, Calendar, Trophy } from "lucide-react";
 import { useSeasonChampions } from "../hooks/useSeasonChampions";
+import { AdminLoginModal } from "./AdminLoginModal";
 
 interface PlayerStats {
   id: number;
@@ -49,6 +50,17 @@ interface PlayerCardProps {
   isInactive?: boolean;
   championshipCount?: number;
 }
+
+type PendingPlayerAction =
+  | {
+      type: "edit";
+      payload: {
+        id: number;
+        name: string;
+        startYear?: number | null;
+      };
+    }
+  | { type: "delete"; playerId: number };
 
 function PlayerCard({ player, onEdit, onDelete, isInactive = false, championshipCount = 0 }: PlayerCardProps) {
 
@@ -202,7 +214,10 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
 export function PlayerCards() {
   const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+  const [pendingPlayerAction, setPendingPlayerAction] = useState<PendingPlayerAction | null>(null);
   const queryClient = useQueryClient();
+  const authRequiredError = "AUTH_REQUIRED";
 
   const {
     data: playerStats,
@@ -226,50 +241,84 @@ export function PlayerCards() {
     });
   }
 
-  const updatePlayerMutation = useMutation({
-    mutationFn: async (updatedPlayer: {
-      id: number;
-      name: string;
-      startYear?: number | null;
-    }) => {
-      const response = await fetch("/api/players", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedPlayer),
-      });
+  const sendUpdatePlayerRequest = async (updatedPlayer: {
+    id: number;
+    name: string;
+    startYear?: number | null;
+  }) => {
+    const response = await fetch("/api/players", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedPlayer),
+    });
 
-      if (!response.ok) {
-        throw new Error("Failed to update player");
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error(authRequiredError);
       }
 
-      return response.json();
-    },
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to update player");
+    }
+
+    return response.json();
+  };
+
+  const sendDeletePlayerRequest = async (playerId: number) => {
+    const response = await fetch(`/api/players?id=${playerId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error(authRequiredError);
+      }
+
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to delete player");
+    }
+
+    return response.json();
+  };
+
+  const updatePlayerMutation = useMutation({
+    mutationFn: sendUpdatePlayerRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/player-stats"] });
       setIsEditDialogOpen(false);
       setEditingPlayer(null);
     },
+    onError: (error: Error, updatedPlayer) => {
+      if (error.message === authRequiredError) {
+        setPendingPlayerAction({
+          type: "edit",
+          payload: updatedPlayer,
+        });
+        setShowAdminLoginModal(true);
+        return;
+      }
+
+      alert(`Error: ${error.message}`);
+    },
   });
 
   const deletePlayerMutation = useMutation({
-    mutationFn: async (playerId: number) => {
-      const response = await fetch(`/api/players?id=${playerId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete player");
-      }
-
-      return response.json();
-    },
+    mutationFn: sendDeletePlayerRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/player-stats"] });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, playerId: number) => {
+      if (error.message === authRequiredError) {
+        setPendingPlayerAction({
+          type: "delete",
+          playerId,
+        });
+        setShowAdminLoginModal(true);
+        return;
+      }
+
       alert(`Error: ${error.message}`);
     },
   });
@@ -296,6 +345,33 @@ export function PlayerCards() {
       name: name.trim(),
       startYear: startYear ? parseInt(startYear) : null,
     });
+  };
+
+  const handleAdminLoginSuccess = async () => {
+    if (!pendingPlayerAction) {
+      return false;
+    }
+
+    try {
+      if (pendingPlayerAction.type === "edit") {
+        await sendUpdatePlayerRequest(pendingPlayerAction.payload);
+        await queryClient.invalidateQueries({ queryKey: ["/api/player-stats"] });
+        setIsEditDialogOpen(false);
+        setEditingPlayer(null);
+      }
+
+      if (pendingPlayerAction.type === "delete") {
+        await sendDeletePlayerRequest(pendingPlayerAction.playerId);
+        await queryClient.invalidateQueries({ queryKey: ["/api/player-stats"] });
+      }
+
+      setPendingPlayerAction(null);
+      setShowAdminLoginModal(false);
+      return true;
+    } catch (error) {
+      alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      return false;
+    }
   };
 
   if (isLoading) {
@@ -475,6 +551,15 @@ export function PlayerCards() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AdminLoginModal
+        isOpen={showAdminLoginModal}
+        onClose={() => {
+          setShowAdminLoginModal(false);
+          setPendingPlayerAction(null);
+        }}
+        onSuccess={handleAdminLoginSuccess}
+      />
     </div>
   );
 }
