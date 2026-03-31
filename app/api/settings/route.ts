@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
+import {
+  DEFAULT_SIGNUP_SETTINGS,
+  normalizeTimeInputValue,
+  parseAvailableDays,
+} from '../../lib/signups';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -15,22 +23,22 @@ export async function GET() {
     
     if (settings.length > 0) {
       return NextResponse.json({
-        signupOpenDayOfWeek: settings[0].signup_open_day_of_week,
-        signupOpenTime: settings[0].signup_open_time,
-        signupCloseDayOfWeek: settings[0].signup_close_day_of_week ?? 0,
-        signupCloseTime: settings[0].signup_close_time ?? '16:00',
-        availableDays: JSON.parse(settings[0].available_days || '["Monday", "Tuesday", "Thursday"]')
+        signupOpenDayOfWeek: settings[0].signup_open_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupOpenDayOfWeek,
+        signupOpenTime: normalizeTimeInputValue(
+          settings[0].signup_open_time,
+          DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
+        ),
+        signupCloseDayOfWeek: settings[0].signup_close_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupCloseDayOfWeek,
+        signupCloseTime: normalizeTimeInputValue(
+          settings[0].signup_close_time,
+          DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+        ),
+        availableDays: parseAvailableDays(settings[0].available_days)
       });
     }
     
     // Defaults matching our schema
-    return NextResponse.json({
-      signupOpenDayOfWeek: 0, // Sunday
-      signupOpenTime: '12:00', // Noon
-      signupCloseDayOfWeek: 0, // Sunday
-      signupCloseTime: '16:00', // 4 PM
-      availableDays: ["Monday", "Tuesday", "Thursday"]
-    });
+    return NextResponse.json(DEFAULT_SIGNUP_SETTINGS);
   } catch (error) {
     console.error('Error fetching settings:', error);
     return NextResponse.json(
@@ -50,6 +58,14 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
+    const normalizedOpenTime = normalizeTimeInputValue(
+      body.signupOpenTime,
+      DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
+    );
+    const normalizedCloseTime = normalizeTimeInputValue(
+      body.signupCloseTime,
+      DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+    );
     
     if (!process.env.DATABASE_URL) {
       throw new Error('Database URL not configured');
@@ -65,9 +81,9 @@ export async function PUT(request: Request) {
         UPDATE site_settings 
         SET 
           signup_open_day_of_week = COALESCE(${body.signupOpenDayOfWeek}, signup_open_day_of_week),
-          signup_open_time = COALESCE(${body.signupOpenTime}, signup_open_time),
+          signup_open_time = COALESCE(${normalizedOpenTime}, signup_open_time),
           signup_close_day_of_week = COALESCE(${body.signupCloseDayOfWeek}, signup_close_day_of_week),
-          signup_close_time = COALESCE(${body.signupCloseTime}, signup_close_time),
+          signup_close_time = COALESCE(${normalizedCloseTime}, signup_close_time),
           available_days = COALESCE(${JSON.stringify(body.availableDays)}, available_days),
           admin_password_hash = COALESCE(${body.adminPassword}, admin_password_hash)
         WHERE id = ${existing[0].id}
@@ -77,10 +93,10 @@ export async function PUT(request: Request) {
         INSERT INTO site_settings (signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days, admin_password_hash)
         VALUES (
           ${body.signupOpenDayOfWeek ?? 0}, 
-          ${body.signupOpenTime || '12:00'}, 
+          ${normalizedOpenTime}, 
           ${body.signupCloseDayOfWeek ?? 0},
-          ${body.signupCloseTime || '16:00'},
-          ${JSON.stringify(body.availableDays || ["Monday", "Tuesday", "Thursday"])},
+          ${normalizedCloseTime},
+          ${JSON.stringify(body.availableDays || DEFAULT_SIGNUP_SETTINGS.availableDays)},
           ${body.adminPassword || 'admin'}
         )
       `;

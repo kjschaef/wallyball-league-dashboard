@@ -60,9 +60,9 @@ describe('/api/settings', () => {
       if (queryType === 'settings') {
         return Promise.resolve([{
           signup_open_day_of_week: 2,
-          signup_open_time: '10:00',
+          signup_open_time: '10:00:00',
           signup_close_day_of_week: 3,
-          signup_close_time: '14:00',
+          signup_close_time: '14:00:59',
           available_days: '["Tuesday","Thursday"]',
         }]);
       }

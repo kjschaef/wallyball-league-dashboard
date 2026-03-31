@@ -269,9 +269,13 @@
       "file": "app/api/settings/route.ts",
       "type": "api-route",
       "tags": [],
-      "imports": [],
+      "imports": [
+        "app/lib/signups.ts"
+      ],
       "importedBy": [],
-      "related": [],
+      "related": [
+        "app/lib/signups.ts"
+      ],
       "overrideNotes": []
     },
     {
@@ -865,11 +869,15 @@
       "tags": [],
       "imports": [],
       "importedBy": [
+        "app/api/settings/route.ts",
         "app/api/signups/route.ts",
+        "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
       "related": [
+        "app/api/settings/route.ts",
         "app/api/signups/route.ts",
+        "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
       "overrideNotes": []
@@ -1034,11 +1042,13 @@
       "type": "page",
       "tags": [],
       "imports": [
-        "app/components/AdminLoginModal.tsx"
+        "app/components/AdminLoginModal.tsx",
+        "app/lib/signups.ts"
       ],
       "importedBy": [],
       "related": [
-        "app/components/AdminLoginModal.tsx"
+        "app/components/AdminLoginModal.tsx",
+        "app/lib/signups.ts"
       ],
       "overrideNotes": []
     },

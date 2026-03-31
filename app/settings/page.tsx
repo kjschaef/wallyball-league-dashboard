@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AdminLoginModal } from '../components/AdminLoginModal';
 import { Check } from 'lucide-react';
+import { DEFAULT_SIGNUP_SETTINGS, normalizeTimeInputValue } from '../lib/signups';
 
 interface Settings {
   signupOpenDayOfWeek: number;
@@ -16,11 +17,7 @@ const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "F
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
-    signupOpenDayOfWeek: 0,
-    signupOpenTime: '12:00',
-    signupCloseDayOfWeek: 0,
-    signupCloseTime: '16:00',
-    availableDays: ["Monday", "Tuesday", "Thursday"]
+    ...DEFAULT_SIGNUP_SETTINGS,
   });
   const [adminPassword, setAdminPassword] = useState('');
   
@@ -32,10 +29,22 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/settings');
+        const response = await fetch('/api/settings', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
-          setSettings(data);
+          setSettings({
+            signupOpenDayOfWeek: data.signupOpenDayOfWeek ?? DEFAULT_SIGNUP_SETTINGS.signupOpenDayOfWeek,
+            signupOpenTime: normalizeTimeInputValue(
+              data.signupOpenTime,
+              DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
+            ),
+            signupCloseDayOfWeek: data.signupCloseDayOfWeek ?? DEFAULT_SIGNUP_SETTINGS.signupCloseDayOfWeek,
+            signupCloseTime: normalizeTimeInputValue(
+              data.signupCloseTime,
+              DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+            ),
+            availableDays: Array.isArray(data.availableDays) ? data.availableDays : DEFAULT_SIGNUP_SETTINGS.availableDays,
+          });
         }
       } catch (error) {
         console.error('Failed to fetch settings:', error);
@@ -53,6 +62,14 @@ export default function SettingsPage() {
 
     try {
       const payload: Settings & { adminPassword?: string } = { ...settings };
+      payload.signupOpenTime = normalizeTimeInputValue(
+        payload.signupOpenTime,
+        DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
+      );
+      payload.signupCloseTime = normalizeTimeInputValue(
+        payload.signupCloseTime,
+        DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+      );
       if (adminPassword) {
         payload.adminPassword = adminPassword;
       }
@@ -120,8 +137,9 @@ export default function SettingsPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Signups Open Day</label>
+            <label htmlFor="signup-open-day" className="block text-sm font-medium text-gray-700">Signups Open Day</label>
             <select
+              id="signup-open-day"
               value={settings.signupOpenDayOfWeek}
               onChange={(e) => setSettings({...settings, signupOpenDayOfWeek: parseInt(e.target.value)})}
               className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -133,8 +151,9 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Signups Open Time (EST)</label>
+            <label htmlFor="signup-open-time" className="block text-sm font-medium text-gray-700">Signups Open Time (EST)</label>
             <input
+              id="signup-open-time"
               type="time"
               value={settings.signupOpenTime}
               onChange={(e) => setSettings({...settings, signupOpenTime: e.target.value})}
@@ -145,8 +164,9 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Signups Close Day</label>
+            <label htmlFor="signup-close-day" className="block text-sm font-medium text-gray-700">Signups Close Day</label>
             <select
+              id="signup-close-day"
               value={settings.signupCloseDayOfWeek}
               onChange={(e) => setSettings({...settings, signupCloseDayOfWeek: parseInt(e.target.value)})}
               className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -158,8 +178,9 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Signups Close Time (EST)</label>
+            <label htmlFor="signup-close-time" className="block text-sm font-medium text-gray-700">Signups Close Time (EST)</label>
             <input
+              id="signup-close-time"
               type="time"
               value={settings.signupCloseTime}
               onChange={(e) => setSettings({...settings, signupCloseTime: e.target.value})}
@@ -169,13 +190,16 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-3 pt-4 border-t border-gray-100">
-          <label className="block text-sm font-medium text-gray-700">Available Days (Target Play Days)</label>
+          <p id="available-days-label" className="block text-sm font-medium text-gray-700">Available Days (Target Play Days)</p>
           <div className="flex flex-wrap gap-2">
             {DAYS_OF_WEEK.map(day => {
               const isActive = settings.availableDays.includes(day);
               return (
                 <button
                   key={day}
+                  type="button"
+                  aria-pressed={isActive}
+                  aria-describedby="available-days-label"
                   onClick={() => handleToggleAvailableDay(day)}
                   className={`px-4 py-2 border rounded-full flex items-center gap-2 transition-colors
                     ${isActive ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'}
@@ -194,8 +218,9 @@ export default function SettingsPage() {
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Admin Controls</h2>
         
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Change Admin Password</label>
+          <label htmlFor="admin-password" className="block text-sm font-medium text-gray-700">Change Admin Password</label>
           <input
+            id="admin-password"
             type="password"
             value={adminPassword}
             onChange={(e) => setAdminPassword(e.target.value)}
@@ -208,6 +233,7 @@ export default function SettingsPage() {
 
       <div className="flex justify-end">
         <button
+          type="button"
           onClick={() => {
             void handleSave();
           }}

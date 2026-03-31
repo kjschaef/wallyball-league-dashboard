@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
 import {
+  DEFAULT_SIGNUP_SETTINGS,
   getEasternWallTimeNow,
   getSignupCycleState,
   isDateInSignupWeek,
+  parseAvailableDays,
   type SignupSettings,
 } from '../../lib/signups';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: Request) {
   try {
@@ -74,19 +79,13 @@ export async function POST(request: Request) {
     if (!isAdmin) {
       const signupSettings: SignupSettings = settings.length > 0
         ? {
-            signupOpenDayOfWeek: settings[0].signup_open_day_of_week ?? 0,
-            signupOpenTime: settings[0].signup_open_time ?? '12:00',
-            signupCloseDayOfWeek: settings[0].signup_close_day_of_week ?? 0,
-            signupCloseTime: settings[0].signup_close_time ?? '16:00',
-            availableDays: JSON.parse(settings[0].available_days || '["Monday","Tuesday","Thursday"]'),
+            signupOpenDayOfWeek: settings[0].signup_open_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupOpenDayOfWeek,
+            signupOpenTime: settings[0].signup_open_time ?? DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
+            signupCloseDayOfWeek: settings[0].signup_close_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupCloseDayOfWeek,
+            signupCloseTime: settings[0].signup_close_time ?? DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+            availableDays: parseAvailableDays(settings[0].available_days),
           }
-        : {
-            signupOpenDayOfWeek: 0,
-            signupOpenTime: '12:00',
-            signupCloseDayOfWeek: 0,
-            signupCloseTime: '16:00',
-            availableDays: ['Monday', 'Tuesday', 'Thursday'],
-          };
+        : DEFAULT_SIGNUP_SETTINGS;
 
       const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
       if (!signupState.isOpen || !isDateInSignupWeek(date, signupState.signupWeekSunday, signupSettings.availableDays)) {
