@@ -5,7 +5,7 @@ import {
   DEFAULT_SIGNUP_SETTINGS,
   normalizeTimeInputValue,
   parseAvailableDays,
-} from '@/app/lib/signups';
+} from '../../lib/signups';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
