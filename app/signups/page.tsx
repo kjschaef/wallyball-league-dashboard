@@ -48,9 +48,9 @@ export default function SignupsPage() {
   const fetchData = async () => {
     try {
       const [settingsRes, playersRes, signupsRes] = await Promise.all([
-        fetch('/api/settings'),
-        fetch('/api/players'),
-        fetch('/api/signups')
+        fetch('/api/settings', { cache: 'no-store' }),
+        fetch('/api/players', { cache: 'no-store' }),
+        fetch('/api/signups', { cache: 'no-store' })
       ]);
       if (settingsRes.ok) setSettings(await settingsRes.json());
       if (playersRes.ok) setPlayers(await playersRes.json());

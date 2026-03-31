@@ -25,7 +25,7 @@ describe('SignupsPage', () => {
             signupOpenTime: '12:00',
             signupCloseDayOfWeek: 0,
             signupCloseTime: '16:00',
-            availableDays: ['Monday', 'Tuesday', 'Thursday'],
+            availableDays: ['Monday', 'Thursday'],
           }),
         } as Response);
       }
@@ -40,7 +40,7 @@ describe('SignupsPage', () => {
         } as Response);
       }
 
-      if (requestUrl === '/api/signups' && !options) {
+      if (requestUrl === '/api/signups' && (!options || !options.method)) {
         return Promise.resolve({
           ok: true,
           json: async () => [
@@ -87,6 +87,8 @@ describe('SignupsPage', () => {
 
     expect(await screen.findByText('Weekly Signups')).toBeInTheDocument();
     expect(await screen.findByText('Monday, January 19th')).toBeInTheDocument();
+    expect(screen.queryByText('Tuesday, January 20th')).not.toBeInTheDocument();
+    expect(screen.getByText('Thursday, January 22nd')).toBeInTheDocument();
 
     fireEvent.change(screen.getByRole('combobox'), { target: { value: '1' } });
     fireEvent.click(screen.getAllByText('Sign Up')[0]);

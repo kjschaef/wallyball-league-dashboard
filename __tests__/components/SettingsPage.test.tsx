@@ -14,9 +14,9 @@ describe('SettingsPage', () => {
           ok: true,
           json: async () => ({
             signupOpenDayOfWeek: 0,
-            signupOpenTime: '12:00',
+            signupOpenTime: '12:00:00',
             signupCloseDayOfWeek: 0,
-            signupCloseTime: '16:00',
+            signupCloseTime: '16:00:59',
             availableDays: ['Monday', 'Tuesday', 'Thursday'],
           }),
         } as Response);
@@ -51,6 +51,8 @@ describe('SettingsPage', () => {
 
     expect(await screen.findByText('Site Settings')).toBeInTheDocument();
     expect((screen.getAllByRole('combobox')[0] as HTMLSelectElement).value).toBe('0');
+    expect((screen.getAllByDisplayValue('12:00')[0] as HTMLInputElement).value).toBe('12:00');
+    expect((screen.getAllByDisplayValue('16:00')[0] as HTMLInputElement).value).toBe('16:00');
 
     fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: '2' } });
     fireEvent.change(screen.getByPlaceholderText('Leave blank to keep current password'), { target: { value: 'new-secret' } });

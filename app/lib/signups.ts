@@ -8,6 +8,63 @@ export interface SignupSettings {
   availableDays: string[];
 }
 
+export const DEFAULT_SIGNUP_SETTINGS: SignupSettings = {
+  signupOpenDayOfWeek: 0,
+  signupOpenTime: '12:00',
+  signupCloseDayOfWeek: 0,
+  signupCloseTime: '16:00',
+  availableDays: ['Monday', 'Tuesday', 'Thursday'],
+};
+
+export function parseAvailableDays(rawAvailableDays: string | null | undefined): string[] {
+  if (!rawAvailableDays) {
+    return DEFAULT_SIGNUP_SETTINGS.availableDays;
+  }
+
+  try {
+    const parsed = JSON.parse(rawAvailableDays);
+    if (Array.isArray(parsed) && parsed.every((day) => typeof day === 'string')) {
+      return parsed;
+    }
+  } catch {
+    // Fall through to defaults when stored JSON is malformed.
+  }
+
+  return DEFAULT_SIGNUP_SETTINGS.availableDays;
+}
+
+export function normalizeTimeInputValue(
+  rawTime: string | null | undefined,
+  fallback: string,
+): string {
+  if (!rawTime) {
+    return fallback;
+  }
+
+  const match = rawTime.match(/(\d{2}):(\d{2})/);
+  if (!match) {
+    return fallback;
+  }
+
+  const [, hours, minutes] = match;
+  const normalized = `${hours}:${minutes}`;
+  const normalizedHours = Number(hours);
+  const normalizedMinutes = Number(minutes);
+
+  if (
+    !Number.isInteger(normalizedHours) ||
+    !Number.isInteger(normalizedMinutes) ||
+    normalizedHours < 0 ||
+    normalizedHours > 23 ||
+    normalizedMinutes < 0 ||
+    normalizedMinutes > 59
+  ) {
+    return fallback;
+  }
+
+  return normalized;
+}
+
 interface SignupWindow {
   weekSunday: Date;
   openDateTime: Date;
