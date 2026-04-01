@@ -14,6 +14,14 @@ import {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+type SignupSettingsRow = {
+  signup_open_day_of_week: number | null;
+  signup_open_time: string | null;
+  signup_close_day_of_week: number | null;
+  signup_close_time: string | null;
+  available_days: string | null;
+};
+
 const WEEKLY_UNAVAILABLE_MIGRATION_ERROR =
   'Weekly unavailable signups are unavailable until the latest database migrations are applied';
 
@@ -26,13 +34,7 @@ function isMissingWeeklyUnavailableTable(error: unknown) {
   return pgError.code === '42P01' && (pgError.message ?? '').includes('weekly_unavailable');
 }
 
-function buildSignupSettings(settingsRows: {
-  signup_open_day_of_week: number | null;
-  signup_open_time: string | null;
-  signup_close_day_of_week: number | null;
-  signup_close_time: string | null;
-  available_days: string | null;
-}[]): SignupSettings {
+function buildSignupSettings(settingsRows: SignupSettingsRow[]): SignupSettings {
   return settingsRows.length > 0
     ? {
         signupOpenDayOfWeek: settingsRows[0].signup_open_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupOpenDayOfWeek,
@@ -59,7 +61,7 @@ export async function GET(request: Request) {
         SELECT signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days
         FROM site_settings
         LIMIT 1
-      `;
+      ` as SignupSettingsRow[];
       const signupSettings = buildSignupSettings(settings);
       const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
 
@@ -144,7 +146,7 @@ export async function POST(request: Request) {
       SELECT signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days
       FROM site_settings
       LIMIT 1
-    `;
+    ` as SignupSettingsRow[];
     const isAdmin = cookies().get('admin_token')?.value === 'true';
     const signupSettings = buildSignupSettings(settings);
     const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);

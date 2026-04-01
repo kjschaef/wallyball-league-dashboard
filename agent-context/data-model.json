@@ -83,6 +83,8 @@
       "selectType": "DailySummary",
       "insertType": "NewDailySummary",
       "migrationTouchpoints": [
+        "migrations/0000_light_toro.sql",
+        "migrations/README.md",
         "migrations/add_daily_summaries.sql"
       ]
     },
@@ -364,7 +366,8 @@
       "selectType": "WeeklyUnavailable",
       "insertType": "NewWeeklyUnavailable",
       "migrationTouchpoints": [
-        "migrations/009_add_weekly_unavailable.sql"
+        "migrations/009_add_weekly_unavailable.sql",
+        "migrations/README.md"
       ]
     }
   ]
