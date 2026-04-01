@@ -83,6 +83,8 @@
       "selectType": "DailySummary",
       "insertType": "NewDailySummary",
       "migrationTouchpoints": [
+        "migrations/0000_light_toro.sql",
+        "migrations/README.md",
         "migrations/add_daily_summaries.sql"
       ]
     },
@@ -232,6 +234,7 @@
         "migrations/0000_light_toro.sql",
         "migrations/004_add_inactivity_exemptions.sql",
         "migrations/007_add_signups.sql",
+        "migrations/009_add_weekly_unavailable.sql",
         "migrations/relations.ts",
         "migrations/schema.ts"
       ]
@@ -329,6 +332,42 @@
       "insertType": "NewWeeklySignup",
       "migrationTouchpoints": [
         "migrations/007_add_signups.sql"
+      ]
+    },
+    {
+      "symbol": "weeklyUnavailable",
+      "table": "weekly_unavailable",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "playerId",
+          "kind": "integer",
+          "column": "player_id",
+          "references": "players"
+        },
+        {
+          "field": "weekStart",
+          "kind": "text",
+          "column": "week_start",
+          "references": null
+        },
+        {
+          "field": "createdAt",
+          "kind": "timestamp",
+          "column": "created_at",
+          "references": null
+        }
+      ],
+      "selectType": "WeeklyUnavailable",
+      "insertType": "NewWeeklyUnavailable",
+      "migrationTouchpoints": [
+        "migrations/009_add_weekly_unavailable.sql",
+        "migrations/README.md"
       ]
     }
   ]

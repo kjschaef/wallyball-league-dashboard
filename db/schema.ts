@@ -86,6 +86,16 @@ export const weeklySignups = pgTable("weekly_signups", {
   playerDateIdx: index("weekly_signup_player_date_idx").on(table.playerId, table.date),
 }));
 
+export const weeklyUnavailable = pgTable("weekly_unavailable", {
+  id: serial("id").primaryKey(),
+  playerId: integer("player_id").references(() => players.id).notNull(),
+  weekStart: text("week_start").notNull(), // YYYY-MM-DD
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  weekStartIdx: index("weekly_unavailable_week_start_idx").on(table.weekStart),
+  playerWeekIdx: index("weekly_unavailable_player_week_idx").on(table.playerId, table.weekStart),
+}));
+
 export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
 export const insertMatchSchema = createInsertSchema(matches);
@@ -103,6 +113,8 @@ export const selectSiteSettingSchema = createSelectSchema(siteSettings);
 
 export const insertWeeklySignupSchema = createInsertSchema(weeklySignups);
 export const selectWeeklySignupSchema = createSelectSchema(weeklySignups);
+export const insertWeeklyUnavailableSchema = createInsertSchema(weeklyUnavailable);
+export const selectWeeklyUnavailableSchema = createSelectSchema(weeklyUnavailable);
 
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
@@ -121,3 +133,5 @@ export type NewSiteSetting = typeof siteSettings.$inferInsert;
 
 export type WeeklySignup = typeof weeklySignups.$inferSelect;
 export type NewWeeklySignup = typeof weeklySignups.$inferInsert;
+export type WeeklyUnavailable = typeof weeklyUnavailable.$inferSelect;
+export type NewWeeklyUnavailable = typeof weeklyUnavailable.$inferInsert;

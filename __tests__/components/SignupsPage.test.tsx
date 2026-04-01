@@ -49,6 +49,15 @@ describe('SignupsPage', () => {
         } as Response);
       }
 
+      if (requestUrl === '/api/signups?unavailable=1') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 11, player_id: 1, name: 'Alice', week_start: '2026-01-18', created_at: '2026-01-10T00:00:00.000Z' },
+          ],
+        } as Response);
+      }
+
       if (requestUrl === '/api/signups' && options?.method === 'POST') {
         return Promise.resolve({
           ok: true,
@@ -107,5 +116,11 @@ describe('SignupsPage', () => {
     expect(await screen.findByTitle('Remove player')).toBeInTheDocument();
     expect(screen.getAllByTitle('Remove player')).toHaveLength(1);
     expect(screen.getByText('1.')).toBeInTheDocument();
+  });
+
+  it('renders unavailable players with remove controls', async () => {
+    render(<SignupsPage />);
+
+    expect(await screen.findByTitle('Remove unavailable player')).toBeInTheDocument();
   });
 });
