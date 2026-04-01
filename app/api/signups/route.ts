@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
+import { format } from 'date-fns';
 import {
   DEFAULT_SIGNUP_SETTINGS,
   getEasternWallTimeNow,
@@ -13,19 +14,63 @@ import {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+function buildSignupSettings(settingsRows: {
+  signup_open_day_of_week: number | null;
+  signup_open_time: string | null;
+  signup_close_day_of_week: number | null;
+  signup_close_time: string | null;
+  available_days: string | null;
+}[]): SignupSettings {
+  return settingsRows.length > 0
+    ? {
+        signupOpenDayOfWeek: settingsRows[0].signup_open_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupOpenDayOfWeek,
+        signupOpenTime: settingsRows[0].signup_open_time ?? DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
+        signupCloseDayOfWeek: settingsRows[0].signup_close_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupCloseDayOfWeek,
+        signupCloseTime: settingsRows[0].signup_close_time ?? DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+        availableDays: parseAvailableDays(settingsRows[0].available_days),
+      }
+    : DEFAULT_SIGNUP_SETTINGS;
+}
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const dateParam = url.searchParams.get('date');
     const playerParam = url.searchParams.get('playerId');
-    
+    const unavailableParam = url.searchParams.get('unavailable');
+
     if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
     const sql = neon(process.env.DATABASE_URL);
-    
+
+    if (unavailableParam === '1') {
+      const settings = await sql`
+        SELECT signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days
+        FROM site_settings
+        LIMIT 1
+      `;
+      const signupSettings = buildSignupSettings(settings);
+      const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
+
+      if (!signupState.isOpen || !signupState.signupWeekSunday) {
+        return NextResponse.json([]);
+      }
+
+      const weekStart = format(signupState.signupWeekSunday, 'yyyy-MM-dd');
+      const unavailablePlayers = await sql`
+        SELECT wu.*, p.name
+        FROM weekly_unavailable wu
+        JOIN players p ON wu.player_id = p.id
+        WHERE wu.week_start = ${weekStart}
+        ORDER BY wu.created_at ASC
+      `;
+
+      return NextResponse.json(unavailablePlayers);
+    }
+
     let signups;
     if (dateParam) {
       signups = await sql`
-        SELECT s.*, p.name 
+        SELECT s.*, p.name
         FROM weekly_signups s
         JOIN players p ON s.player_id = p.id
         WHERE s.date = ${dateParam}
@@ -33,7 +78,7 @@ export async function GET(request: Request) {
       `;
     } else if (playerParam) {
       signups = await sql`
-        SELECT s.*, p.name 
+        SELECT s.*, p.name
         FROM weekly_signups s
         JOIN players p ON s.player_id = p.id
         WHERE s.player_id = ${playerParam} AND s.date::date >= current_date
@@ -41,14 +86,14 @@ export async function GET(request: Request) {
       `;
     } else {
       signups = await sql`
-        SELECT s.*, p.name 
+        SELECT s.*, p.name
         FROM weekly_signups s
         JOIN players p ON s.player_id = p.id
         WHERE s.date::date >= current_date - interval '7 days'
         ORDER BY s.date ASC, s.created_at ASC
       `;
     }
-    
+
     return NextResponse.json(signups);
   } catch (error) {
     console.error('Error fetching signups:', error);
@@ -59,47 +104,61 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { playerId, date } = body;
-    
-    if (!playerId || !date) {
+    const { playerId, date, unavailable } = body;
+
+    if (!playerId || (!date && !unavailable)) {
       return NextResponse.json({ error: 'playerId and date are required' }, { status: 400 });
     }
-    
+
     if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
     const sql = neon(process.env.DATABASE_URL);
 
-    // Check if open
     const settings = await sql`
       SELECT signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days
       FROM site_settings
       LIMIT 1
     `;
     const isAdmin = cookies().get('admin_token')?.value === 'true';
-    
-    if (!isAdmin) {
-      const signupSettings: SignupSettings = settings.length > 0
-        ? {
-            signupOpenDayOfWeek: settings[0].signup_open_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupOpenDayOfWeek,
-            signupOpenTime: settings[0].signup_open_time ?? DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
-            signupCloseDayOfWeek: settings[0].signup_close_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupCloseDayOfWeek,
-            signupCloseTime: settings[0].signup_close_time ?? DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
-            availableDays: parseAvailableDays(settings[0].available_days),
-          }
-        : DEFAULT_SIGNUP_SETTINGS;
+    const signupSettings = buildSignupSettings(settings);
+    const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
 
-      const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
+    if (unavailable) {
+      if (!isAdmin && (!signupState.isOpen || !signupState.signupWeekSunday)) {
+        return NextResponse.json({ error: 'Signups are closed for this week' }, { status: 403 });
+      }
+
+      const weekStart = body.weekStart && isAdmin
+        ? body.weekStart
+        : format(signupState.signupWeekSunday ?? getEasternWallTimeNow(), 'yyyy-MM-dd');
+
+      const existingUnavailable = await sql`
+        SELECT id FROM weekly_unavailable
+        WHERE player_id = ${playerId} AND week_start = ${weekStart}
+      `;
+      if (existingUnavailable.length > 0) {
+        return NextResponse.json({ error: 'Player is already marked unavailable for this week' }, { status: 400 });
+      }
+
+      const unavailableRow = await sql`
+        INSERT INTO weekly_unavailable (player_id, week_start)
+        VALUES (${playerId}, ${weekStart})
+        RETURNING *
+      `;
+
+      return NextResponse.json({ success: true, unavailable: unavailableRow[0] });
+    }
+
+    if (!isAdmin) {
       if (!signupState.isOpen || !isDateInSignupWeek(date, signupState.signupWeekSunday, signupSettings.availableDays)) {
         return NextResponse.json({ error: 'Signups are closed for this date' }, { status: 403 });
       }
     }
 
-    // Check existing signup
     const existing = await sql`SELECT id FROM weekly_signups WHERE player_id = ${playerId} AND date = ${date}`;
     if (existing.length > 0) {
       return NextResponse.json({ error: 'Player already signed up for this date' }, { status: 400 });
     }
 
-    // Determine status based on current count
     const countRes = await sql`SELECT count(*) as total FROM weekly_signups WHERE date = ${date} AND status = 'registered'`;
     const count = parseInt(countRes[0].total, 10);
     const status = count < 6 ? 'registered' : 'waitlisted';
@@ -120,48 +179,62 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const body = await request.json();
-    const { id, playerId, date } = body;
+    const { id, playerId, date, unavailable, weekStart } = body;
+
+    if (unavailable) {
+      if (!id && !(playerId && weekStart)) {
+        return NextResponse.json({ error: 'id or (playerId and weekStart) required for unavailable removal' }, { status: 400 });
+      }
+
+      if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
+      const sql = neon(process.env.DATABASE_URL);
+
+      if (id) {
+        await sql`DELETE FROM weekly_unavailable WHERE id = ${id}`;
+      } else {
+        await sql`DELETE FROM weekly_unavailable WHERE player_id = ${playerId} AND week_start = ${weekStart}`;
+      }
+
+      return NextResponse.json({ success: true });
+    }
 
     if (!id && !(playerId && date)) {
-        return NextResponse.json({ error: 'id or (playerId and date) required' }, { status: 400 });
+      return NextResponse.json({ error: 'id or (playerId and date) required' }, { status: 400 });
     }
 
     if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
     const sql = neon(process.env.DATABASE_URL);
 
-    // Get the signup to check its status before deleting
     let targetSignup;
     if (id) {
-        targetSignup = await sql`SELECT * FROM weekly_signups WHERE id = ${id}`;
+      targetSignup = await sql`SELECT * FROM weekly_signups WHERE id = ${id}`;
     } else {
-        targetSignup = await sql`SELECT * FROM weekly_signups WHERE player_id = ${playerId} AND date = ${date}`;
+      targetSignup = await sql`SELECT * FROM weekly_signups WHERE player_id = ${playerId} AND date = ${date}`;
     }
 
     if (targetSignup.length === 0) {
-        return NextResponse.json({ error: 'Signup not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Signup not found' }, { status: 404 });
     }
 
     const { id: signupId, date: signupDate, status } = targetSignup[0];
 
-    // Delete it
     await sql`DELETE FROM weekly_signups WHERE id = ${signupId}`;
 
-    // If it was registered, promote the first waitlisted person
     if (status === 'registered') {
-        const waitlisted = await sql`
-            SELECT id FROM weekly_signups 
-            WHERE date = ${signupDate} AND status = 'waitlisted' 
-            ORDER BY created_at ASC 
-            LIMIT 1
+      const waitlisted = await sql`
+        SELECT id FROM weekly_signups
+        WHERE date = ${signupDate} AND status = 'waitlisted'
+        ORDER BY created_at ASC
+        LIMIT 1
+      `;
+
+      if (waitlisted.length > 0) {
+        await sql`
+          UPDATE weekly_signups
+          SET status = 'registered'
+          WHERE id = ${waitlisted[0].id}
         `;
-        
-        if (waitlisted.length > 0) {
-            await sql`
-                UPDATE weekly_signups 
-                SET status = 'registered' 
-                WHERE id = ${waitlisted[0].id}
-            `;
-        }
+      }
     }
 
     return NextResponse.json({ success: true });

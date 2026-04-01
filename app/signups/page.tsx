@@ -25,6 +25,14 @@ interface Signup {
   created_at: string;
 }
 
+interface UnavailablePlayer {
+  id: number;
+  player_id: number;
+  name: string;
+  week_start: string;
+  created_at: string;
+}
+
 type Settings = SignupSettings;
 
 export default function SignupsPage() {
@@ -32,6 +40,7 @@ export default function SignupsPage() {
   const [now, setNow] = useState<Date | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [signups, setSignups] = useState<Signup[]>([]);
+  const [unavailablePlayers, setUnavailablePlayers] = useState<UnavailablePlayer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
@@ -47,14 +56,16 @@ export default function SignupsPage() {
 
   const fetchData = async () => {
     try {
-      const [settingsRes, playersRes, signupsRes] = await Promise.all([
+      const [settingsRes, playersRes, signupsRes, unavailableRes] = await Promise.all([
         fetch('/api/settings', { cache: 'no-store' }),
         fetch('/api/players', { cache: 'no-store' }),
-        fetch('/api/signups', { cache: 'no-store' })
+        fetch('/api/signups', { cache: 'no-store' }),
+        fetch('/api/signups?unavailable=1', { cache: 'no-store' }),
       ]);
       if (settingsRes.ok) setSettings(await settingsRes.json());
       if (playersRes.ok) setPlayers(await playersRes.json());
       if (signupsRes.ok) setSignups(await signupsRes.json());
+      if (unavailableRes.ok) setUnavailablePlayers(await unavailableRes.json());
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -85,6 +96,31 @@ export default function SignupsPage() {
       }
     };
     await doSignup();
+  };
+
+  const handleMarkUnavailable = async () => {
+    if (!selectedPlayerId) return alert('Please select a player first');
+
+    const selectedId = parseInt(selectedPlayerId, 10);
+    const existingUnavailable = unavailablePlayers.find((entry) => entry.player_id === selectedId);
+
+    const res = await fetch('/api/signups', {
+      method: existingUnavailable ? 'DELETE' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        existingUnavailable
+          ? { id: existingUnavailable.id, unavailable: true }
+          : { playerId: selectedId, unavailable: true },
+      ),
+    });
+
+    if (res.ok) {
+      await fetchData();
+      return;
+    }
+
+    const data = await res.json();
+    alert(data.error || 'Failed to update unavailable status');
   };
 
   const handleDelete = async (signupId: number) => {
@@ -138,6 +174,14 @@ export default function SignupsPage() {
     openDateTime: null,
   };
 
+  const signupWeekStart = signupWeekSunday ? format(signupWeekSunday, 'yyyy-MM-dd') : null;
+  const unavailableThisWeek = signupWeekStart
+    ? unavailablePlayers.filter((player) => player.week_start === signupWeekStart)
+    : [];
+  const selectedPlayerUnavailable = selectedPlayerId
+    ? unavailableThisWeek.some((player) => player.player_id === parseInt(selectedPlayerId, 10))
+    : false;
+
   // Dates available for signup (next week's play days) — only shown when open
   const upcomingDates: string[] = (settings && isOpen && signupWeekSunday)
     ? generateWeekDates(signupWeekSunday, settings.availableDays)
@@ -184,6 +228,15 @@ export default function SignupsPage() {
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
+            <button
+              onClick={handleMarkUnavailable}
+              disabled={!selectedPlayerId}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${selectedPlayerUnavailable
+                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'} disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {selectedPlayerUnavailable ? "I'm Back In" : 'Out This Week'}
+            </button>
           </div>
         )}
       </div>
@@ -205,6 +258,21 @@ export default function SignupsPage() {
             <div className="mt-1 text-xs font-medium text-amber-700">
               Closes {format(closeDateTime, 'EEEE')} at {format(closeDateTime, 'h:mm a')}
             </div>
+          </div>
+
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-rose-800">Unavailable This Week</h2>
+            {unavailableThisWeek.length === 0 ? (
+              <p className="mt-1 text-sm text-rose-700">No one has marked themselves out yet.</p>
+            ) : (
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {unavailableThisWeek.map((player) => (
+                  <li key={player.id} className="rounded-full bg-white px-3 py-1 text-sm text-rose-700 border border-rose-200">
+                    {player.name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {upcomingDates.length === 0 ? (
