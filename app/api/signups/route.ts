@@ -14,6 +14,18 @@ import {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+const WEEKLY_UNAVAILABLE_MIGRATION_ERROR =
+  'Weekly unavailable signups are unavailable until the latest database migrations are applied';
+
+function isMissingWeeklyUnavailableTable(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const pgError = error as { code?: string; message?: string };
+  return pgError.code === '42P01' && (pgError.message ?? '').includes('weekly_unavailable');
+}
+
 function buildSignupSettings(settingsRows: {
   signup_open_day_of_week: number | null;
   signup_open_time: string | null;
@@ -56,13 +68,28 @@ export async function GET(request: Request) {
       }
 
       const weekStart = format(signupState.signupWeekSunday, 'yyyy-MM-dd');
-      const unavailablePlayers = await sql`
-        SELECT wu.*, p.name
-        FROM weekly_unavailable wu
-        JOIN players p ON wu.player_id = p.id
-        WHERE wu.week_start = ${weekStart}
-        ORDER BY wu.created_at ASC
-      `;
+      let unavailablePlayers;
+      try {
+        unavailablePlayers = await sql`
+          SELECT
+            wu.id,
+            wu.player_id,
+            wu.week_start::text AS week_start,
+            wu.created_at,
+            p.name
+          FROM weekly_unavailable wu
+          JOIN players p ON wu.player_id = p.id
+          WHERE wu.week_start = ${weekStart}
+          ORDER BY wu.created_at ASC
+        `;
+      } catch (error) {
+        if (isMissingWeeklyUnavailableTable(error)) {
+          console.warn(WEEKLY_UNAVAILABLE_MIGRATION_ERROR, error);
+          return NextResponse.json([]);
+        }
+
+        throw error;
+      }
 
       return NextResponse.json(unavailablePlayers);
     }
@@ -131,19 +158,30 @@ export async function POST(request: Request) {
         ? body.weekStart
         : format(signupState.signupWeekSunday ?? getEasternWallTimeNow(), 'yyyy-MM-dd');
 
-      const existingUnavailable = await sql`
-        SELECT id FROM weekly_unavailable
-        WHERE player_id = ${playerId} AND week_start = ${weekStart}
-      `;
-      if (existingUnavailable.length > 0) {
-        return NextResponse.json({ error: 'Player is already marked unavailable for this week' }, { status: 400 });
-      }
+      let existingUnavailable;
+      let unavailableRow;
+      try {
+        existingUnavailable = await sql`
+          SELECT id FROM weekly_unavailable
+          WHERE player_id = ${playerId} AND week_start = ${weekStart}
+        `;
+        if (existingUnavailable.length > 0) {
+          return NextResponse.json({ error: 'Player is already marked unavailable for this week' }, { status: 400 });
+        }
 
-      const unavailableRow = await sql`
-        INSERT INTO weekly_unavailable (player_id, week_start)
-        VALUES (${playerId}, ${weekStart})
-        RETURNING *
-      `;
+        unavailableRow = await sql`
+          INSERT INTO weekly_unavailable (player_id, week_start)
+          VALUES (${playerId}, ${weekStart})
+          RETURNING id, player_id, week_start::text AS week_start, created_at
+        `;
+      } catch (error) {
+        if (isMissingWeeklyUnavailableTable(error)) {
+          console.error(WEEKLY_UNAVAILABLE_MIGRATION_ERROR, error);
+          return NextResponse.json({ error: WEEKLY_UNAVAILABLE_MIGRATION_ERROR }, { status: 503 });
+        }
+
+        throw error;
+      }
 
       return NextResponse.json({ success: true, unavailable: unavailableRow[0] });
     }
@@ -189,10 +227,19 @@ export async function DELETE(request: Request) {
       if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
       const sql = neon(process.env.DATABASE_URL);
 
-      if (id) {
-        await sql`DELETE FROM weekly_unavailable WHERE id = ${id}`;
-      } else {
-        await sql`DELETE FROM weekly_unavailable WHERE player_id = ${playerId} AND week_start = ${weekStart}`;
+      try {
+        if (id) {
+          await sql`DELETE FROM weekly_unavailable WHERE id = ${id}`;
+        } else {
+          await sql`DELETE FROM weekly_unavailable WHERE player_id = ${playerId} AND week_start = ${weekStart}`;
+        }
+      } catch (error) {
+        if (isMissingWeeklyUnavailableTable(error)) {
+          console.error(WEEKLY_UNAVAILABLE_MIGRATION_ERROR, error);
+          return NextResponse.json({ error: WEEKLY_UNAVAILABLE_MIGRATION_ERROR }, { status: 503 });
+        }
+
+        throw error;
       }
 
       return NextResponse.json({ success: true });

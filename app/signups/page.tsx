@@ -148,6 +148,24 @@ export default function SignupsPage() {
     await doDelete();
   };
 
+  const handleRemoveUnavailable = async (entryId: number) => {
+    if (!confirm('Are you sure you want to remove this unavailable player?')) return;
+
+    const res = await fetch('/api/signups', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: entryId, unavailable: true }),
+    });
+
+    if (res.ok) {
+      await fetchData();
+      return;
+    }
+
+    const data = await res.json();
+    alert(data.error || 'Failed to remove unavailable player');
+  };
+
   const executePendingAction = async (): Promise<boolean> => {
     if (!actionPending) {
       return false;
@@ -267,8 +285,19 @@ export default function SignupsPage() {
             ) : (
               <ul className="mt-2 flex flex-wrap gap-2">
                 {unavailableThisWeek.map((player) => (
-                  <li key={player.id} className="rounded-full bg-white px-3 py-1 text-sm text-rose-700 border border-rose-200">
-                    {player.name}
+                  <li
+                    key={player.id}
+                    className="flex items-center gap-1 rounded-full border border-rose-200 bg-white px-3 py-1 text-sm text-rose-700"
+                  >
+                    <span>{player.name}</span>
+                    <button
+                      onClick={() => handleRemoveUnavailable(player.id)}
+                      className="rounded-full p-1 text-rose-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                      title="Remove unavailable player"
+                      aria-label={`Remove ${player.name} from unavailable list`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </li>
                 ))}
               </ul>
