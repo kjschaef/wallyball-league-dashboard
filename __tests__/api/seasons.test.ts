@@ -28,7 +28,7 @@ describe('/api/seasons', () => {
 
   describe('GET /api/seasons', () => {
     it('computes seasons based on earliest match date when database is available', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
       const sqlMock = jest.fn().mockImplementation((strings: TemplateStringsArray) => {
         const query = strings.join(' ').toLowerCase();
         if (query.includes('select min(date)')) {
@@ -53,7 +53,7 @@ describe('/api/seasons', () => {
 
     it('falls back to computed seasons when DATABASE_URL is not set', async () => {
       delete process.env.DATABASE_URL;
-      jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
 
       const request = new NextRequest('http://localhost:3000/api/seasons');
       const response = await getSeasonsRoute(request);
@@ -81,7 +81,7 @@ describe('/api/seasons', () => {
 
   describe('GET /api/seasons/current', () => {
     it('returns the computed current season for today', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2025-05-10T12:00:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2025-05-10T12:00:00.000Z').getTime());
 
       const request = new NextRequest('http://localhost:3000/api/seasons/current');
       const response = await getCurrentSeasonRoute(request);
@@ -130,7 +130,7 @@ describe('lib/seasons utilities', () => {
   });
 
   it('lists recent seasons with current quarter first', () => {
-    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z'));
+    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
     const seasons = listSeasons(4);
 
     expect(seasons).toHaveLength(6);
@@ -139,7 +139,7 @@ describe('lib/seasons utilities', () => {
   });
 
   it('retrieves season metadata by identifier', () => {
-    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z'));
+    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
     const seasons = listSeasons(6);
 
     const target = seasons[2];
@@ -149,7 +149,7 @@ describe('lib/seasons utilities', () => {
   });
 
   it('maps match dates to the correct season', () => {
-    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z'));
+    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
     const seasons = listSeasons(6);
 
     const sampleSeason = seasons.find((s) => s.name === '2024 Q3');

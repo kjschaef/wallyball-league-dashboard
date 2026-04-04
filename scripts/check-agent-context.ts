@@ -60,7 +60,7 @@ function compareGeneratedOutputs(rootDir: string): string[] {
     }
     const currentContent = fs.readFileSync(absolutePath, 'utf8');
     if (currentContent !== expectedContent) {
-      errors.push(`Stale generated artifact: ${relativePath}. Run npm run context:generate.`);
+      errors.push(`Stale generated artifact: ${relativePath}. Run pnpm run context:generate.`);
     }
   }
 

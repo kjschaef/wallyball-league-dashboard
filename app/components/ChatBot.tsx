@@ -1132,7 +1132,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
       />
 
       {/* Feedback Dialog */}
-      <Dialog open={feedbackDialog.isOpen} onOpenChange={(open) => {
+      <Dialog open={feedbackDialog.isOpen} onOpenChange={(open: boolean) => {
         if (!open) {
           setFeedbackDialog({ isOpen: false, messageIndex: -1, type: 'positive' });
           setFeedbackText('');

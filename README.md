@@ -28,7 +28,7 @@ A web application for tracking, analyzing, and visualizing player and team perfo
 
 2. Install dependencies
    ```
-   npm install
+   pnpm install
    ```
 
 3. Set up environment variables
@@ -37,7 +37,7 @@ A web application for tracking, analyzing, and visualizing player and team perfo
 
 4. Run the development server
    ```
-   npm run dev
+   pnpm dev
    ```
 
 ## Vercel Deployment with Neon PostgreSQL

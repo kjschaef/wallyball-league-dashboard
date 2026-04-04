@@ -14,27 +14,27 @@
   "commands": [
     {
       "name": "dev",
-      "command": "npm run dev"
+      "command": "pnpm dev"
     },
     {
       "name": "build",
-      "command": "npm run build"
+      "command": "pnpm build"
     },
     {
       "name": "test",
-      "command": "npm test"
+      "command": "pnpm test"
     },
     {
       "name": "lint",
-      "command": "npm run lint"
+      "command": "pnpm lint"
     },
     {
       "name": "context:generate",
-      "command": "npm run context:generate"
+      "command": "pnpm run context:generate"
     },
     {
       "name": "context:check",
-      "command": "npm run context:check"
+      "command": "pnpm run context:check"
     }
   ],
   "subsystems": [

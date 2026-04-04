@@ -9,7 +9,7 @@ describe('SignupsPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
     window.alert = alertMock;
     window.confirm = confirmMock;
     global.alert = alertMock;

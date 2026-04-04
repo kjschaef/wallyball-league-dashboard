@@ -163,7 +163,7 @@ describe('/api/signups', () => {
       expect(mockSql).toHaveBeenCalledWith('recent');
     });
     it('returns unavailable players only while signups are open', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
 
       const unavailable = [{ id: 2, player_id: 5, name: 'Casey', week_start: '2026-01-18' }];
       mockSql.mockImplementation((queryType) => {
@@ -192,7 +192,7 @@ describe('/api/signups', () => {
     });
 
     it('preserves a plain yyyy-mm-dd week_start for unavailable entries', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
 
       const unavailable = [{ id: 2, player_id: 5, name: 'Casey', week_start: '2026-01-18' }];
       mockSql.mockImplementation((queryType) => {
@@ -222,7 +222,7 @@ describe('/api/signups', () => {
     });
 
     it('returns an empty unavailable list when the migration has not been applied', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
 
       mockSql.mockImplementation((queryType) => {
         if (queryType === 'settings') {
@@ -260,7 +260,7 @@ describe('/api/signups', () => {
     });
 
     it('rejects non-admin signups after the close cutoff', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-12T00:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-12T00:30:00.000Z').getTime());
 
       mockSql.mockImplementation((queryType) => {
         if (queryType === 'settings') {
@@ -287,7 +287,7 @@ describe('/api/signups', () => {
     });
 
     it('accepts non-admin signups during the active window for configured days', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
 
       mockSql.mockImplementation((queryType) => {
         if (queryType === 'settings') {
@@ -328,7 +328,7 @@ describe('/api/signups', () => {
     });
 
     it('rejects duplicate signups', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
 
       mockSql.mockImplementation((queryType) => {
         if (queryType === 'settings') {
@@ -358,7 +358,7 @@ describe('/api/signups', () => {
     });
 
     it('waitlists players after six registered signups', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
 
       mockSql.mockImplementation((queryType) => {
         if (queryType === 'settings') {
@@ -399,7 +399,7 @@ describe('/api/signups', () => {
 
 
     it('creates an unavailable RSVP during open signups', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
 
       mockSql.mockImplementation((queryType) => {
         if (queryType === 'settings') {
@@ -436,7 +436,7 @@ describe('/api/signups', () => {
     });
 
     it('returns a migration error when unavailable RSVPs are not supported by the database yet', async () => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z'));
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
 
       mockSql.mockImplementation((queryType) => {
         if (queryType === 'settings') {

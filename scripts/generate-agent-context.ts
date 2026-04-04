@@ -773,7 +773,7 @@ function buildTasks(
       triggers: definition.triggers,
       startFiles,
       secondaryFiles,
-      testCommands: tests.length > 0 ? [`npm test -- ${tests.join(' ')}`] : ['npm test'],
+      testCommands: tests.length > 0 ? [`pnpm test -- ${tests.join(' ')}`] : ['pnpm test'],
       mappedTests: tests,
       riskAreas: definition.riskAreas,
       notes: stableUnique(matchingNotes),
@@ -865,12 +865,12 @@ function buildIndex(
   };
 
   const commands = [
-    { name: 'dev', command: 'npm run dev' },
-    { name: 'build', command: 'npm run build' },
-    { name: 'test', command: 'npm test' },
-    { name: 'lint', command: 'npm run lint' },
-    { name: 'context:generate', command: 'npm run context:generate' },
-    { name: 'context:check', command: 'npm run context:check' },
+    { name: 'dev', command: 'pnpm dev' },
+    { name: 'build', command: 'pnpm build' },
+    { name: 'test', command: 'pnpm test' },
+    { name: 'lint', command: 'pnpm lint' },
+    { name: 'context:generate', command: 'pnpm run context:generate' },
+    { name: 'context:check', command: 'pnpm run context:check' },
   ];
 
   const entrypoints = [
