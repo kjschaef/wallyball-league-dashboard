@@ -234,13 +234,19 @@ export default function SignupsPage() {
       const dateObj = new Date(dateStr + 'T12:00:00');
       const dayName = format(dateObj, 'EEEE');
       const daySignups = signups.filter((s) => s.date === dateStr && s.status === 'registered');
-      const isFull = daySignups.length >= 6;
+      const count = daySignups.length;
+      let status = 'OPEN';
+      if (count >= 6) {
+        status = 'CLOSED';
+      } else if (count >= 4) {
+        status = 'PLAYABLE';
+      }
 
-      text += `${dayName} - ${isFull ? 'FULL' : 'OPEN'}\n`;
+      text += `${dayName} - ${status}\n`;
       daySignups.forEach((s) => {
         text += `- ${s.name}\n`;
       });
-      if (!isFull) {
+      if (count < 6) {
         text += `- \n`;
       }
       text += `\n`;
