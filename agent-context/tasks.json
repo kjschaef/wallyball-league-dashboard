@@ -33,7 +33,7 @@
         "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx"
+        "pnpm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx"
       ],
       "mappedTests": [
         "__tests__/components/DashboardPage.test.tsx",
@@ -80,7 +80,7 @@
         "app/components/WinPercentageRankings.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/api/matches.test.ts __tests__/components/DashboardPage.test.tsx"
+        "pnpm test -- __tests__/api/matches.test.ts __tests__/components/DashboardPage.test.tsx"
       ],
       "mappedTests": [
         "__tests__/api/matches.test.ts",
@@ -128,7 +128,7 @@
         "app/components/PlayerGrid.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/api/player-stats.test.ts __tests__/api/player-trends.test.ts __tests__/api/seasonal-player-stats.test.ts __tests__/api/team-performance.test.ts app/components/__tests__/PerformanceControls.test.tsx app/components/__tests__/PerformanceTrend.test.tsx"
+        "pnpm test -- __tests__/api/player-stats.test.ts __tests__/api/player-trends.test.ts __tests__/api/seasonal-player-stats.test.ts __tests__/api/team-performance.test.ts app/components/__tests__/PerformanceControls.test.tsx app/components/__tests__/PerformanceTrend.test.tsx"
       ],
       "mappedTests": [
         "__tests__/api/player-stats.test.ts",
@@ -181,7 +181,7 @@
         "app/components/PlayerCards.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/api/seasonal-player-stats.test.ts __tests__/api/seasons.test.ts __tests__/components/DashboardPage.test.tsx __tests__/components/SeasonSelector.test.tsx"
+        "pnpm test -- __tests__/api/seasonal-player-stats.test.ts __tests__/api/seasons.test.ts __tests__/components/DashboardPage.test.tsx __tests__/components/SeasonSelector.test.tsx"
       ],
       "mappedTests": [
         "__tests__/api/seasonal-player-stats.test.ts",
@@ -232,7 +232,7 @@
         "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
-        "npm test -- __tests__/components/DashboardPage.test.tsx"
+        "pnpm test -- __tests__/components/DashboardPage.test.tsx"
       ],
       "mappedTests": [
         "__tests__/components/DashboardPage.test.tsx"
@@ -269,7 +269,7 @@
         "db/config.ts"
       ],
       "testCommands": [
-        "npm test"
+        "pnpm test"
       ],
       "mappedTests": [],
       "riskAreas": [

@@ -5,18 +5,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Running the Application
-- **Development server**: `npm run dev` (runs on port 5001), assume it's already running first
-- **Production build**: `npm run build`
-- **Production start**: `npm start` (runs on port 5000)
+- **Development server**: `pnpm dev` (runs on port 5002), assume it's already running first
+- **Production build**: `pnpm build`
+- **Production start**: `pnpm start` (runs on port 5000)
 
 ### Database Operations
-- **Generate migrations**: `npx drizzle-kit generate`
-- **Push schema changes**: `npx drizzle-kit push`
-- **Run migrations**: `npx drizzle-kit migrate`
+- **Generate migrations**: `pnpm drizzle-kit generate`
+- **Push schema changes**: `pnpm drizzle-kit push`
+- **Run migrations**: `pnpm drizzle-kit migrate`
 
 ### Testing
-- **Run tests**: `npm test` (uses Jest)
-- **Test with coverage**: `npm test -- --coverage`
+- **Run tests**: `pnpm test` (uses Jest)
+- **Test with coverage**: `pnpm test -- --coverage`
 
 ## Project Architecture
 

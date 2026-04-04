@@ -19,12 +19,12 @@ Use `Docs/` as secondary human-oriented documentation. Do not default to it for 
 
 ## Canonical Commands
 
-- `npm run dev`
-- `npm run build`
-- `npm test`
-- `npm run lint`
-- `npm run context:generate`
-- `npm run context:check`
+- `pnpm dev`
+- `pnpm build`
+- `pnpm test`
+- `pnpm lint`
+- `pnpm run context:generate`
+- `pnpm run context:check`
 
 ## High-Value Invariants
 
@@ -38,4 +38,4 @@ Use `Docs/` as secondary human-oriented documentation. Do not default to it for 
 
 - Generated files live in `agent-context/*.json`.
 - Manual context lives in `agent-context/overrides.yaml` and `agent-context/notes.md`.
-- CI runs `npm run context:check` on PRs to prevent stale context from merging.
+- CI runs `pnpm run context:check` on PRs to prevent stale context from merging.
