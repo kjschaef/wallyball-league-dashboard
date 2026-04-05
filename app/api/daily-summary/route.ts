@@ -31,7 +31,7 @@ export async function GET() {
         // Filter to current season in JS — avoids a second DB round trip
         const seasonStart = new Date(currentSeason.start_date).getTime();
         const tomorrowTime = tomorrow.getTime();
-        const allMatches = allTimeMatches.filter((m: any) => {
+        const allMatches = allTimeMatches.filter((m: { date: string | number | Date }) => {
             const t = new Date(m.date).getTime();
             return t >= seasonStart && t <= tomorrowTime;
         });
@@ -84,7 +84,7 @@ export async function GET() {
         // Get matches from the last day with games
         let recentMatches: RecentMatch[] = [];
         if (allMatches.length > 0) {
-            const matches = allMatches.map((m: any) => ({
+            const matches = allMatches.map((m: { date: string | number | Date }) => ({
                 ...m,
                 date: new Date(m.date).toISOString()
             }));
