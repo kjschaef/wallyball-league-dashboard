@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Match Recording Flow', () => {
   test.beforeEach(async ({ page }) => {
     // We assume the DB is seeded with Alice, Bob, Charlie, David
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'networkidle', timeout: 60000 });
   });
 
   test('should record a match with admin authentication', async ({ page }) => {

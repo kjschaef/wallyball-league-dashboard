@@ -34,6 +34,7 @@ export default defineConfig({
     /* Add bypass header for Vercel Deployment Protection if secret is available */
     extraHTTPHeaders: process.env.VERCEL_PROTECTION_BYPASS ? {
       'x-vercel-protection-bypass': process.env.VERCEL_PROTECTION_BYPASS,
+      'x-vercel-set-bypass-cookie': 'true',
     } : undefined,
   },
 

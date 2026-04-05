@@ -68,14 +68,15 @@ jobs:
         run: pnpm exec playwright install chromium --with-deps
 
       - name: Initialize Database Schema
-        if: env.DATABASE_URL != ''
+        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm run db:push
 
       - name: Seed Database
-        if: env.DATABASE_URL != ''
+        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm run db:seed
 
       - name: Run Playwright Tests
+        if: ${{ github.event.deployment_status.target_url != '' }}
         run: pnpm exec playwright test
         env:
           BASE_URL: ${{ github.event.deployment_status.target_url }}
