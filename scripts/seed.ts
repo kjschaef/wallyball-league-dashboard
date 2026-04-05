@@ -31,8 +31,8 @@ async function main() {
   // 3. Insert Site Settings
   console.log('Inserting site settings...');
   await db.insert(schema.siteSettings).values({
-    // Password is "admin123" for testing
-    adminPasswordHash: 'admin123',
+    // Use ADMIN_PASSWORD from env or fallback to "admin123"
+    adminPasswordHash: process.env.ADMIN_PASSWORD || 'admin123',
     signupOpenDayOfWeek: 0,
     signupOpenTime: '12:00',
     signupCloseDayOfWeek: 0,

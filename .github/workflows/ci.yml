@@ -37,7 +37,7 @@ jobs:
       - name: DB Schema Check
         run: pnpm run db:check
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }} # Use a generic DB URL for schema validation
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://dummy:dummy@localhost:5432/dummy' }}
 
   e2e:
     if: |
@@ -45,6 +45,9 @@ jobs:
       github.event.deployment_status.state == 'success' &&
       github.event.deployment_status.environment == 'Preview'
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
+      NODE_ENV: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,19 +68,14 @@ jobs:
         run: pnpm exec playwright install chromium --with-deps
 
       - name: Initialize Database Schema
+        if: env.DATABASE_URL != ''
         run: pnpm run db:push
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
 
       - name: Seed Database
+        if: env.DATABASE_URL != ''
         run: pnpm run db:seed
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
-          NODE_ENV: production # Ensure it uses DATABASE_URL
 
       - name: Run Playwright Tests
         run: pnpm exec playwright test
         env:
           BASE_URL: ${{ github.event.deployment_status.target_url }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
-          NODE_ENV: production
