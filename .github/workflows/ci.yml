@@ -77,7 +77,11 @@ jobs:
 
       - name: Run Playwright Tests
         if: ${{ github.event.deployment_status.target_url != '' }}
-        run: pnpm exec playwright test
+        run: |
+          if [ -z "${VERCEL_PROTECTION_BYPASS}" ]; then
+            echo "::warning::VERCEL_PROTECTION_BYPASS is not set. E2E tests might fail if Deployment Protection is enabled."
+          fi
+          pnpm exec playwright test
         env:
           BASE_URL: ${{ github.event.deployment_status.target_url }}
           VERCEL_PROTECTION_BYPASS: ${{ secrets.VERCEL_PROTECTION_BYPASS }}

@@ -34,14 +34,14 @@ export default defineConfig({
     /* Add bypass headers for Vercel Deployment Protection if secret is available */
     extraHTTPHeaders: process.env.VERCEL_PROTECTION_BYPASS ? {
       'x-vercel-protection-bypass': process.env.VERCEL_PROTECTION_BYPASS,
-      'x-vercel-set-bypass-cookie': 'true',
+      'x-vercel-set-bypass-cookie': 'samesite-none',
       'automation-bypass': 'true',
     } : undefined,
   },
   /* Timeouts */
-  timeout: 60000,
+  timeout: 120000,
   expect: {
-    timeout: 10000,
+    timeout: 15000,
   },
 
   /* Configure projects for major browsers */
