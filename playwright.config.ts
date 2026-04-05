@@ -30,6 +30,11 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+
+    /* Add bypass header for Vercel Deployment Protection if secret is available */
+    extraHTTPHeaders: process.env.VERCEL_PROTECTION_BYPASS ? {
+      'x-vercel-protection-bypass': process.env.VERCEL_PROTECTION_BYPASS,
+    } : undefined,
   },
 
   /* Configure projects for major browsers */
