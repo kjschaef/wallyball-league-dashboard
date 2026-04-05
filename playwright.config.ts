@@ -31,11 +31,17 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
 
-    /* Add bypass header for Vercel Deployment Protection if secret is available */
+    /* Add bypass headers for Vercel Deployment Protection if secret is available */
     extraHTTPHeaders: process.env.VERCEL_PROTECTION_BYPASS ? {
       'x-vercel-protection-bypass': process.env.VERCEL_PROTECTION_BYPASS,
       'x-vercel-set-bypass-cookie': 'true',
+      'automation-bypass': 'true',
     } : undefined,
+  },
+  /* Timeouts */
+  timeout: 60000,
+  expect: {
+    timeout: 10000,
   },
 
   /* Configure projects for major browsers */

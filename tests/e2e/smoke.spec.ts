@@ -9,4 +9,7 @@ test('has title and basic dashboard elements', async ({ page }) => {
 
   // Check for the navbar
   await expect(page.locator('nav')).toBeVisible();
+
+  // Wait for application content to ensure we are not on a login or error page
+  await expect(page.getByText('Win Percentage', { exact: false })).toBeVisible({ timeout: 30000 });
 });
