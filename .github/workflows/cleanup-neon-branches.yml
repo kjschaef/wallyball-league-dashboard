@@ -8,7 +8,7 @@ name: Cleanup Neon Branches
 # 2. NEON_PROJECT_ID: Your Neon Project ID (found in Neon Console > Project Settings)
 
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
 
 jobs:
