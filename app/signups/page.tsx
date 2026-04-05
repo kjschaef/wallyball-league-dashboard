@@ -233,8 +233,10 @@ export default function SignupsPage() {
     dates.forEach((dateStr) => {
       const dateObj = new Date(dateStr + 'T12:00:00');
       const dayName = format(dateObj, 'EEEE');
-      const daySignups = signups.filter((s) => s.date === dateStr && s.status === 'registered');
-      const count = daySignups.length;
+      const daySignups = signups.filter((s) => s.date === dateStr);
+      const registered = daySignups.filter((s) => s.status === 'registered');
+      const waitlisted = daySignups.filter((s) => s.status === 'waitlisted');
+      const count = registered.length;
       let status = 'OPEN';
       if (count >= 6) {
         status = 'CLOSED';
@@ -243,11 +245,14 @@ export default function SignupsPage() {
       }
 
       text += `${dayName} - ${status}\n`;
-      daySignups.forEach((s) => {
+      registered.forEach((s) => {
         text += `- ${s.name}\n`;
       });
       if (count < 6) {
         text += `- \n`;
+      }
+      if (waitlisted.length > 0) {
+        text += `Waitlist: ${waitlisted.map((s) => s.name).join(', ')}\n`;
       }
       text += `\n`;
     });
