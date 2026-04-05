@@ -15,8 +15,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -53,8 +51,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -68,13 +64,20 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install chromium --with-deps
 
+      - name: Initialize Database Schema
+        run: pnpm run db:push
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
+
       - name: Seed Database
         run: pnpm run db:seed
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }} # Assuming this is the Neon branch DB for the PR
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
+          NODE_ENV: production # Ensure it uses DATABASE_URL
 
       - name: Run Playwright Tests
         run: pnpm exec playwright test
         env:
           BASE_URL: ${{ github.event.deployment_status.target_url }}
           DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
+          NODE_ENV: production
