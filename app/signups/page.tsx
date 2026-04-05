@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { AdminLoginModal } from '../components/AdminLoginModal';
-import { Trash2, Plus, Clock } from 'lucide-react';
+import { Trash2, Plus, Clock, Copy, Check } from 'lucide-react';
 import {
   generateWeekDates,
   getEasternWallTimeNow,
@@ -46,6 +46,7 @@ export default function SignupsPage() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [actionPending, setActionPending] = useState<(() => Promise<boolean>) | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setNow(getEasternWallTimeNow());
@@ -222,12 +223,68 @@ export default function SignupsPage() {
   const closeCountdownMinutes = Math.floor((closeTimeDiffMs / 1000 / 60) % 60);
   const closeCountdownSeconds = Math.floor((closeTimeDiffMs / 1000) % 60);
 
+  const handleExport = async (sunday: Date, dates: string[]) => {
+    if (!sunday || dates.length === 0) return;
+
+    // Use Monday as the "Week of" date
+    const monday = addDays(sunday, 1);
+    let text = `Week of ${format(monday, 'MMMM d')} // 6:30-8:00 am\n\n`;
+
+    dates.forEach((dateStr) => {
+      const dateObj = new Date(dateStr + 'T12:00:00');
+      const dayName = format(dateObj, 'EEEE');
+      const daySignups = signups.filter((s) => s.date === dateStr);
+      const registered = daySignups.filter((s) => s.status === 'registered');
+      const waitlisted = daySignups.filter((s) => s.status === 'waitlisted');
+      const count = registered.length;
+      let status = 'OPEN';
+      if (count >= 6) {
+        status = 'CLOSED';
+      } else if (count >= 4) {
+        status = 'PLAYABLE';
+      }
+
+      text += `${dayName} - ${status}\n`;
+      registered.forEach((s) => {
+        text += `- ${s.name}\n`;
+      });
+      if (count < 6) {
+        text += `- \n`;
+      }
+      if (waitlisted.length > 0) {
+        text += `Waitlist: ${waitlisted.map((s) => s.name).join(', ')}\n`;
+      }
+      text += `\n`;
+    });
+
+    try {
+      await navigator.clipboard.writeText(text.trim());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      alert('Failed to copy text');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       {/* Header */}
       <div className="border-b border-gray-200 pb-4 flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Weekly Signups</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-800">Weekly Signups</h1>
+            <button
+              onClick={() => handleExport(
+                (isOpen && signupWeekSunday) ? signupWeekSunday : currentWeekSunday,
+                (isOpen && upcomingDates.length > 0) ? upcomingDates : currentWeekDates
+              )}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors"
+              title="Copy to clipboard"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              {copied ? <span className="text-emerald-700">Copied!</span> : <span>Export</span>}
+            </button>
+          </div>
           <p className="text-gray-500 mt-1">
             {isOpen
               ? 'Opt in to play for the upcoming week. Max 6 players per day.'
@@ -449,7 +506,16 @@ export default function SignupsPage() {
 
         return (
           <div className="pt-8 mt-8 border-t border-gray-200">
-            <h2 className="text-xl font-bold text-gray-700 mb-6">Current Week</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-700">Current Week</h2>
+              <button
+                onClick={() => handleExport(currentWeekSunday, currentWeekDates)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors"
+              >
+                <Copy className="w-4 h-4" />
+                <span>Export Current Week</span>
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {currentWeekCards.map(({ dateStr, daySignups }) => {
                 const dateObj = new Date(dateStr + 'T12:00:00');
