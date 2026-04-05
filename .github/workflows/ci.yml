@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  deployment_status:
+
+jobs:
+  test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Lint
+        run: pnpm lint
+
+      - name: Check Agent Context
+        run: pnpm run context:check
+
+      - name: Run Jest Tests
+        run: pnpm test
+
+      - name: DB Schema Check
+        run: pnpm run db:check
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }} # Use a generic DB URL for schema validation
+
+  e2e:
+    if: |
+      github.event_name == 'deployment_status' &&
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment == 'Preview'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Seed Database
+        run: pnpm run db:seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }} # Assuming this is the Neon branch DB for the PR
+
+      - name: Run Playwright Tests
+        run: pnpm exec playwright test
+        env:
+          BASE_URL: ${{ github.event.deployment_status.target_url }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
