@@ -20,6 +20,6 @@ jobs:
         with:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
-          branch: ${{ github.head_ref }}
+          branch: preview/${{ github.head_ref }}
         # Ignore errors if the branch doesn't exist (e.g. if it was already deleted or never created)
         continue-on-error: true
