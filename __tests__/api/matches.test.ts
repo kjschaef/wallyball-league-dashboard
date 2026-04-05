@@ -7,7 +7,7 @@ const mockSql = jest.fn();
 // Create a mock function that handles template literals properly
 const createMockSql = () => {
   return Object.assign(
-    jest.fn().mockImplementation((strings: TemplateStringsArray, ...values: any[]) => {
+    jest.fn().mockImplementation((strings: TemplateStringsArray, ..._values: unknown[]) => {
       const query = strings.join('');
       if (query.includes('SELECT team_one_games_won, team_two_games_won, date FROM matches')) {
         return mockSql('stats');
@@ -284,12 +284,10 @@ describe('/api/matches', () => {
       // Calculate stats from matches data
       const calculatedTotalMatches = matchesData.length;
       const calculatedTotalGames = matchesData.reduce(
-        (sum: number, match: any) => sum + match.teamOneGamesWon + match.teamTwoGamesWon,
+        (sum: number, match: { teamOneGamesWon: number; teamTwoGamesWon: number }) =>
+          sum + match.teamOneGamesWon + match.teamTwoGamesWon,
         0
       );
-      const calculatedAvgGames = calculatedTotalMatches > 0
-        ? Number((calculatedTotalGames / calculatedTotalMatches).toFixed(1))
-        : 0;
 
       // These should be identical - this test would have caught the original bug
       expect(statsData.totalMatches).toBe(calculatedTotalMatches);
