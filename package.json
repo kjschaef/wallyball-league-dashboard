@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 5002",
-    "build": "next build",
+    "build": "tsx scripts/preview-setup.ts && next build",
     "start": "next start --port 5000",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -113,7 +113,6 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/form-data": "^2.5.2",
-    "@types/node": "^20.12.7",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -144,5 +143,15 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bufferutil",
+      "esbuild",
+      "msw",
+      "sharp",
+      "unrs-resolver",
+      "utf-8-validate"
+    ]
+  }
 }
