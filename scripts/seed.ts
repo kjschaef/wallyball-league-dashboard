@@ -10,16 +10,10 @@ async function main() {
 
   // 1. Clear existing data
   console.log('Clearing existing data...');
-  // Note: We use Drizzle's native delete() to avoid raw SQL execution bugs with Neon HTTP's tagged-template expectations.
-  // Order matters here to respect foreign key constraints.
-  await db.delete(schema.matches);
-  await db.delete(schema.playerAchievements);
-  await db.delete(schema.weeklySignups);
-  await db.delete(schema.weeklyUnavailable);
-  await db.delete(schema.achievements);
-  await db.delete(schema.siteSettings);
-  await db.delete(schema.dailySummaries);
-  await db.delete(schema.players);
+  await db.execute(sql`TRUNCATE TABLE ${schema.matches} RESTART IDENTITY CASCADE`);
+  await db.execute(sql`TRUNCATE TABLE ${schema.players} RESTART IDENTITY CASCADE`);
+  await db.execute(sql`TRUNCATE TABLE ${schema.siteSettings} RESTART IDENTITY CASCADE`);
+  await db.execute(sql`TRUNCATE TABLE ${schema.achievements} RESTART IDENTITY CASCADE`);
 
   // 2. Insert Players
   console.log('Inserting players...');
