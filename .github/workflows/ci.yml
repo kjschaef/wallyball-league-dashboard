@@ -46,7 +46,6 @@ jobs:
       github.event.deployment_status.environment == 'Preview'
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
       NODE_ENV: production
     steps:
       - name: Checkout
@@ -67,13 +66,7 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install chromium --with-deps
 
-      - name: Initialize Database Schema
-        if: ${{ env.DATABASE_URL != '' }}
-        run: pnpm run db:push
 
-      - name: Seed Database
-        if: ${{ env.DATABASE_URL != '' }}
-        run: pnpm run db:seed
 
       - name: Run Playwright Tests
         if: ${{ github.event.deployment_status.target_url != '' }}

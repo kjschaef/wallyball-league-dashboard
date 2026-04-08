@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 5002",
-    "build": "next build",
+    "build": "tsx scripts/preview-setup.ts && next build",
     "start": "next start --port 5000",
     "test": "jest",
     "test:watch": "jest --watch",
