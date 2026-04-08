@@ -143,5 +143,15 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bufferutil",
+      "esbuild",
+      "msw",
+      "sharp",
+      "unrs-resolver",
+      "utf-8-validate"
+    ]
+  }
 }
