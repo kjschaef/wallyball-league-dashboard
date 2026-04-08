@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     let response = '';
     let responseType = 'general';
-    let additionalData: unknown = null;
+    let additionalData: any = null;
 
     // Determine intent and handle accordingly
     const lowerMessage = message.toLowerCase();

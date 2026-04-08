@@ -10,7 +10,7 @@ interface Props {
   metric: 'winPercentage' | 'totalWins';
   compare: number[];
   showAllPlayers?: boolean;
-  onChange: (opts: Partial<{ season: string; metric: 'winPercentage' | 'totalWins'; compare: number[]; showAllPlayers: boolean; action?: string }>) => void;
+  onChange: (opts: Partial<{ season: string; metric: any; compare: number[]; showAllPlayers: boolean; action?: string }>) => void;
 }
 
 export function PerformanceControls({ season, metric, compare, showAllPlayers = false, onChange }: Props) {
@@ -28,7 +28,7 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
         const data = await res.json();
         if (mounted) {
           setSeasons(data || []);
-          const active = (data || []).find((s: Season) => s.is_active);
+          const active = (data || []).find((s: any) => s.is_active);
           setActiveSeasonId(active ? active.id : null);
           // if the selected season corresponds to the active season, normalize to 'current'
           if (active && String(active.id) === String(selectedSeason)) {
@@ -113,7 +113,7 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
               options={players.map(p => ({ value: p.id, label: p.name }))}
               classNamePrefix="react-select"
               placeholder="Search players..."
-              onChange={(vals) => onChange({ compare: (vals || []).map((v) => v.value) })}
+              onChange={(vals: any) => onChange({ compare: (vals || []).map((v: any) => v.value) })}
               value={players.filter(p => compare.includes(p.id)).map(p => ({ value: p.id, label: p.name }))}
               // Render the menu into a portal so it isn't clipped by parent containers,
               // and ensure it appears above other UI like charts with a high z-index.

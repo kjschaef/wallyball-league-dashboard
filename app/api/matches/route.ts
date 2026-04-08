@@ -95,7 +95,7 @@ export async function GET(request: Request) {
   }
 }
 
-async function getPlayerIdsFromNames(sql: { query: (q: string, params: string[]) => Promise<Array<{ id: number }>> }, playerNames: string[]) {
+async function getPlayerIdsFromNames(sql: any, playerNames: string[]) {
   if (playerNames.length === 0) {
     return [];
   }
@@ -104,7 +104,7 @@ async function getPlayerIdsFromNames(sql: { query: (q: string, params: string[])
   const placeholders = playerNames.map((_, i) => `$${i + 1}`).join(', ');
   const query = `SELECT id FROM players WHERE name IN (${placeholders})`;
   const players = await sql.query(query, playerNames);
-  return players.map((p: { id: number }) => p.id);
+  return players.map((p: any) => p.id);
 }
 
 export async function POST(request: Request) {

@@ -17,7 +17,7 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   type?: string;
-  additionalData?: unknown;
+  additionalData?: any;
   imagePreview?: string;
   usedRules?: boolean;
 }
@@ -46,16 +46,16 @@ interface ChatBotProps {
   initialMessage?: string;
 }
 
-function isMatchResult(data: unknown): data is MatchResult {
-  return !!data && typeof data === 'object' && 'matchNumber' in data && 'teamOne' in data && 'teamTwo' in data;
+function isMatchResult(data: any): data is MatchResult {
+  return data && typeof data === 'object' && 'matchNumber' in data && 'teamOne' in data && 'teamTwo' in data;
 }
 
-function isTeamSuggestion(data: unknown): data is TeamSuggestion {
-  return !!data && typeof data === 'object' && 'teamOne' in data && 'teamTwo' in data;
+function isTeamSuggestion(data: any): data is TeamSuggestion {
+  return data && typeof data === 'object' && 'teamOne' in data && 'teamTwo' in data;
 }
 
-function isTeamGrouping(data: unknown): data is TeamGrouping {
-  return !!data && typeof data === 'object' && 'teamNumber' in data && 'players' in data && 'letters' in data;
+function isTeamGrouping(data: any): data is TeamGrouping {
+  return data && typeof data === 'object' && 'teamNumber' in data && 'players' in data && 'letters' in data;
 }
 
 export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen, onOpenChange: setControlledIsOpen, initialMessage }: ChatBotProps) {
@@ -128,7 +128,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
         const playersResponse = await fetch('/api/players');
         if (playersResponse.ok) {
           const playersData = await playersResponse.json();
-          playerNames = playersData.map((player: { name: string }) => player.name);
+          playerNames = playersData.map((player: any) => player.name);
         }
       } catch (error) {
         console.error('Failed to fetch player names:', error);
@@ -271,8 +271,8 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
       console.log('[DEBUG_UI] usedRules from additionalData:', data.additionalData?.usedRules);
 
       // Explicitly check for usedRules in additionalData
-      const hasUsedRules = !!data.additionalData && typeof data.additionalData === 'object' && 'usedRules' in data.additionalData;
-      const usedRulesValue = hasUsedRules ? (data.additionalData as Record<string, unknown>).usedRules as boolean : false;
+      const hasUsedRules = data.additionalData && typeof data.additionalData === 'object' && 'usedRules' in data.additionalData;
+      const usedRulesValue = hasUsedRules ? (data.additionalData as any).usedRules : false;
 
       console.log('[DEBUG_UI] hasUsedRules:', hasUsedRules);
       console.log('[DEBUG_UI] usedRulesValue:', usedRulesValue);
@@ -972,7 +972,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                         )}
                         {message.type === 'player_disambiguation' && message.additionalData && (
                           (() => {
-                            const data = message.additionalData as { ambiguousLetters?: unknown[] };
+                            const data = message.additionalData as any;
                             if (data.ambiguousLetters && data.ambiguousLetters.length > 0) {
                               // Convert the step 1 format to match the existing PlayerDisambiguationCard format
                               const mockResponse = {
@@ -987,7 +987,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                         )}
                         {(message.type === 'team_groupings' || message.type === 'match_results') && message.additionalData && (
                           (() => {
-                            const data = message.additionalData as Record<string, unknown>;
+                            const data = message.additionalData as any;
                             // Handle new format with hasAmbiguity flag
                             if (data.hasAmbiguity && data.ambiguousLetters) {
                               return <PlayerDisambiguationCard response={data as MatchResultsResponse} originalImage={lastUploadedImage || undefined} />;
@@ -1019,7 +1019,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                         })()}
 
                         {/* Fallback check: check both top-level property and additionalData */}
-                        {(message.usedRules || (!!message.additionalData && typeof message.additionalData === 'object' && (message.additionalData as Record<string, unknown>).usedRules)) && message.role === 'assistant' && (
+                        {(message.usedRules || (message.additionalData && (message.additionalData as any).usedRules)) && message.role === 'assistant' && (
                           <div className="mt-3 flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
                             <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
                             <span className="text-xs text-blue-800 flex-1">Referenced official rules document</span>

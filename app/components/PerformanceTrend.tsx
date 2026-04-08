@@ -56,7 +56,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
   const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   const [chartData, setChartData] = useState<Array<{ date: string;[key: string]: unknown }>>([]);
-  const [trendsData, setTrendsData] = useState<unknown[]>([]);
+  const [trendsData, setTrendsData] = useState<any[]>([]);
   const [dateRange, setDateRange] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [season, setSeason] = useState<string | undefined>(initialSeason);
@@ -193,7 +193,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
         // Adaptive threshold for chart using shared utility
         const threshold = getPlayerThreshold(statsData, showAllPlayers);
         console.log('Chart threshold:', threshold, '(showAll:', showAllPlayers, ')');
-        statsData = statsData.filter((p: PlayerStats) => (p.record?.totalGames ?? 0) >= threshold);
+        statsData = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold);
         const trendsDataResponse = await trendsResponse.json();
 
         setPlayerStats(statsData);
@@ -210,13 +210,13 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
           // Also compute last logged match date across players (for current season)
           let lastLoggedGameDate: string | null = null;
 
-          trendsDataResponse.forEach((playerTrend: { name: string; dailyStats?: Record<string, { totalGames: number; winPercentage: number;[key: string]: number }> }) => {
+          trendsDataResponse.forEach((playerTrend: any) => {
             if (playerTrend.dailyStats) {
               const dates = Object.keys(playerTrend.dailyStats).sort();
               let prevTotalGames = -1;
 
               dates.forEach(date => {
-                const stats = playerTrend.dailyStats![date];
+                const stats = playerTrend.dailyStats[date];
                 allDates.add(date);
 
                 // detect a logged game by observing an increase in totalGames
@@ -246,12 +246,12 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
           const isHistoricalSeason = season && season !== 'current' && season !== 'lifetime';
 
           const newChartData = currentDateRange.map((date, index) => {
-            const dataPoint: Record<string, unknown> = { date };
+            const dataPoint: any = { date };
             const isLatestDate = index === currentDateRange.length - 1;
 
-            trendsDataResponse.forEach((playerTrend: { name: string; dailyStats?: Record<string, { totalGames: number; winPercentage: number;[key: string]: number }> }) => {
+            trendsDataResponse.forEach((playerTrend: any) => {
               // Only include players present after 20-game filter
-              if (!statsData.find((p: PlayerStats) => p.name === playerTrend.name)) return;
+              if (!statsData.find((p: any) => p.name === playerTrend.name)) return;
               if (playerTrend.dailyStats) {
                 const stats = playerTrend.dailyStats[date];
 
@@ -265,7 +265,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                   })();
 
                   if (isLatestDate && metric === 'winPercentage' && !isHistoricalSeason) {
-                    const currentPlayer = statsData.find((p: PlayerStats) => p.name === playerTrend.name);
+                    const currentPlayer = statsData.find((p: any) => p.name === playerTrend.name);
                     const totalsMatch = currentPlayer?.record?.totalGames === stats.totalGames;
                     if (currentPlayer && totalsMatch) {
                       dataPoint[playerTrend.name] = currentPlayer.winPercentage;
@@ -279,7 +279,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                 } else {
                   // Find the last known value for this player before this date
                   const previousDates = sortedDates.filter(d => d < date);
-                  let lastKnownValue: number | null = null;
+                  let lastKnownValue = null;
                   for (let i = previousDates.length - 1; i >= 0; i--) {
                     const prevStats = playerTrend.dailyStats[previousDates[i]];
                     if (prevStats) {
@@ -398,7 +398,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                       return date;
                     }
                   }}
-                  formatter={(value: number, name: string, props: unknown) =>
+                  formatter={(value: number, name: string, props: any) =>
                     formatTooltip(value, name, props, metric, trendsData, playerStats, dateRange)
                   }
                   itemSorter={(item) => {

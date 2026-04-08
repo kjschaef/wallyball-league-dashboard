@@ -40,7 +40,7 @@ export async function GET(request: Request) {
         const sid = Number(seasonParam);
         const s = getSeasonById(sid);
         if (!s) return NextResponse.json({ error: 'Season not found' }, { status: 404 });
-      seasonData = s;
+        seasonData = s as any;
         allMatches = await sql`SELECT * FROM matches WHERE date >= ${s.start_date} AND date <= ${s.end_date} ORDER BY date DESC`;
       } else {
         return NextResponse.json({ error: 'Invalid season parameter. Use "current", "lifetime", or a season ID.' }, { status: 400 });
