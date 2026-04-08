@@ -5,8 +5,8 @@ function main() {
     console.log('🚧 Preview environment detected: Running database migrations and seed...');
     try {
       // Execute the push and seed commands
-      // stdio: 'inherit' will redirect the output to the Vercel build log
-      execSync('pnpm run db:push', { stdio: 'inherit' });
+      // Use --force for db:push to automatically accept data loss warnings since Vercel has no TTY
+      execSync('pnpm exec drizzle-kit push --force', { stdio: 'inherit' });
       execSync('pnpm run db:seed', { stdio: 'inherit' });
       console.log('✅ Database setup for preview completed successfully.');
     } catch (error) {
