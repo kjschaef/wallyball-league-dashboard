@@ -46,15 +46,16 @@ test.describe('Match Recording Flow', () => {
     // 6. Submit the match
     await modal.getByRole('button', { name: 'Record Game' }).click();
 
-    // 7. Admin authentication modal should appear
-    await expect(page.getByText('Admin Authentication Required')).toBeVisible();
+    // 7. Admin authentication modal should appear (use heading to avoid strict mode)
+    const authHeading = page.getByRole('heading', { name: 'Admin Authentication Required' });
+    await expect(authHeading).toBeVisible();
 
     // 8. Enter password (admin123 from seed)
     await page.getByPlaceholder('Enter admin password').fill('admin123');
     await page.getByRole('button', { name: 'Submit' }).click();
 
     // 9. Success: auth modal should close
-    await expect(page.getByText('Admin Authentication Required')).not.toBeVisible({ timeout: 10000 });
+    await expect(authHeading).not.toBeVisible({ timeout: 10000 });
   });
 
   test('should show error for invalid password', async ({ page }) => {
