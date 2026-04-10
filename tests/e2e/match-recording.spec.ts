@@ -31,12 +31,17 @@ test.describe('Match Recording Flow', () => {
     await teamTwoSection.getByRole('button', { name: 'David' }).click();
 
     // 5. Set scores (Team One wins 3-1)
-    //    Use .first() to select from mobile/desktop duplicate aria-labels
-    await modal.getByLabel('Increase team one games won').first().click();
-    await modal.getByLabel('Increase team one games won').first().click();
-    await modal.getByLabel('Increase team one games won').first().click();
+    //    The modal has mobile (md:hidden) and desktop (hidden md:grid) score controls
+    //    with identical aria-labels. Use .filter({ visible: true }) to target only
+    //    the controls visible at the current viewport (Desktop Chrome = 1280x720).
+    const teamOneIncrease = modal.getByLabel('Increase team one games won').filter({ visible: true });
+    const teamTwoIncrease = modal.getByLabel('Increase team two games won').filter({ visible: true });
 
-    await modal.getByLabel('Increase team two games won').first().click();
+    await teamOneIncrease.click();
+    await teamOneIncrease.click();
+    await teamOneIncrease.click();
+
+    await teamTwoIncrease.click();
 
     // 6. Submit the match
     await modal.getByRole('button', { name: 'Record Game' }).click();
