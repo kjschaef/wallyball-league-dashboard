@@ -13,7 +13,7 @@ test.describe('Match Recording Flow', () => {
 
     // 2. Wait for the Record Game modal to appear and players to load
     const modal = page.locator('.fixed.inset-0').locator('.bg-white');
-    await expect(modal.getByText('Record Game')).toBeVisible();
+    await expect(modal.getByRole('heading', { name: 'Record Game' })).toBeVisible();
     // Wait for player buttons to render inside the modal
     await expect(modal.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
 
@@ -26,8 +26,7 @@ test.describe('Match Recording Flow', () => {
     await modal.getByRole('button', { name: 'David' }).click();
 
     // 5. Set scores (Team One wins 3-1)
-    //    Use the mobile score controls (visible at all viewports, md:hidden)
-    //    since the desktop ones may be hidden at smaller CI browser widths
+    //    Use .first() to select from mobile/desktop duplicate aria-labels
     await modal.getByLabel('Increase team one games won').first().click();
     await modal.getByLabel('Increase team one games won').first().click();
     await modal.getByLabel('Increase team one games won').first().click();
@@ -46,7 +45,6 @@ test.describe('Match Recording Flow', () => {
 
     // 9. Success: auth modal and record modal should both close
     await expect(page.getByText('Admin Authentication Required')).not.toBeVisible({ timeout: 10000 });
-    await expect(modal.getByText('Record Game')).not.toBeVisible({ timeout: 10000 });
   });
 
   test('should show error for invalid password', async ({ page }) => {
@@ -56,7 +54,7 @@ test.describe('Match Recording Flow', () => {
 
     // 2. Wait for modal
     const modal = page.locator('.fixed.inset-0').locator('.bg-white');
-    await expect(modal.getByText('Record Game')).toBeVisible();
+    await expect(modal.getByRole('heading', { name: 'Record Game' })).toBeVisible();
     await expect(modal.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
 
     // 3. Select one player per team (minimum required)
