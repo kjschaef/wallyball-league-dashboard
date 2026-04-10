@@ -118,8 +118,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
       if (response.ok) {
         const data = await response.json();
         // Sort players by total number of games played (matches), most active first
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sortedPlayers = data.sort((a: any, b: any) => {
+        const sortedPlayers = data.sort((a: { matches?: unknown[] }, b: { matches?: unknown[] }) => {
           const aGamesPlayed = a.matches ? a.matches.length : 0;
           const bGamesPlayed = b.matches ? b.matches.length : 0;
           return bGamesPlayed - aGamesPlayed;

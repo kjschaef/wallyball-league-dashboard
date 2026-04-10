@@ -40,15 +40,15 @@ jest.mock('@neondatabase/serverless', () => ({
 }));
 
 jest.mock('@/app/lib/openai', () => ({
-  generateDailySummary: (...args: any[]) => mockGenerateDailySummary(...args),
+  generateDailySummary: (...args: unknown[]) => mockGenerateDailySummary(...args),
 }));
 
 jest.mock('@/app/lib/stats', () => ({
-  calculatePlayerStats: (...args: any[]) => mockCalculatePlayerStats(...args),
+  calculatePlayerStats: (...args: unknown[]) => mockCalculatePlayerStats(...args),
 }));
 
 jest.mock('@/lib/seasons', () => ({
-  getCurrentSeasonByDate: (...args: any[]) => mockGetCurrentSeasonByDate(...args),
+  getCurrentSeasonByDate: (...args: unknown[]) => mockGetCurrentSeasonByDate(...args),
 }));
 
 import { GET } from '@/app/api/daily-summary/route';

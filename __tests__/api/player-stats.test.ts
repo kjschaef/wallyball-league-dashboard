@@ -7,7 +7,7 @@ const mockSql = jest.fn();
 // Create a mock function that handles template literals properly
 const createMockSql = () => {
   return Object.assign(
-    jest.fn().mockImplementation((strings: TemplateStringsArray, ...values: any[]) => {
+    jest.fn().mockImplementation((strings: TemplateStringsArray, ..._values: unknown[]) => {
       const query = strings.join('').toLowerCase();
       if (query.includes('select * from players')) {
         return mockSql('players');
@@ -34,7 +34,7 @@ process.env.DATABASE_URL = 'mock-database-url';
 describe('/api/player-stats', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSql.mockImplementation((queryType) => {
+    mockSql.mockImplementation((_queryType) => {
       return Promise.resolve([]);
     });
   });

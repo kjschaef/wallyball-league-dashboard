@@ -52,7 +52,7 @@ export function PlayerSelectorDialog({
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {allPlayers.map((player) => {
+              {Array.isArray(allPlayers) && allPlayers.map((player) => {
                 const isSelected = selectedPlayers.includes(player.id);
 
                 return (

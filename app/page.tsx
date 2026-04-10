@@ -77,7 +77,8 @@ export default function DashboardPage() {
   const resetMatchFlow = () => {
     setSuggestedTeams(undefined);
     setPrefilledWins(undefined);
-    setPendingMatchData(null);
+    // Note: Do NOT clear pendingMatchData here, because closing the RecordMatchModal
+    // should not cancel the pending admin auth flow.
   };
 
   const closeRecordMatchModal = () => {
@@ -133,6 +134,7 @@ export default function DashboardPage() {
     console.log('Match recorded:', newMatch);
     setShowRecordMatchModal(false);
     setShowAdminLoginModal(false);
+    setPendingMatchData(null);
     resetMatchFlow();
     setRefreshKey(prev => prev + 1);
     setMatchSubmissionStatus({

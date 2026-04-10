@@ -28,3 +28,9 @@ coverage/
 debug_*.js
 test_*.js
 *.log
+
+# Playwright
+playwright-report/
+test-results/
+.vercel
+.env*.local
