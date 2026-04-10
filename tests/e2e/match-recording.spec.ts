@@ -11,52 +11,66 @@ test.describe('Match Recording Flow', () => {
     await page.getByTitle('Actions').click();
     await page.getByRole('button', { name: 'Record Match' }).click();
 
-    // 2. Select players for Team One (Alice, Bob)
-    // In our seed, Alice and Bob should be available.
-    // The PlayerGrid buttons have the player name.
-    await page.getByRole('button', { name: 'Alice' }).click();
-    await page.getByRole('button', { name: 'Bob' }).click();
+    // 2. Wait for the Record Game modal to appear and players to load
+    const modal = page.locator('.fixed.inset-0').locator('.bg-white');
+    await expect(modal.getByText('Record Game')).toBeVisible();
+    // Wait for player buttons to render inside the modal
+    await expect(modal.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
 
-    // 3. Select players for Team Two (Charlie, David)
-    await page.getByRole('button', { name: 'Charlie' }).click();
-    await page.getByRole('button', { name: 'David' }).click();
+    // 3. Select players for Team One (Alice, Bob) — within the modal
+    await modal.getByRole('button', { name: 'Alice' }).click();
+    await modal.getByRole('button', { name: 'Bob' }).click();
 
-    // 4. Set scores (Team One wins 3-1)
-    // We use the desktop score controls
-    await page.getByLabel('Increase team one games won').click();
-    await page.getByLabel('Increase team one games won').click();
-    await page.getByLabel('Increase team one games won').click();
+    // 4. Select players for Team Two (Charlie, David) — within the modal
+    await modal.getByRole('button', { name: 'Charlie' }).click();
+    await modal.getByRole('button', { name: 'David' }).click();
 
-    await page.getByLabel('Increase team two games won').click();
+    // 5. Set scores (Team One wins 3-1)
+    //    Use the mobile score controls (visible at all viewports, md:hidden)
+    //    since the desktop ones may be hidden at smaller CI browser widths
+    await modal.getByLabel('Increase team one games won').first().click();
+    await modal.getByLabel('Increase team one games won').first().click();
+    await modal.getByLabel('Increase team one games won').first().click();
 
-    // 5. Submit the match
-    await page.getByRole('button', { name: 'Record Game' }).click();
+    await modal.getByLabel('Increase team two games won').first().click();
 
-    // 6. Admin authentication modal should appear
+    // 6. Submit the match
+    await modal.getByRole('button', { name: 'Record Game' }).click();
+
+    // 7. Admin authentication modal should appear
     await expect(page.getByText('Admin Authentication Required')).toBeVisible();
 
-    // 7. Enter password (admin123 from seed)
+    // 8. Enter password (admin123 from seed)
     await page.getByPlaceholder('Enter admin password').fill('admin123');
     await page.getByRole('button', { name: 'Submit' }).click();
 
-    // 8. Success message should appear (in the Dashboard page handleRecordMatch)
-    // We can check for the toast or just that the modal closed.
-    await expect(page.getByText('Admin Authentication Required')).not.toBeVisible();
-    await expect(page.getByText('Record Game')).not.toBeVisible();
+    // 9. Success: auth modal and record modal should both close
+    await expect(page.getByText('Admin Authentication Required')).not.toBeVisible({ timeout: 10000 });
+    await expect(modal.getByText('Record Game')).not.toBeVisible({ timeout: 10000 });
   });
 
   test('should show error for invalid password', async ({ page }) => {
+    // 1. Open the FAB and select Record Match
     await page.getByTitle('Actions').click();
     await page.getByRole('button', { name: 'Record Match' }).click();
 
-    await page.getByRole('button', { name: 'Alice' }).click();
-    await page.getByRole('button', { name: 'Charlie' }).click();
+    // 2. Wait for modal
+    const modal = page.locator('.fixed.inset-0').locator('.bg-white');
+    await expect(modal.getByText('Record Game')).toBeVisible();
+    await expect(modal.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
 
-    await page.getByRole('button', { name: 'Record Game' }).click();
+    // 3. Select one player per team (minimum required)
+    await modal.getByRole('button', { name: 'Alice' }).click();
+    await modal.getByRole('button', { name: 'Charlie' }).click();
 
+    // 4. Submit
+    await modal.getByRole('button', { name: 'Record Game' }).click();
+
+    // 5. Enter an invalid password
     await page.getByPlaceholder('Enter admin password').fill('wrongpassword');
     await page.getByRole('button', { name: 'Submit' }).click();
 
-    await expect(page.getByText('Invalid password')).toBeVisible();
+    // 6. Error message should be visible
+    await expect(page.getByText('Invalid password')).toBeVisible({ timeout: 10000 });
   });
 });
