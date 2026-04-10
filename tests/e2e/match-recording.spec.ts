@@ -14,16 +14,21 @@ test.describe('Match Recording Flow', () => {
     // 2. Wait for the Record Game modal to appear and players to load
     const modal = page.locator('.fixed.inset-0').locator('.bg-white');
     await expect(modal.getByRole('heading', { name: 'Record Game' })).toBeVisible();
-    // Wait for player buttons to render inside the modal
-    await expect(modal.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
 
-    // 3. Select players for Team One (Alice, Bob) — within the modal
-    await modal.getByRole('button', { name: 'Alice' }).click();
-    await modal.getByRole('button', { name: 'Bob' }).click();
+    // Locate team sections by their heading text
+    const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
+    const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
 
-    // 4. Select players for Team Two (Charlie, David) — within the modal
-    await modal.getByRole('button', { name: 'Charlie' }).click();
-    await modal.getByRole('button', { name: 'David' }).click();
+    // Wait for player buttons to render
+    await expect(teamOneSection.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
+
+    // 3. Select players for Team One (Alice, Bob)
+    await teamOneSection.getByRole('button', { name: 'Alice' }).click();
+    await teamOneSection.getByRole('button', { name: 'Bob' }).click();
+
+    // 4. Select players for Team Two (Charlie, David)
+    await teamTwoSection.getByRole('button', { name: 'Charlie' }).click();
+    await teamTwoSection.getByRole('button', { name: 'David' }).click();
 
     // 5. Set scores (Team One wins 3-1)
     //    Use .first() to select from mobile/desktop duplicate aria-labels
@@ -43,7 +48,7 @@ test.describe('Match Recording Flow', () => {
     await page.getByPlaceholder('Enter admin password').fill('admin123');
     await page.getByRole('button', { name: 'Submit' }).click();
 
-    // 9. Success: auth modal and record modal should both close
+    // 9. Success: auth modal should close
     await expect(page.getByText('Admin Authentication Required')).not.toBeVisible({ timeout: 10000 });
   });
 
@@ -55,11 +60,15 @@ test.describe('Match Recording Flow', () => {
     // 2. Wait for modal
     const modal = page.locator('.fixed.inset-0').locator('.bg-white');
     await expect(modal.getByRole('heading', { name: 'Record Game' })).toBeVisible();
-    await expect(modal.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
+
+    const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
+    const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
+
+    await expect(teamOneSection.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
 
     // 3. Select one player per team (minimum required)
-    await modal.getByRole('button', { name: 'Alice' }).click();
-    await modal.getByRole('button', { name: 'Charlie' }).click();
+    await teamOneSection.getByRole('button', { name: 'Alice' }).click();
+    await teamTwoSection.getByRole('button', { name: 'Charlie' }).click();
 
     // 4. Submit
     await modal.getByRole('button', { name: 'Record Game' }).click();
