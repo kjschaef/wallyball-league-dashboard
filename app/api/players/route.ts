@@ -81,7 +81,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const isAdmin = cookies().get('admin_token')?.value === 'true';
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -131,7 +132,8 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const isAdmin = cookies().get('admin_token')?.value === 'true';
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -194,7 +196,8 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const isAdmin = cookies().get('admin_token')?.value === 'true';
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const url = new URL(request.url);

@@ -1,3 +1,5 @@
 {
-    "chatgpt.openOnStartup": true
+    "chatgpt.openOnStartup": true,
+    "snyk.advanced.organization": "cc0bfe07-8131-4273-9eaf-76916b4480b5",
+    "snyk.advanced.autoSelectOrganization": true
 }

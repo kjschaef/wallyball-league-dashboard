@@ -39,6 +39,14 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://dummy:dummy@localhost:5432/dummy' }}
 
+      - name: Check UI Test Coverage
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          pnpm run test:ui-coverage-check
+        env:
+          BASE_BRANCH: origin/${{ github.base_ref }}
+
   e2e:
     if: |
       github.event_name == 'deployment_status' &&
