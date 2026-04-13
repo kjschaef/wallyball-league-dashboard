@@ -147,7 +147,9 @@ export async function POST(request: Request) {
       FROM site_settings
       LIMIT 1
     ` as SignupSettingsRow[];
-    const isAdmin = cookies().get('admin_token')?.value === 'true';
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+    if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const signupSettings = buildSignupSettings(settings);
     const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
 

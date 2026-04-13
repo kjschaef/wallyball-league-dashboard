@@ -83,7 +83,8 @@ export async function PUT(
   const resolvedParams = await params;
   const matchId = parseInt(resolvedParams.id);
   
-  const isAdmin = cookies().get('admin_token')?.value === 'true';
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get('admin_token')?.value === 'true';
   if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await request.json();
@@ -177,7 +178,8 @@ export async function DELETE(
   const resolvedParams = await params;
   const matchId = parseInt(resolvedParams.id);
 
-  const isAdmin = cookies().get('admin_token')?.value === 'true';
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get('admin_token')?.value === 'true';
   if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   if (isNaN(matchId)) {
