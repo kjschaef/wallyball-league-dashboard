@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     }
 
     if (isValid) {
-      const cookieStore = cookies();
+      const cookieStore = await cookies();
       cookieStore.set('admin_token', 'true', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
