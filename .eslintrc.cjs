@@ -47,5 +47,5 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-require-imports': 'warn' // Flag require statements
   },
-  ignorePatterns: ['dist/**', 'node_modules/**', '*.js', '*.cjs', '.next/**'] // Added .next
+  ignorePatterns: ['dist/**', 'node_modules/**', '*.js', '*.cjs', '.next/**', 'next-env.d.ts'] // Added .next and next-env.d.ts
 };
