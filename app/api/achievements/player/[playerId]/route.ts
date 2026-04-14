@@ -38,7 +38,8 @@ export async function GET(
   { params }: { params: { playerId: string } }
 ) {
   try {
-    const playerId = parseInt(await params.playerId);
+    const paramsResolved = await params;
+    const playerId = parseInt(paramsResolved.playerId);
 
     if (isNaN(playerId)) {
       return NextResponse.json(
