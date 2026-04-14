@@ -1,6 +1,12 @@
 import { execSync } from 'child_process';
 
 function main() {
+  // Prevent running on main branch in case of accidental preview evaluations
+  if (process.env.VERCEL_GIT_COMMIT_REF === 'main') {
+    console.log('⏭️ Skipping database setup: Cannot run on main branch.');
+    return;
+  }
+
   if (process.env.VERCEL_ENV === 'preview') {
     console.log('🚧 Preview environment detected: Running database migrations and seed...');
     try {

@@ -4,6 +4,16 @@ import * as schema from '../db/schema';
 import { sql } from 'drizzle-orm';
 
 async function main() {
+  if (process.env.VERCEL_ENV === 'production') {
+    console.error('❌ FATAL: Cannot run seed in production environment!');
+    process.exit(1);
+  }
+
+  if (process.env.VERCEL_GIT_COMMIT_REF === 'main') {
+    console.error('❌ FATAL: Cannot run seed on the main branch!');
+    process.exit(1);
+  }
+
   const db = getDatabase();
 
   console.log('Seeding database...');
