@@ -11,5 +11,14 @@ test('has title and basic dashboard elements', async ({ page }) => {
   await expect(page.locator('nav')).toBeVisible();
 
   // Wait for application content to ensure we are not on a login or error page
-  await expect(page.getByText('Win Percentage', { exact: false })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('heading', { name: 'Win Percentage' })).toBeVisible({ timeout: 30000 });
+
+  // Ensure the Actions FAB is rendering
+  const fab = page.getByTitle('Actions');
+  await expect(fab).toBeVisible();
+  
+  // Test opening the FAB menu gives access to Record Match
+  await fab.click();
+  await expect(page.getByRole('button', { name: 'Record Match' })).toBeVisible();
+  await fab.click(); // Close it
 });

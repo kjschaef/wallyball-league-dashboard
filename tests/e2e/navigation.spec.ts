@@ -11,7 +11,7 @@ test.describe('Navigation', () => {
 
     // Check Dashboard
     await page.click('text=Dashboard');
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page).toHaveURL(/.*\/$/);
 
     // Check Results
     await page.click('text=Results');
