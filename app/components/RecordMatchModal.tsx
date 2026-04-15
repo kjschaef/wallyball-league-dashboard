@@ -218,6 +218,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
               onClick={handleClose}
               disabled={isSubmitting}
               className="text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close modal"
             >
               <X className="h-6 w-6" />
             </button>

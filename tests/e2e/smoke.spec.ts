@@ -19,6 +19,6 @@ test('has title and basic dashboard elements', async ({ page }) => {
   
   // Test opening the FAB menu gives access to Record Match
   await fab.click();
-  await expect(page.getByRole('button', { name: 'Record Match' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Record Match' })).toBeVisible();
   await fab.click(); // Close it
 });
