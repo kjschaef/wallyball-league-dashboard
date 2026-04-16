@@ -109,10 +109,8 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
-      console.log('No file selected.');
       return;
     }
-    console.log('File selected:', file.name);
 
     // Store the uploaded image for later use in disambiguation
     setLastUploadedImage(file);
@@ -150,15 +148,12 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
       setIsLoading(true);
 
       try {
-        console.log('Uploading image with player names...');
         const response = await fetch('/api/chatbot/image', {
           method: 'POST',
           body: formData,
         });
 
-        console.log('Image upload response:', response);
         const data = await response.json();
-        console.log('Image upload data:', data);
 
         const assistantMessage: ChatMessage = {
           role: 'assistant',
@@ -266,16 +261,9 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
 
       const data = await response.json();
 
-      console.log('[DEBUG_UI] Chatbot response data:', data);
-      console.log('[DEBUG_UI] additionalData:', data.additionalData);
-      console.log('[DEBUG_UI] usedRules from additionalData:', data.additionalData?.usedRules);
-
       // Explicitly check for usedRules in additionalData
       const hasUsedRules = data.additionalData && typeof data.additionalData === 'object' && 'usedRules' in data.additionalData;
       const usedRulesValue = hasUsedRules ? (data.additionalData as any).usedRules : false;
-
-      console.log('[DEBUG_UI] hasUsedRules:', hasUsedRules);
-      console.log('[DEBUG_UI] usedRulesValue:', usedRulesValue);
 
       const assistantMessage: ChatMessage = {
         role: 'assistant',
@@ -285,9 +273,6 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
         additionalData: data.additionalData,
         usedRules: usedRulesValue
       };
-
-      console.log('[DEBUG_UI] Created assistant message:', assistantMessage);
-      console.log('[DEBUG_UI] Assistant message usedRules:', assistantMessage.usedRules);
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
@@ -1011,12 +996,6 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                             return null;
                           })()
                         )}
-                        {(() => {
-                          if (message.role === 'assistant') {
-                            console.log(`[DEBUG_UI] Rendering message ${index}: usedRules=${message.usedRules}`);
-                          }
-                          return null;
-                        })()}
 
                         {/* Fallback check: check both top-level property and additionalData */}
                         {(message.usedRules || (message.additionalData && (message.additionalData as any).usedRules)) && message.role === 'assistant' && (
