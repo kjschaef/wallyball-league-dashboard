@@ -907,6 +907,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
           <Button
             className="fixed bottom-6 right-28 h-14 w-14 rounded-full shadow-lg z-50 bg-gray-900 hover:bg-gray-800 transition-all duration-200 transform hover:scale-105"
             size="icon"
+            aria-label="Chat Assistant"
           >
             <MessageCircle className="h-6 w-6" />
           </Button>
@@ -1046,6 +1047,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                             size="sm"
                             onClick={() => openFeedbackDialog(index, 'positive')}
                             className="h-6 w-6 p-0 hover:bg-green-100"
+                            aria-label="Good response"
                           >
                             <ThumbsUp className="h-3 w-3 text-gray-400 hover:text-green-600" />
                           </Button>
@@ -1054,6 +1056,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                             size="sm"
                             onClick={() => openFeedbackDialog(index, 'negative')}
                             className="h-6 w-6 p-0 hover:bg-red-100"
+                            aria-label="Bad response"
                           >
                             <ThumbsDown className="h-3 w-3 text-gray-400 hover:text-red-600" />
                           </Button>
@@ -1097,6 +1100,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                   size="icon"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading}
+                  aria-label="Upload image"
                 >
                   <Upload className="h-4 w-4" />
                 </Button>
@@ -1104,6 +1108,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                   onClick={() => sendMessage()}
                   disabled={isLoading || !input.trim()}
                   size="icon"
+                  aria-label="Send message"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
