@@ -8,3 +8,6 @@
 ## 2024-05-18 - ARIA labels for Icon-Only Buttons
 **Learning:** Icon-only buttons often lack accessible text, causing screen readers to announce them improperly. It is crucial to check all Button instances with size="icon" and ensure they include aria-label attributes describing their action, not just visual hints.
 **Action:** When adding or auditing icon-only components, verify the presence of explicit aria-label properties so their functionality is accessible.
+## 2026-04-17 - Keyboard Accessibility for Custom Buttons
+**Learning:** Custom components using `role="button"` often lack explicit visual focus indicators (`focus-visible:ring`) and suffer from unwanted page scrolling when the Space key is pressed. They also frequently miss `aria-disabled` states when logically unselectable.
+**Action:** When implementing custom `role="button"` components, always add `focus-visible` utility classes, ensure `e.preventDefault()` is called for Space key presses to prevent scrolling, and use `aria-disabled={!isEnabled}` rather than just relying on visual styles or pointer events.
