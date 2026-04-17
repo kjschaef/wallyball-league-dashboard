@@ -6,12 +6,12 @@ test.describe('Navigation', () => {
   });
 
   test('should navigate to all main pages', async ({ page }) => {
-    // Current Navbar should have links
-    const nav = page.locator('nav');
+    // Current Navbar should have links (verify it exists)
+    await expect(page.locator('nav')).toBeVisible();
 
     // Check Dashboard
     await page.click('text=Dashboard');
-    await expect(page).toHaveURL(/.*\/$/);
+    await expect(page).toHaveURL(/.*\/$/); // Dashboard is the root page
 
     // Check Results
     await page.click('text=Results');
