@@ -9,7 +9,7 @@ test.describe('Match Recording Flow', () => {
   test('should record a match with admin authentication', async ({ page }) => {
     // 1. Open the FAB and select Record Match
     await page.getByTitle('Actions').click();
-    await page.getByRole('button', { name: 'Record Match' }).click();
+    await page.getByRole('menuitem', { name: 'Record Match' }).click();
 
     // 2. Wait for the Record Game modal to appear and players to load
     const modal = page.locator('.fixed.inset-0').locator('.bg-white');
@@ -61,7 +61,7 @@ test.describe('Match Recording Flow', () => {
   test('should show error for invalid password', async ({ page }) => {
     // 1. Open the FAB and select Record Match
     await page.getByTitle('Actions').click();
-    await page.getByRole('button', { name: 'Record Match' }).click();
+    await page.getByRole('menuitem', { name: 'Record Match' }).click();
 
     // 2. Wait for modal
     const modal = page.locator('.fixed.inset-0').locator('.bg-white');

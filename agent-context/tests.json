@@ -137,6 +137,14 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/team-balancer.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/team-balancer.ts",
+        "app/lib/types.ts"
+      ]
+    },
+    {
       "path": "app/lib/__tests__/tooltip.test.ts",
       "kind": "app-lib",
       "covers": [
@@ -191,8 +199,14 @@
     "app/lib/signups.ts": [
       "app/lib/__tests__/signups.test.ts"
     ],
+    "app/lib/team-balancer.ts": [
+      "app/lib/__tests__/team-balancer.test.ts"
+    ],
     "app/lib/tooltip.ts": [
       "app/lib/__tests__/tooltip.test.ts"
+    ],
+    "app/lib/types.ts": [
+      "app/lib/__tests__/team-balancer.test.ts"
     ],
     "app/page.tsx": [
       "__tests__/components/DashboardPage.test.tsx"
