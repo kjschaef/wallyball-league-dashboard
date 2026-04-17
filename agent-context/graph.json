@@ -754,6 +754,21 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/__tests__/team-balancer.test.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/team-balancer.ts",
+        "app/lib/types.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/team-balancer.ts",
+        "app/lib/types.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/__tests__/tooltip.test.ts",
       "type": "app-lib",
       "tags": [],

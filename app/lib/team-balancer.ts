@@ -53,11 +53,11 @@ export function generateBalancedTeams(availablePlayers: PlayerStats[]): TeamSugg
             expectedWinProbability: Math.round(expectedWinProbability),
             reasoning: '', // Will be filled later
             diff // Store for sorting
-        } as any);
+        } as unknown as TeamSuggestion & { diff: number });
     });
 
     // Sort by balance (closest to 0 diff)
-    scenarios.sort((a: any, b: any) => a.diff - b.diff);
+    const sortedScenarios = [...scenarios].sort((a, b) => (a as unknown as { diff: number }).diff - (b as unknown as { diff: number }).diff);
 
     // Select top 3 distinct scenarios
     // For small player counts, we might not have 3 distinct valid scenarios that make sense
@@ -68,7 +68,7 @@ export function generateBalancedTeams(availablePlayers: PlayerStats[]): TeamSugg
     // 2. Power Match: Teams with highest combined win % (if different from #1)
     // 3. Underdog/Mixed: Another balanced variation
 
-    const topScenarios = scenarios.slice(0, 3).map((s, index) => {
+    const topScenarios = sortedScenarios.slice(0, 3).map((s, index) => {
         let scenarioName = "Balanced Matchup";
         let reasoning = `Teams are evenly matched with a ${s.balanceScore}% balance score.`;
 
