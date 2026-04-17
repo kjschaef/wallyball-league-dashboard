@@ -654,6 +654,85 @@ describe('/api/player-stats', () => {
     });
   });
 
+  describe('Last game date calculations', () => {
+    it('should calculate lastGameDate correctly', async () => {
+      const mockPlayers = [
+        { id: 1, name: 'Alice', start_year: 2020, created_at: '2020-01-01' },
+      ];
+
+      const mockMatches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_one_player_two_id: null,
+          team_one_player_three_id: null,
+          team_two_player_one_id: null,
+          team_two_player_two_id: null,
+          team_two_player_three_id: null,
+          team_one_games_won: 3,
+          team_two_games_won: 2,
+          date: '2023-01-01T00:00:00.000Z'
+        },
+        {
+          id: 2,
+          team_one_player_one_id: null,
+          team_one_player_two_id: null,
+          team_one_player_three_id: null,
+          team_two_player_one_id: 1,
+          team_two_player_two_id: null,
+          team_two_player_three_id: null,
+          team_one_games_won: 1,
+          team_two_games_won: 4,
+          date: '2024-05-10T00:00:00.000Z'
+        }
+      ];
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') {
+          return Promise.resolve(mockPlayers);
+        }
+        if (queryType === 'matches') {
+          return Promise.resolve(mockMatches);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/player-stats');
+      const response = await GET(request);
+      const playerStats = await response.json();
+
+      const alice = playerStats[0];
+
+      expect(alice.lastGameDate).toBe('2024-05-10T00:00:00.000Z');
+    });
+
+    it('should handle lastGameDate when a player has no matches', async () => {
+      const mockPlayers = [
+        { id: 1, name: 'Alice', start_year: 2020, created_at: '2020-01-01' },
+      ];
+
+      const mockMatches = [];
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') {
+          return Promise.resolve(mockPlayers);
+        }
+        if (queryType === 'matches') {
+          return Promise.resolve(mockMatches);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/player-stats');
+      const response = await GET(request);
+      const playerStats = await response.json();
+
+      const alice = playerStats[0];
+
+      expect(alice.lastGameDate).toBeNull();
+    });
+  });
+
 
 
   describe('Player visibility regression tests', () => {
