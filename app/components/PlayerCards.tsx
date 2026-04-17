@@ -35,6 +35,7 @@ interface PlayerStats {
   totalPlayingTime: number;
 
   actualWinPercentage?: number;
+  lastGameDate?: string | null;
 }
 
 const getWinPercentageGradient = (percentage: number): string => {
@@ -427,9 +428,19 @@ export function PlayerCards() {
     );
   }
 
-  // Split players into main (50+ games) and inactive (<50 games)
-  const mainPlayers = playerStats.filter((player) => player.record.totalGames >= 50);
-  const inactivePlayers = playerStats.filter((player) => player.record.totalGames < 50);
+  // Split players into active and inactive (> 6 months since last game)
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const mainPlayers = playerStats.filter((player) => {
+    if (!player.lastGameDate) return false;
+    return new Date(player.lastGameDate) >= sixMonthsAgo;
+  });
+
+  const inactivePlayers = playerStats.filter((player) => {
+    if (!player.lastGameDate) return true;
+    return new Date(player.lastGameDate) < sixMonthsAgo;
+  });
 
   return (
     <div className="space-y-8">
@@ -451,7 +462,7 @@ export function PlayerCards() {
           </div>
         ) : (
           <div className="p-6 text-center border border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
-            <p className="text-gray-600">No players with 50+ games yet.</p>
+            <p className="text-gray-600">No active players yet.</p>
           </div>
         )}
       </div>
@@ -462,7 +473,7 @@ export function PlayerCards() {
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-gray-700">Inactive Players</h2>
             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-              &lt;50 games
+              Inactive &gt; 6 mos
             </span>
           </div>
           <div className="flex flex-wrap gap-4 justify-center sm:justify-start opacity-80">
