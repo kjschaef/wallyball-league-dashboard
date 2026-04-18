@@ -8,3 +8,7 @@
 ## 2024-05-18 - ARIA labels for Icon-Only Buttons
 **Learning:** Icon-only buttons often lack accessible text, causing screen readers to announce them improperly. It is crucial to check all Button instances with size="icon" and ensure they include aria-label attributes describing their action, not just visual hints.
 **Action:** When adding or auditing icon-only components, verify the presence of explicit aria-label properties so their functionality is accessible.
+
+## 2024-05-19 - Accordion State with aria-expanded
+**Learning:** When using custom `div` elements with `role="button"` as accordion toggles, they must explicitly communicate their expanded/collapsed state to screen readers.
+**Action:** Ensure all custom toggle elements update `aria-expanded="true|false"` dynamically based on their current state.
