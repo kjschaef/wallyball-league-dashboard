@@ -25,7 +25,7 @@
         "playerId"
       ],
       "likelySourceFiles": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ]
     },
@@ -88,7 +88,7 @@
       "file": "app/api/games/route.ts",
       "params": [],
       "likelySourceFiles": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ]
     },
@@ -100,7 +100,7 @@
         "id"
       ],
       "likelySourceFiles": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ]
     },
@@ -154,7 +154,7 @@
         "id"
       ],
       "likelySourceFiles": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ]
     },

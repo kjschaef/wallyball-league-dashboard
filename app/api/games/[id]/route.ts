@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { db } from "../../../../db";
+import { getDatabase } from "../../../../db/config";
 import { matches } from "../../../../db/schema";
 
 export async function DELETE(
@@ -8,6 +8,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const db = getDatabase();
     const gameId = parseInt(params.id);
     // deleting game id: server
 

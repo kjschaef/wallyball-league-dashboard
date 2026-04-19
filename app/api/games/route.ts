@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { db } from "../../../db";
+import { getDatabase } from "../../../db/config";
 import { matches, players } from "../../../db/schema";
 
 export async function POST(request: Request) {
   try {
+    const db = getDatabase();
     const data = await request.json();
     // recording new game (server)
     

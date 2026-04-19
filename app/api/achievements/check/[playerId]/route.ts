@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq, or } from "drizzle-orm";
-import { db } from "../../../../../db";
+import { getDatabase } from "../../../../../db/config";
 import { matches, achievements, playerAchievements } from "../../../../../db/schema";
 
 export async function POST(
@@ -8,6 +8,7 @@ export async function POST(
   { params }: { params: { playerId: string } }
 ) {
   try {
+    const db = getDatabase();
     const playerId = parseInt(params.playerId);
 
     // Get player's matches and current achievements

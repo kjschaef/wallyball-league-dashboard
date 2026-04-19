@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { db } from '../../../../db';
+import { getDatabase } from '../../../../db/config';
 import { players, matches } from '../../../../db/schema';
 import { eq, or } from 'drizzle-orm';
 
@@ -8,6 +8,7 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const db = getDatabase();
   const playerId = parseInt(params.id);
 
   if (isNaN(playerId)) {
@@ -97,6 +98,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const db = getDatabase();
   const playerId = parseInt(params.id);
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get('admin_token')?.value === 'true';
@@ -157,6 +159,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const db = getDatabase();
   const playerId = parseInt(params.id);
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get('admin_token')?.value === 'true';
