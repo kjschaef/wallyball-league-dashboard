@@ -83,15 +83,22 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
               {player.name}
             </h3>
 
-            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-              <div className="flex items-center gap-0.5">
-                <Calendar className="h-3 w-3" />
-                <span>{player.yearsPlayed}y</span>
+            <div className="flex flex-col gap-1 mt-1">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <div className="flex items-center gap-0.5">
+                  <Calendar className="h-3 w-3" />
+                  <span>{player.yearsPlayed}y</span>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>{player.record.totalGames} games</span>
+                </div>
               </div>
-              <div className="flex items-center gap-0.5">
-                <TrendingUp className="h-3 w-3" />
-                <span>{player.record.totalGames} games</span>
-              </div>
+              {player.lastGameDate && (
+                <div className="text-[10px] text-gray-400">
+                  Last played: {new Date(player.lastGameDate).toLocaleDateString()}
+                </div>
+              )}
             </div>
           </div>
 
