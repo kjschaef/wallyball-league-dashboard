@@ -11,6 +11,7 @@ export interface PlayerStats {
     totalPlayingTime: number;
 
     actualWinPercentage?: number;
+    lastGameDate?: string | null;
 }
 
 
@@ -82,6 +83,10 @@ export async function calculatePlayerStats(
             // Calculate win percentage
             const winPercentage = gamesWon + gamesLost > 0 ? (gamesWon / (gamesWon + gamesLost)) * 100 : 0;
 
+            const lastGameDate = processedMatches.length > 0
+                ? new Date(Math.max(...processedMatches.map(m => new Date(m.date).getTime()))).toISOString()
+                : null;
+
             return {
                 id: player.id,
                 name: player.name,
@@ -94,7 +99,8 @@ export async function calculatePlayerStats(
                 winPercentage,
                 totalPlayingTime,
 
-                actualWinPercentage: winPercentage
+                actualWinPercentage: winPercentage,
+                lastGameDate
             };
         } catch (error) {
             console.error(`Error processing player ${player.name} (ID ${player.id}):`, error);
@@ -107,7 +113,8 @@ export async function calculatePlayerStats(
                 winPercentage: 0,
                 totalPlayingTime: 0,
 
-                actualWinPercentage: 0
+                actualWinPercentage: 0,
+                lastGameDate: null
             };
         }
     }));

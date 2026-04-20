@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { db } from '../../../../db';
+import { getDatabase } from '../../../../db/config';
 import { players, matches } from '../../../../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const db = getDatabase();
   const playerId = parseInt(params.id);
 
   if (isNaN(playerId)) {
@@ -97,6 +98,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const db = getDatabase();
   const playerId = parseInt(params.id);
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get('admin_token')?.value === 'true';
@@ -157,6 +159,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const db = getDatabase();
   const playerId = parseInt(params.id);
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get('admin_token')?.value === 'true';
@@ -185,22 +188,14 @@ export async function DELETE(
 
     // Delete all matches involving this player first (to maintain referential integrity)
     await db.delete(matches).where(
-      eq(matches.teamOnePlayerOneId, playerId)
-    );
-    await db.delete(matches).where(
-      eq(matches.teamOnePlayerTwoId, playerId)
-    );
-    await db.delete(matches).where(
-      eq(matches.teamOnePlayerThreeId, playerId)
-    );
-    await db.delete(matches).where(
-      eq(matches.teamTwoPlayerOneId, playerId)
-    );
-    await db.delete(matches).where(
-      eq(matches.teamTwoPlayerTwoId, playerId)
-    );
-    await db.delete(matches).where(
-      eq(matches.teamTwoPlayerThreeId, playerId)
+      or(
+        eq(matches.teamOnePlayerOneId, playerId),
+        eq(matches.teamOnePlayerTwoId, playerId),
+        eq(matches.teamOnePlayerThreeId, playerId),
+        eq(matches.teamTwoPlayerOneId, playerId),
+        eq(matches.teamTwoPlayerTwoId, playerId),
+        eq(matches.teamTwoPlayerThreeId, playerId)
+      )
     );
 
     // Delete the player
