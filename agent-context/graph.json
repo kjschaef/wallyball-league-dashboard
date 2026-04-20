@@ -9,12 +9,12 @@
         "players"
       ],
       "imports": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ],
       "importedBy": [],
       "related": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ],
       "overrideNotes": []
@@ -112,12 +112,12 @@
         "matches"
       ],
       "imports": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ],
       "importedBy": [],
       "related": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ],
       "overrideNotes": []
@@ -129,12 +129,12 @@
         "matches"
       ],
       "imports": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ],
       "importedBy": [],
       "related": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ],
       "overrideNotes": []
@@ -208,12 +208,12 @@
         "players"
       ],
       "imports": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ],
       "importedBy": [],
       "related": [
-        "db/index.ts",
+        "db/config.ts",
         "db/schema.ts"
       ],
       "overrideNotes": []
@@ -1092,9 +1092,17 @@
         "db/schema.ts"
       ],
       "importedBy": [
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/api/games/[id]/route.ts",
+        "app/api/games/route.ts",
+        "app/api/players/[id]/route.ts",
         "db/index.ts"
       ],
       "related": [
+        "app/api/achievements/check/[playerId]/route.ts",
+        "app/api/games/[id]/route.ts",
+        "app/api/games/route.ts",
+        "app/api/players/[id]/route.ts",
         "db/index.ts",
         "db/schema.ts"
       ],
@@ -1109,17 +1117,8 @@
       "imports": [
         "db/config.ts"
       ],
-      "importedBy": [
-        "app/api/achievements/check/[playerId]/route.ts",
-        "app/api/games/[id]/route.ts",
-        "app/api/games/route.ts",
-        "app/api/players/[id]/route.ts"
-      ],
+      "importedBy": [],
       "related": [
-        "app/api/achievements/check/[playerId]/route.ts",
-        "app/api/games/[id]/route.ts",
-        "app/api/games/route.ts",
-        "app/api/players/[id]/route.ts",
         "db/config.ts"
       ],
       "overrideNotes": []
