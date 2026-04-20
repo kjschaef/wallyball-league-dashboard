@@ -19,8 +19,8 @@ export function Navbar() {
 
         <div className="flex space-x-1">
           <Link 
-            href="/dashboard" 
-            className={`px-3 py-2 rounded ${isActive('/dashboard') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+            href="/" 
+            className={`px-3 py-2 rounded ${isActive('/') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
           >
             Dashboard
           </Link>

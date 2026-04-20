@@ -26,7 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Database**: PostgreSQL via Neon with Drizzle ORM (newer endpoints) and @neondatabase/serverless (legacy endpoints)
 - **State Management**: React Query (@tanstack/react-query)
 - **AI Integration**: OpenAI API for chatbot and image analysis
-- **Email**: AWS SES and Mailgun for notifications
+- **Email**: AWS SES for notifications
 
 ### Directory Structure
 - **`/app`** - Next.js App Router pages and API routes
@@ -124,7 +124,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Environment Setup:**
 - Requires `DATABASE_URL` environment variable for Neon PostgreSQL
 - OpenAI API key for chatbot functionality
-- AWS SES or Mailgun credentials for email features
+- AWS SES credentials for email features
 
 **Code Conventions:**
 - TypeScript strict mode enabled
