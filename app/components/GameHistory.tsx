@@ -64,6 +64,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                 onKeyDown={(e) => e.key === 'Enter' && toggleGameExpansion(game.id)}
                 tabIndex={0}
                 role="button"
+                aria-expanded={expandedGameId === game.id}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <span className="text-sm text-gray-500">
