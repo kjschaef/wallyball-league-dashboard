@@ -1,4 +1,4 @@
-import { generateBalancedTeams } from '../team-balancer';
+import { generateBalancedTeams, calculateAverageWinPct, getCombinations } from '../team-balancer';
 import { PlayerStats } from '../types';
 
 const mockPlayers: PlayerStats[] = [
@@ -63,6 +63,68 @@ describe('generateBalancedTeams', () => {
             if (results.length > 0) expect(results[0].scenario).toBe('Most Balanced');
             if (results.length > 1) expect(results[1].scenario).toBe('Alternative Balance');
             if (results.length > 2) expect(results[2].scenario).toBe('Variation');
+        });
+    });
+
+    describe('grouping logic and mutual exclusivity', () => {
+        it('groups players correctly and ensures mutual exclusivity', () => {
+            const players = mockPlayers.slice(0, 4); // Win percentages: 80, 60, 40, 20
+            const results = generateBalancedTeams(players);
+
+            expect(results.length).toBeGreaterThan(0);
+
+            // The most balanced match should group the 80 and 20 together, and the 60 and 40 together.
+            // Averages: (80 + 20) / 2 = 50, (60 + 40) / 2 = 50. Diff = 0.
+            const mostBalanced = results[0];
+            expect(mostBalanced.balanceScore).toBe(100);
+            expect(mostBalanced.expectedWinProbability).toBe(50);
+
+            const teamOneIds = new Set(mostBalanced.teamOne.map(p => p.id));
+            const teamTwoIds = new Set(mostBalanced.teamTwo.map(p => p.id));
+
+            // Mutual exclusivity
+            for (const id of teamOneIds) {
+                expect(teamTwoIds.has(id)).toBe(false);
+            }
+
+            // Contains all players
+            expect(teamOneIds.size + teamTwoIds.size).toBe(players.length);
+
+            // Specifically verify the best grouping
+            const teamOneWinPctSum = mostBalanced.teamOne.reduce((sum, p) => sum + p.winPercentage, 0);
+            const teamTwoWinPctSum = mostBalanced.teamTwo.reduce((sum, p) => sum + p.winPercentage, 0);
+
+            // Both teams should have a combined win percentage of 100 for this exact setup
+            expect(teamOneWinPctSum).toBe(100);
+            expect(teamTwoWinPctSum).toBe(100);
+        });
+    });
+
+    describe('calculateAverageWinPct', () => {
+        it('returns 0 for an empty array of players', () => {
+            expect(calculateAverageWinPct([])).toBe(0);
+        });
+
+        it('calculates the correct average win percentage', () => {
+            expect(calculateAverageWinPct([mockPlayers[0], mockPlayers[3]])).toBe(50); // (80 + 20) / 2
+        });
+    });
+
+    describe('getCombinations', () => {
+        it('returns an array with an empty array if k is 0', () => {
+            expect(getCombinations([1, 2, 3], 0)).toEqual([[]]);
+        });
+
+        it('returns an array containing the original array if arr.length equals k', () => {
+            expect(getCombinations([1, 2, 3], 3)).toEqual([[1, 2, 3]]);
+        });
+
+        it('returns an empty array if arr.length < k', () => {
+            expect(getCombinations([1, 2], 3)).toEqual([]);
+        });
+
+        it('returns all valid combinations', () => {
+            expect(getCombinations([1, 2, 3], 2)).toEqual([[1, 2], [1, 3], [2, 3]]);
         });
     });
 });
