@@ -59,9 +59,14 @@ export function GameHistory({ games }: GameHistoryProps) {
             >
               {/* Game Summary Row */}
               <div
-                className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
                 onClick={() => toggleGameExpansion(game.id)}
-                onKeyDown={(e) => e.key === 'Enter' && toggleGameExpansion(game.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleGameExpansion(game.id);
+                  }
+                }}
                 tabIndex={0}
                 role="button"
                 aria-expanded={expandedGameId === game.id}

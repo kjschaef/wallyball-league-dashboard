@@ -12,3 +12,10 @@
 ## 2024-05-19 - Accordion State with aria-expanded
 **Learning:** When using custom `div` elements with `role="button"` as accordion toggles, they must explicitly communicate their expanded/collapsed state to screen readers.
 **Action:** Ensure all custom toggle elements update `aria-expanded="true|false"` dynamically based on their current state.
+
+## 2024-05-20 - Keyboard Accessibility for role="button"
+**Learning:** Custom interactive elements using `role="button"` (e.g. div or span elements acting as buttons) often lack visual focus indicators and can cause unintended scrolling when activated with the Space key. This makes them difficult to use for keyboard-only users.
+**Action:** When implementing custom interactive elements with `role="button"`, always ensure:
+1. They include explicit focus styles (e.g. `focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none`).
+2. They call `e.preventDefault()` within the `onKeyDown` handler when the Space key is pressed to avoid unwanted page scrolling.
+3. They utilize `aria-disabled` for unselectable or disabled states.
