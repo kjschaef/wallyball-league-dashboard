@@ -150,6 +150,13 @@
       "covers": [
         "app/lib/tooltip.ts"
       ]
+    },
+    {
+      "path": "app/lib/__tests__/utils.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/utils.ts"
+      ]
     }
   ],
   "coverageByFile": {
@@ -207,6 +214,9 @@
     ],
     "app/lib/types.ts": [
       "app/lib/__tests__/team-balancer.test.ts"
+    ],
+    "app/lib/utils.ts": [
+      "app/lib/__tests__/utils.test.ts"
     ],
     "app/page.tsx": [
       "__tests__/components/DashboardPage.test.tsx"
