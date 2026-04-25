@@ -253,8 +253,8 @@ function listFiles(rootDir: string, startDir: string): string[] {
   return files.sort();
 }
 
-function readText(rootDir: string, relativePath: string): string {
-  return fs.readFileSync(path.join(rootDir, relativePath), 'utf8');
+async function readText(rootDir: string, relativePath: string): Promise<string> {
+  return fs.promises.readFile(path.join(rootDir, relativePath), 'utf8');
 }
 
 function matchesGlob(filePath: string, pattern: string): boolean {
@@ -418,9 +418,9 @@ function assignYamlField(
   throw new Error(`Unsupported override field: ${key}`);
 }
 
-export function loadOverrides(rootDir: string): OverrideEntry[] {
+export async function loadOverrides(rootDir: string): Promise<OverrideEntry[]> {
   const overridesPath = path.join(rootDir, GENERATED_DIR, 'overrides.yaml');
-  return parseYamlOverrides(fs.readFileSync(overridesPath, 'utf8'));
+  return parseYamlOverrides(await fs.promises.readFile(overridesPath, 'utf8'));
 }
 
 function getRouteParams(routePath: string): string[] {
@@ -534,8 +534,8 @@ function resolveImport(rootDir: string, importer: string, source: string): strin
   return null;
 }
 
-function extractImports(rootDir: string, filePath: string): string[] {
-  const content = readText(rootDir, filePath);
+async function extractImports(rootDir: string, filePath: string): Promise<string[]> {
+  const content = await readText(rootDir, filePath);
   const matches = [
     ...content.matchAll(/from\s+['"]([^'"]+)['"]/g),
     ...content.matchAll(/import\(\s*['"]([^'"]+)['"]\s*\)/g),
@@ -548,10 +548,16 @@ function extractImports(rootDir: string, filePath: string): string[] {
   return stableUnique(resolved);
 }
 
-function collectLocalImports(rootDir: string, files: string[]): Map<string, string[]> {
+async function collectLocalImports(rootDir: string, files: string[]): Promise<Map<string, string[]>> {
   const imports = new Map<string, string[]>();
-  for (const filePath of files) {
-    imports.set(filePath, extractImports(rootDir, filePath));
+  const results = await Promise.all(
+    files.map(async (filePath) => {
+      const extracted = await extractImports(rootDir, filePath);
+      return { filePath, extracted };
+    })
+  );
+  for (const { filePath, extracted } of results) {
+    imports.set(filePath, extracted);
   }
   return imports;
 }
@@ -634,7 +640,7 @@ function extractBlock(content: string, startIndex: number): string {
   return '';
 }
 
-function buildDataModel(rootDir: string): {
+async function buildDataModel(rootDir: string): Promise<{
   schemaVersion: number;
   schemaFile: string;
   tables: Array<{
@@ -645,9 +651,9 @@ function buildDataModel(rootDir: string): {
     insertType: string | null;
     migrationTouchpoints: string[];
   }>;
-} {
+}> {
   const schemaFile = 'db/schema.ts';
-  const content = readText(rootDir, schemaFile);
+  const content = await readText(rootDir, schemaFile);
   const migrationFiles = listFiles(rootDir, 'migrations').filter((filePath) => !filePath.includes('/meta/'));
   const tableMatches = [...content.matchAll(/export const (\w+) = pgTable\("([^"]+)"/g)];
   const typeMatches = [...content.matchAll(/export type (\w+) = typeof (\w+)\.\$infer(Select|Insert)/g)];
@@ -661,6 +667,13 @@ function buildDataModel(rootDir: string): {
       insertTypeBySymbol.set(symbol, typeName);
     }
   }
+
+  const migrationFileContents = await Promise.all(
+    migrationFiles.map(async (filePath) => {
+      const migrationContent = await readText(rootDir, filePath);
+      return { filePath, migrationContent };
+    })
+  );
 
   const tables = tableMatches.map((match) => {
     const symbol = match[1];
@@ -686,10 +699,9 @@ function buildDataModel(rootDir: string): {
       })
       .filter((value): value is { field: string; column: string; kind: string; references: string | null } => Boolean(value));
 
-    const migrationTouchpoints = migrationFiles.filter((filePath) => {
-      const migrationContent = readText(rootDir, filePath);
-      return new RegExp(`\\b${table}\\b`, 'i').test(migrationContent);
-    });
+    const migrationTouchpoints = migrationFileContents
+      .filter(({ migrationContent }) => new RegExp(`\\b${table}\\b`, 'i').test(migrationContent))
+      .map(({ filePath }) => filePath);
 
     return {
       symbol,
@@ -854,12 +866,12 @@ function buildGraph(
   return { schemaVersion: 1, nodes };
 }
 
-function buildIndex(
+async function buildIndex(
   rootDir: string,
   routesArtifact: { schemaVersion: number; routes: RouteEntry[] },
   tasksArtifact: { schemaVersion: number; tasks: Array<Record<string, unknown>> },
-): Record<string, unknown> {
-  const packageJson = JSON.parse(readText(rootDir, 'package.json')) as {
+): Promise<Record<string, unknown>> {
+  const packageJson = JSON.parse(await readText(rootDir, 'package.json')) as {
     name: string;
     scripts?: Record<string, string>;
   };
@@ -950,7 +962,7 @@ function stringifyJson(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
-export function buildAgentContext(rootDir: string): Record<string, string> {
+export async function buildAgentContext(rootDir: string): Promise<Record<string, string>> {
   const allRelevantFiles = stableUnique([
     ...listFiles(rootDir, 'app'),
     ...listFiles(rootDir, 'lib'),
@@ -965,8 +977,8 @@ export function buildAgentContext(rootDir: string): Record<string, string> {
     ...listFiles(rootDir, 'app/lib/__tests__'),
   ]).filter((filePath) => !filePath.endsWith('.json'));
 
-  const overrides = loadOverrides(rootDir);
-  const importMap = collectLocalImports(rootDir, importSourceFiles);
+  const overrides = await loadOverrides(rootDir);
+  const importMap = await collectLocalImports(rootDir, importSourceFiles);
   const reverseImports = collectReverseImports(importMap);
   const coverageByFile = buildCoverageByFile(importMap);
   const keyFiles = stableUnique(allRelevantFiles.filter(isKeyGraphFile));
@@ -974,8 +986,8 @@ export function buildAgentContext(rootDir: string): Record<string, string> {
   const tasksArtifact = buildTasks(keyFiles, coverageByFile, graphArtifact.nodes, overrides);
   const testsArtifact = buildTestsArtifact(importMap, coverageByFile, tasksArtifact);
   const routesArtifact = buildRoutes(rootDir, importMap);
-  const dataModelArtifact = buildDataModel(rootDir);
-  const indexArtifact = buildIndex(rootDir, routesArtifact, tasksArtifact);
+  const dataModelArtifact = await buildDataModel(rootDir);
+  const indexArtifact = await buildIndex(rootDir, routesArtifact, tasksArtifact);
 
   return {
     [`${GENERATED_DIR}/index.json`]: stringifyJson(indexArtifact),
@@ -987,15 +999,22 @@ export function buildAgentContext(rootDir: string): Record<string, string> {
   };
 }
 
-export function validateContextFiles(rootDir: string): Array<{ file: string; bytes: number; limit: number }> {
-  return Object.entries(CONTEXT_LIMITS)
-    .filter(([relativePath]) => fs.existsSync(path.join(rootDir, relativePath)))
-    .map(([relativePath, limit]) => ({
-      file: relativePath,
-      bytes: Buffer.byteLength(fs.readFileSync(path.join(rootDir, relativePath), 'utf8')),
-      limit,
-    }))
-    .filter(({ bytes, limit }) => bytes > limit);
+export async function validateContextFiles(rootDir: string): Promise<Array<{ file: string; bytes: number; limit: number }>> {
+  const filesToCheck = Object.entries(CONTEXT_LIMITS)
+    .filter(([relativePath]) => fs.existsSync(path.join(rootDir, relativePath)));
+
+  const results = await Promise.all(
+    filesToCheck.map(async ([relativePath, limit]) => {
+      const content = await fs.promises.readFile(path.join(rootDir, relativePath), 'utf8');
+      return {
+        file: relativePath,
+        bytes: Buffer.byteLength(content),
+        limit,
+      };
+    })
+  );
+
+  return results.filter(({ bytes, limit }) => bytes > limit);
 }
 
 function writeGeneratedFiles(rootDir: string, outputs: Record<string, string>): void {
@@ -1007,15 +1026,22 @@ function writeGeneratedFiles(rootDir: string, outputs: Record<string, string>): 
 }
 
 if (require.main === module) {
-  const outputs = buildAgentContext(ROOT_DIR);
-  writeGeneratedFiles(ROOT_DIR, outputs);
-  const oversized = validateContextFiles(ROOT_DIR);
-  if (oversized.length > 0) {
-    console.warn('Generated context exceeded configured size limits:');
-    for (const item of oversized) {
-      console.warn(`- ${item.file}: ${item.bytes} bytes (limit ${item.limit})`);
+  (async () => {
+    try {
+      const outputs = await buildAgentContext(ROOT_DIR);
+      writeGeneratedFiles(ROOT_DIR, outputs);
+      const oversized = await validateContextFiles(ROOT_DIR);
+      if (oversized.length > 0) {
+        console.warn('Generated context exceeded configured size limits:');
+        for (const item of oversized) {
+          console.warn(`- ${item.file}: ${item.bytes} bytes (limit ${item.limit})`);
+        }
+      } else {
+        console.log(`Generated ${Object.keys(outputs).length} agent-context artifacts.`);
+      }
+    } catch (error) {
+      console.error('Failed to generate agent context:', error);
+      process.exit(1);
     }
-  } else {
-    console.log(`Generated ${Object.keys(outputs).length} agent-context artifacts.`);
-  }
+  })();
 }

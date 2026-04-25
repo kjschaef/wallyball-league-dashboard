@@ -24,8 +24,8 @@ function validateAgentRouter(rootDir: string): string[] {
   return missing.sort();
 }
 
-function validateOverrides(rootDir: string): string[] {
-  const overrides = loadOverrides(rootDir);
+async function validateOverrides(rootDir: string): Promise<string[]> {
+  const overrides = await loadOverrides(rootDir);
   const missing: string[] = [];
 
   for (const entry of overrides) {
@@ -48,8 +48,8 @@ function validateNotesLength(rootDir: string): string[] {
   return lineCount > 250 ? [`agent-context/notes.md exceeds 250 lines (${lineCount}).`] : [];
 }
 
-function compareGeneratedOutputs(rootDir: string): string[] {
-  const expected = buildAgentContext(rootDir);
+async function compareGeneratedOutputs(rootDir: string): Promise<string[]> {
+  const expected = await buildAgentContext(rootDir);
   const errors: string[] = [];
 
   for (const [relativePath, expectedContent] of Object.entries(expected)) {
@@ -67,24 +67,25 @@ function compareGeneratedOutputs(rootDir: string): string[] {
   return errors;
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const issues: string[] = [];
 
-  issues.push(...compareGeneratedOutputs(ROOT_DIR));
+  const comparedOutputs = await compareGeneratedOutputs(ROOT_DIR);
+  issues.push(...comparedOutputs);
 
   const missingRouterRefs = validateAgentRouter(ROOT_DIR);
   if (missingRouterRefs.length > 0) {
     issues.push(`AGENTS.md references missing context files: ${missingRouterRefs.join(', ')}`);
   }
 
-  const missingOverridePaths = validateOverrides(ROOT_DIR);
+  const missingOverridePaths = await validateOverrides(ROOT_DIR);
   if (missingOverridePaths.length > 0) {
     issues.push(`agent-context/overrides.yaml references missing files: ${missingOverridePaths.join(', ')}`);
   }
 
   issues.push(...validateNotesLength(ROOT_DIR));
 
-  const oversized = validateContextFiles(ROOT_DIR);
+  const oversized = await validateContextFiles(ROOT_DIR);
   if (oversized.length > 0) {
     issues.push(
       `Context files exceed size limits: ${oversized
@@ -104,4 +105,7 @@ function main(): void {
   console.log('Agent context is up to date.');
 }
 
-main();
+main().catch((error) => {
+  console.error('Agent context check failed with an error:', error);
+  process.exit(1);
+});
