@@ -96,13 +96,13 @@ export function generateBalancedTeams(availablePlayers: PlayerStats[]): TeamSugg
     return topScenarios;
 }
 
-function calculateAverageWinPct(players: PlayerStats[]): number {
+export function calculateAverageWinPct(players: PlayerStats[]): number {
     if (players.length === 0) return 0;
     const sum = players.reduce((acc, p) => acc + (p.actualWinPercentage ?? p.winPercentage), 0);
     return sum / players.length;
 }
 
-function getCombinations<T>(arr: T[], k: number): T[][] {
+export function getCombinations<T>(arr: T[], k: number): T[][] {
     if (k === 0) return [[]];
     if (arr.length === k) return [arr];
     if (arr.length < k) return [];
