@@ -217,7 +217,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
             <button
               onClick={handleClose}
               disabled={isSubmitting}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 rounded-md"
               aria-label="Close modal"
             >
               <X className="h-6 w-6" />
@@ -260,7 +260,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamOneGamesWon(Math.max(0, teamOneGamesWon - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                   aria-label="Decrease team one games won"
                 >
                   <Minus className="h-4 w-4" />
@@ -271,7 +271,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamOneGamesWon(teamOneGamesWon + 1)}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                   aria-label="Increase team one games won"
                 >
                   <Plus className="h-4 w-4" />
@@ -298,7 +298,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamTwoGamesWon(Math.max(0, teamTwoGamesWon - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                   aria-label="Decrease team two games won"
                 >
                   <Minus className="h-4 w-4" />
@@ -309,7 +309,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamTwoGamesWon(teamTwoGamesWon + 1)}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                   aria-label="Increase team two games won"
                 >
                   <Plus className="h-4 w-4" />
@@ -326,7 +326,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamOneGamesWon(Math.max(0, teamOneGamesWon - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                   aria-label="Decrease team one games won"
                 >
                   <Minus className="h-4 w-4" />
@@ -337,7 +337,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamOneGamesWon(teamOneGamesWon + 1)}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                   aria-label="Increase team one games won"
                 >
                   <Plus className="h-4 w-4" />
@@ -351,7 +351,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamTwoGamesWon(Math.max(0, teamTwoGamesWon - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                   aria-label="Decrease team two games won"
                 >
                   <Minus className="h-4 w-4" />
@@ -362,7 +362,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamTwoGamesWon(teamTwoGamesWon + 1)}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                   aria-label="Increase team two games won"
                 >
                   <Plus className="h-4 w-4" />
@@ -375,7 +375,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full bg-gray-900 text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
           >
             {isSubmitting ? 'Recording...' : 'Record Game'}
           </button>
