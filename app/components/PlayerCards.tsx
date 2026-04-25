@@ -107,6 +107,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
               className="p-1 hover:bg-white/80 rounded transition-colors shadow-sm"
               onClick={() => onEdit(player)}
               title="Edit player"
+              aria-label="Edit player"
             >
               <Edit className="h-3.5 w-3.5 text-gray-600" />
             </button>
@@ -115,6 +116,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
                 <button
                   className="p-1 hover:bg-red-50 rounded transition-colors shadow-sm"
                   title="Delete player"
+                  aria-label="Delete player"
                 >
                   <Trash2 className="h-3.5 w-3.5 text-gray-600 hover:text-red-600" />
                 </button>
