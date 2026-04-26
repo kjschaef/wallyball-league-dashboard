@@ -20,13 +20,13 @@ export function SeasonSelector({ seasons = [], currentSeason = 'current', onSeas
     <div className="flex items-center space-x-4">
       <div className="flex items-center space-x-2">
         <button
-          className={selected === 'current' ? 'bg-blue-600 text-white px-3 py-1 rounded' : 'bg-gray-100 text-gray-700 px-3 py-1 rounded'}
+          className={selected === 'current' ? 'bg-blue-600 text-white px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1'}
           onClick={() => onSeasonChange('current')}
         >
           Current Season
         </button>
         <button
-          className={selected === 'lifetime' ? 'bg-blue-600 text-white px-3 py-1 rounded' : 'bg-gray-100 text-gray-700 px-3 py-1 rounded'}
+          className={selected === 'lifetime' ? 'bg-blue-600 text-white px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1'}
           onClick={() => onSeasonChange('lifetime')}
         >
           Lifetime Stats
@@ -34,7 +34,7 @@ export function SeasonSelector({ seasons = [], currentSeason = 'current', onSeas
       </div>
 
       {historical.length > 0 && (
-        <select aria-label="Season" role="combobox" value={selected} onChange={e => onSeasonChange(e.target.value)} className="border px-3 py-2 rounded h-10 text-sm">
+        <select aria-label="Season" role="combobox" value={selected} onChange={e => onSeasonChange(e.target.value)} className="border px-3 py-2 rounded h-10 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
           <option value="current">{active ? active.name : 'Current Season'}</option>
           {historical.map(s => (
             <option key={s.id} value={String(s.id)}>{s.name}</option>

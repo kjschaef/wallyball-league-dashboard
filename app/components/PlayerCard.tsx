@@ -60,7 +60,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           <div className="flex space-x-1">
             <button
               onClick={() => onEdit ? onEdit(player) : setShowEditDialog(true)}
-              className="text-gray-500 hover:text-gray-700 p-1"
+              className="text-gray-500 hover:text-gray-700 p-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               aria-label="Edit player"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,7 +73,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                   onDelete?.(player.id);
                 }
               }}
-              className="text-red-500 hover:text-red-700 p-1"
+              className="text-red-500 hover:text-red-700 p-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
               aria-label="Delete player"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,13 +115,13 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                   <button
                     type="button"
                     onClick={() => setShowEditDialog(false)}
-                    className="w-full py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="w-full py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                   >
                     Update
                   </button>
