@@ -549,13 +549,17 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
           className="w-full"
           variant="outline"
           onClick={() => {
+            const teamOneIds = data.teamOne.map(player => player.id);
+            const teamTwoIds = data.teamTwo.map(player => player.id);
+
             if (onUseMatchup) {
-              const teamOneIds = data.teamOne.map(player => player.id);
-              const teamTwoIds = data.teamTwo.map(player => player.id);
               setIsOpen(false); // Close the chatbot dialog
               onUseMatchup(teamOneIds, teamTwoIds);
+            } else if (onRecordMatch) {
+              setIsOpen(false); // Close the chatbot dialog
+              onRecordMatch(teamOneIds, teamTwoIds, 0, 0);
             } else {
-              // TODO: Integrate with match recording
+              // Fallback alert if neither is provided
               alert(`Team matchup ${index + 1} will be integrated with match recording in the next phase!`);
             }
           }}
