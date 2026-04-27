@@ -18,7 +18,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Edit, Trash2, TrendingUp, Calendar, Trophy } from "lucide-react";
+import { Edit, Trash2, TrendingUp, Calendar } from "lucide-react";
 import { useSeasonChampions } from "../hooks/useSeasonChampions";
 import { AdminLoginModal } from "./AdminLoginModal";
 
