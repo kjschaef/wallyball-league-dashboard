@@ -96,14 +96,12 @@ export async function POST(
 
     // Award new achievements
     if (newAchievements.length > 0) {
-      await Promise.all(
-        newAchievements.map(achievement =>
-          db.insert(playerAchievements).values({
-            playerId,
-            achievementId: achievement.id,
-            unlockedAt: new Date(),
-          })
-        )
+      await db.insert(playerAchievements).values(
+        newAchievements.map((achievement) => ({
+          playerId,
+          achievementId: achievement.id,
+          unlockedAt: new Date(),
+        }))
       );
     }
 
