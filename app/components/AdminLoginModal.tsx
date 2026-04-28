@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 interface AdminLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => Promise<boolean>;
+  onSuccess: () => void | Promise<void>;
 }
 
 export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalProps) {
@@ -31,12 +31,8 @@ export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalP
       });
 
       if (response.ok) {
-        const didRecordMatch = await onSuccess();
-
-        if (didRecordMatch) {
-          setPassword('');
-          onClose();
-        }
+        setPassword('');
+        await onSuccess();
       } else {
         const data = await response.json();
         setError(data.error || 'Invalid password');

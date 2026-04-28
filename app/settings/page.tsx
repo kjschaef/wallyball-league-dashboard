@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AdminLoginModal } from '../components/AdminLoginModal';
+import { useAdmin } from '../components/AdminProvider';
 import { Check } from 'lucide-react';
 import { DEFAULT_SIGNUP_SETTINGS, normalizeTimeInputValue } from '../lib/signups';
 
@@ -23,7 +23,7 @@ export default function SettingsPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [showAdminModal, setShowAdminModal] = useState(false);
+  const { requireAdmin } = useAdmin();
   const [message, setMessage] = useState({ text: '', type: '' });
 
   useEffect(() => {
@@ -60,39 +60,47 @@ export default function SettingsPage() {
     setIsSaving(true);
     setMessage({ text: '', type: '' });
 
-    try {
-      const payload: Settings & { adminPassword?: string } = { ...settings };
-      payload.signupOpenTime = normalizeTimeInputValue(
-        payload.signupOpenTime,
-        DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
-      );
-      payload.signupCloseTime = normalizeTimeInputValue(
-        payload.signupCloseTime,
-        DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
-      );
-      if (adminPassword) {
-        payload.adminPassword = adminPassword;
-      }
+      const submit = async () => {
+        const payload: Settings & { adminPassword?: string } = { ...settings };
+        payload.signupOpenTime = normalizeTimeInputValue(
+          payload.signupOpenTime,
+          DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
+        );
+        payload.signupCloseTime = normalizeTimeInputValue(
+          payload.signupCloseTime,
+          DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+        );
+        if (adminPassword) {
+          payload.adminPassword = adminPassword;
+        }
 
-      const response = await fetch('/api/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+        const response = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      if (response.status === 401) {
-        setShowAdminModal(true);
-        setIsSaving(false);
-        return false;
-      }
+        if (response.status === 401) {
+          throw new Error('UNAUTHORIZED');
+        }
 
-      if (response.ok) {
-        setMessage({ text: 'Settings saved successfully!', type: 'success' });
-        setAdminPassword('');
+        if (response.ok) {
+          setMessage({ text: 'Settings saved successfully!', type: 'success' });
+          setAdminPassword('');
+        } else {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to save settings');
+        }
+      };
+
+      try {
+        await submit();
         return true;
-      } else {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save settings');
+      } catch (error: any) {
+        if (error.message === 'UNAUTHORIZED') {
+          return requireAdmin(submit);
+        }
+        throw error;
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -244,13 +252,6 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      <AdminLoginModal
-        isOpen={showAdminModal}
-        onClose={() => setShowAdminModal(false)}
-        onSuccess={async () => {
-          return handleSave();
-        }}
-      />
     </div>
   );
 }
