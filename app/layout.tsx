@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Navbar } from './components/Navbar';
 import { Providers } from './components/Providers';
+import { AdminProvider } from './components/AdminProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -20,10 +21,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-gray-50">
         <Providers>
-          <Navbar />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
+          <AdminProvider>
+            <Navbar />
+            <main className="container mx-auto px-4 py-8">
+              {children}
+            </main>
+          </AdminProvider>
         </Providers>
       </body>
     </html>

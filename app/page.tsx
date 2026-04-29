@@ -9,7 +9,7 @@ import { ChatBot } from './components/ChatBot';
 import { FloatingActionButton } from './components/FloatingActionButton';
 import { PlayerSelectorDialog } from './components/PlayerSelectorDialog';
 import { AISummaryPanel } from './components/AISummaryPanel';
-import { AdminLoginModal } from './components/AdminLoginModal';
+import { useAdmin } from './components/AdminProvider';
 
 interface MatchData {
   teamOnePlayers: number[];
@@ -64,9 +64,7 @@ export default function DashboardPage() {
   // ChatBot state
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInitialMessage, setChatInitialMessage] = useState('');
-  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
-  const [pendingMatchData, setPendingMatchData] = useState<MatchData | null>(null);
-  const [pendingPlayerData, setPendingPlayerData] = useState<PlayerData | null>(null);
+  const { requireAdmin } = useAdmin();
   const [matchSubmissionStatus, setMatchSubmissionStatus] = useState<MatchSubmissionStatus | null>(null);
 
   const openRecordMatchModal = () => {
@@ -84,13 +82,6 @@ export default function DashboardPage() {
   const closeRecordMatchModal = () => {
     setShowRecordMatchModal(false);
     resetMatchFlow();
-  };
-
-  const closeAdminLoginModal = () => {
-    setShowAdminLoginModal(false);
-    setPendingMatchData(null);
-    setPendingPlayerData(null);
-    setMatchSubmissionStatus(null);
   };
 
   const fetchPlayers = async () => {
@@ -133,8 +124,6 @@ export default function DashboardPage() {
   const completeMatchRecording = (newMatch: unknown) => {
     console.log('Match recorded:', newMatch);
     setShowRecordMatchModal(false);
-    setShowAdminLoginModal(false);
-    setPendingMatchData(null);
     resetMatchFlow();
     setRefreshKey(prev => prev + 1);
     setMatchSubmissionStatus({
@@ -153,8 +142,6 @@ export default function DashboardPage() {
     });
 
   const completePlayerCreation = async (playerData: PlayerData) => {
-    setPendingPlayerData(null);
-    setShowAdminLoginModal(false);
     setShowAddPlayerModal(false);
     await fetchPlayers();
     alert(`Player "${playerData.name}" has been added successfully!`);
@@ -163,18 +150,17 @@ export default function DashboardPage() {
   const handleRecordMatchSubmit = async (matchData: MatchData) => {
     setMatchSubmissionStatus(null);
 
-    try {
+    const submit = async () => {
       const response = await createMatch(matchData);
 
       if (!response.ok) {
         if (response.status === 401) {
-          setPendingMatchData(matchData);
-          setShowAdminLoginModal(true);
           setMatchSubmissionStatus({
             tone: 'info',
             message: 'Admin authentication required to record this match.',
           });
-          return true;
+          // Throw to reject the promise, but we'll catch it in the wrapper to trigger requireAdmin
+          throw new Error('UNAUTHORIZED');
         }
 
         const errorData = await response.json();
@@ -183,58 +169,32 @@ export default function DashboardPage() {
 
       const newMatch = await response.json();
       completeMatchRecording(newMatch);
+    };
+
+    try {
+      await submit();
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        try {
+          const success = await requireAdmin(submit);
+          if (!success) {
+            setMatchSubmissionStatus(null);
+          }
+          return success;
+        } catch (retryError: any) {
+          setMatchSubmissionStatus({
+            tone: 'error',
+            message: `Failed to record match: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`,
+          });
+          return false;
+        }
+      }
       console.error('Error recording match:', error);
       setMatchSubmissionStatus({
         tone: 'error',
         message: `Failed to record match: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
-      return false;
-    }
-  };
-
-  const handleAdminLoginSuccess = async () => {
-    if (pendingMatchData) {
-      setMatchSubmissionStatus(null);
-
-      try {
-        const response = await createMatch(pendingMatchData);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to record match');
-        }
-
-        const newMatch = await response.json();
-        completeMatchRecording(newMatch);
-        return true;
-      } catch (error) {
-        console.error('Error recording match after authentication:', error);
-        setMatchSubmissionStatus({
-          tone: 'error',
-          message: `Failed to record match: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        });
-        return false;
-      }
-    }
-
-    if (!pendingPlayerData) {
-      return false;
-    }
-
-    try {
-      const response = await createPlayer(pendingPlayerData);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add player');
-      }
-
-      await response.json();
-      await completePlayerCreation(pendingPlayerData);
-      return true;
-    } catch (error) {
-      console.error('Error adding player after authentication:', error);
-      alert(`Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   };
@@ -385,24 +345,32 @@ export default function DashboardPage() {
 
 
   const handleAddPlayerSubmit = async (playerData: PlayerData) => {
-    try {
+    const submit = async () => {
       const response = await createPlayer(playerData);
 
-      if (!response.ok && response.status === 401) {
-        setPendingMatchData(null);
-        setPendingPlayerData(playerData);
-        setShowAdminLoginModal(true);
-        return;
-      }
-
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('UNAUTHORIZED');
+        }
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to add player');
       }
 
       await response.json();
       await completePlayerCreation(playerData);
-    } catch (error) {
+    };
+
+    try {
+      await submit();
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        try {
+          await requireAdmin(submit);
+        } catch (retryError: any) {
+          alert(`Failed to add player: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`);
+        }
+        return;
+      }
       console.error('Error adding player:', error);
       alert(`Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -475,11 +443,6 @@ export default function DashboardPage() {
         onSubmit={handleRecordMatchSubmit}
         suggestedTeams={suggestedTeams}
         prefilledWins={prefilledWins}
-      />
-      <AdminLoginModal
-        isOpen={showAdminLoginModal}
-        onClose={closeAdminLoginModal}
-        onSuccess={handleAdminLoginSuccess}
       />
 
       <AddPlayerModal // Add the AddPlayerModal here

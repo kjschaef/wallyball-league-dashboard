@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DashboardPage from '@/app/page';
+import { AdminProvider } from '@/app/components/AdminProvider';
 
 const sampleMatch = {
   teamOnePlayers: [1, 2],
@@ -112,29 +113,22 @@ describe('DashboardPage admin authentication flow', () => {
   });
 
   it('shows admin login when match recording returns 401 and retries after authentication', async () => {
-    global.fetch = jest
-      .fn()
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => [],
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          status: 401,
-          json: async () => ({ error: 'Unauthorized' }),
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({ id: 99 }),
-        } as Response)
-      );
+    let postCallCount = 0;
+    global.fetch = jest.fn().mockImplementation(async (url: any, options: any) => {
+      if (url === '/api/auth/check') {
+        return { ok: true, json: async () => ({ isAdmin: false }) };
+      }
+      if (url === '/api/matches' && options?.method === 'POST') {
+        postCallCount++;
+        if (postCallCount === 1) {
+          return { ok: false, status: 401, json: async () => ({ error: 'Unauthorized' }) };
+        }
+        return { ok: true, json: async () => ({ id: 99 }) };
+      }
+      return { ok: true, json: async () => [] };
+    });
 
-    render(<DashboardPage />);
+    render(<AdminProvider><DashboardPage /></AdminProvider>);
 
     fireEvent.click(await screen.findByText('Open Record Match'));
     fireEvent.click(screen.getByText('Submit Match'));
@@ -146,28 +140,24 @@ describe('DashboardPage admin authentication flow', () => {
 
     expect(await screen.findByText('Match recorded successfully.')).toBeInTheDocument();
 
-    expect(global.fetch).toHaveBeenNthCalledWith(2, '/api/matches', expect.any(Object));
     expect(global.fetch).toHaveBeenNthCalledWith(3, '/api/matches', expect.any(Object));
+    expect(global.fetch).toHaveBeenNthCalledWith(4, '/api/matches', expect.any(Object));
   });
 
   it('keeps pending match data only until the admin modal is dismissed', async () => {
-    global.fetch = jest
-      .fn()
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => [],
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          status: 401,
-          json: async () => ({ error: 'Unauthorized' }),
-        } as Response)
-      );
+    let postCallCount = 0;
+    global.fetch = jest.fn().mockImplementation(async (url: any, options: any) => {
+      if (url === '/api/auth/check') {
+        return { ok: true, json: async () => ({ isAdmin: false }) };
+      }
+      if (url === '/api/matches' && options?.method === 'POST') {
+        postCallCount++;
+        return { ok: false, status: 401, json: async () => ({ error: 'Unauthorized' }) };
+      }
+      return { ok: true, json: async () => [] };
+    });
 
-    render(<DashboardPage />);
+    render(<AdminProvider><DashboardPage /></AdminProvider>);
 
     fireEvent.click(await screen.findByText('Open Record Match'));
     fireEvent.click(screen.getByText('Submit Match'));
@@ -183,70 +173,51 @@ describe('DashboardPage admin authentication flow', () => {
     expect(screen.queryByText('Admin authentication required to record this match.')).not.toBeInTheDocument();
   });
 
-  it('keeps the admin modal open when retrying the match fails', async () => {
-    global.fetch = jest
-      .fn()
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => [],
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          status: 401,
-          json: async () => ({ error: 'Unauthorized' }),
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          status: 500,
-          json: async () => ({ error: 'Database offline' }),
-        } as Response)
-      );
+  it('closes the admin modal and shows an error when retrying the match fails', async () => {
+    let postCallCount = 0;
+    global.fetch = jest.fn().mockImplementation(async (url: any, options: any) => {
+      if (url === '/api/auth/check') {
+        return { ok: true, json: async () => ({ isAdmin: false }) };
+      }
+      if (url === '/api/matches' && options?.method === 'POST') {
+        postCallCount++;
+        if (postCallCount === 1) {
+          return { ok: false, status: 401, json: async () => ({ error: 'Unauthorized' }) };
+        }
+        return { ok: false, status: 500, json: async () => ({ error: 'Database offline' }) };
+      }
+      return { ok: true, json: async () => [] };
+    });
 
-    render(<DashboardPage />);
+    render(<AdminProvider><DashboardPage /></AdminProvider>);
 
     fireEvent.click(await screen.findByText('Open Record Match'));
     fireEvent.click(screen.getByText('Submit Match'));
     fireEvent.click(await screen.findByText('Finish Admin Login'));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Failed to record match: Database offline');
-    expect(screen.getByText('Finish Admin Login')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Finish Admin Login')).not.toBeInTheDocument();
+    });
   });
 
   it('shows admin login when adding a player returns 401 and retries after authentication', async () => {
-    global.fetch = jest
-      .fn()
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => [],
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          status: 401,
-          json: async () => ({ error: 'Unauthorized' }),
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({ id: 101, name: 'Taylor' }),
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => [{ id: 101, name: 'Taylor' }],
-        } as Response)
-      );
+    let postCallCount = 0;
+    global.fetch = jest.fn().mockImplementation(async (url: any, options: any) => {
+      if (url === '/api/auth/check') {
+        return { ok: true, json: async () => ({ isAdmin: false }) };
+      }
+      if (url === '/api/players' && options?.method === 'POST') {
+        postCallCount++;
+        if (postCallCount === 1) {
+          return { ok: false, status: 401, json: async () => ({ error: 'Unauthorized' }) };
+        }
+        return { ok: true, json: async () => ({ id: 101, name: 'Taylor' }) };
+      }
+      return { ok: true, json: async () => [] };
+    });
 
-    render(<DashboardPage />);
+    render(<AdminProvider><DashboardPage /></AdminProvider>);
 
     fireEvent.click(await screen.findByText('Open Add Player'));
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Taylor' } });
@@ -261,9 +232,9 @@ describe('DashboardPage admin authentication flow', () => {
       expect(screen.queryByText('Finish Admin Login')).not.toBeInTheDocument();
     });
 
-    expect(global.fetch).toHaveBeenNthCalledWith(2, '/api/players', expect.any(Object));
     expect(global.fetch).toHaveBeenNthCalledWith(3, '/api/players', expect.any(Object));
-    expect(global.fetch).toHaveBeenNthCalledWith(4, '/api/players');
+    expect(global.fetch).toHaveBeenNthCalledWith(4, '/api/players', expect.any(Object));
+    expect(global.fetch).toHaveBeenNthCalledWith(5, '/api/players');
     expect(alertSpy).toHaveBeenCalledWith('Player "Taylor" has been added successfully!');
   });
 });

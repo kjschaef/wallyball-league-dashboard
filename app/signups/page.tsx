@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { format, addDays } from 'date-fns';
-import { AdminLoginModal } from '../components/AdminLoginModal';
+import { useAdmin } from '../components/AdminProvider';
 import { Trash2, Plus, Clock, Copy, Check } from 'lucide-react';
 import {
   generateWeekDates,
@@ -44,8 +44,7 @@ export default function SignupsPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
-  const [showAdminModal, setShowAdminModal] = useState(false);
-  const [actionPending, setActionPending] = useState<(() => Promise<boolean>) | null>(null);
+  const { requireAdmin } = useAdmin();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -76,27 +75,31 @@ export default function SignupsPage() {
 
   const handleSignup = async (date: string) => {
     if (!selectedPlayerId) return alert('Please select a player first');
-    const doSignup = async (): Promise<boolean> => {
+    const submit = async () => {
       const res = await fetch('/api/signups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId: parseInt(selectedPlayerId), date })
       });
       if (res.status === 401 || res.status === 403) {
-        setActionPending(() => doSignup);
-        setShowAdminModal(true);
-        return false;
+        throw new Error('UNAUTHORIZED');
       }
       if (res.ok) {
         await fetchData();
-        return true;
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to sign up');
-        return false;
+        throw new Error(data.error || 'Failed to sign up');
       }
     };
-    await doSignup();
+    try {
+      await submit();
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        await requireAdmin(submit);
+        return;
+      }
+      alert(error.message);
+    }
   };
 
   const handleMarkUnavailable = async () => {
@@ -126,27 +129,31 @@ export default function SignupsPage() {
 
   const handleDelete = async (signupId: number) => {
     if (!confirm('Are you sure you want to remove this player?')) return;
-    const doDelete = async (): Promise<boolean> => {
+    const submit = async () => {
       const res = await fetch('/api/signups', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: signupId })
       });
       if (res.status === 401) {
-        setActionPending(() => doDelete);
-        setShowAdminModal(true);
-        return false;
+        throw new Error('UNAUTHORIZED');
       }
       if (res.ok) {
         await fetchData();
-        return true;
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to remove player');
-        return false;
+        throw new Error(data.error || 'Failed to remove player');
       }
     };
-    await doDelete();
+    try {
+      await submit();
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        await requireAdmin(submit);
+        return;
+      }
+      alert(error.message);
+    }
   };
 
   const handleRemoveUnavailable = async (entryId: number) => {
@@ -167,18 +174,7 @@ export default function SignupsPage() {
     alert(data.error || 'Failed to remove unavailable player');
   };
 
-  const executePendingAction = async (): Promise<boolean> => {
-    if (!actionPending) {
-      return false;
-    }
 
-    const didComplete = await actionPending();
-    if (didComplete) {
-      setActionPending(null);
-    }
-
-    return didComplete;
-  };
 
   if (isLoading) return <div className="p-8 text-center text-gray-500">Loading signups...</div>;
 
@@ -538,11 +534,6 @@ export default function SignupsPage() {
         );
       })()}
 
-      <AdminLoginModal
-        isOpen={showAdminModal}
-        onClose={() => setShowAdminModal(false)}
-        onSuccess={executePendingAction}
-      />
     </div>
   );
 }

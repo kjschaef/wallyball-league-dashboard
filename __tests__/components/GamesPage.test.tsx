@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import GamesPage from '@/app/games/page';
+import { AdminProvider } from '@/app/components/AdminProvider';
 
 jest.mock('@/app/components/AdminLoginModal', () => ({
   AdminLoginModal: ({
@@ -42,44 +43,36 @@ describe('GamesPage admin authentication flow', () => {
   });
 
   it('shows admin login when deleting a match returns 401 and retries after authentication', async () => {
-    global.fetch = jest
-      .fn()
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => [
-            {
-              id: 12,
-              date: '2026-03-26T12:00:00.000Z',
-              teamOnePlayers: ['Alice', 'Bob'],
-              teamTwoPlayers: ['Carol', 'Dave'],
-              teamOneGamesWon: 3,
-              teamTwoGamesWon: 1,
-            },
-          ],
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          status: 401,
-          json: async () => ({ error: 'Unauthorized' }),
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({ message: 'Match deleted successfully' }),
-        } as Response)
-      )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => [],
-        } as Response)
-      );
+    let matches = [
+      {
+        id: 12,
+        date: '2026-03-26T12:00:00.000Z',
+        teamOnePlayers: ['Alice', 'Bob'],
+        teamTwoPlayers: ['Carol', 'Dave'],
+        teamOneGamesWon: 3,
+        teamTwoGamesWon: 1,
+      },
+    ];
+    let deleteCallCount = 0;
+    global.fetch = jest.fn().mockImplementation(async (url: any, options: any) => {
+      if (url === '/api/auth/check') {
+        return { ok: true, json: async () => ({ isAdmin: false }) };
+      }
+      if (options?.method === 'DELETE') {
+        deleteCallCount++;
+        if (deleteCallCount === 1) {
+          return { ok: false, status: 401, json: async () => ({ error: 'Unauthorized' }) };
+        }
+        matches = [];
+        return { ok: true, json: async () => ({ message: 'Match deleted successfully' }) };
+      }
+      return {
+        ok: true,
+        json: async () => matches,
+      };
+    });
 
-    render(<GamesPage />);
+    render(<AdminProvider><GamesPage /></AdminProvider>);
 
     expect(await screen.findByText('Alice and Bob')).toBeInTheDocument();
 
@@ -93,9 +86,9 @@ describe('GamesPage admin authentication flow', () => {
       expect(screen.queryByText('Alice and Bob')).not.toBeInTheDocument();
     });
 
-    expect(global.fetch).toHaveBeenNthCalledWith(2, '/api/matches/12', expect.any(Object));
     expect(global.fetch).toHaveBeenNthCalledWith(3, '/api/matches/12', expect.any(Object));
-    expect(global.fetch).toHaveBeenNthCalledWith(4, '/api/matches');
+    expect(global.fetch).toHaveBeenNthCalledWith(4, '/api/matches/12', expect.any(Object));
+    expect(global.fetch).toHaveBeenNthCalledWith(5, '/api/matches');
     expect(alertSpy).not.toHaveBeenCalled();
   });
 });

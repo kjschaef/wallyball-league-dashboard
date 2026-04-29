@@ -77,6 +77,7 @@
       "path": "__tests__/components/DashboardPage.test.tsx",
       "kind": "test",
       "covers": [
+        "app/components/AdminProvider.tsx",
         "app/page.tsx"
       ]
     },
@@ -84,6 +85,7 @@
       "path": "__tests__/components/GamesPage.test.tsx",
       "kind": "test",
       "covers": [
+        "app/components/AdminProvider.tsx",
         "app/games/page.tsx"
       ]
     },
@@ -91,6 +93,7 @@
       "path": "__tests__/components/PlayersPage.test.tsx",
       "kind": "test",
       "covers": [
+        "app/components/AdminProvider.tsx",
         "app/players/page.tsx"
       ]
     },
@@ -190,6 +193,11 @@
     ],
     "app/api/team-performance/route.ts": [
       "__tests__/api/team-performance.test.ts"
+    ],
+    "app/components/AdminProvider.tsx": [
+      "__tests__/components/DashboardPage.test.tsx",
+      "__tests__/components/GamesPage.test.tsx",
+      "__tests__/components/PlayersPage.test.tsx"
     ],
     "app/components/PerformanceControls.tsx": [
       "app/components/__tests__/PerformanceControls.test.tsx"

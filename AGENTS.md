@@ -26,6 +26,15 @@ Use `Docs/` as secondary human-oriented documentation. Do not default to it for 
 - `pnpm run context:generate`
 - `pnpm run context:check`
 
+## Validation Workflow (CRITICAL)
+
+Before pushing any PR or concluding that a coding task is complete, you MUST run the following validation sequence locally:
+1. Run `pnpm build` to catch TypeScript signature mismatches and deployment-blocking errors.
+2. Run `pnpm test` to ensure tests are passing and no side-effects break mocked environments.
+3. Run `pnpm lint` to catch syntax or unused variable errors.
+4. Run `pnpm run context:check` to ensure structural changes haven't made agent context artifacts stale.
+Never skip this validation step.
+
 ## High-Value Invariants
 
 - `app/page.tsx` is a high-fan-in client entrypoint for dashboard state, season filters, modals, and AI flows.

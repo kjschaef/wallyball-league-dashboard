@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AdminLoginModal } from '../components/AdminLoginModal';
+import { useAdmin } from '../components/AdminProvider';
 import { PlayerCard } from '../components/PlayerCard';
 
 // Define Player interface
@@ -23,10 +23,7 @@ interface PlayerMutationPayload {
   startYear: number | null;
 }
 
-type PendingPlayerAction =
-  | { type: 'add'; payload: PlayerMutationPayload }
-  | { type: 'edit'; playerId: number; payload: PlayerMutationPayload }
-  | { type: 'delete'; playerId: number };
+
 
 export default function PlayersPage() {
   const [players, setPlayers] = useState<ExtendedPlayer[]>([]);
@@ -35,8 +32,7 @@ export default function PlayersPage() {
   const [isAddPlayerDialogOpen, setIsAddPlayerDialogOpen] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerStartYear, setNewPlayerStartYear] = useState<number | undefined>(undefined);
-  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
-  const [pendingPlayerAction, setPendingPlayerAction] = useState<PendingPlayerAction | null>(null);
+  const { requireAdmin } = useAdmin();
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [editedPlayerName, setEditedPlayerName] = useState('');
   const [editedPlayerStartYear, setEditedPlayerStartYear] = useState('');
@@ -92,10 +88,7 @@ export default function PlayersPage() {
     });
   }
 
-  const closeAdminLoginModal = () => {
-    setShowAdminLoginModal(false);
-    setPendingPlayerAction(null);
-  };
+
 
   const closeEditPlayerDialog = () => {
     setEditingPlayer(null);
@@ -117,16 +110,13 @@ export default function PlayersPage() {
       startYear: newPlayerStartYear || null,
     };
 
-    try {
+    const submit = async () => {
       const response = await createPlayer(payload);
 
-      if (!response.ok && response.status === 401) {
-        setPendingPlayerAction({ type: 'add', payload });
-        setShowAdminLoginModal(true);
-        return;
-      }
-
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('UNAUTHORIZED');
+        }
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to add player');
       }
@@ -136,7 +126,15 @@ export default function PlayersPage() {
       setNewPlayerName('');
       setNewPlayerStartYear(undefined);
       setIsAddPlayerDialogOpen(false);
-    } catch (error) {
+    };
+
+    try {
+      await submit();
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        await requireAdmin(submit);
+        return;
+      }
       console.error('Error adding player:', error);
       alert(`Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -152,16 +150,13 @@ export default function PlayersPage() {
       startYear: editedPlayerStartYear ? parseInt(editedPlayerStartYear) : null,
     };
 
-    try {
+    const submit = async () => {
       const response = await updatePlayer(editingPlayer.id, payload);
 
-      if (!response.ok && response.status === 401) {
-        setPendingPlayerAction({ type: 'edit', playerId: editingPlayer.id, payload });
-        setShowAdminLoginModal(true);
-        return;
-      }
-
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('UNAUTHORIZED');
+        }
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to update player');
       }
@@ -169,88 +164,44 @@ export default function PlayersPage() {
       await response.json();
       await fetchPlayers();
       closeEditPlayerDialog();
-    } catch (error) {
+    };
+
+    try {
+      await submit();
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        await requireAdmin(submit);
+        return;
+      }
       console.error('Error updating player:', error);
       alert(`Failed to update player: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleDeletePlayer = async (id: number) => {
-    try {
+    const submit = async () => {
       const response = await deletePlayer(id);
 
-      if (!response.ok && response.status === 401) {
-        setPendingPlayerAction({ type: 'delete', playerId: id });
-        setShowAdminLoginModal(true);
-        return;
-      }
-
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('UNAUTHORIZED');
+        }
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to delete player');
       }
 
       await fetchPlayers();
-    } catch (error) {
-      console.error('Error deleting player:', error);
-      alert(`Failed to delete player: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
-  const handleAdminLoginSuccess = async () => {
-    if (!pendingPlayerAction) {
-      return false;
-    }
+    };
 
     try {
-      if (pendingPlayerAction.type === 'add') {
-        const response = await createPlayer(pendingPlayerAction.payload);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to add player');
-        }
-
-        await response.json();
-        await fetchPlayers();
-        setNewPlayerName('');
-        setNewPlayerStartYear(undefined);
-        setIsAddPlayerDialogOpen(false);
+      await submit();
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        await requireAdmin(submit);
+        return;
       }
-
-      if (pendingPlayerAction.type === 'edit') {
-        const response = await updatePlayer(pendingPlayerAction.playerId, pendingPlayerAction.payload);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to update player');
-        }
-
-        await response.json();
-        await fetchPlayers();
-        closeEditPlayerDialog();
-      }
-
-      if (pendingPlayerAction.type === 'delete') {
-        const response = await deletePlayer(pendingPlayerAction.playerId);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to delete player');
-        }
-
-        await fetchPlayers();
-      }
-
-      closeAdminLoginModal();
-      return true;
-    } catch (error) {
-      console.error('Error retrying player action after authentication:', error);
-      alert(
-        pendingPlayerAction.type === 'add'
-          ? `Failed to add player: ${error instanceof Error ? error.message : 'Unknown error'}`
-          : pendingPlayerAction.type === 'edit'
-            ? `Failed to update player: ${error instanceof Error ? error.message : 'Unknown error'}`
-            : `Failed to delete player: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      return false;
+      console.error('Error deleting player:', error);
+      alert(`Failed to delete player: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -416,11 +367,6 @@ export default function PlayersPage() {
         </div>
       )}
 
-      <AdminLoginModal
-        isOpen={showAdminLoginModal}
-        onClose={closeAdminLoginModal}
-        onSuccess={handleAdminLoginSuccess}
-      />
     </div>
   );
 }

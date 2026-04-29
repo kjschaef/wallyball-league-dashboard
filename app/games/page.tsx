@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Calendar, Trash2, Search, X } from "lucide-react";
-import { AdminLoginModal } from "../components/AdminLoginModal";
+import { useAdmin } from "../components/AdminProvider";
 
 interface Match {
   id: number;
@@ -20,8 +20,7 @@ export default function GamesPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [playerFilter, setPlayerFilter] = useState("");
-  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
-  const [pendingDeleteMatchId, setPendingDeleteMatchId] = useState<number | null>(null);
+  const { requireAdmin } = useAdmin();
 
   useEffect(() => {
     fetchAllMatches();
@@ -108,47 +107,29 @@ export default function GamesPage() {
   const handleDeleteMatch = async (matchId: number) => {
     if (!confirm("Are you sure you want to delete this match?")) return;
 
-    try {
+    const submit = async () => {
       const response = await deleteMatch(matchId);
 
-      if (!response.ok && response.status === 401) {
-        setPendingDeleteMatchId(matchId);
-        setShowAdminLoginModal(true);
-        return;
-      }
-
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('UNAUTHORIZED');
+        }
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to delete match");
       }
 
       await fetchAllMatches();
-    } catch (error) {
-      console.error("Error deleting match:", error);
-      alert(`Failed to delete match: ${error instanceof Error ? error.message : "Unknown error"}`);
-    }
-  };
-
-  const handleAdminLoginSuccess = async () => {
-    if (!pendingDeleteMatchId) {
-      return false;
-    }
+    };
 
     try {
-      const response = await deleteMatch(pendingDeleteMatchId);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete match");
+      await submit();
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        await requireAdmin(submit);
+        return;
       }
-
-      setPendingDeleteMatchId(null);
-      setShowAdminLoginModal(false);
-      await fetchAllMatches();
-      return true;
-    } catch (error) {
-      console.error("Error deleting match after authentication:", error);
+      console.error("Error deleting match:", error);
       alert(`Failed to delete match: ${error instanceof Error ? error.message : "Unknown error"}`);
-      return false;
     }
   };
 
@@ -317,14 +298,6 @@ export default function GamesPage() {
         )}
       </div>
 
-      <AdminLoginModal
-        isOpen={showAdminLoginModal}
-        onClose={() => {
-          setShowAdminLoginModal(false);
-          setPendingDeleteMatchId(null);
-        }}
-        onSuccess={handleAdminLoginSuccess}
-      />
     </div>
   );
 }

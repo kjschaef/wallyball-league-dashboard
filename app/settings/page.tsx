@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AdminLoginModal } from '../components/AdminLoginModal';
+import { useAdmin } from '../components/AdminProvider';
 import { Check } from 'lucide-react';
 import { DEFAULT_SIGNUP_SETTINGS, normalizeTimeInputValue } from '../lib/signups';
 
@@ -23,7 +23,7 @@ export default function SettingsPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [showAdminModal, setShowAdminModal] = useState(false);
+  const { requireAdmin } = useAdmin();
   const [message, setMessage] = useState({ text: '', type: '' });
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function SettingsPage() {
     setIsSaving(true);
     setMessage({ text: '', type: '' });
 
-    try {
+    const submit = async () => {
       const payload: Settings & { adminPassword?: string } = { ...settings };
       payload.signupOpenTime = normalizeTimeInputValue(
         payload.signupOpenTime,
@@ -81,18 +81,27 @@ export default function SettingsPage() {
       });
 
       if (response.status === 401) {
-        setShowAdminModal(true);
-        setIsSaving(false);
-        return false;
+        throw new Error('UNAUTHORIZED');
       }
 
       if (response.ok) {
         setMessage({ text: 'Settings saved successfully!', type: 'success' });
         setAdminPassword('');
-        return true;
       } else {
         const data = await response.json();
         throw new Error(data.error || 'Failed to save settings');
+      }
+    };
+
+    try {
+      try {
+        await submit();
+        return true;
+      } catch (error: any) {
+        if (error.message === 'UNAUTHORIZED') {
+          return await requireAdmin(submit);
+        }
+        throw error;
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -244,13 +253,6 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      <AdminLoginModal
-        isOpen={showAdminModal}
-        onClose={() => setShowAdminModal(false)}
-        onSuccess={async () => {
-          return handleSave();
-        }}
-      />
     </div>
   );
 }

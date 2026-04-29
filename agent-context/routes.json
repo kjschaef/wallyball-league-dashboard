@@ -8,7 +8,7 @@
       "params": [],
       "likelySourceFiles": [
         "app/components/AISummaryPanel.tsx",
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
@@ -42,6 +42,20 @@
       "kind": "api",
       "route": "/api/auth",
       "file": "app/api/auth/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
+      "route": "/api/auth/check",
+      "file": "app/api/auth/check/route.ts",
+      "params": [],
+      "likelySourceFiles": []
+    },
+    {
+      "kind": "api",
+      "route": "/api/auth/logout",
+      "file": "app/api/auth/logout/route.ts",
       "params": [],
       "likelySourceFiles": []
     },
@@ -223,7 +237,7 @@
       "file": "app/games/page.tsx",
       "params": [],
       "likelySourceFiles": [
-        "app/components/AdminLoginModal.tsx"
+        "app/components/AdminProvider.tsx"
       ]
     },
     {
@@ -232,7 +246,7 @@
       "file": "app/players/page.tsx",
       "params": [],
       "likelySourceFiles": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/components/PlayerCard.tsx"
       ]
     },
@@ -254,7 +268,7 @@
       "file": "app/settings/page.tsx",
       "params": [],
       "likelySourceFiles": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/lib/signups.ts"
       ]
     },
@@ -264,7 +278,7 @@
       "file": "app/signups/page.tsx",
       "params": [],
       "likelySourceFiles": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/lib/signups.ts"
       ]
     }

@@ -20,7 +20,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Edit, Trash2, TrendingUp, Calendar } from "lucide-react";
 import { useSeasonChampions } from "../hooks/useSeasonChampions";
-import { AdminLoginModal } from "./AdminLoginModal";
+import { useAdmin } from "./AdminProvider";
 
 interface PlayerStats {
   id: number;
@@ -52,16 +52,7 @@ interface PlayerCardProps {
   championshipCount?: number;
 }
 
-type PendingPlayerAction =
-  | {
-      type: "edit";
-      payload: {
-        id: number;
-        name: string;
-        startYear?: number | null;
-      };
-    }
-  | { type: "delete"; playerId: number };
+
 
 function PlayerCard({ player, onEdit, onDelete, isInactive = false, championshipCount = 0 }: PlayerCardProps) {
 
@@ -224,8 +215,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
 export function PlayerCards() {
   const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
-  const [pendingPlayerAction, setPendingPlayerAction] = useState<PendingPlayerAction | null>(null);
+  const { requireAdmin } = useAdmin();
   const queryClient = useQueryClient();
   const authRequiredError = "AUTH_REQUIRED";
 
@@ -300,36 +290,12 @@ export function PlayerCards() {
       setIsEditDialogOpen(false);
       setEditingPlayer(null);
     },
-    onError: (error: Error, updatedPlayer) => {
-      if (error.message === authRequiredError) {
-        setPendingPlayerAction({
-          type: "edit",
-          payload: updatedPlayer,
-        });
-        setShowAdminLoginModal(true);
-        return;
-      }
-
-      alert(`Error: ${error.message}`);
-    },
   });
 
   const deletePlayerMutation = useMutation({
     mutationFn: sendDeletePlayerRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/player-stats"] });
-    },
-    onError: (error: Error, playerId: number) => {
-      if (error.message === authRequiredError) {
-        setPendingPlayerAction({
-          type: "delete",
-          playerId,
-        });
-        setShowAdminLoginModal(true);
-        return;
-      }
-
-      alert(`Error: ${error.message}`);
     },
   });
 
@@ -338,11 +304,20 @@ export function PlayerCards() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDeletePlayer = (playerId: number) => {
-    deletePlayerMutation.mutate(playerId);
+  const handleDeletePlayer = async (playerId: number) => {
+    const submit = async () => await deletePlayerMutation.mutateAsync(playerId);
+    try {
+      await submit();
+    } catch (error: any) {
+      if (error.message === authRequiredError) {
+        await requireAdmin(submit);
+        return;
+      }
+      alert(`Error: ${error.message}`);
+    }
   };
 
-  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editingPlayer) return;
 
@@ -350,37 +325,22 @@ export function PlayerCards() {
     const name = formData.get("name") as string;
     const startYear = formData.get("startYear") as string;
 
-    updatePlayerMutation.mutate({
+    const payload = {
       id: editingPlayer.id,
       name: name.trim(),
       startYear: startYear ? parseInt(startYear) : null,
-    });
-  };
+    };
 
-  const handleAdminLoginSuccess = async () => {
-    if (!pendingPlayerAction) {
-      return false;
-    }
-
+    const submit = async () => await updatePlayerMutation.mutateAsync(payload);
+    
     try {
-      if (pendingPlayerAction.type === "edit") {
-        await sendUpdatePlayerRequest(pendingPlayerAction.payload);
-        await queryClient.invalidateQueries({ queryKey: ["/api/player-stats"] });
-        setIsEditDialogOpen(false);
-        setEditingPlayer(null);
+      await submit();
+    } catch (error: any) {
+      if (error.message === authRequiredError) {
+        await requireAdmin(submit);
+        return;
       }
-
-      if (pendingPlayerAction.type === "delete") {
-        await sendDeletePlayerRequest(pendingPlayerAction.playerId);
-        await queryClient.invalidateQueries({ queryKey: ["/api/player-stats"] });
-      }
-
-      setPendingPlayerAction(null);
-      setShowAdminLoginModal(false);
-      return true;
-    } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
-      return false;
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -572,14 +532,6 @@ export function PlayerCards() {
         </DialogContent>
       </Dialog>
 
-      <AdminLoginModal
-        isOpen={showAdminLoginModal}
-        onClose={() => {
-          setShowAdminLoginModal(false);
-          setPendingPlayerAction(null);
-        }}
-        onSuccess={handleAdminLoginSuccess}
-      />
     </div>
   );
 }
