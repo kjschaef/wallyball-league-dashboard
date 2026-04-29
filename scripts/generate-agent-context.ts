@@ -218,7 +218,7 @@ const CONTEXT_LIMITS: Record<string, number> = {
   'agent-context/data-model.json': 18_000,
   'agent-context/tasks.json': 20_000,
   'agent-context/tests.json': 18_000,
-  'agent-context/graph.json': 28_000,
+  'agent-context/graph.json': 32_000,
   'agent-context/notes.md': 12_000,
 };
 

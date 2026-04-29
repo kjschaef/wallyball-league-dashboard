@@ -32,6 +32,24 @@
       "overrideNotes": []
     },
     {
+      "file": "app/api/auth/check/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/auth/logout/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [],
+      "importedBy": [],
+      "related": [],
+      "overrideNotes": []
+    },
+    {
       "file": "app/api/auth/route.ts",
       "type": "api-route",
       "tags": [],
@@ -323,16 +341,36 @@
       "tags": [],
       "imports": [],
       "importedBy": [
+        "app/components/AdminProvider.tsx"
+      ],
+      "related": [
+        "app/components/AdminProvider.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/AdminProvider.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [
+        "app/components/AdminLoginModal.tsx"
+      ],
+      "importedBy": [
+        "app/components/Navbar.tsx",
         "app/components/PlayerCards.tsx",
         "app/games/page.tsx",
+        "app/layout.tsx",
         "app/page.tsx",
         "app/players/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
       "related": [
+        "app/components/AdminLoginModal.tsx",
+        "app/components/Navbar.tsx",
         "app/components/PlayerCards.tsx",
         "app/games/page.tsx",
+        "app/layout.tsx",
         "app/page.tsx",
         "app/players/page.tsx",
         "app/settings/page.tsx",
@@ -403,11 +441,14 @@
       "file": "app/components/Navbar.tsx",
       "type": "component",
       "tags": [],
-      "imports": [],
+      "imports": [
+        "app/components/AdminProvider.tsx"
+      ],
       "importedBy": [
         "app/layout.tsx"
       ],
       "related": [
+        "app/components/AdminProvider.tsx",
         "app/layout.tsx"
       ],
       "overrideNotes": []
@@ -490,14 +531,14 @@
         "players"
       ],
       "imports": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/hooks/useSeasonChampions.ts"
       ],
       "importedBy": [
         "app/results/page.tsx"
       ],
       "related": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/hooks/useSeasonChampions.ts",
         "app/results/page.tsx"
       ],
@@ -696,11 +737,11 @@
         "matches"
       ],
       "imports": [
-        "app/components/AdminLoginModal.tsx"
+        "app/components/AdminProvider.tsx"
       ],
       "importedBy": [],
       "related": [
-        "app/components/AdminLoginModal.tsx"
+        "app/components/AdminProvider.tsx"
       ],
       "overrideNotes": []
     },
@@ -1006,7 +1047,7 @@
       "tags": [],
       "imports": [
         "app/components/AISummaryPanel.tsx",
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
@@ -1018,7 +1059,7 @@
       "importedBy": [],
       "related": [
         "app/components/AISummaryPanel.tsx",
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
@@ -1038,12 +1079,12 @@
         "players"
       ],
       "imports": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/components/PlayerCard.tsx"
       ],
       "importedBy": [],
       "related": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/components/PlayerCard.tsx"
       ],
       "overrideNotes": []
@@ -1070,12 +1111,12 @@
       "type": "page",
       "tags": [],
       "imports": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/lib/signups.ts"
       ],
       "importedBy": [],
       "related": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/lib/signups.ts"
       ],
       "overrideNotes": []
@@ -1085,12 +1126,12 @@
       "type": "page",
       "tags": [],
       "imports": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/lib/signups.ts"
       ],
       "importedBy": [],
       "related": [
-        "app/components/AdminLoginModal.tsx",
+        "app/components/AdminProvider.tsx",
         "app/lib/signups.ts"
       ],
       "overrideNotes": []
