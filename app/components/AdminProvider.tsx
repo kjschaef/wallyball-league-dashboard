@@ -46,22 +46,39 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const requireAdmin = useCallback((callback: () => void | Promise<void>): Promise<boolean> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      const executeCallback = async () => {
+        try {
+          await callback();
+          resolve(true);
+        } catch (error: any) {
+          if (error.message === 'UNAUTHORIZED') {
+            setIsAdmin(false);
+            setPendingCallback(() => async () => {
+              try {
+                await callback();
+                resolve(true);
+              } catch (retryError) {
+                reject(retryError);
+              }
+            });
+            setCancelCallback(() => () => resolve(false));
+            setShowModal(true);
+          } else {
+            reject(error);
+          }
+        }
+      };
+
       if (isAdmin) {
-        Promise.resolve(callback())
-          .then(() => resolve(true))
-          .catch((error) => {
-            console.error('Action failed:', error);
-            resolve(false);
-          });
+        executeCallback();
       } else {
         setPendingCallback(() => async () => {
           try {
             await callback();
             resolve(true);
           } catch (error) {
-            console.error('Action failed after login:', error);
-            resolve(false);
+            reject(error);
           }
         });
         setCancelCallback(() => () => resolve(false));
