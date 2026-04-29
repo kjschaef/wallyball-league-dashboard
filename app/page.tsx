@@ -176,7 +176,19 @@ export default function DashboardPage() {
       return true;
     } catch (error: any) {
       if (error.message === 'UNAUTHORIZED') {
-        return requireAdmin(submit);
+        try {
+          const success = await requireAdmin(submit);
+          if (!success) {
+            setMatchSubmissionStatus(null);
+          }
+          return success;
+        } catch (retryError: any) {
+          setMatchSubmissionStatus({
+            tone: 'error',
+            message: `Failed to record match: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`,
+          });
+          return false;
+        }
       }
       console.error('Error recording match:', error);
       setMatchSubmissionStatus({
@@ -352,7 +364,11 @@ export default function DashboardPage() {
       await submit();
     } catch (error: any) {
       if (error.message === 'UNAUTHORIZED') {
-        await requireAdmin(submit);
+        try {
+          await requireAdmin(submit);
+        } catch (retryError: any) {
+          alert(`Failed to add player: ${retryError instanceof Error ? retryError.message : 'Unknown error'}`);
+        }
         return;
       }
       console.error('Error adding player:', error);
