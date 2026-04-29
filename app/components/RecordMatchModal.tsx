@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Plus, Minus, Calendar as CalendarIcon } from "lucide-react";
+import { X, Plus, Minus, Calendar as CalendarIcon, Loader2 } from "lucide-react";
 
 interface Player {
   id: number;
@@ -260,7 +260,8 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamOneGamesWon(Math.max(0, teamOneGamesWon - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
+                  disabled={teamOneGamesWon === 0}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
                   aria-label="Decrease team one games won"
                 >
                   <Minus className="h-4 w-4" />
@@ -298,7 +299,8 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamTwoGamesWon(Math.max(0, teamTwoGamesWon - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
+                  disabled={teamTwoGamesWon === 0}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
                   aria-label="Decrease team two games won"
                 >
                   <Minus className="h-4 w-4" />
@@ -326,7 +328,8 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamOneGamesWon(Math.max(0, teamOneGamesWon - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
+                  disabled={teamOneGamesWon === 0}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
                   aria-label="Decrease team one games won"
                 >
                   <Minus className="h-4 w-4" />
@@ -351,7 +354,8 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
                 <button
                   type="button"
                   onClick={() => setTeamTwoGamesWon(Math.max(0, teamTwoGamesWon - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
+                  disabled={teamTwoGamesWon === 0}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
                   aria-label="Decrease team two games won"
                 >
                   <Minus className="h-4 w-4" />
@@ -375,9 +379,16 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
+            className="w-full bg-gray-900 text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 flex items-center justify-center"
           >
-            {isSubmitting ? 'Recording...' : 'Record Game'}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
+                Recording...
+              </>
+            ) : (
+              'Record Game'
+            )}
           </button>
         </form>
       </div>
