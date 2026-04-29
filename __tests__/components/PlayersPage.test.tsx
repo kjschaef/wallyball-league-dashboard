@@ -62,7 +62,7 @@ describe('PlayersPage admin authentication flow', () => {
   });
 
   it('shows admin login when editing a player returns 401 and retries after authentication', async () => {
-    let players = [ { id: 7, name: 'Alice', startYear: 2020, matches: [], stats: { won: 0, lost: 0 } } ];
+    const players = [ { id: 7, name: 'Alice', startYear: 2020, matches: [], stats: { won: 0, lost: 0 } } ];
     let putCallCount = 0;
     global.fetch = jest.fn().mockImplementation(async (url: any, options: any) => {
       if (url === '/api/auth/check') {
