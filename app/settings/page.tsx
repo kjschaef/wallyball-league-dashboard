@@ -60,45 +60,46 @@ export default function SettingsPage() {
     setIsSaving(true);
     setMessage({ text: '', type: '' });
 
-      const submit = async () => {
-        const payload: Settings & { adminPassword?: string } = { ...settings };
-        payload.signupOpenTime = normalizeTimeInputValue(
-          payload.signupOpenTime,
-          DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
-        );
-        payload.signupCloseTime = normalizeTimeInputValue(
-          payload.signupCloseTime,
-          DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
-        );
-        if (adminPassword) {
-          payload.adminPassword = adminPassword;
-        }
+    const submit = async () => {
+      const payload: Settings & { adminPassword?: string } = { ...settings };
+      payload.signupOpenTime = normalizeTimeInputValue(
+        payload.signupOpenTime,
+        DEFAULT_SIGNUP_SETTINGS.signupOpenTime,
+      );
+      payload.signupCloseTime = normalizeTimeInputValue(
+        payload.signupCloseTime,
+        DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+      );
+      if (adminPassword) {
+        payload.adminPassword = adminPassword;
+      }
 
-        const response = await fetch('/api/settings', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-        if (response.status === 401) {
-          throw new Error('UNAUTHORIZED');
-        }
+      if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+      }
 
-        if (response.ok) {
-          setMessage({ text: 'Settings saved successfully!', type: 'success' });
-          setAdminPassword('');
-        } else {
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to save settings');
-        }
-      };
+      if (response.ok) {
+        setMessage({ text: 'Settings saved successfully!', type: 'success' });
+        setAdminPassword('');
+      } else {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save settings');
+      }
+    };
 
+    try {
       try {
         await submit();
         return true;
       } catch (error: any) {
         if (error.message === 'UNAUTHORIZED') {
-          return requireAdmin(submit);
+          return await requireAdmin(submit);
         }
         throw error;
       }
