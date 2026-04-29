@@ -142,7 +142,9 @@
     {
       "path": "app/lib/__tests__/stats.test.ts",
       "kind": "app-lib",
-      "covers": []
+      "covers": [
+        "app/lib/stats.ts"
+      ]
     },
     {
       "path": "app/lib/__tests__/team-balancer.test.ts",
@@ -219,6 +221,9 @@
     "app/lib/signups.ts": [
       "app/lib/__tests__/signups.test.ts"
     ],
+    "app/lib/stats.ts": [
+      "app/lib/__tests__/stats.test.ts"
+    ],
     "app/lib/team-balancer.ts": [
       "app/lib/__tests__/team-balancer.test.ts"
     ],
@@ -280,10 +285,10 @@
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/team-performance.test.ts",
         "app/components/__tests__/PerformanceControls.test.tsx",
-        "app/components/__tests__/PerformanceTrend.test.tsx"
+        "app/components/__tests__/PerformanceTrend.test.tsx",
+        "app/lib/__tests__/stats.test.ts"
       ],
       "gaps": [
-        "app/lib/stats.ts",
         "app/components/WinPercentageRankings.tsx"
       ]
     },
