@@ -140,6 +140,11 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/stats.test.ts",
+      "kind": "app-lib",
+      "covers": []
+    },
+    {
       "path": "app/lib/__tests__/team-balancer.test.ts",
       "kind": "app-lib",
       "covers": [
