@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SignupsPage from '@/app/signups/page';
 
@@ -92,15 +92,32 @@ describe('SignupsPage', () => {
   });
 
   it('loads the open signup state and submits a signup for the selected player', async () => {
-    render(<SignupsPage />);
+    await act(async () => {
+      render(<SignupsPage />);
+    });
 
+    // Use findByText to wait for the loading state to complete and the component to fully render
     expect(await screen.findByText('Weekly Signups')).toBeInTheDocument();
     expect(await screen.findByText('Monday, January 19th')).toBeInTheDocument();
-    expect(screen.queryByText('Tuesday, January 20th')).not.toBeInTheDocument();
+
+    // Use waitFor for non-existence checks to ensure updates have settled
+    await waitFor(() => {
+      expect(screen.queryByText('Tuesday, January 20th')).not.toBeInTheDocument();
+    });
     expect(screen.getByText('Thursday, January 22nd')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: '1' } });
-    fireEvent.click(screen.getAllByText('Sign Up')[0]);
+    // Verify select is loaded
+    const combobox = await screen.findByRole('combobox');
+
+    await act(async () => {
+      fireEvent.change(combobox, { target: { value: '1' } });
+    });
+
+    // Find the signup button correctly after data is loaded
+    const signUpButtons = await screen.findAllByText('Sign Up');
+    await act(async () => {
+      fireEvent.click(signUpButtons[0]);
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -111,16 +128,24 @@ describe('SignupsPage', () => {
   });
 
   it('renders existing signup entries with remove controls', async () => {
-    render(<SignupsPage />);
+    await act(async () => {
+      render(<SignupsPage />);
+    });
 
-    expect(await screen.findByTitle('Remove player')).toBeInTheDocument();
-    expect(screen.getAllByTitle('Remove player')).toHaveLength(1);
-    expect(screen.getByText('1.')).toBeInTheDocument();
+    // Wait for the specific element to appear to signify rendering is complete
+    const removePlayerButtons = await screen.findAllByTitle('Remove player');
+    expect(removePlayerButtons).toHaveLength(1);
+
+    // Use findByText for assertion to ensure it's fully rendered
+    expect(await screen.findByText('1.')).toBeInTheDocument();
   });
 
   it('renders unavailable players with remove controls', async () => {
-    render(<SignupsPage />);
+    await act(async () => {
+      render(<SignupsPage />);
+    });
 
+    // Using findByTitle waits for the fetch requests to resolve and state to update
     expect(await screen.findByTitle('Remove unavailable player')).toBeInTheDocument();
   });
 });
