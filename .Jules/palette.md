@@ -19,3 +19,8 @@
 1. They include explicit focus styles (e.g. `focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none`).
 2. They call `e.preventDefault()` within the `onKeyDown` handler when the Space key is pressed to avoid unwanted page scrolling.
 3. They utilize `aria-disabled` for unselectable or disabled states.
+
+## 2024-05-18 - Nested Interactive Elements
+
+**Learning:** Replacing custom `<div role="button">` containers with native semantic `<button>` elements is highly effective for accessibility. It prevents nested interactive element issues (e.g., `<button>` inside `<div role="button">`) and ensures native keyboard support without manual `tabIndex` or `onKeyDown` listeners.
+**Action:** When refactoring interactive containers, use a native `<button>` and apply `w-full text-left` to preserve layout. Convert any previously clickable inner elements (like toggle icons) to non-interactive decorative elements (e.g., `<span aria-hidden="true">`).
