@@ -129,6 +129,32 @@ describe('lib/seasons utilities', () => {
     });
   });
 
+  it('identifies correct quarter at quarter boundaries', () => {
+    // Q1 start and end
+    expect(getCurrentSeasonByDate(new Date('2025-01-01T00:00:00.000Z'))).toMatchObject({ name: '2025 Q1' });
+    expect(getCurrentSeasonByDate(new Date('2025-03-31T23:59:59.999Z'))).toMatchObject({ name: '2025 Q1' });
+
+    // Q2 start and end
+    expect(getCurrentSeasonByDate(new Date('2025-04-01T00:00:00.000Z'))).toMatchObject({ name: '2025 Q2' });
+    expect(getCurrentSeasonByDate(new Date('2025-06-30T23:59:59.999Z'))).toMatchObject({ name: '2025 Q2' });
+
+    // Q3 start and end
+    expect(getCurrentSeasonByDate(new Date('2025-07-01T00:00:00.000Z'))).toMatchObject({ name: '2025 Q3' });
+    expect(getCurrentSeasonByDate(new Date('2025-09-30T23:59:59.999Z'))).toMatchObject({ name: '2025 Q3' });
+
+    // Q4 start and end
+    expect(getCurrentSeasonByDate(new Date('2025-10-01T00:00:00.000Z'))).toMatchObject({ name: '2025 Q4' });
+    expect(getCurrentSeasonByDate(new Date('2025-12-31T23:59:59.999Z'))).toMatchObject({ name: '2025 Q4' });
+  });
+
+  it('handles leap years correctly', () => {
+    expect(getCurrentSeasonByDate(new Date('2024-02-29T12:00:00.000Z'))).toMatchObject({
+      name: '2024 Q1',
+      start_date: '2024-01-01',
+      end_date: '2024-03-31'
+    });
+  });
+
   it('lists recent seasons with current quarter first', () => {
     jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
     const seasons = listSeasons(4);
@@ -136,6 +162,34 @@ describe('lib/seasons utilities', () => {
     expect(seasons).toHaveLength(6);
     expect(seasons[0]).toMatchObject({ name: '2025 Q1', is_active: true, id: 20251 });
     expect(seasons[3]).toMatchObject({ name: '2024 Q2' });
+  });
+
+  it('lists seasons correctly across year boundaries', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
+
+    // Testing earliestDate scenario that crosses years
+    const seasons = listSeasons(8, '2023-11-15T00:00:00.000Z');
+
+    // 2023 Q4 to 2025 Q1
+    // Quarters: 2025 Q1, 2024 Q4, 2024 Q3, 2024 Q2, 2024 Q1, 2023 Q4 (6 quarters)
+    // Annuals: 2025, 2024, 2023 (3 annuals)
+    expect(seasons).toHaveLength(9);
+    expect(seasons[0]).toMatchObject({ name: '2025 Q1' });
+    expect(seasons[5]).toMatchObject({ name: '2023 Q4' });
+    expect(seasons[6]).toMatchObject({ name: '2025' }); // Annuals
+  });
+
+  it('enforces safety guard for extremely old earliestDate', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
+
+    // Very old date to hit the > 200 guard
+    const seasons = listSeasons(8, '1900-01-01T00:00:00.000Z');
+
+    // Should break early, and reverse
+    // We expect 201 quarters + annuals
+    expect(seasons.length).toBeGreaterThan(200);
+    // Ensure we don't hang in infinite loop and return correctly
+    expect(seasons[0]).toMatchObject({ name: '1950 Q1' }); // Check that we hit the safety guard instead of fully returning until 2025
   });
 
   it('retrieves season metadata by identifier', () => {
