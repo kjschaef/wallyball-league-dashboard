@@ -128,7 +128,7 @@
         "app/components/PlayerGrid.tsx"
       ],
       "testCommands": [
-        "pnpm test -- __tests__/api/player-stats.test.ts __tests__/api/player-trends.test.ts __tests__/api/seasonal-player-stats.test.ts __tests__/api/team-performance.test.ts app/components/__tests__/PerformanceControls.test.tsx app/components/__tests__/PerformanceTrend.test.tsx"
+        "pnpm test -- __tests__/api/player-stats.test.ts __tests__/api/player-trends.test.ts __tests__/api/seasonal-player-stats.test.ts __tests__/api/team-performance.test.ts app/components/__tests__/PerformanceControls.test.tsx app/components/__tests__/PerformanceTrend.test.tsx app/lib/__tests__/stats.test.ts"
       ],
       "mappedTests": [
         "__tests__/api/player-stats.test.ts",
@@ -136,7 +136,8 @@
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/team-performance.test.ts",
         "app/components/__tests__/PerformanceControls.test.tsx",
-        "app/components/__tests__/PerformanceTrend.test.tsx"
+        "app/components/__tests__/PerformanceTrend.test.tsx",
+        "app/lib/__tests__/stats.test.ts"
       ],
       "riskAreas": [
         "The repo mixes match-level and game-level statistics; verify semantics before editing.",
