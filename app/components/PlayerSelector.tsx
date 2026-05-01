@@ -31,9 +31,10 @@ export function PlayerSelector({
             <button
               key={player.id}
               type="button"
+              aria-pressed={isSelected}
               onClick={() => onSelect(player.id)}
               disabled={isDisabled}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`px-3 py-1 rounded text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 isSelected
                   ? 'bg-blue-600 text-white'
                   : isDisabled
