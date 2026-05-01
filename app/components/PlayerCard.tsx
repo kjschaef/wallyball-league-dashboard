@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PlayerAchievements } from './PlayerAchievements';
 
 interface Player {
   id: number;
@@ -164,10 +163,6 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               </div>
             </div>
 
-            {/* Achievements as small icons */}
-            <div className="flex flex-wrap gap-0.5">
-              <PlayerAchievements playerId={player.id} compact />
-            </div>
           </div>
 
           <div className="text-right flex flex-col justify-end">

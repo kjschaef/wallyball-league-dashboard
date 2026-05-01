@@ -20,9 +20,8 @@ Agent-first repo context now lives in `AGENTS.md` and `agent-context/`. Treat th
 1. [Player Management](./player-management.md)
 2. [Match Recording](./match-recording.md)
 3. [Performance Analytics](./performance-analytics.md)
-4. [Achievement System](./achievement-system.md)
-5. [Data Visualization](./data-visualization.md)
-6. [Inactivity System](./inactivity-system.md)
+4. [Data Visualization](./data-visualization.md)
+5. [Inactivity System](./inactivity-system.md)
 
 ## Getting Started
 

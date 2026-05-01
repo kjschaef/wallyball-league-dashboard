@@ -247,37 +247,6 @@
         "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints.",
         "Season identity is computed from dates and deterministic IDs, not from an active seasons table."
       ]
-    },
-    {
-      "taskId": "achievements",
-      "title": "Achievements",
-      "triggers": [
-        "achievement",
-        "badge",
-        "milestone"
-      ],
-      "startFiles": [
-        "app/api/achievements/player/[playerId]/route.ts",
-        "app/api/achievements/check/[playerId]/route.ts",
-        "app/components/PlayerAchievements.tsx",
-        "db/schema.ts"
-      ],
-      "secondaryFiles": [
-        "app/api/games/[id]/route.ts",
-        "app/api/games/route.ts",
-        "app/api/players/[id]/route.ts",
-        "app/components/PlayerCard.tsx",
-        "db/config.ts"
-      ],
-      "testCommands": [
-        "pnpm test"
-      ],
-      "mappedTests": [],
-      "riskAreas": [
-        "Achievement state spans both definitions and player-achievement joins.",
-        "UI and APIs assume achievement metadata and unlock timestamps are present together."
-      ],
-      "notes": []
     }
   ]
 }
