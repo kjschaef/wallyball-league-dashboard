@@ -62,20 +62,13 @@ export function PlayerGrid({
 
 
           return (
-            <div
+            <button
+              type="button"
               key={player.id}
               onClick={() => canSelect && handlePlayerClick(player.id)}
-              onKeyDown={(e) => {
-                if (canSelect && (e.key === 'Enter' || e.key === ' ')) {
-                  e.preventDefault();
-                  handlePlayerClick(player.id);
-                }
-              }}
-              tabIndex={canSelect ? 0 : -1}
-              role="button"
               aria-pressed={isSelected}
-              aria-disabled={!canSelect}
-              className={`p-3 border rounded-lg cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${isSelected
+              disabled={!canSelect}
+              className={`w-full text-left p-3 border rounded-lg cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${isSelected
                 ? 'border-blue-500 bg-blue-50'
                 : canSelect
                   ? 'border-gray-200 hover:border-gray-300'
@@ -100,7 +93,7 @@ export function PlayerGrid({
               )}
 
 
-            </div>
+            </button>
           );
         })}
       </div>

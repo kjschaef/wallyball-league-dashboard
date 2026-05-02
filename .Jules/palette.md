@@ -24,3 +24,6 @@
 
 **Learning:** Replacing custom `<div role="button">` containers with native semantic `<button>` elements is highly effective for accessibility. It prevents nested interactive element issues (e.g., `<button>` inside `<div role="button">`) and ensures native keyboard support without manual `tabIndex` or `onKeyDown` listeners.
 **Action:** When refactoring interactive containers, use a native `<button>` and apply `w-full text-left` to preserve layout. Convert any previously clickable inner elements (like toggle icons) to non-interactive decorative elements (e.g., `<span aria-hidden="true">`).
+## 2024-05-14 - Native button instead of div role="button"
+**Learning:** Native `<button>` elements inherently provide expected accessibility features like Enter/Spacebar activation, disabled state handling, and proper screen reader announcements, which are often imperfectly implemented when using `<div role="button">`.
+**Action:** When refactoring interactive elements, prefer native `<button>` tags with utility classes (like `w-full text-left`) over custom `<div>` containers with manual `role`, `tabIndex`, and `onKeyDown` attributes.
