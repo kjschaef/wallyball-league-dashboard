@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, act, render, screen, waitFor } from '@testing-library/react';
 import { PerformanceTrend } from '../PerformanceTrend';
 
 jest.mock('../PerformanceControls', () => ({
@@ -83,7 +83,7 @@ describe('PerformanceTrend', () => {
   });
 
   it('zooms to a dragged date range and resets back to the full chart', async () => {
-    render(<PerformanceTrend season="lifetime" />);
+    await act(async () => { render(<PerformanceTrend season="lifetime" />); });
 
     const chart = await screen.findByTestId('line-chart');
     const yAxis = await screen.findByTestId('y-axis');
