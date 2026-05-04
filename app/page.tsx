@@ -122,7 +122,6 @@ export default function DashboardPage() {
   };
 
   const completeMatchRecording = (newMatch: unknown) => {
-    console.log('Match recorded:', newMatch);
     setShowRecordMatchModal(false);
     resetMatchFlow();
     setRefreshKey(prev => prev + 1);

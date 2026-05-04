@@ -192,16 +192,11 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
         }
         // Adaptive threshold for chart using shared utility
         const threshold = getPlayerThreshold(statsData, showAllPlayers);
-        console.log('Chart threshold:', threshold, '(showAll:', showAllPlayers, ')');
         statsData = statsData.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold);
         const trendsDataResponse = await trendsResponse.json();
 
         setPlayerStats(statsData);
         setTrendsData(trendsDataResponse);
-
-        // Debug the player stats structure
-        console.log('Player Stats Sample:', statsData.slice(0, 2));
-        console.log('Trends Data Sample:', trendsDataResponse.slice(0, 1));
 
         // Process trends data
         if (Array.isArray(trendsDataResponse) && trendsDataResponse.length > 0) {

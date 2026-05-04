@@ -104,7 +104,6 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
 
         // Formatted threshold calculation using shared utility
         const threshold = getPlayerThreshold(playerStats, showAllPlayers);
-        console.log('Leaderboard threshold:', threshold, '(showAll:', showAllPlayers, ')');
         const formattedRankings = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold).map((player: any) => {
           return {
             id: player.id,

@@ -58,18 +58,9 @@ export async function GET() {
         if (cachedSummaries.length > 0) {
             // Loose comparison for ID in case of type mismatch (string vs number)
             if (cachedSummaries[0].last_match_id == lastMatchId) {
-                console.log('[daily-summary] ✓ Cache HIT for', cacheKey);
                 return NextResponse.json({ summary: cachedSummaries[0].summary });
-            } else {
-                console.log('[daily-summary] ⚠ Cache invalidated (Match ID changed)', {
-                    date: cacheKey,
-                    expected: lastMatchId,
-                    found: cachedSummaries[0].last_match_id
-                });
             }
         }
-
-        console.log('[daily-summary] Generating new summary for', cacheKey);
 
         // Calculate season stats; attempt lifetime stats with fallback
         let lifetimePlayerStats;
@@ -115,14 +106,10 @@ export async function GET() {
             `;
 
             if (existingCache.length === 0) {
-                console.log('[daily-summary] Caching new summary for', cacheKey);
                 await sql`
                     INSERT INTO daily_summaries (date, summary, last_match_id)
                     VALUES (${cacheKey}, ${summary}, ${lastMatchId})
                 `;
-                console.log('[daily-summary] ✓ Successfully cached summary');
-            } else {
-                console.log('[daily-summary] ⚠ Summary already cached by another request, skipping insert');
             }
         } catch (cacheError) {
             console.error('[daily-summary] ✗ Failed to cache summary:', cacheError);
