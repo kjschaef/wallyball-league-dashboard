@@ -41,7 +41,6 @@
       "insertType": "NewAchievement",
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
-        "migrations/0009_drop_achievements.sql",
         "migrations/relations.ts",
         "migrations/schema.ts"
       ]
@@ -197,7 +196,6 @@
       "insertType": "NewPlayerAchievement",
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
-        "migrations/0009_drop_achievements.sql",
         "migrations/schema.ts"
       ]
     },

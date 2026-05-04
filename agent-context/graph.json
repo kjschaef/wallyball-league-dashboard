@@ -5,6 +5,7 @@
       "file": "app/api/achievements/check/[playerId]/route.ts",
       "type": "api-route",
       "tags": [
+        "achievements",
         "players"
       ],
       "imports": [
@@ -22,6 +23,7 @@
       "file": "app/api/achievements/player/[playerId]/route.ts",
       "type": "api-route",
       "tags": [
+        "achievements",
         "players"
       ],
       "imports": [],
@@ -492,6 +494,7 @@
       "file": "app/components/PlayerAchievements.tsx",
       "type": "component",
       "tags": [
+        "achievements",
         "players"
       ],
       "imports": [],
