@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PerformanceControls } from '../PerformanceControls';
 
 // Mock react-select to a simple input for testability
@@ -40,7 +40,7 @@ describe('PerformanceControls', () => {
 
   it('renders and responds to controls', async () => {
     const onChange = jest.fn();
-    render(React.createElement(PerformanceControls, { season: 'current', metric: 'winPercentage', compare: [], onChange }));
+    await act(async () => { render(React.createElement(PerformanceControls, { season: 'current', metric: 'winPercentage', compare: [], onChange })); });
 
     // Wait for fetch effects
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
