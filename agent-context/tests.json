@@ -316,16 +316,6 @@
         "app/lib/prompts.ts",
         "lib/rag.ts"
       ]
-    },
-    {
-      "taskId": "achievements",
-      "tests": [],
-      "gaps": [
-        "app/api/achievements/player/[playerId]/route.ts",
-        "app/api/achievements/check/[playerId]/route.ts",
-        "app/components/PlayerAchievements.tsx",
-        "db/schema.ts"
-      ]
     }
   ]
 }
