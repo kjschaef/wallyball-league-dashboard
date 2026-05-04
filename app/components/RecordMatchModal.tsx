@@ -64,10 +64,11 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
             <button
               key={player.id}
               type="button"
+              aria-pressed={isSelected}
               onClick={() => handlePlayerClick(player.id)}
               disabled={!canSelect}
               className={`
-                px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                px-3 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1
                 ${isSelected 
                   ? 'bg-blue-500 text-white' 
                   : isDisabled

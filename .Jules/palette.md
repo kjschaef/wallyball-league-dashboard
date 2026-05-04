@@ -28,3 +28,7 @@
 ## 2024-05-21 - Toggle Button Accessibility
 **Learning:** Components acting as selectable or toggleable options (like player selection buttons) often map visual cues (e.g. background color changes) to indicate selection but fail to communicate this state to screen readers.
 **Action:** When implementing toggle buttons or selectable chips, always include `aria-pressed={boolean}`. This explicitly tells assistive technologies whether the button is currently in a pressed (selected) or unpressed state. Also ensure they have keyboard focus states (`focus-visible:ring`).
+
+## 2024-05-22 - Selection Buttons and aria-pressed
+**Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
+**Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.

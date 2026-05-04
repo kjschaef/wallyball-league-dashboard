@@ -21,10 +21,8 @@ async function main() {
   // 1. Clear existing data
   console.log('Clearing existing data...');
   await db.delete(schema.matches);
-  await db.delete(schema.playerAchievements);
   await db.delete(schema.weeklySignups);
   await db.delete(schema.weeklyUnavailable);
-  await db.delete(schema.achievements);
   await db.delete(schema.siteSettings);
   await db.delete(schema.dailySummaries);
   await db.delete(schema.players);
