@@ -2,6 +2,20 @@
   "schemaVersion": 1,
   "tests": [
     {
+      "path": "__tests__/api/auth-check.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/auth/check/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/auth-logout.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/auth/logout/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/auth.test.ts",
       "kind": "test",
       "covers": [
@@ -163,6 +177,12 @@
     }
   ],
   "coverageByFile": {
+    "app/api/auth/check/route.ts": [
+      "__tests__/api/auth-check.test.ts"
+    ],
+    "app/api/auth/logout/route.ts": [
+      "__tests__/api/auth-logout.test.ts"
+    ],
     "app/api/auth/route.ts": [
       "__tests__/api/auth.test.ts"
     ],

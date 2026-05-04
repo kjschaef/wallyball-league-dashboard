@@ -1,5 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 type OverrideEntry = {
   match: string;
@@ -1025,7 +1029,7 @@ function writeGeneratedFiles(rootDir: string, outputs: Record<string, string>): 
   }
 }
 
-if (require.main === module) {
+if (import.meta.url.startsWith('file:') && fileURLToPath(import.meta.url) === __filename) {
   (async () => {
     try {
       const outputs = await buildAgentContext(ROOT_DIR);
