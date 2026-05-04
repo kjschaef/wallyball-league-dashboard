@@ -188,27 +188,6 @@ const TASK_DEFINITIONS: TaskDefinition[] = [
       'The dashboard root page launches AI flows and team suggestion workflows.',
     ],
   },
-  {
-    taskId: 'achievements',
-    title: 'Achievements',
-    triggers: ['achievement', 'badge', 'milestone'],
-    matchers: [
-      'app/api/achievements/**',
-      'app/components/PlayerAchievements.tsx',
-      'db/schema.ts',
-    ],
-    startHints: [
-      'app/api/achievements/player/[playerId]/route.ts',
-      'app/api/achievements/check/[playerId]/route.ts',
-      'app/components/PlayerAchievements.tsx',
-      'db/schema.ts',
-    ],
-    testCandidates: [],
-    riskAreas: [
-      'Achievement state spans both definitions and player-achievement joins.',
-      'UI and APIs assume achievement metadata and unlock timestamps are present together.',
-    ],
-  },
 ];
 
 const CONTEXT_LIMITS: Record<string, number> = {
@@ -459,7 +438,6 @@ function fileTags(filePath: string): string[] {
   if (lower.includes('season')) tags.add('seasons');
   if (lower.includes('stat') || lower.includes('trend') || lower.includes('performance')) tags.add('stats');
   if (lower.includes('chatbot') || lower.includes('openai') || lower.includes('summary') || lower.includes('prompt')) tags.add('ai');
-  if (lower.includes('achievement')) tags.add('achievements');
   if (lower.includes('db/') || lower.includes('migration')) tags.add('database');
   return Array.from(tags).sort();
 }
