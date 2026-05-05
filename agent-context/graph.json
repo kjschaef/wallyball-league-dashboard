@@ -2,36 +2,6 @@
   "schemaVersion": 1,
   "nodes": [
     {
-      "file": "app/api/achievements/check/[playerId]/route.ts",
-      "type": "api-route",
-      "tags": [
-        "achievements",
-        "players"
-      ],
-      "imports": [
-        "db/config.ts",
-        "db/schema.ts"
-      ],
-      "importedBy": [],
-      "related": [
-        "db/config.ts",
-        "db/schema.ts"
-      ],
-      "overrideNotes": []
-    },
-    {
-      "file": "app/api/achievements/player/[playerId]/route.ts",
-      "type": "api-route",
-      "tags": [
-        "achievements",
-        "players"
-      ],
-      "imports": [],
-      "importedBy": [],
-      "related": [],
-      "overrideNotes": []
-    },
-    {
       "file": "app/api/auth/check/route.ts",
       "type": "api-route",
       "tags": [],
@@ -491,35 +461,16 @@
       "overrideNotes": []
     },
     {
-      "file": "app/components/PlayerAchievements.tsx",
-      "type": "component",
-      "tags": [
-        "achievements",
-        "players"
-      ],
-      "imports": [],
-      "importedBy": [
-        "app/components/PlayerCard.tsx"
-      ],
-      "related": [
-        "app/components/PlayerCard.tsx"
-      ],
-      "overrideNotes": []
-    },
-    {
       "file": "app/components/PlayerCard.tsx",
       "type": "component",
       "tags": [
         "players"
       ],
-      "imports": [
-        "app/components/PlayerAchievements.tsx"
-      ],
+      "imports": [],
       "importedBy": [
         "app/players/page.tsx"
       ],
       "related": [
-        "app/components/PlayerAchievements.tsx",
         "app/players/page.tsx"
       ],
       "overrideNotes": []
@@ -778,6 +729,23 @@
       "related": [
         "app/components/TopTeams.tsx",
         "app/lib/constants.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/__tests__/playerFiltering.test.ts",
+      "type": "app-lib",
+      "tags": [
+        "players"
+      ],
+      "imports": [
+        "app/lib/constants.ts",
+        "app/lib/playerFiltering.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/constants.ts",
+        "app/lib/playerFiltering.ts"
       ],
       "overrideNotes": []
     },
@@ -1161,14 +1129,12 @@
         "db/schema.ts"
       ],
       "importedBy": [
-        "app/api/achievements/check/[playerId]/route.ts",
         "app/api/games/[id]/route.ts",
         "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",
         "db/index.ts"
       ],
       "related": [
-        "app/api/achievements/check/[playerId]/route.ts",
         "app/api/games/[id]/route.ts",
         "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",
@@ -1200,14 +1166,12 @@
       ],
       "imports": [],
       "importedBy": [
-        "app/api/achievements/check/[playerId]/route.ts",
         "app/api/games/[id]/route.ts",
         "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",
         "db/config.ts"
       ],
       "related": [
-        "app/api/achievements/check/[playerId]/route.ts",
         "app/api/games/[id]/route.ts",
         "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",

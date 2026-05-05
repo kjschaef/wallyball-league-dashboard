@@ -67,8 +67,8 @@ export async function calculatePlayerStats(
 
             // Calculate years played
             const createdAt = player.created_at ? new Date(player.created_at) : new Date();
-            const startYear = player.start_year || createdAt.getFullYear();
-            const currentYear = new Date().getFullYear();
+            const startYear = player.start_year || createdAt.getUTCFullYear();
+            const currentYear = new Date().getUTCFullYear();
             const yearsPlayed = Math.max(1, currentYear - startYear);
 
             // Calculate total playing time (90 minutes per unique day played)

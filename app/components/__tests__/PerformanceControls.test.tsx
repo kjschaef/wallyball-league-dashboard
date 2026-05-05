@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PerformanceControls } from '../PerformanceControls';
 
 // Mock react-select to a simple input for testability
