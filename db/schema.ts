@@ -31,27 +31,6 @@ export const matches = pgTable("matches", {
   teamTwoPlayerThreeIdx: index("team_two_player_three_idx").on(table.teamTwoPlayerThreeId),
 }));
 
-// Achievements table
-export const achievements = pgTable("achievements", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  icon: text("icon").notNull(),
-  condition: text("condition").notNull(),
-});
-
-// Player achievements junction table
-export const playerAchievements = pgTable("player_achievements", {
-  id: serial("id").primaryKey(),
-  playerId: integer("player_id").references(() => players.id).notNull(),
-  achievementId: integer("achievement_id").references(() => achievements.id).notNull(),
-  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
-}, (table) => ({
-  playerAchievementIdx: index("player_achievement_idx").on(table.playerId, table.achievementId),
-}));
-
-
-
 // Daily summaries cache
 export const dailySummaries = pgTable("daily_summaries", {
   id: serial("id").primaryKey(),
@@ -100,10 +79,6 @@ export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
 export const insertMatchSchema = createInsertSchema(matches);
 export const selectMatchSchema = createSelectSchema(matches);
-export const insertAchievementSchema = createInsertSchema(achievements);
-export const selectAchievementSchema = createSelectSchema(achievements);
-export const insertPlayerAchievementSchema = createInsertSchema(playerAchievements);
-export const selectPlayerAchievementSchema = createSelectSchema(playerAchievements);
 
 export const insertDailySummarySchema = createInsertSchema(dailySummaries);
 export const selectDailySummarySchema = createSelectSchema(dailySummaries);
@@ -120,10 +95,6 @@ export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type Match = typeof matches.$inferSelect;
 export type NewMatch = typeof matches.$inferInsert;
-export type Achievement = typeof achievements.$inferSelect;
-export type NewAchievement = typeof achievements.$inferInsert;
-export type PlayerAchievement = typeof playerAchievements.$inferSelect;
-export type NewPlayerAchievement = typeof playerAchievements.$inferInsert;
 
 export type DailySummary = typeof dailySummaries.$inferSelect;
 export type NewDailySummary = typeof dailySummaries.$inferInsert;

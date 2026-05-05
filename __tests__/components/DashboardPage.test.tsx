@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, act, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DashboardPage from '@/app/page';
 import { AdminProvider } from '@/app/components/AdminProvider';
@@ -128,7 +128,8 @@ describe('DashboardPage admin authentication flow', () => {
       return { ok: true, json: async () => [] };
     });
 
-    render(<AdminProvider><DashboardPage /></AdminProvider>);
+    // Wrap render in act to ensure async state updates on mount settle before assertions
+    await act(async () => { render(<AdminProvider><DashboardPage /></AdminProvider>); });
 
     fireEvent.click(await screen.findByText('Open Record Match'));
     fireEvent.click(screen.getByText('Submit Match'));
@@ -157,7 +158,8 @@ describe('DashboardPage admin authentication flow', () => {
       return { ok: true, json: async () => [] };
     });
 
-    render(<AdminProvider><DashboardPage /></AdminProvider>);
+    // Wrap render in act to ensure async state updates on mount settle before assertions
+    await act(async () => { render(<AdminProvider><DashboardPage /></AdminProvider>); });
 
     fireEvent.click(await screen.findByText('Open Record Match'));
     fireEvent.click(screen.getByText('Submit Match'));
@@ -189,7 +191,8 @@ describe('DashboardPage admin authentication flow', () => {
       return { ok: true, json: async () => [] };
     });
 
-    render(<AdminProvider><DashboardPage /></AdminProvider>);
+    // Wrap render in act to ensure async state updates on mount settle before assertions
+    await act(async () => { render(<AdminProvider><DashboardPage /></AdminProvider>); });
 
     fireEvent.click(await screen.findByText('Open Record Match'));
     fireEvent.click(screen.getByText('Submit Match'));
@@ -217,7 +220,8 @@ describe('DashboardPage admin authentication flow', () => {
       return { ok: true, json: async () => [] };
     });
 
-    render(<AdminProvider><DashboardPage /></AdminProvider>);
+    // Wrap render in act to ensure async state updates on mount settle before assertions
+    await act(async () => { render(<AdminProvider><DashboardPage /></AdminProvider>); });
 
     fireEvent.click(await screen.findByText('Open Add Player'));
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Taylor' } });

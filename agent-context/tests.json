@@ -133,10 +133,25 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/playerFiltering.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/constants.ts",
+        "app/lib/playerFiltering.ts"
+      ]
+    },
+    {
       "path": "app/lib/__tests__/signups.test.ts",
       "kind": "app-lib",
       "covers": [
         "app/lib/signups.ts"
+      ]
+    },
+    {
+      "path": "app/lib/__tests__/stats.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/stats.ts"
       ]
     },
     {
@@ -211,8 +226,17 @@
     "app/games/page.tsx": [
       "__tests__/components/GamesPage.test.tsx"
     ],
+    "app/lib/constants.ts": [
+      "app/lib/__tests__/playerFiltering.test.ts"
+    ],
+    "app/lib/playerFiltering.ts": [
+      "app/lib/__tests__/playerFiltering.test.ts"
+    ],
     "app/lib/signups.ts": [
       "app/lib/__tests__/signups.test.ts"
+    ],
+    "app/lib/stats.ts": [
+      "app/lib/__tests__/stats.test.ts"
     ],
     "app/lib/team-balancer.ts": [
       "app/lib/__tests__/team-balancer.test.ts"
@@ -275,10 +299,10 @@
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/team-performance.test.ts",
         "app/components/__tests__/PerformanceControls.test.tsx",
-        "app/components/__tests__/PerformanceTrend.test.tsx"
+        "app/components/__tests__/PerformanceTrend.test.tsx",
+        "app/lib/__tests__/stats.test.ts"
       ],
       "gaps": [
-        "app/lib/stats.ts",
         "app/components/WinPercentageRankings.tsx"
       ]
     },
@@ -305,16 +329,6 @@
         "app/lib/openai.ts",
         "app/lib/prompts.ts",
         "lib/rag.ts"
-      ]
-    },
-    {
-      "taskId": "achievements",
-      "tests": [],
-      "gaps": [
-        "app/api/achievements/player/[playerId]/route.ts",
-        "app/api/achievements/check/[playerId]/route.ts",
-        "app/components/PlayerAchievements.tsx",
-        "db/schema.ts"
       ]
     }
   ]

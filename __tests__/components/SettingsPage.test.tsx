@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SettingsPage from '@/app/settings/page';
 
@@ -47,7 +47,8 @@ describe('SettingsPage', () => {
   });
 
   it('loads settings and saves changes successfully', async () => {
-    render(<SettingsPage />);
+    // Wrap render in act to ensure async state updates on mount settle before assertions
+    await act(async () => { render(<SettingsPage />); });
 
     expect(await screen.findByText('Site Settings')).toBeInTheDocument();
     expect((screen.getAllByRole('combobox')[0] as HTMLSelectElement).value).toBe('0');

@@ -7,8 +7,8 @@ export interface SeasonInfo {
 }
 
 function quarterForDate(d: Date) {
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1;
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1;
   const quarter = month >= 10 ? 4 : month >= 7 ? 3 : month >= 4 ? 2 : 1;
   let start_date = '';
   let end_date = '';
@@ -130,8 +130,8 @@ export function getSeasonById(id: number): SeasonInfo | null {
 
 export function getSeasonIdFromMatch(matchDate: string, _seasons?: SeasonInfo[]): number | null {
   const date = new Date(matchDate);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + 1;
   const quarter = month >= 10 ? 4 : month >= 7 ? 3 : month >= 4 ? 2 : 1;
 
   // Returns the Quarter ID by default as it's the primary unit

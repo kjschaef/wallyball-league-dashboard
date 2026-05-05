@@ -3,49 +3,6 @@
   "schemaFile": "db/schema.ts",
   "tables": [
     {
-      "symbol": "achievements",
-      "table": "achievements",
-      "columns": [
-        {
-          "field": "id",
-          "kind": "serial",
-          "column": "id",
-          "references": null
-        },
-        {
-          "field": "name",
-          "kind": "text",
-          "column": "name",
-          "references": null
-        },
-        {
-          "field": "description",
-          "kind": "text",
-          "column": "description",
-          "references": null
-        },
-        {
-          "field": "icon",
-          "kind": "text",
-          "column": "icon",
-          "references": null
-        },
-        {
-          "field": "condition",
-          "kind": "text",
-          "column": "condition",
-          "references": null
-        }
-      ],
-      "selectType": "Achievement",
-      "insertType": "NewAchievement",
-      "migrationTouchpoints": [
-        "migrations/0000_light_toro.sql",
-        "migrations/relations.ts",
-        "migrations/schema.ts"
-      ]
-    },
-    {
       "symbol": "dailySummaries",
       "table": "daily_summaries",
       "columns": [
@@ -84,6 +41,7 @@
       "insertType": "NewDailySummary",
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
+        "migrations/0007_blue_edwin_jarvis.sql",
         "migrations/README.md",
         "migrations/add_daily_summaries.sql"
       ]
@@ -157,45 +115,10 @@
       "insertType": "NewMatch",
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
+        "migrations/0007_blue_edwin_jarvis.sql",
         "migrations/005_remove_seasons.sql",
         "migrations/add_daily_summaries.sql",
         "migrations/relations.ts",
-        "migrations/schema.ts"
-      ]
-    },
-    {
-      "symbol": "playerAchievements",
-      "table": "player_achievements",
-      "columns": [
-        {
-          "field": "id",
-          "kind": "serial",
-          "column": "id",
-          "references": null
-        },
-        {
-          "field": "playerId",
-          "kind": "integer",
-          "column": "player_id",
-          "references": "players"
-        },
-        {
-          "field": "achievementId",
-          "kind": "integer",
-          "column": "achievement_id",
-          "references": "achievements"
-        },
-        {
-          "field": "unlockedAt",
-          "kind": "timestamp",
-          "column": "unlocked_at",
-          "references": null
-        }
-      ],
-      "selectType": "PlayerAchievement",
-      "insertType": "NewPlayerAchievement",
-      "migrationTouchpoints": [
-        "migrations/0000_light_toro.sql",
         "migrations/schema.ts"
       ]
     },
@@ -232,6 +155,7 @@
       "insertType": "NewPlayer",
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
+        "migrations/0007_blue_edwin_jarvis.sql",
         "migrations/004_add_inactivity_exemptions.sql",
         "migrations/007_add_signups.sql",
         "migrations/009_add_weekly_unavailable.sql",
@@ -289,6 +213,7 @@
       "selectType": "SiteSetting",
       "insertType": "NewSiteSetting",
       "migrationTouchpoints": [
+        "migrations/0007_blue_edwin_jarvis.sql",
         "migrations/007_add_signups.sql",
         "migrations/008_add_signup_close_settings.sql"
       ]
@@ -331,6 +256,7 @@
       "selectType": "WeeklySignup",
       "insertType": "NewWeeklySignup",
       "migrationTouchpoints": [
+        "migrations/0007_blue_edwin_jarvis.sql",
         "migrations/007_add_signups.sql"
       ]
     },
@@ -366,6 +292,7 @@
       "selectType": "WeeklyUnavailable",
       "insertType": "NewWeeklyUnavailable",
       "migrationTouchpoints": [
+        "migrations/0007_blue_edwin_jarvis.sql",
         "migrations/009_add_weekly_unavailable.sql",
         "migrations/README.md"
       ]

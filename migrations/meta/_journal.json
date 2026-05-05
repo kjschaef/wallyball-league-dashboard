@@ -50,6 +50,20 @@
       "when": 1758585908402,
       "tag": "009_add_weekly_unavailable",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1777601372929,
+      "tag": "0007_blue_edwin_jarvis",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1777601560048,
+      "tag": "0008_nervous_firestar",
+      "breakpoints": true
     }
   ]
 }
