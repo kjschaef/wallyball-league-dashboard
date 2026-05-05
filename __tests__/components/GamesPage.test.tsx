@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import GamesPage from '@/app/games/page';
 import { AdminProvider } from '@/app/components/AdminProvider';
@@ -72,7 +72,7 @@ describe('GamesPage admin authentication flow', () => {
       };
     });
 
-    render(<AdminProvider><GamesPage /></AdminProvider>);
+    await act(async () => { render(<AdminProvider><GamesPage /></AdminProvider>); });
 
     expect(await screen.findByText('Alice and Bob')).toBeInTheDocument();
 

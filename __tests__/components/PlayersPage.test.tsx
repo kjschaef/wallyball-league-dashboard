@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PlayersPage from '@/app/players/page';
 import { AdminProvider } from '@/app/components/AdminProvider';
@@ -79,7 +79,7 @@ describe('PlayersPage admin authentication flow', () => {
       return { ok: true, json: async () => players };
     });
 
-    render(<AdminProvider><PlayersPage /></AdminProvider>);
+    await act(async () => { render(<AdminProvider><PlayersPage /></AdminProvider>); });
 
     expect(await screen.findByText('Alice')).toBeInTheDocument();
 
@@ -120,7 +120,7 @@ describe('PlayersPage admin authentication flow', () => {
       return { ok: true, json: async () => players };
     });
 
-    render(<AdminProvider><PlayersPage /></AdminProvider>);
+    await act(async () => { render(<AdminProvider><PlayersPage /></AdminProvider>); });
 
     expect(await screen.findByText('Bob')).toBeInTheDocument();
 
