@@ -1,9 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 type OverrideEntry = {
   match: string;
@@ -226,7 +222,7 @@ const CONTEXT_LIMITS: Record<string, number> = {
   'agent-context/notes.md': 12_000,
 };
 
-const ROOT_DIR = path.resolve(__dirname, '..');
+const ROOT_DIR = process.cwd();
 
 function normalizePath(filePath: string): string {
   return filePath.split(path.sep).join('/');
@@ -1029,7 +1025,14 @@ function writeGeneratedFiles(rootDir: string, outputs: Record<string, string>): 
   }
 }
 
-if (import.meta.url.startsWith('file:') && fileURLToPath(import.meta.url) === __filename) {
+// In the sandbox environment, __filename might be pre-defined but not in the way we expect
+// for ESM/CJS detection. We use a more robust check for running as main.
+const isMain = process.argv[1] && (
+  process.argv[1].endsWith('generate-agent-context.ts') ||
+  process.argv[1].endsWith('generate-agent-context.js')
+);
+
+if (isMain) {
   (async () => {
     try {
       const outputs = await buildAgentContext(ROOT_DIR);

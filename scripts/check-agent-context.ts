@@ -1,13 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 import { buildAgentContext, loadOverrides, validateContextFiles } from './generate-agent-context.ts';
 
-const ROOT_DIR = path.resolve(__dirname, '..');
+const ROOT_DIR = process.cwd();
 
 function normalizePath(filePath: string): string {
   return filePath.split(path.sep).join('/');
