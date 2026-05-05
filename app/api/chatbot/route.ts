@@ -116,7 +116,6 @@ export async function POST(request: NextRequest) {
     } else {
       // Use LLM to detect intent
       const intent = await detectIntent(message);
-      console.log('Detected intent:', intent);
 
       if (intent === 'rules_query') {
         // Rules query
@@ -124,7 +123,6 @@ export async function POST(request: NextRequest) {
         response = rulesResult.response;
         responseType = 'rules_query';
         additionalData = { usedRules: rulesResult.usedRules };
-        console.log('Rules result usedRules:', rulesResult.usedRules);
       } else {
         // General performance analysis or general chat
         // We treat general chat as performance analysis for now to keep the persona consistent
@@ -133,7 +131,6 @@ export async function POST(request: NextRequest) {
         response = analysisResult.response;
         responseType = 'performance_analysis';
         additionalData = { usedRules: analysisResult.usedRules };
-        console.log('Analysis result usedRules:', analysisResult.usedRules);
       }
     }
 

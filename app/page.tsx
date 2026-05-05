@@ -121,8 +121,7 @@ export default function DashboardPage() {
     });
   };
 
-  const completeMatchRecording = (newMatch: unknown) => {
-    console.log('Match recorded:', newMatch);
+  const completeMatchRecording = (_newMatch: unknown) => {
     setShowRecordMatchModal(false);
     resetMatchFlow();
     setRefreshKey(prev => prev + 1);

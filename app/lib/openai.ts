@@ -104,7 +104,6 @@ export async function detectIntent(query: string): Promise<'rules_query' | 'perf
     });
 
     const content = response.choices[0].message.content?.trim().toLowerCase() || 'general_chat';
-    console.log(`[detectIntent] Query: "${query}" -> Raw LLM response: "${content}"`);
 
     if (content.includes('rules')) return 'rules_query';
     if (content.includes('performance') || content.includes('analysis')) return 'performance_analysis';
@@ -130,7 +129,6 @@ async function shouldConsultRules(query: string): Promise<boolean> {
       max_completion_tokens: 1000
     });
     const content = response.choices[0].message.content?.trim().toUpperCase() || '';
-    console.log(`[shouldConsultRules] Query: "${query}" -> Raw LLM response: "${content}"`);
     return content.includes('YES');
   } catch (error) {
     console.error('Error checking for rules:', error);
@@ -154,19 +152,14 @@ export async function analyzePlayerPerformance(
     const lifetimeSummary = formatPlayerSummary(lifetimePlayers);
     const currentSeasonSummary = formatPlayerSummary(currentSeasonPlayers);
 
-    console.log('[analyzePlayerPerformance] First lifetime player raw:', JSON.stringify(lifetimePlayers[0], null, 2));
-    console.log('[analyzePlayerPerformance] First lifetime summary:', JSON.stringify(lifetimeSummary[0], null, 2));
-
     // Check if the query is about rules and get context from RAG
     let rulesContext = '';
     let usedRules = false;
 
     const needsRules = await shouldConsultRules(query);
-    console.log(`[analyzePlayerPerformance] needsRules: ${needsRules}`);
 
     if (needsRules) {
       const rulesResult = await searchWallyballRules(query);
-      console.log(`[analyzePlayerPerformance] RAG search found ${rulesResult.usedRules ? 'results' : 'NO results'}`);
       rulesContext = `\n\nRelevant Wallyball Rules:\n${rulesResult.text}`;
       usedRules = rulesResult.usedRules;
     }
@@ -185,8 +178,6 @@ export async function analyzePlayerPerformance(
         }
       ]
     });
-
-    console.log('[analyzePlayerPerformance] Response:', JSON.stringify(response, null, 2));
 
     return {
       response: response.choices[0].message.content || "Unable to analyze performance data.",
@@ -219,8 +210,6 @@ export async function queryWallyballRules(query: string): Promise<{ response: st
       ],
       max_completion_tokens: 2000
     });
-
-    console.log('[queryWallyballRules] Response:', JSON.stringify(response, null, 2));
 
     return {
       response: response.choices[0].message.content || "Unable to find information about that rule.",
@@ -323,8 +312,7 @@ CRITICAL: Only focus on finding letters - do NOT try to identify teams or count 
       try {
         return JSON.parse(content);
       } catch (parseError) {
-        console.log('JSON Parse Error in findPlayersInImage:', parseError);
-        console.log('Content:', content);
+        console.error('JSON Parse Error in findPlayersInImage:', parseError);
         return { error: "Could not parse player letters from the image." };
       }
     } else {
@@ -436,8 +424,7 @@ CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about t
       try {
         return JSON.parse(content);
       } catch (parseError) {
-        console.log('JSON Parse Error in analyzeMatchesWithConfirmedPlayers:', parseError);
-        console.log('Content:', content);
+        console.error('JSON Parse Error in analyzeMatchesWithConfirmedPlayers:', parseError);
         return { error: "Could not parse match results from the image." };
       }
     } else {
@@ -670,8 +657,7 @@ REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first le
       try {
         return JSON.parse(content);
       } catch (parseError) {
-        console.log('JSON Parse Error:', parseError);
-        console.log('Content that failed to parse:', content);
+        console.error('JSON Parse Error:', parseError);
         return {
           error: "Could not parse team groupings from the image.",
           rawResponse: content.substring(0, 500)
