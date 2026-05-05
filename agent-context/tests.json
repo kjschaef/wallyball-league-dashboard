@@ -133,6 +133,14 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/playerFiltering.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/constants.ts",
+        "app/lib/playerFiltering.ts"
+      ]
+    },
+    {
       "path": "app/lib/__tests__/signups.test.ts",
       "kind": "app-lib",
       "covers": [
@@ -217,6 +225,12 @@
     ],
     "app/games/page.tsx": [
       "__tests__/components/GamesPage.test.tsx"
+    ],
+    "app/lib/constants.ts": [
+      "app/lib/__tests__/playerFiltering.test.ts"
+    ],
+    "app/lib/playerFiltering.ts": [
+      "app/lib/__tests__/playerFiltering.test.ts"
     ],
     "app/lib/signups.ts": [
       "app/lib/__tests__/signups.test.ts"
