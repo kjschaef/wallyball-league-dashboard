@@ -24,13 +24,13 @@
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
-        "app/components/PlayerAchievements.tsx",
         "app/components/PlayerCard.tsx",
         "app/components/PlayerCards.tsx",
         "app/components/PlayerGrid.tsx",
         "app/components/PlayerPerformanceRadar.tsx",
         "app/components/PlayerSelector.tsx",
-        "app/components/PlayerSelectorDialog.tsx"
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/components/RecentMatches.tsx"
       ],
       "testCommands": [
         "pnpm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx"

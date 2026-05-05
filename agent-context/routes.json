@@ -19,27 +19,6 @@
     },
     {
       "kind": "api",
-      "route": "/api/achievements/check/[playerId]",
-      "file": "app/api/achievements/check/[playerId]/route.ts",
-      "params": [
-        "playerId"
-      ],
-      "likelySourceFiles": [
-        "db/config.ts",
-        "db/schema.ts"
-      ]
-    },
-    {
-      "kind": "api",
-      "route": "/api/achievements/player/[playerId]",
-      "file": "app/api/achievements/player/[playerId]/route.ts",
-      "params": [
-        "playerId"
-      ],
-      "likelySourceFiles": []
-    },
-    {
-      "kind": "api",
       "route": "/api/auth",
       "file": "app/api/auth/route.ts",
       "params": [],
