@@ -32,3 +32,7 @@
 ## 2024-05-22 - Selection Buttons and aria-pressed
 **Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
 **Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.
+
+## 2024-05-23 - Interactive Element Refactoring
+**Learning:** Replacing `role="button"` elements that require custom `tabIndex` and `onKeyDown` attributes with native `<button>` tags simplifies the DOM, reduces custom JavaScript overhead for a11y, and automatically provides standard behaviors (Space/Enter to trigger, correct disabled states).
+**Action:** Replace `role="button"` on static structural elements like `div`s with semantic `<button type="button">` tags. Add class combinations like `w-full text-left` to maintain the block layout visually while keeping it natively accessible. Use the `disabled` attribute instead of checking custom selection flags to block interactions.
