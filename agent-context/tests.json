@@ -119,6 +119,13 @@
       ]
     },
     {
+      "path": "app/components/__tests__/AdminLoginModal.test.tsx",
+      "kind": "component",
+      "covers": [
+        "app/components/AdminLoginModal.tsx"
+      ]
+    },
+    {
       "path": "app/components/__tests__/PerformanceControls.test.tsx",
       "kind": "component",
       "covers": [
@@ -208,6 +215,9 @@
     ],
     "app/api/team-performance/route.ts": [
       "__tests__/api/team-performance.test.ts"
+    ],
+    "app/components/AdminLoginModal.tsx": [
+      "app/components/__tests__/AdminLoginModal.test.tsx"
     ],
     "app/components/AdminProvider.tsx": [
       "__tests__/components/DashboardPage.test.tsx",
