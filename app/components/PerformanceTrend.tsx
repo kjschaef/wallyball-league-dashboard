@@ -357,7 +357,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                 <button
                   type="button"
                   onClick={resetZoom}
-                  className="rounded border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                  className="rounded border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   Reset zoom
                 </button>
