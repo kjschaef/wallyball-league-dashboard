@@ -9,3 +9,7 @@
 ## 2026-05-07 - Jest NextRequest json parsing behavior
 **Learning:** When mocking Next.js API `POST` requests in Jest, initializing `NextRequest` objects with stringified bodies often causes unexpected parsing errors during `await request.json()`. Using a generic `Request` fallback or constructing a custom mock object that explicitly defines the `json()` resolver method bypasses these stringify bugs and stabilizes tests.
 **Action:** Use a custom mock function like `createMockRequest(bodyObj) { return { json: async () => bodyObj } as Request; }` to predictably resolve `await request.json()` calls in Next.js App Router API tests.
+
+## 2024-05-12 - Handling Environment Timezone Dependencies
+**Learning:** When testing timezone-specific utility functions like `getEasternWallTimeNow`, the local system running the tests may apply unexpected string formatting or offset behaviors inside CI vs. dev environments, making exact string assertions flaky.
+**Action:** Instead of strictly mocking temporal configuration via process.env.TZ or asserting specific offsets, test the conversion logic by instantiating deterministic input dates via UTC (`Z` notation) and verifying output via parameter-matched `toLocaleString('en-US', { timeZone: 'America/New_York' })`. This evaluates the relative conversion without failing on underlying CI machine timezone discrepancies.
