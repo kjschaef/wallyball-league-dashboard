@@ -32,3 +32,7 @@
 ## 2024-05-22 - Selection Buttons and aria-pressed
 **Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
 **Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.
+
+## 2024-05-23 - Tablist vs Toggle Buttons
+**Learning:** Using `role="tablist"` on a container of metric toggles is inappropriate unless full keyboard navigation (left/right arrow keys to switch tabs) is implemented. For simple `<button>` groups where each button changes a metric or view on click, they function as independent toggle buttons.
+**Action:** Remove `role="tablist"` from containers of toggle options. Instead, treat them as standard buttons. Apply `aria-pressed={boolean}` to correctly announce the selected state to screen readers, ensure they use the correct focus indicators (`focus-visible:ring`), and adjust adjacent border radii (e.g. `rounded-l-md`, `rounded-r-md`) and z-indices (`focus-visible:z-10`) so the focus ring isn't clipped by neighboring buttons.
