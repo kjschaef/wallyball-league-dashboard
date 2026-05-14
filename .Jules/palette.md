@@ -32,3 +32,7 @@
 ## 2024-05-22 - Selection Buttons and aria-pressed
 **Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
 **Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.
+
+## 2024-05-14 - Interactive element focus visibility
+**Learning:** Native `<button>` elements in this application frequently lack clear visual focus indicators for keyboard users because the default browser outline is disabled (via `focus-visible:outline-none`) but a replacement focus ring is sometimes omitted or incomplete.
+**Action:** Always ensure that custom button implementations, particularly those outside of standard UI libraries, include complete focus styling (`focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[color]-500`) when applying `focus-visible:outline-none`.
