@@ -32,3 +32,7 @@
 ## 2024-05-22 - Selection Buttons and aria-pressed
 **Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
 **Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.
+
+## 2024-05-23 - Metric Toggle Buttons and aria-pressed
+**Learning:** Toggle buttons grouped together visually (like the Metric selector for Win % vs Total Wins) are sometimes incorrectly wrapped in a `role="tablist"`. This creates accessibility issues because true tablists require full keyboard navigation (arrow keys) and paired `tabpanel` elements. Removing the tablist role and instead using `aria-pressed={boolean}` correctly identifies them as simple toggle buttons to screen readers without breaking keyboard expectations.
+**Action:** When creating visual "tab" selectors that merely toggle state or filter data without revealing new panels, use standard buttons with `aria-pressed` and ensure they have prominent focus styles (e.g. `focus-visible:ring-2 focus-visible:z-10`). Avoid `role="tablist"` unless implementing the full W3C ARIA tab pattern.
