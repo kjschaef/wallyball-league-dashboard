@@ -16,6 +16,13 @@
       ]
     },
     {
+      "path": "__tests__/api/feedback.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/feedback/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/matches.test.ts",
       "kind": "test",
       "covers": [
@@ -183,6 +190,9 @@
     ],
     "app/api/daily-summary/route.ts": [
       "__tests__/api/daily-summary.test.ts"
+    ],
+    "app/api/feedback/route.ts": [
+      "__tests__/api/feedback.test.ts"
     ],
     "app/api/matches/route.ts": [
       "__tests__/api/matches.test.ts"
