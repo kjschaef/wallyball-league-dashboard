@@ -32,3 +32,6 @@
 ## 2024-05-22 - Selection Buttons and aria-pressed
 **Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
 **Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.
+## 2024-05-18 - Nested Interactive Elements
+**Learning:** Replacing custom `<div role="button">` containers with native semantic `<button>` elements is highly effective for accessibility. It prevents nested interactive element issues (e.g., `<button>` inside `<div role="button">`) and ensures native keyboard support without manual `tabIndex` or `onKeyDown` listeners.
+**Action:** When refactoring interactive containers, use a native `<button>` and apply `w-full text-left` to preserve layout. Convert any previously clickable inner elements (like toggle icons) to non-interactive decorative elements (e.g., `<span aria-hidden="true">`).
