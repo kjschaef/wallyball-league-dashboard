@@ -32,3 +32,10 @@
 ## 2024-05-22 - Selection Buttons and aria-pressed
 **Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
 **Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.
+## 2024-05-23 - Custom Tablist Containers
+**Learning:** Container s with `role="tablist"` frequently lack correct semantic children (`role="tab"`) and keyboard event listeners (arrow keys) expected by screen readers, making them inaccessible.
+**Action:** Unless implementing full custom tab keyboard navigation, remove `role="tablist"` and replace custom nested toggles with standard `<button>` elements. Ensure these buttons include `aria-pressed={boolean}` and appropriate focus styles (`focus-visible:ring`). When buttons are adjacent, use `focus-visible:z-10` to ensure focus rings are fully visible.
+
+## 2024-05-23 - Custom Tablist Containers
+**Learning:** Container `div`s with `role="tablist"` frequently lack correct semantic children (`role="tab"`) and keyboard event listeners (arrow keys) expected by screen readers, making them inaccessible.
+**Action:** Unless implementing full custom tab keyboard navigation, remove `role="tablist"` and replace custom nested toggles with standard `<button>` elements. Ensure these buttons include `aria-pressed={boolean}` and appropriate focus styles (`focus-visible:ring`). When buttons are adjacent, use `focus-visible:z-10` to ensure focus rings are fully visible.
