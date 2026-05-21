@@ -75,21 +75,21 @@ export function PlayerGrid({
                   : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
                 }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">{player.name}</h3>
+              <span className="flex items-center justify-between mb-2">
+                <span className="font-medium text-base">{player.name}</span>
                 {player.winPercentage && (
-                  <div className={`text-sm font-medium ${getWinPercentageColor(player.winPercentage)}`}>
+                  <span className={`text-sm font-medium ${getWinPercentageColor(player.winPercentage)}`}>
                     {player.winPercentage}%
-                  </div>
+                  </span>
                 )}
-              </div>
+              </span>
 
               {(player.record) && (
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <span className="flex items-center justify-between text-xs text-gray-500">
                   {player.record && (
                     <span>{player.record.wins}W - {player.record.losses}L</span>
                   )}
-                </div>
+                </span>
               )}
 
 
