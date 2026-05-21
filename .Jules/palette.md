@@ -32,6 +32,6 @@
 ## 2024-05-22 - Selection Buttons and aria-pressed
 **Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
 **Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.
-## 2026-05-21 - Refactoring <div role="button"> to semantic <button> in Grid Items
+## 2024-05-23 - Refactoring <div role="button"> to semantic <button> in Grid Items
 **Learning:** React elements utilizing `role="button"` and custom key event handlers can often introduce subtle accessibility bugs or tabIndex issues compared to native elements. In this app, many selectable grid items were built as divs.
 **Action:** Replace custom `<div role="button">` containers with native semantic `<button>` elements (adding utility classes like `w-full text-left block` to preserve layout) to handle keyboard navigation natively without manual tabIndex or onKeyDown listeners.
