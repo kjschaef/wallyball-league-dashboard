@@ -62,45 +62,38 @@ export function PlayerGrid({
 
 
           return (
-            <div
+            <button
+              type="button"
               key={player.id}
               onClick={() => canSelect && handlePlayerClick(player.id)}
-              onKeyDown={(e) => {
-                if (canSelect && (e.key === 'Enter' || e.key === ' ')) {
-                  e.preventDefault();
-                  handlePlayerClick(player.id);
-                }
-              }}
-              tabIndex={canSelect ? 0 : -1}
-              role="button"
+              disabled={!canSelect}
               aria-pressed={isSelected}
-              aria-disabled={!canSelect}
-              className={`p-3 border rounded-lg cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${isSelected
+              className={`w-full text-left block p-3 border rounded-lg cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${isSelected
                 ? 'border-blue-500 bg-blue-50'
                 : canSelect
                   ? 'border-gray-200 hover:border-gray-300'
                   : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
                 }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">{player.name}</h3>
+              <span className="flex items-center justify-between mb-2">
+                <span className="font-medium text-base">{player.name}</span>
                 {player.winPercentage && (
-                  <div className={`text-sm font-medium ${getWinPercentageColor(player.winPercentage)}`}>
+                  <span className={`text-sm font-medium ${getWinPercentageColor(player.winPercentage)}`}>
                     {player.winPercentage}%
-                  </div>
+                  </span>
                 )}
-              </div>
+              </span>
 
               {(player.record) && (
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <span className="flex items-center justify-between text-xs text-gray-500">
                   {player.record && (
                     <span>{player.record.wins}W - {player.record.losses}L</span>
                   )}
-                </div>
+                </span>
               )}
 
 
-            </div>
+            </button>
           );
         })}
       </div>
