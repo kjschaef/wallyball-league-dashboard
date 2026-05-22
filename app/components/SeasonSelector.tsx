@@ -22,12 +22,14 @@ export function SeasonSelector({ seasons = [], currentSeason = 'current', onSeas
         <button
           className={selected === 'current' ? 'bg-blue-600 text-white px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1'}
           onClick={() => onSeasonChange('current')}
+          aria-pressed={selected === 'current'}
         >
           Current Season
         </button>
         <button
           className={selected === 'lifetime' ? 'bg-blue-600 text-white px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1'}
           onClick={() => onSeasonChange('lifetime')}
+          aria-pressed={selected === 'lifetime'}
         >
           Lifetime Stats
         </button>
