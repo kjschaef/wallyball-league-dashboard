@@ -87,7 +87,7 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
 
         <div className="flex flex-col">
           <label id="metric-label" className="text-xs text-gray-500 mb-1">Metric</label>
-          <div className="inline-flex rounded-md shadow-sm bg-gray-100">
+          <div className="inline-flex rounded-md shadow-sm bg-gray-100" role="tablist">
             <button
               onClick={() => onChange({ metric: 'winPercentage' })}
               aria-pressed={metric === 'winPercentage'}
