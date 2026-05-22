@@ -9,7 +9,3 @@
 ## 2026-05-07 - Jest NextRequest json parsing behavior
 **Learning:** When mocking Next.js API `POST` requests in Jest, initializing `NextRequest` objects with stringified bodies often causes unexpected parsing errors during `await request.json()`. Using a generic `Request` fallback or constructing a custom mock object that explicitly defines the `json()` resolver method bypasses these stringify bugs and stabilizes tests.
 **Action:** Use a custom mock function like `createMockRequest(bodyObj) { return { json: async () => bodyObj } as Request; }` to predictably resolve `await request.json()` calls in Next.js App Router API tests.
-
-## 2026-05-09 - Avoid wrap render in act
-**Learning:** Wrapping `render()` inside `await act(async () => { ... })` is an anti-pattern in React Testing Library. The preferred approach to handle asynchronous state updates after initial render is to render the component normally and then wait for the expected UI changes using `waitFor` or `await screen.findBy*` queries.
-**Action:** When a component uses `useEffect` to set state asynchronously upon mount, render it normally and then use `waitFor` to wait for the expected DOM state instead of wrapping the entire render in `act`.

@@ -126,13 +126,6 @@
       ]
     },
     {
-      "path": "app/components/__tests__/AdminLoginModal.test.tsx",
-      "kind": "component",
-      "covers": [
-        "app/components/AdminLoginModal.tsx"
-      ]
-    },
-    {
       "path": "app/components/__tests__/PerformanceControls.test.tsx",
       "kind": "component",
       "covers": [
@@ -144,13 +137,6 @@
       "kind": "component",
       "covers": [
         "app/components/PerformanceTrend.tsx"
-      ]
-    },
-    {
-      "path": "app/components/__tests__/PlayerPerformanceRadar.test.tsx",
-      "kind": "component",
-      "covers": [
-        "app/components/PlayerPerformanceRadar.tsx"
       ]
     },
     {
@@ -244,9 +230,6 @@
     "app/components/PerformanceTrend.tsx": [
       "app/components/__tests__/PerformanceTrend.test.tsx"
     ],
-    "app/components/PlayerPerformanceRadar.tsx": [
-      "app/components/__tests__/PlayerPerformanceRadar.test.tsx"
-    ],
     "app/components/SeasonSelector.tsx": [
       "__tests__/components/SeasonSelector.test.tsx"
     ],
@@ -298,8 +281,7 @@
       "taskId": "player-crud",
       "tests": [
         "__tests__/components/DashboardPage.test.tsx",
-        "__tests__/components/PlayersPage.test.tsx",
-        "app/components/__tests__/PlayerPerformanceRadar.test.tsx"
+        "__tests__/components/PlayersPage.test.tsx"
       ],
       "gaps": [
         "app/api/players/route.ts",
