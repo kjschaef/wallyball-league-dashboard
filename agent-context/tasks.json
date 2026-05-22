@@ -33,11 +33,12 @@
         "app/components/RecentMatches.tsx"
       ],
       "testCommands": [
-        "pnpm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx"
+        "pnpm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx app/components/__tests__/PlayerPerformanceRadar.test.tsx"
       ],
       "mappedTests": [
         "__tests__/components/DashboardPage.test.tsx",
-        "__tests__/components/PlayersPage.test.tsx"
+        "__tests__/components/PlayersPage.test.tsx",
+        "app/components/__tests__/PlayerPerformanceRadar.test.tsx"
       ],
       "riskAreas": [
         "API responses are enriched and consumed directly by UI components.",
