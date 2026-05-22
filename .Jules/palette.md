@@ -32,3 +32,7 @@
 ## 2024-05-22 - Selection Buttons and aria-pressed
 **Learning:** Even when buttons exist within specialized contexts (like a list of `players`), if they act as a toggle or selectable item, they *must* declare `aria-pressed` explicitly, otherwise screen readers cannot determine if the user has selected them.
 **Action:** Always add `aria-pressed={boolean}` and `focus-visible:ring-2` to buttons acting as interactive selection items in grids or lists.
+## 2024-05-22 - Navigation Keyboard Support and active state
+
+**Learning:** Navigation links inside Next.js needed proper keyboard focus rings (`focus-visible`) and semantic active states (`aria-current="page"`) to make them accessible and navigable with a keyboard.
+**Action:** When creating navigation bars or sidebar menus, always ensure links receive explicit keyboard focus states and `aria-current` indicates the active page to screen readers.
