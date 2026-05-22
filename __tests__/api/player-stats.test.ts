@@ -26,6 +26,18 @@ jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => createMockSql()),
 }));
 
+// Mock the seasons module to allow testing dynamic imports
+jest.mock('@/lib/seasons', () => ({
+  listSeasons: jest.fn(() => [
+    { id: 20241, name: '2024 Q1', start_date: '2024-01-01', end_date: '2024-03-31', is_active: true }
+  ]),
+  getSeasonById: jest.fn((id) => {
+    if (id === 20241) return { id: 20241, name: '2024 Q1', start_date: '2024-01-01', end_date: '2024-03-31', is_active: true };
+    return null;
+  })
+}), { virtual: true });
+
+
 
 
 // Mock Next.js environment
@@ -948,6 +960,44 @@ describe('/api/player-stats', () => {
       });
 
       expect(jarod.winPercentage).toBe(0);
+    });
+  });
+
+  describe('Season filtering', () => {
+    it('should return stats for current season', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=current');
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+      expect(mockSql).toHaveBeenCalledWith('players');
+      expect(mockSql).toHaveBeenCalledWith('matches');
+    });
+
+    it('should return stats for lifetime season', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=lifetime');
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+    });
+
+    it('should return stats for a specific season ID', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=20241');
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+    });
+
+    it('should return 404 if season ID is not found', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=99999');
+      const response = await GET(request);
+      expect(response.status).toBe(404);
+      const data = await response.json();
+      expect(data.error).toBe('Season not found');
+    });
+
+    it('should return 400 for invalid season parameter', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=invalid-season');
+      const response = await GET(request);
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toContain('Invalid season parameter');
     });
   });
 });
