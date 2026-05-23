@@ -87,16 +87,18 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
 
         <div className="flex flex-col">
           <label id="metric-label" className="text-xs text-gray-500 mb-1">Metric</label>
-          <div className="inline-flex rounded-md shadow-sm bg-gray-100" role="tablist">
+          <div className="inline-flex rounded-md shadow-sm bg-gray-100">
             <button
+              aria-pressed={metric === 'winPercentage'}
               onClick={() => onChange({ metric: 'winPercentage' })}
-              className={`px-3 py-2 text-sm border-r ${metric === 'winPercentage' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent'}`}
+              className={`px-3 py-2 text-sm border-r rounded-l-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 ${metric === 'winPercentage' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent'}`}
             >
               Win %
             </button>
             <button
+              aria-pressed={metric === 'totalWins'}
               onClick={() => onChange({ metric: 'totalWins' })}
-              className={`px-3 py-2 text-sm ${metric === 'totalWins' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent'}`}
+              className={`px-3 py-2 text-sm rounded-r-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 ${metric === 'totalWins' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent'}`}
             >
               Total Wins
             </button>
