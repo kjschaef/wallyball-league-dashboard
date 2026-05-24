@@ -36,3 +36,7 @@
 
 **Learning:** Navigation links inside Next.js needed proper keyboard focus rings (`focus-visible`) and semantic active states (`aria-current="page"`) to make them accessible and navigable with a keyboard.
 **Action:** When creating navigation bars or sidebar menus, always ensure links receive explicit keyboard focus states and `aria-current` indicates the active page to screen readers.
+
+## 2024-05-23 - Metric Toggle Buttons and tablist
+**Learning:** Container elements for sets of toggle buttons (like "Win %" and "Total Wins" in metric selectors) are often mistakenly given `role="tablist"`. Unless these implement full keyboard arrow navigation per W3C ARIA tab patterns, they will fail accessibility checks or be confusing for screen reader users.
+**Action:** Remove `role="tablist"` from simple inline button groups. Instead, use standard `<button>` elements equipped with `aria-pressed={boolean}` and strong keyboard focus styles (`focus-visible:ring-2`, `focus-visible:z-10` to prevent clipping, and appropriate border radius `rounded-l-md/rounded-r-md` to match the container).
