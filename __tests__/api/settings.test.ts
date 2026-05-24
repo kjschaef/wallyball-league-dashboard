@@ -152,4 +152,124 @@ describe('/api/settings', () => {
     await expect(response.json()).resolves.toEqual({ success: true });
     expect(mockSql).toHaveBeenCalledWith('insert');
   });
+
+
+  it('handles GET error when DATABASE_URL is missing', async () => {
+    const orig = process.env.DATABASE_URL;
+    delete process.env.DATABASE_URL;
+    try {
+      const response = await GET();
+      expect(response.status).toBe(500);
+      await expect(response.json()).resolves.toEqual({ error: 'Failed to fetch settings' });
+    } finally {
+      process.env.DATABASE_URL = orig;
+    }
+  });
+
+  it('handles PUT error when DATABASE_URL is missing', async () => {
+    const orig = process.env.DATABASE_URL;
+    delete process.env.DATABASE_URL;
+    try {
+      mockCookieStore.get.mockReturnValue({ value: 'true' });
+      const response = await PUT({
+        json: async () => ({}),
+      } as Request);
+      expect(response.status).toBe(500);
+      await expect(response.json()).resolves.toEqual({ error: 'Failed to update settings' });
+    } finally {
+      process.env.DATABASE_URL = orig;
+    }
+  });
+
+  it('handles GET error gracefully', async () => {
+    mockSql.mockImplementation(() => Promise.reject(new Error('Mock DB Error')));
+    const response = await GET();
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: 'Failed to fetch settings' });
+  });
+
+  it('handles PUT error gracefully', async () => {
+    mockCookieStore.get.mockReturnValue({ value: 'true' });
+    mockSql.mockImplementation(() => Promise.reject(new Error('Mock DB Error')));
+    const response = await PUT({
+      json: async () => ({}),
+    } as Request);
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: 'Failed to update settings' });
+  });
+
+  it('uses default fallback values when db settings have null values for GET', async () => {
+    mockSql.mockImplementation((queryType) => {
+      if (queryType === 'settings') {
+        return Promise.resolve([{
+          signup_open_day_of_week: null,
+          signup_open_time: null,
+          signup_close_day_of_week: null,
+          signup_close_time: null,
+          available_days: null,
+        }]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      signupOpenDayOfWeek: 0,
+      signupOpenTime: '12:00',
+      signupCloseDayOfWeek: 0,
+      signupCloseTime: '16:00',
+      availableDays: ['Monday', 'Tuesday', 'Thursday'],
+    });
+  });
+
+  it('uses default fallback values when payload values are missing for PUT insert', async () => {
+    mockCookieStore.get.mockReturnValue({ value: 'true' });
+    mockSql.mockImplementation((queryType) => {
+      if (queryType === 'existing') {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const response = await PUT({
+      json: async () => ({
+        signupOpenTime: null,
+        signupCloseTime: null,
+        signupOpenDayOfWeek: null,
+        signupCloseDayOfWeek: null,
+        availableDays: null,
+        adminPassword: null,
+      }),
+    } as Request);
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ success: true });
+    expect(mockSql).toHaveBeenCalledWith('insert');
+  });
+
+  it('uses default fallback values when payload values are missing for PUT update', async () => {
+    mockCookieStore.get.mockReturnValue({ value: 'true' });
+    mockSql.mockImplementation((queryType) => {
+      if (queryType === 'existing') {
+        return Promise.resolve([{ id: 1 }]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const response = await PUT({
+      json: async () => ({
+        signupOpenTime: null,
+        signupCloseTime: null,
+        signupOpenDayOfWeek: null,
+        signupCloseDayOfWeek: null,
+        availableDays: null,
+        adminPassword: null,
+      }),
+    } as Request);
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ success: true });
+    expect(mockSql).toHaveBeenCalledWith('update');
+  });
 });

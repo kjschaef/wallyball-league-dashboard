@@ -17,3 +17,6 @@
 ## 2024-05-21 - [Added API feedback unit tests]
 **Learning:** Testing Next.js route handlers that take a `NextRequest` can be simplified in unit tests by casting a plain JS object that mimics the `json()` method. This avoids `NextRequest` constructor stringify bugs when not in a full integration environment.
 **Action:** When unit testing App Router POST API routes in Next.js, use a mock request object with an async `json()` method instead of instantiating `NextRequest` if simple body assertion is needed.
+## 2024-05-24 - Environment Variable Manipulation in Jest
+**Learning:** In Next.js App Router API testing, deleting required environment variables (like `DATABASE_URL`) without a fail-safe restoration block will silently pollute the process environment and cause subsequent tests to fail unexpectedly, since `process.env` mutations are global across the suite.
+**Action:** Always wrap code blocks that manipulate or delete global environment variables in a `try...finally` block, ensuring variables are explicitly restored in the `finally` statement so they reset even if assertions throw errors.
