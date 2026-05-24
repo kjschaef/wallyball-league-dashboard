@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { GET, POST } from '@/app/api/matches/route';
 
-import { cookies } from 'next/headers';
 
 // Mock the neon database connection
 const mockSql = jest.fn();
@@ -434,7 +433,7 @@ describe('/api/matches', () => {
       mockCookieStore.get.mockClear();
     });
 
-    const createMockRequest = (bodyObj: any) => {
+    const createMockRequest = (bodyObj: Record<string, unknown>) => {
       return {
         json: async () => bodyObj,
       } as Request;
