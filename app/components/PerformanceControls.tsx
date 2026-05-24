@@ -91,14 +91,14 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
             <button
               aria-pressed={metric === 'winPercentage'}
               onClick={() => onChange({ metric: 'winPercentage' })}
-              className={`px-3 py-2 text-sm border-r rounded-l-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 ${metric === 'winPercentage' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent'}`}
+              className={`px-3 py-2 text-sm border-r focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 rounded-l-md transition-colors ${metric === 'winPercentage' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
             >
               Win %
             </button>
             <button
               aria-pressed={metric === 'totalWins'}
               onClick={() => onChange({ metric: 'totalWins' })}
-              className={`px-3 py-2 text-sm rounded-r-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 ${metric === 'totalWins' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent'}`}
+              className={`px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 rounded-r-md transition-colors ${metric === 'totalWins' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
             >
               Total Wins
             </button>
@@ -163,7 +163,7 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
 
         <div className="ml-auto flex items-center">
           <button
-            className="text-sm text-gray-600 hover:text-gray-900"
+            className="text-sm text-gray-600 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 rounded px-2 py-1"
             onClick={() => onChange({ action: 'reset' })}
           >
             Reset

@@ -9,3 +9,7 @@
 ## 2026-05-07 - Jest NextRequest json parsing behavior
 **Learning:** When mocking Next.js API `POST` requests in Jest, initializing `NextRequest` objects with stringified bodies often causes unexpected parsing errors during `await request.json()`. Using a generic `Request` fallback or constructing a custom mock object that explicitly defines the `json()` resolver method bypasses these stringify bugs and stabilizes tests.
 **Action:** Use a custom mock function like `createMockRequest(bodyObj) { return { json: async () => bodyObj } as Request; }` to predictably resolve `await request.json()` calls in Next.js App Router API tests.
+
+## 2025-05-22 - Mocking ES module dependencies in route handlers
+**Learning:** In Next.js app router tests, when a route handler dynamically imports a utility module using `await import()`, standard `jest.mock()` at the top of the file successfully intercepts the import without needing complex setup.
+**Action:** When testing dynamic imports, use standard `jest.mock('path/to/module', () => ({ ... }), { virtual: true })` at the top level to intercept and provide mocked implementations of utility functions.
