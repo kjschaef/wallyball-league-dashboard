@@ -13,3 +13,7 @@
 ## 2025-05-22 - Mocking ES module dependencies in route handlers
 **Learning:** In Next.js app router tests, when a route handler dynamically imports a utility module using `await import()`, standard `jest.mock()` at the top of the file successfully intercepts the import without needing complex setup.
 **Action:** When testing dynamic imports, use standard `jest.mock('path/to/module', () => ({ ... }), { virtual: true })` at the top level to intercept and provide mocked implementations of utility functions.
+
+## 2024-05-21 - [Added API feedback unit tests]
+**Learning:** Testing Next.js route handlers that take a `NextRequest` can be simplified in unit tests by casting a plain JS object that mimics the `json()` method. This avoids `NextRequest` constructor stringify bugs when not in a full integration environment.
+**Action:** When unit testing App Router POST API routes in Next.js, use a mock request object with an async `json()` method instead of instantiating `NextRequest` if simple body assertion is needed.
