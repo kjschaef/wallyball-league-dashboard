@@ -16,7 +16,7 @@ export function Navbar() {
   return (
     <nav className="bg-gray-900 text-white p-4">
       <div className="container mx-auto flex flex-wrap items-center justify-between">
-        <Link href="/" className="font-bold text-lg">
+        <Link href="/" className="font-bold text-lg rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
           Wallyball League
         </Link>
 
@@ -24,25 +24,29 @@ export function Navbar() {
           <div className="flex space-x-1">
             <Link 
               href="/" 
-              className={`px-3 py-2 rounded ${isActive('/') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+              aria-current={isActive('/') ? 'page' : undefined}
+              className={`px-3 py-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${isActive('/') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
             >
               Dashboard
             </Link>
             <Link 
               href="/results" 
-              className={`px-3 py-2 rounded ${isActive('/results') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+              aria-current={isActive('/results') ? 'page' : undefined}
+              className={`px-3 py-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${isActive('/results') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
             >
               Results
             </Link>
             <Link 
               href="/signups" 
-              className={`px-3 py-2 rounded ${isActive('/signups') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+              aria-current={isActive('/signups') ? 'page' : undefined}
+              className={`px-3 py-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${isActive('/signups') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
             >
               Signups
             </Link>
             <Link 
               href="/settings" 
-              className={`px-3 py-2 rounded ${isActive('/settings') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+              aria-current={isActive('/settings') ? 'page' : undefined}
+              className={`px-3 py-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${isActive('/settings') ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
             >
               Settings
             </Link>
@@ -51,7 +55,7 @@ export function Navbar() {
           <div className="pl-4 border-l border-gray-700">
             <button
               onClick={isAdmin ? logout : login}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                 isAdmin 
                   ? 'bg-emerald-900/50 text-emerald-400 hover:bg-emerald-900/80 border border-emerald-800' 
                   : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300 border border-gray-700'
