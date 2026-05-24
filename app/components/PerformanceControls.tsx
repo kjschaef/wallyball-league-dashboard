@@ -87,18 +87,18 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
 
         <div className="flex flex-col">
           <label id="metric-label" className="text-xs text-gray-500 mb-1">Metric</label>
-          <div className="inline-flex rounded-md shadow-sm bg-gray-100" role="tablist">
+          <div className="inline-flex rounded-md shadow-sm bg-gray-100">
             <button
-              onClick={() => onChange({ metric: 'winPercentage' })}
               aria-pressed={metric === 'winPercentage'}
-              className={`px-3 py-2 text-sm border-r focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:z-10 rounded-l-md transition-colors ${metric === 'winPercentage' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
+              onClick={() => onChange({ metric: 'winPercentage' })}
+              className={`px-3 py-2 text-sm border-r focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 rounded-l-md transition-colors ${metric === 'winPercentage' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
             >
               Win %
             </button>
             <button
-              onClick={() => onChange({ metric: 'totalWins' })}
               aria-pressed={metric === 'totalWins'}
-              className={`px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:z-10 rounded-r-md transition-colors ${metric === 'totalWins' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
+              onClick={() => onChange({ metric: 'totalWins' })}
+              className={`px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 rounded-r-md transition-colors ${metric === 'totalWins' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
             >
               Total Wins
             </button>
