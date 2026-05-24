@@ -1,115 +1,136 @@
-import { POST } from '@/app/api/feedback/route';
+import { NextRequest } from 'next/server';
+import { POST } from '../../app/api/feedback/route';
 
-describe('/api/feedback POST', () => {
-  let consoleLogSpy: jest.SpyInstance;
-  let consoleErrorSpy: jest.SpyInstance;
+// Helper to create a NextRequest mock
+const createMockRequest = (body: any, rejectJson = false) => {
+  return {
+    json: jest.fn().mockImplementation(() => {
+      if (rejectJson) {
+        return Promise.reject(new Error('Invalid JSON'));
+      }
+      return Promise.resolve(body);
+    }),
+  } as unknown as NextRequest;
+};
+
+describe('POST /api/feedback', () => {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+  let mockConsoleLog: jest.Mock;
+  let mockConsoleError: jest.Mock;
 
   beforeEach(() => {
-    // Mock console methods to keep test output clean and verify logging behavior
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockConsoleLog = jest.fn();
+    mockConsoleError = jest.fn();
+    console.log = mockConsoleLog;
+    console.error = mockConsoleError;
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    console.log = originalConsoleLog;
+    console.error = originalConsoleError;
   });
 
-  it('successfully processes valid positive feedback', async () => {
-    // Arrange: Mock the request object with a valid feedback payload
-    const mockRequest = {
-      json: async () => ({
-        messageIndex: 1,
-        feedbackType: 'positive',
-        feedbackText: 'Great response!',
-        chatTranscript: [
-          { role: 'user', content: 'Hello', timestamp: '2023-01-01T00:00:00Z' },
-          { role: 'assistant', content: 'Hi there', timestamp: '2023-01-01T00:00:01Z' }
-        ]
-      })
-    } as any;
-
-    // Act: Call the POST handler
-    const response = await POST(mockRequest);
-
-    // Assert: Verify successful response and console logging
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data).toEqual({
-      success: true,
-      message: 'Feedback submitted successfully'
+  it('returns 400 Bad Request when feedbackText is missing', async () => {
+    const request = createMockRequest({
+      messageIndex: 1,
+      feedbackType: 'negative',
+      chatTranscript: []
     });
 
-    expect(consoleLogSpy).toHaveBeenCalled();
-    const logOutput = consoleLogSpy.mock.calls[0][0];
-    expect(logOutput).toContain('FEEDBACK TYPE: Positive');
-    expect(logOutput).toContain('MESSAGE INDEX: 1');
-    expect(logOutput).toContain('Great response!');
-    expect(logOutput).toContain('<-- FEEDBACK FOR THIS MESSAGE');
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({ error: 'Feedback text is required' });
   });
 
-  it('successfully processes valid negative feedback', async () => {
-    // Arrange: Mock the request object with negative feedback
-    const mockRequest = {
-      json: async () => ({
-        messageIndex: 0,
-        feedbackType: 'negative',
-        feedbackText: 'Not helpful',
-        chatTranscript: [
-          { role: 'assistant', content: 'Here is some info', timestamp: '2023-01-01T00:00:00Z' }
-        ]
-      })
-    } as any;
+  it('returns 400 Bad Request when feedbackText is empty or just whitespace', async () => {
+    const request = createMockRequest({
+      messageIndex: 1,
+      feedbackType: 'negative',
+      feedbackText: '   ',
+      chatTranscript: []
+    });
 
-    // Act: Call the POST handler
-    const response = await POST(mockRequest);
+    const response = await POST(request);
+    const data = await response.json();
 
-    // Assert: Verify successful response and logging of negative feedback
+    expect(response.status).toBe(400);
+    expect(data).toEqual({ error: 'Feedback text is required' });
+  });
+
+  it('processes feedback successfully and logs properly formatted output', async () => {
+    const request = createMockRequest({
+      messageIndex: 1,
+      feedbackType: 'negative',
+      feedbackText: 'This response was not helpful.',
+      chatTranscript: [
+        {
+          role: 'user',
+          content: 'Hello',
+          timestamp: '2023-10-25T10:00:00Z'
+        },
+        {
+          role: 'assistant',
+          content: 'How can I help?',
+          timestamp: '2023-10-25T10:00:05Z'
+        }
+      ]
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual({ success: true, message: 'Feedback submitted successfully' });
+
+    // Verify logging format
+    expect(mockConsoleLog).toHaveBeenCalledTimes(1);
+    const logOutput = mockConsoleLog.mock.calls[0][0];
+
+    expect(logOutput).toContain('FEEDBACK TYPE: Needs Improvement');
+    expect(logOutput).toContain('MESSAGE INDEX: 1');
+    expect(logOutput).toContain('This response was not helpful.');
+    expect(logOutput).toContain('USER: Hello');
+    expect(logOutput).toContain('ASSISTANT: How can I help? <-- FEEDBACK FOR THIS MESSAGE');
+  });
+
+  it('processes positive feedback correctly', async () => {
+    const request = createMockRequest({
+      messageIndex: 0,
+      feedbackType: 'positive',
+      feedbackText: 'Great answer!',
+      chatTranscript: [
+        {
+          role: 'assistant',
+          content: 'I am a helpful assistant.',
+          timestamp: '2023-10-25T10:00:00Z'
+        }
+      ]
+    });
+
+    const response = await POST(request);
     expect(response.status).toBe(200);
 
-    expect(consoleLogSpy).toHaveBeenCalled();
-    const logOutput = consoleLogSpy.mock.calls[0][0];
-    expect(logOutput).toContain('FEEDBACK TYPE: Needs Improvement');
+    expect(mockConsoleLog).toHaveBeenCalledTimes(1);
+    const logOutput = mockConsoleLog.mock.calls[0][0];
+    expect(logOutput).toContain('FEEDBACK TYPE: Positive');
   });
 
-  it('returns 400 when feedback text is missing or only whitespace', async () => {
-    // Arrange: Mock request with empty feedback text
-    const mockRequest = {
-      json: async () => ({
-        messageIndex: 1,
-        feedbackType: 'positive',
-        feedbackText: '   ', // empty string
-        chatTranscript: []
-      })
-    } as any;
+  it('returns 500 Internal Server Error when an exception occurs', async () => {
+    const request = createMockRequest(null, true);
 
-    // Act: Call the POST handler
-    const response = await POST(mockRequest);
-
-    // Assert: Verify bad request response
-    expect(response.status).toBe(400);
+    const response = await POST(request);
     const data = await response.json();
-    expect(data).toEqual({ error: 'Feedback text is required' });
 
-    expect(consoleLogSpy).not.toHaveBeenCalled();
-  });
-
-  it('returns 500 when JSON parsing fails', async () => {
-    // Arrange: Mock request that throws an error when parsing JSON
-    const mockRequest = {
-      json: async () => {
-        throw new Error('Invalid JSON');
-      }
-    } as any;
-
-    // Act: Call the POST handler
-    const response = await POST(mockRequest);
-
-    // Assert: Verify internal server error response
     expect(response.status).toBe(500);
-    const data = await response.json();
-    expect(data.error).toBe('Failed to submit feedback');
-    expect(data.details).toBe('Invalid JSON');
+    expect(data).toEqual({
+      error: 'Failed to submit feedback',
+      details: 'Invalid JSON'
+    });
 
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(mockConsoleError).toHaveBeenCalledTimes(1);
+    expect(mockConsoleError).toHaveBeenCalledWith('Error submitting feedback:', expect.any(Error));
   });
 });
