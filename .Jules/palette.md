@@ -40,3 +40,6 @@
 ## 2024-05-23 - Metric Toggle Buttons and tablist
 **Learning:** Container elements for sets of toggle buttons (like "Win %" and "Total Wins" in metric selectors) are often mistakenly given `role="tablist"`. Unless these implement full keyboard arrow navigation per W3C ARIA tab patterns, they will fail accessibility checks or be confusing for screen reader users.
 **Action:** Remove `role="tablist"` from simple inline button groups. Instead, use standard `<button>` elements equipped with `aria-pressed={boolean}` and strong keyboard focus styles (`focus-visible:ring-2`, `focus-visible:z-10` to prevent clipping, and appropriate border radius `rounded-l-md/rounded-r-md` to match the container).
+## 2024-05-25 - Add explicit focus indicators to inline interactive components
+**Learning:** React elements rendered as `<button>` via array mapping or within inline text blocks (e.g. "Read full report" links styled as buttons) often lack clear visual indication of keyboard focus in Tailwind projects unless explicit `focus-visible:ring` classes are applied, creating a trap for keyboard navigators.
+**Action:** Always append `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1` along with a brand-appropriate ring color to all mapped choices and text-inline interactive buttons.
