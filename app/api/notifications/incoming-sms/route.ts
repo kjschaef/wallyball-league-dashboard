@@ -60,9 +60,14 @@ export async function POST(request: Request) {
     // 1.5 Verify Twilio Webhook Signature
     const signature = request.headers.get('x-twilio-signature') || '';
     const authToken = process.env.TWILIO_AUTH_TOKEN || '';
-    const isTestOrDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isTest = process.env.NODE_ENV === 'test';
 
-    if (!isTestOrDev || signature) {
+    // We require signature verification if we are in production OR if a Twilio Auth Token is configured,
+    // but we allow bypassing during automated test suites (Jest).
+    const shouldVerify = (isProduction || !!authToken) && !isTest;
+
+    if (shouldVerify) {
       if (!signature || !authToken) {
         return new NextResponse(
           `<Response><Message>Error: Missing Twilio signature or configuration.</Message></Response>`,

@@ -92,14 +92,19 @@ export async function POST(request: Request) {
       const now = getEasternWallTimeNow();
       const currentDayOfWeek = now.getDay();
       const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
 
-      const { hours: targetHour } = parseTime(signupSettings.smsRemindersTime);
+      const { hours: targetHour, minutes: targetMinute } = parseTime(signupSettings.smsRemindersTime);
 
-      // Verify day and hour window match
-      if (currentDayOfWeek !== signupSettings.smsRemindersDayOfWeek || currentHour !== targetHour) {
+      // Verify day, hour, and minute window match
+      if (
+        currentDayOfWeek !== signupSettings.smsRemindersDayOfWeek ||
+        currentHour !== targetHour ||
+        currentMinute !== targetMinute
+      ) {
         return NextResponse.json({
           status: 'skipped',
-          reason: `Current time (${currentDayOfWeek} at ${currentHour}h) does not match schedule (${signupSettings.smsRemindersDayOfWeek} at ${targetHour}h)`,
+          reason: `Current time (${currentDayOfWeek} at ${currentHour}:${String(currentMinute).padStart(2, '0')}) does not match schedule (${signupSettings.smsRemindersDayOfWeek} at ${targetHour}:${String(targetMinute).padStart(2, '0')})`,
         });
       }
     }
