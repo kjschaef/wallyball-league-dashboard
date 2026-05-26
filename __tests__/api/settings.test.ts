@@ -229,6 +229,9 @@ describe('/api/settings', () => {
       signupCloseDayOfWeek: 0,
       signupCloseTime: '16:00',
       availableDays: ['Monday', 'Tuesday', 'Thursday'],
+      smsRemindersEnabled: false,
+      smsRemindersDayOfWeek: 3,
+      smsRemindersTime: '12:00',
     });
   });
 
