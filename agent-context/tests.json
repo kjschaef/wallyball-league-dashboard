@@ -16,6 +16,13 @@
       ]
     },
     {
+      "path": "__tests__/api/feedback.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/feedback/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/matches.test.ts",
       "kind": "test",
       "covers": [
@@ -71,6 +78,13 @@
       "kind": "test",
       "covers": [
         "app/api/team-performance/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/components/AdminLoginModal.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/AdminLoginModal.tsx"
       ]
     },
     {
@@ -191,6 +205,9 @@
     "app/api/daily-summary/route.ts": [
       "__tests__/api/daily-summary.test.ts"
     ],
+    "app/api/feedback/route.ts": [
+      "__tests__/api/feedback.test.ts"
+    ],
     "app/api/matches/route.ts": [
       "__tests__/api/matches.test.ts"
     ],
@@ -215,6 +232,9 @@
     ],
     "app/api/team-performance/route.ts": [
       "__tests__/api/team-performance.test.ts"
+    ],
+    "app/components/AdminLoginModal.tsx": [
+      "__tests__/components/AdminLoginModal.test.tsx"
     ],
     "app/components/AdminProvider.tsx": [
       "__tests__/components/DashboardPage.test.tsx",
