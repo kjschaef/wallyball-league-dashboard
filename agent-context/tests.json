@@ -104,14 +104,6 @@
       ]
     },
     {
-      "path": "__tests__/components/PlayersPage.test.tsx",
-      "kind": "test",
-      "covers": [
-        "app/components/AdminProvider.tsx",
-        "app/players/page.tsx"
-      ]
-    },
-    {
       "path": "__tests__/components/SeasonSelector.test.tsx",
       "kind": "test",
       "covers": [
@@ -238,8 +230,7 @@
     ],
     "app/components/AdminProvider.tsx": [
       "__tests__/components/DashboardPage.test.tsx",
-      "__tests__/components/GamesPage.test.tsx",
-      "__tests__/components/PlayersPage.test.tsx"
+      "__tests__/components/GamesPage.test.tsx"
     ],
     "app/components/PerformanceControls.tsx": [
       "app/components/__tests__/PerformanceControls.test.tsx"
@@ -283,9 +274,6 @@
     "app/page.tsx": [
       "__tests__/components/DashboardPage.test.tsx"
     ],
-    "app/players/page.tsx": [
-      "__tests__/components/PlayersPage.test.tsx"
-    ],
     "app/settings/page.tsx": [
       "__tests__/components/SettingsPage.test.tsx"
     ],
@@ -300,8 +288,7 @@
     {
       "taskId": "player-crud",
       "tests": [
-        "__tests__/components/DashboardPage.test.tsx",
-        "__tests__/components/PlayersPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx"
       ],
       "gaps": [
         "app/api/players/route.ts",

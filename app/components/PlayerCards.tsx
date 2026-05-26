@@ -36,6 +36,8 @@ interface PlayerStats {
 
   actualWinPercentage?: number;
   lastGameDate?: string | null;
+  phoneNumber?: string | null;
+  smsOptIn?: boolean | null;
 }
 
 const getWinPercentageGradient = (percentage: number): string => {
@@ -70,8 +72,13 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
       <div className="relative p-3">
         <div className="flex items-start justify-between mb-2">
           <div className="space-y-0.5">
-            <h3 className="text-base font-bold text-gray-900 group-hover:text-gray-800 leading-tight">
+            <h3 className="text-base font-bold text-gray-900 group-hover:text-gray-800 leading-tight flex items-center gap-1.5">
               {player.name}
+              {player.smsOptIn && (
+                <span className="text-green-600 text-xs cursor-help" title={`SMS Opted-In: ${player.phoneNumber || ''}`}>
+                  💬
+                </span>
+              )}
             </h3>
 
             <div className="flex flex-col gap-1 mt-1">
@@ -245,6 +252,8 @@ export function PlayerCards() {
     id: number;
     name: string;
     startYear?: number | null;
+    phoneNumber?: string | null;
+    smsOptIn?: boolean | null;
   }) => {
     const response = await fetch("/api/players", {
       method: "PUT",
@@ -324,11 +333,15 @@ export function PlayerCards() {
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
     const startYear = formData.get("startYear") as string;
+    const phoneNumber = formData.get("phoneNumber") as string;
+    const smsOptIn = formData.get("smsOptIn") === "on";
 
     const payload = {
       id: editingPlayer.id,
       name: name.trim(),
       startYear: startYear ? parseInt(startYear) : null,
+      phoneNumber: phoneNumber.trim() || null,
+      smsOptIn,
     };
 
     const submit = async () => await updatePlayerMutation.mutateAsync(payload);
@@ -508,6 +521,37 @@ export function PlayerCards() {
                   }
                   className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="phoneNumber"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Phone Number
+                </Label>
+                <Input
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  type="tel"
+                  placeholder="+1234567890"
+                  defaultValue={editingPlayer?.phoneNumber || ""}
+                  className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex items-center space-x-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="smsOptIn"
+                  name="smsOptIn"
+                  defaultChecked={editingPlayer?.smsOptIn || false}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <Label
+                  htmlFor="smsOptIn"
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  Opt in to weekly SMS RSVP reminders
+                </Label>
               </div>
             </div>
             <div className="flex gap-3 pt-2">

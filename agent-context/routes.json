@@ -241,16 +241,6 @@
     },
     {
       "kind": "page",
-      "route": "/players",
-      "file": "app/players/page.tsx",
-      "params": [],
-      "likelySourceFiles": [
-        "app/components/AdminProvider.tsx",
-        "app/components/PlayerCard.tsx"
-      ]
-    },
-    {
-      "kind": "page",
       "route": "/results",
       "file": "app/results/page.tsx",
       "params": [],

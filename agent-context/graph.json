@@ -245,9 +245,7 @@
       "imports": [],
       "importedBy": [],
       "related": [
-        "app/components/PlayerCard.tsx",
-        "app/components/PlayerGrid.tsx",
-        "app/players/page.tsx"
+        "app/components/PlayerGrid.tsx"
       ],
       "overrideNotes": [
         "Returns players enriched with matches and stats; it is not a thin CRUD-only route."
@@ -361,7 +359,6 @@
         "app/games/page.tsx",
         "app/layout.tsx",
         "app/page.tsx",
-        "app/players/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
@@ -372,7 +369,6 @@
         "app/games/page.tsx",
         "app/layout.tsx",
         "app/page.tsx",
-        "app/players/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
@@ -487,21 +483,6 @@
         "app/lib/playerFiltering.ts",
         "app/lib/tooltip.ts",
         "app/page.tsx"
-      ],
-      "overrideNotes": []
-    },
-    {
-      "file": "app/components/PlayerCard.tsx",
-      "type": "component",
-      "tags": [
-        "players"
-      ],
-      "imports": [],
-      "importedBy": [
-        "app/players/page.tsx"
-      ],
-      "related": [
-        "app/players/page.tsx"
       ],
       "overrideNotes": []
     },
@@ -1116,23 +1097,6 @@
       "overrideNotes": [
         "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints."
       ]
-    },
-    {
-      "file": "app/players/page.tsx",
-      "type": "page",
-      "tags": [
-        "players"
-      ],
-      "imports": [
-        "app/components/AdminProvider.tsx",
-        "app/components/PlayerCard.tsx"
-      ],
-      "importedBy": [],
-      "related": [
-        "app/components/AdminProvider.tsx",
-        "app/components/PlayerCard.tsx"
-      ],
-      "overrideNotes": []
     },
     {
       "file": "app/results/page.tsx",
