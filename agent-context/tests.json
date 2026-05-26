@@ -170,6 +170,13 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/twilio.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/twilio.ts"
+      ]
+    },
+    {
       "path": "app/lib/__tests__/utils.test.ts",
       "kind": "app-lib",
       "covers": [
@@ -243,6 +250,9 @@
     ],
     "app/lib/tooltip.ts": [
       "app/lib/__tests__/tooltip.test.ts"
+    ],
+    "app/lib/twilio.ts": [
+      "app/lib/__tests__/twilio.test.ts"
     ],
     "app/lib/types.ts": [
       "app/lib/__tests__/team-balancer.test.ts"

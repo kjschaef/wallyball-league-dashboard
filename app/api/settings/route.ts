@@ -33,12 +33,23 @@ export async function GET() {
           settings[0].signup_close_time,
           DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
         ),
-        availableDays: parseAvailableDays(settings[0].available_days)
+        availableDays: parseAvailableDays(settings[0].available_days),
+        smsRemindersEnabled: settings[0].sms_reminders_enabled ?? false,
+        smsRemindersDayOfWeek: settings[0].sms_reminders_day_of_week ?? 3,
+        smsRemindersTime: normalizeTimeInputValue(
+          settings[0].sms_reminders_time,
+          '12:00',
+        ),
       });
     }
     
     // Defaults matching our schema
-    return NextResponse.json(DEFAULT_SIGNUP_SETTINGS);
+    return NextResponse.json({
+      ...DEFAULT_SIGNUP_SETTINGS,
+      smsRemindersEnabled: false,
+      smsRemindersDayOfWeek: 3,
+      smsRemindersTime: '12:00',
+    });
   } catch (error) {
     console.error('Error fetching settings:', error);
     return NextResponse.json(
@@ -66,6 +77,10 @@ export async function PUT(request: Request) {
       body.signupCloseTime,
       DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
     );
+    const normalizedRemindersTime = normalizeTimeInputValue(
+      body.smsRemindersTime,
+      '12:00',
+    );
     
     if (!process.env.DATABASE_URL) {
       throw new Error('Database URL not configured');
@@ -85,19 +100,35 @@ export async function PUT(request: Request) {
           signup_close_day_of_week = COALESCE(${body.signupCloseDayOfWeek}, signup_close_day_of_week),
           signup_close_time = COALESCE(${normalizedCloseTime}, signup_close_time),
           available_days = COALESCE(${JSON.stringify(body.availableDays)}, available_days),
-          admin_password_hash = COALESCE(${body.adminPassword}, admin_password_hash)
+          admin_password_hash = COALESCE(${body.adminPassword}, admin_password_hash),
+          sms_reminders_enabled = COALESCE(${body.smsRemindersEnabled}, sms_reminders_enabled),
+          sms_reminders_day_of_week = COALESCE(${body.smsRemindersDayOfWeek}, sms_reminders_day_of_week),
+          sms_reminders_time = COALESCE(${normalizedRemindersTime}, sms_reminders_time)
         WHERE id = ${existing[0].id}
       `;
     } else {
       await sql`
-        INSERT INTO site_settings (signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days, admin_password_hash)
+        INSERT INTO site_settings (
+          signup_open_day_of_week, 
+          signup_open_time, 
+          signup_close_day_of_week, 
+          signup_close_time, 
+          available_days, 
+          admin_password_hash,
+          sms_reminders_enabled,
+          sms_reminders_day_of_week,
+          sms_reminders_time
+        )
         VALUES (
           ${body.signupOpenDayOfWeek ?? 0}, 
           ${normalizedOpenTime}, 
           ${body.signupCloseDayOfWeek ?? 0},
           ${normalizedCloseTime},
           ${JSON.stringify(body.availableDays || DEFAULT_SIGNUP_SETTINGS.availableDays)},
-          ${body.adminPassword || 'admin'}
+          ${body.adminPassword || 'admin'},
+          ${body.smsRemindersEnabled ?? false},
+          ${body.smsRemindersDayOfWeek ?? 3},
+          ${normalizedRemindersTime}
         )
       `;
     }

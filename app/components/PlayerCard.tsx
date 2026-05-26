@@ -7,6 +7,8 @@ interface Player {
   name: string;
   startYear?: number | null;
   createdAt?: string | Date | null;
+  phoneNumber?: string | null;
+  smsOptIn?: boolean | null;
 }
 
 interface PlayerCardProps {
@@ -50,6 +52,11 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-bold">{player.name}</h3>
+            {player.smsOptIn && (
+              <span className="text-green-600 text-xs" title={`SMS Opted-In: ${player.phoneNumber || ''}`}>
+                💬
+              </span>
+            )}
             {yearsPlayed !== null && (
               <span className="text-xs text-gray-500">
                 {yearsPlayed}y

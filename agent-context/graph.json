@@ -156,6 +156,36 @@
       ]
     },
     {
+      "file": "app/api/notifications/incoming-sms/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/notifications/reminders/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/api/player-stats/route.ts",
       "type": "api-route",
       "tags": [
@@ -806,6 +836,19 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/__tests__/twilio.test.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/twilio.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/twilio.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/__tests__/utils.test.ts",
       "type": "app-lib",
       "tags": [],
@@ -921,12 +964,16 @@
       "tags": [],
       "imports": [],
       "importedBy": [
+        "app/api/notifications/incoming-sms/route.ts",
+        "app/api/notifications/reminders/route.ts",
         "app/api/settings/route.ts",
         "app/api/signups/route.ts",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
       "related": [
+        "app/api/notifications/incoming-sms/route.ts",
+        "app/api/notifications/reminders/route.ts",
         "app/api/settings/route.ts",
         "app/api/signups/route.ts",
         "app/settings/page.tsx",
@@ -981,6 +1028,21 @@
       ],
       "related": [
         "app/components/PerformanceTrend.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/twilio.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/api/notifications/incoming-sms/route.ts",
+        "app/api/notifications/reminders/route.ts"
+      ],
+      "related": [
+        "app/api/notifications/incoming-sms/route.ts",
+        "app/api/notifications/reminders/route.ts"
       ],
       "overrideNotes": []
     },

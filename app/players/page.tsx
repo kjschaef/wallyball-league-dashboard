@@ -9,6 +9,8 @@ interface Player {
   id: number;
   name: string;
   startYear?: number | null;
+  phoneNumber?: string | null;
+  smsOptIn?: boolean | null;
   createdAt?: string | Date | null;
 }
 
@@ -21,6 +23,8 @@ interface ExtendedPlayer extends Player {
 interface PlayerMutationPayload {
   name: string;
   startYear: number | null;
+  phoneNumber: string | null;
+  smsOptIn: boolean;
 }
 
 
@@ -32,10 +36,14 @@ export default function PlayersPage() {
   const [isAddPlayerDialogOpen, setIsAddPlayerDialogOpen] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerStartYear, setNewPlayerStartYear] = useState<number | undefined>(undefined);
+  const [newPlayerPhoneNumber, setNewPlayerPhoneNumber] = useState('');
+  const [newPlayerSmsOptIn, setNewPlayerSmsOptIn] = useState(false);
   const { requireAdmin } = useAdmin();
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [editedPlayerName, setEditedPlayerName] = useState('');
   const [editedPlayerStartYear, setEditedPlayerStartYear] = useState('');
+  const [editedPlayerPhoneNumber, setEditedPlayerPhoneNumber] = useState('');
+  const [editedPlayerSmsOptIn, setEditedPlayerSmsOptIn] = useState(false);
 
   useEffect(() => {
     void fetchPlayers();
@@ -94,12 +102,16 @@ export default function PlayersPage() {
     setEditingPlayer(null);
     setEditedPlayerName('');
     setEditedPlayerStartYear('');
+    setEditedPlayerPhoneNumber('');
+    setEditedPlayerSmsOptIn(false);
   };
 
   const startEditingPlayer = (player: Player) => {
     setEditingPlayer(player);
     setEditedPlayerName(player.name);
     setEditedPlayerStartYear(player.startYear?.toString() || '');
+    setEditedPlayerPhoneNumber(player.phoneNumber || '');
+    setEditedPlayerSmsOptIn(!!player.smsOptIn);
   };
 
   const handleAddPlayer = async () => {
@@ -108,6 +120,8 @@ export default function PlayersPage() {
     const payload = {
       name: newPlayerName.trim(),
       startYear: newPlayerStartYear || null,
+      phoneNumber: newPlayerPhoneNumber.trim() || null,
+      smsOptIn: newPlayerSmsOptIn,
     };
 
     const submit = async () => {
@@ -125,6 +139,8 @@ export default function PlayersPage() {
       await fetchPlayers();
       setNewPlayerName('');
       setNewPlayerStartYear(undefined);
+      setNewPlayerPhoneNumber('');
+      setNewPlayerSmsOptIn(false);
       setIsAddPlayerDialogOpen(false);
     };
 
@@ -148,6 +164,8 @@ export default function PlayersPage() {
     const payload = {
       name: editedPlayerName.trim(),
       startYear: editedPlayerStartYear ? parseInt(editedPlayerStartYear) : null,
+      phoneNumber: editedPlayerPhoneNumber.trim() || null,
+      smsOptIn: editedPlayerSmsOptIn,
     };
 
     const submit = async () => {
@@ -294,6 +312,33 @@ export default function PlayersPage() {
                   max={new Date().getFullYear()}
                 />
               </div>
+
+              <div>
+                <label htmlFor="player-phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  id="player-phone"
+                  type="text"
+                  placeholder="e.g. +15551234567"
+                  className="w-full p-2 border rounded"
+                  value={newPlayerPhoneNumber}
+                  onChange={(e) => setNewPlayerPhoneNumber(e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  id="sms-opt-in"
+                  type="checkbox"
+                  checked={newPlayerSmsOptIn}
+                  onChange={(e) => setNewPlayerSmsOptIn(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="sms-opt-in" className="text-sm font-medium text-gray-700">
+                  Receive SMS reminders
+                </label>
+              </div>
             </div>
 
             <div className="flex justify-end mt-6 space-x-2">
@@ -346,6 +391,33 @@ export default function PlayersPage() {
                   min="1900"
                   max={new Date().getFullYear()}
                 />
+              </div>
+
+              <div>
+                <label htmlFor="edit-player-phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  id="edit-player-phone"
+                  type="text"
+                  placeholder="e.g. +15551234567"
+                  className="w-full p-2 border rounded"
+                  value={editedPlayerPhoneNumber}
+                  onChange={(e) => setEditedPlayerPhoneNumber(e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  id="edit-sms-opt-in"
+                  type="checkbox"
+                  checked={editedPlayerSmsOptIn}
+                  onChange={(e) => setEditedPlayerSmsOptIn(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="edit-sms-opt-in" className="text-sm font-medium text-gray-700">
+                  Receive SMS reminders
+                </label>
               </div>
             </div>
 
