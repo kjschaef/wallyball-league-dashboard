@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { format } from 'date-fns';
+import twilio from 'twilio';
 import {
   DEFAULT_SIGNUP_SETTINGS,
   getEasternWallTimeNow,
@@ -54,6 +55,38 @@ export async function POST(request: Request) {
         `<Response><Message>Error: Missing sender or message body.</Message></Response>`,
         { headers: { 'Content-Type': 'application/xml' } }
       );
+    }
+
+    // 1.5 Verify Twilio Webhook Signature
+    const signature = request.headers.get('x-twilio-signature') || '';
+    const authToken = process.env.TWILIO_AUTH_TOKEN || '';
+    const isTestOrDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+
+    if (!isTestOrDev || signature) {
+      if (!signature || !authToken) {
+        return new NextResponse(
+          `<Response><Message>Error: Missing Twilio signature or configuration.</Message></Response>`,
+          { status: 401, headers: { 'Content-Type': 'application/xml' } }
+        );
+      }
+
+      const proto = request.headers.get('x-forwarded-proto') || 'https';
+      const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+      const urlObj = new URL(request.url);
+      const fullUrl = `${proto}://${host}${urlObj.pathname}${urlObj.search}`;
+
+      const params: Record<string, string> = {};
+      formData.forEach((value, key) => {
+        params[key] = value.toString();
+      });
+
+      const isValid = twilio.validateRequest(authToken, signature, fullUrl, params);
+      if (!isValid) {
+        return new NextResponse(
+          `<Response><Message>Error: Invalid request signature.</Message></Response>`,
+          { status: 403, headers: { 'Content-Type': 'application/xml' } }
+        );
+      }
     }
 
     // 2. Identify Player by Phone Number (Last 10 digits match)

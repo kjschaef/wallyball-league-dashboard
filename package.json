@@ -156,6 +156,9 @@
       "sharp",
       "unrs-resolver",
       "utf-8-validate"
-    ]
+    ],
+    "overrides": {
+      "qs": "^6.15.2"
+    }
   }
 }
