@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -13,8 +13,6 @@ export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalP
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,17 +43,13 @@ export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalP
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[60] p-4">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-          aria-label="Close modal"
-        >
-          <X className="w-5 h-5" />
-        </button>
-        
-        <h2 className="text-xl font-bold mb-4">Admin Authentication Required</h2>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="bg-white border-0 shadow-2xl z-[70]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-gray-900">
+            Admin Authentication Required
+          </DialogTitle>
+        </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -68,7 +62,7 @@ export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalP
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               placeholder="Enter admin password"
             />
           </div>
@@ -93,7 +87,7 @@ export function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLoginModalP
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
