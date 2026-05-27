@@ -7,8 +7,8 @@ test('has title and basic dashboard elements', async ({ page }) => {
   // Expect a title "to contain" a substring.
   await expect(page, 'Page should have Wallyball title').toHaveTitle(/Wallyball/i);
 
-  // Check for the navbar
-  await expect(page.locator('nav')).toBeVisible();
+  // Check for the navbar (filter to avoid matching Next.js dev tools overlay)
+  await expect(page.getByRole('navigation').filter({ hasText: 'Wallyball League' })).toBeVisible();
 
   // Wait for application content to ensure we are not on a login or error page
   await expect(page.getByRole('heading', { name: 'Win Percentage' })).toBeVisible({ timeout: 30000 });

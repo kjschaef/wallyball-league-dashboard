@@ -6,23 +6,26 @@ test.describe('Navigation', () => {
   });
 
   test('should navigate to all main pages', async ({ page }) => {
-    // Current Navbar should have links (verify it exists)
-    await expect(page.locator('nav')).toBeVisible();
+    // Current Navbar should have links (verify it exists). We use exact match or filter
+    // to avoid strict mode violations from Next.js dev tools overlay navigation.
+    const nav = page.getByRole('navigation').filter({ hasText: 'Wallyball League' });
+    await expect(nav).toBeVisible();
 
-    // Check Dashboard
-    await page.click('text=Dashboard');
+    // The click targets need to be specific to avoid matching other links on the page.
+    // Dashboard page
+    await nav.getByRole('link', { name: 'Dashboard' }).click();
     await expect(page).toHaveURL(/.*\/$/); // Dashboard is the root page
 
-    // Check Results
-    await page.click('text=Results');
+    // Results page
+    await nav.getByRole('link', { name: 'Results' }).click();
     await expect(page).toHaveURL(/\/results/);
 
-    // Check Signups
-    await page.click('text=Signups');
+    // Signups page
+    await nav.getByRole('link', { name: 'Signups', exact: true }).click();
     await expect(page).toHaveURL(/\/signups/);
 
-    // Check Settings
-    await page.click('text=Settings');
+    // Settings page
+    await nav.getByRole('link', { name: 'Settings', exact: true }).click();
     await expect(page).toHaveURL(/\/settings/);
   });
 });
