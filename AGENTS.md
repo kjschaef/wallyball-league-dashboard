@@ -26,14 +26,20 @@ Use `Docs/` as secondary human-oriented documentation. Do not default to it for 
 - `pnpm run context:generate`
 - `pnpm run context:check`
 
-## Validation Workflow (CRITICAL)
+## Validation Workflow (CRITICAL — ALL AGENTS MUST FOLLOW)
 
-Before pushing any PR or concluding that a coding task is complete, you MUST run the following validation sequence locally:
-1. Run `pnpm build` to catch TypeScript signature mismatches and deployment-blocking errors.
-2. Run `pnpm test` to ensure tests are passing and no side-effects break mocked environments.
-3. Run `pnpm lint` to catch syntax or unused variable errors.
-4. Run `pnpm run context:check` to ensure structural changes haven't made agent context artifacts stale.
-Never skip this validation step.
+This applies to every agent (Jules, Claude, Gemini, etc.) without exception.
+Do NOT open or propose a PR until every step below passes cleanly.
+
+1. **`pnpm build`** — catches TypeScript errors and deployment-blocking issues.
+2. **`pnpm test`** — ensures no regressions in the Jest unit/component suite.
+3. **`pnpm lint`** — catches ESLint errors and unused variable warnings.
+4. **`pnpm run context:check`** — ensures agent context artifacts are not stale.
+5. **Snyk security scan** — run `npx snyk code test` (or equivalent) on any new or modified first-party code. If issues are found, fix them and re-scan before opening a PR.
+
+If `context:check` fails AND the task altered routes, schema, key entrypoints, or module coupling, also run `pnpm run context:generate` and commit the updated artifacts.
+
+Never skip any step in this sequence.
 
 ## High-Value Invariants
 
@@ -41,7 +47,7 @@ Never skip this validation step.
 - Season IDs and date windows are computed from `lib/seasons.ts`; do not assume an active `seasons` table is the runtime source of truth.
 - Some API routes return enriched shapes, not raw table rows. Check current response contracts before changing UI consumers.
 - Ranking logic uses game-level semantics from `app/lib/stats.ts`; confirm whether a task needs games, matches, or both.
-- If code changes alter routes, schema, key task entrypoints, or coupling, regenerate the agent context bundle and commit it.
+- If code changes alter routes, schema, key task entrypoints, or coupling, run `pnpm run context:generate` and commit the updated artifacts alongside your code changes.
 
 ## Context Maintenance
 

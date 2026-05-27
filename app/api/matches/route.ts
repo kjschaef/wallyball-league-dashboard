@@ -95,16 +95,17 @@ export async function GET(request: Request) {
   }
 }
 
-async function getPlayerIdsFromNames(sql: any, playerNames: string[]) {
+type NeonSql = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<Record<string, unknown>[]>;
+
+async function getPlayerIdsFromNames(sql: NeonSql, playerNames: string[]) {
   if (playerNames.length === 0) {
     return [];
   }
-  // Use sql.query for conventional function-call style with placeholders
-  // Build the right number of placeholders for the IN clause
-  const placeholders = playerNames.map((_, i) => `$${i + 1}`).join(', ');
-  const query = `SELECT id FROM players WHERE name IN (${placeholders})`;
-  const players = await sql.query(query, playerNames);
-  return players.map((p: any) => p.id);
+  // Use neon tagged-template literal with = ANY(...) for safe parameterized queries.
+  // This avoids raw string interpolation (SQL injection risk) while keeping the
+  // query efficient for arbitrary-length name lists.
+  const players = await sql`SELECT id FROM players WHERE name = ANY(${playerNames})`;
+  return players.map((p) => p.id as number);
 }
 
 export async function POST(request: Request) {

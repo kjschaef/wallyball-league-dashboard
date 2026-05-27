@@ -76,6 +76,7 @@
     "sharp": "^0.34.1",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
+    "twilio": "^6.0.2",
     "vaul": "^1.1.1",
     "ws": "^8.18.0"
   },
@@ -155,6 +156,9 @@
       "sharp",
       "unrs-resolver",
       "utf-8-validate"
-    ]
+    ],
+    "overrides": {
+      "qs": "^6.15.2"
+    }
   }
 }

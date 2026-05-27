@@ -11,6 +11,9 @@ interface Settings {
   signupCloseDayOfWeek: number;
   signupCloseTime: string;
   availableDays: string[];
+  smsRemindersEnabled: boolean;
+  smsRemindersDayOfWeek: number;
+  smsRemindersTime: string;
 }
 
 const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -44,6 +47,12 @@ export default function SettingsPage() {
               DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
             ),
             availableDays: Array.isArray(data.availableDays) ? data.availableDays : DEFAULT_SIGNUP_SETTINGS.availableDays,
+            smsRemindersEnabled: data.smsRemindersEnabled ?? false,
+            smsRemindersDayOfWeek: data.smsRemindersDayOfWeek ?? 3,
+            smsRemindersTime: normalizeTimeInputValue(
+              data.smsRemindersTime,
+              '12:00',
+            ),
           });
         }
       } catch (error) {
@@ -69,6 +78,10 @@ export default function SettingsPage() {
       payload.signupCloseTime = normalizeTimeInputValue(
         payload.signupCloseTime,
         DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
+      );
+      payload.smsRemindersTime = normalizeTimeInputValue(
+        payload.smsRemindersTime,
+        '12:00',
       );
       if (adminPassword) {
         payload.adminPassword = adminPassword;
@@ -221,6 +234,52 @@ export default function SettingsPage() {
             })}
           </div>
         </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-6">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">SMS Reminders Configuration</h2>
+        
+        <div className="flex items-center space-x-3">
+          <input
+            id="sms-reminders-enabled"
+            type="checkbox"
+            checked={settings.smsRemindersEnabled}
+            onChange={(e) => setSettings({...settings, smsRemindersEnabled: e.target.checked})}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="sms-reminders-enabled" className="text-sm font-medium text-gray-700">
+            Enable Automatic Weekly SMS Reminders
+          </label>
+        </div>
+
+        {settings.smsRemindersEnabled && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+            <div className="space-y-2">
+              <label htmlFor="sms-reminders-day" className="block text-sm font-medium text-gray-700">Send Reminders On</label>
+              <select
+                id="sms-reminders-day"
+                value={settings.smsRemindersDayOfWeek}
+                onChange={(e) => setSettings({...settings, smsRemindersDayOfWeek: parseInt(e.target.value)})}
+                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              >
+                {DAYS_OF_WEEK.map((day, idx) => (
+                  <option key={day} value={idx}>{day}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="sms-reminders-time" className="block text-sm font-medium text-gray-700">Send Reminders Time (EST)</label>
+              <input
+                id="sms-reminders-time"
+                type="time"
+                value={settings.smsRemindersTime}
+                onChange={(e) => setSettings({...settings, smsRemindersTime: e.target.value})}
+                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-6">

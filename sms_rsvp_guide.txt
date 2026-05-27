@@ -1,0 +1,70 @@
+Wallyball League Dashboard: SMS RSVP & Reminders Guide
+======================================================
+
+Here is how the Two-Way SMS signup and automation feature works from both the Administrator's and the Player's perspectives.
+
+------------------------------------------------------
+👑 1. The League Admin's Perspective
+------------------------------------------------------
+
+A. Configuring the Automatic Schedule
+-------------------------------------
+1. Log in to the Admin Dashboard.
+2. Navigate to the "Site Settings" page.
+3. Under the "SMS Reminders" section, configure:
+   - Enable Automatic SMS Reminders: [Toggle Enabled]
+   - Send Reminders On: Select the day of the week (e.g., Wednesday).
+   - Send Reminders Time: Set the time of day (e.g., 12:00 PM EST).
+4. Click [Save All Settings].
+
+B. Managing Player Contacts & Consent
+-------------------------------------
+1. Go to the "Players" page.
+2. When adding a new player or editing an existing one, input their mobile phone number (e.g., +1 555-123-4567).
+3. Check the checkbox: [x] Opt-in to weekly SMS reminders.
+   * Note: Leaving this unchecked keeps the player on manual website-only signups to respect SMS compliance rules.
+4. A visual chat-bubble icon (💬) appears next to opted-in players in the list.
+
+------------------------------------------------------
+📱 2. The Player's Perspective (Receiving & Replying)
+------------------------------------------------------
+
+Once scheduled, the system automatically checks who has not yet RSVP'd for the week's open game days and texts them.
+
+A. The Reminder SMS Arrives
+---------------------------
+The player (e.g., Alex) receives a text message:
+"Wallyball League:
+Hey Alex! Signups are open for this week:
+1: Tue, May 26
+2: Thu, May 28
+3: Sat, May 30
+
+Reply with the numbers of the days you CAN play (e.g., reply '1 3' for Tue & Sat), or reply 'NONE' if you can't play any."
+
+B. Replying to the Text
+-----------------------
+The player simply replies directly in their text message thread:
+- If playing Tue & Thu, reply: 1 2
+- If playing Saturday only, reply: 3
+- If playing all 3 days, reply: 1 2 3 (or ALL)
+- If unavailable for all, reply: NONE (or OUT)
+
+C. The Confirmation SMS
+-----------------------
+The system updates the database immediately and sends an automated confirmation text:
+"Wallyball League:
+Got it, Alex! You are signed up for:
+🟢 Tue, May 26
+🟢 Thu, May 28
+🔴 Sat, May 30 (Marked Out)
+Thanks!"
+
+------------------------------------------------------
+💬 3. Typo-Handling & Edge Cases
+------------------------------------------------------
+
+- Unrecognized Replies: If the player sends a text the system cannot parse (e.g., "I'm checking my schedule"), the system replies:
+  "Wallyball League: Sorry, we couldn't parse that. Please reply with numbers (e.g., '1 2') or 'NONE'. You can also view details here: https://wallyball.app/signups"
+
+- Changing Choices: If a player needs to change their status later, they can reply to the text line with their updated selection (e.g., texting "NONE" if they can no longer play), and the database will update automatically.
