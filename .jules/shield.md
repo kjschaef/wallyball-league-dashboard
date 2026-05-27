@@ -20,3 +20,7 @@
 ## 2024-05-24 - Environment Variable Manipulation in Jest
 **Learning:** In Next.js App Router API testing, deleting required environment variables (like `DATABASE_URL`) without a fail-safe restoration block will silently pollute the process environment and cause subsequent tests to fail unexpectedly, since `process.env` mutations are global across the suite.
 **Action:** Always wrap code blocks that manipulate or delete global environment variables in a `try...finally` block, ensuring variables are explicitly restored in the `finally` statement so they reset even if assertions throw errors.
+
+## 2025-05-27 - Playwright Strict Mode violation with Next.js App Router
+**Learning:** When asserting the visibility of basic HTML tags like `nav` or `header` in Next.js App Router using Playwright, relying on simple `page.locator('nav')` or `page.getByRole('navigation')` may fail due to strict mode violations in development or CI environments. The Next.js development tools inject an error overlay (e.g. `<nav class="error-overlay-pagination">`) that also matches standard locators, causing `locator('nav')` to resolve to multiple elements.
+**Action:** Always refine semantic locators in Playwright by filtering for specific application text (e.g., `page.getByRole('navigation').filter({ hasText: 'App Title' })`) or by using explicit test IDs or semantic ARIA labels, instead of relying solely on the element role or tag name.
