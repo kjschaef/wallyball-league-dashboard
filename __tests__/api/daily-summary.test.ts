@@ -191,11 +191,16 @@ describe('/api/daily-summary GET', () => {
   });
 
   it('returns 500 when the route cannot initialize', async () => {
+    const originalDatabaseUrl = process.env.DATABASE_URL;
     delete process.env.DATABASE_URL;
 
-    const response = await GET();
+    try {
+      const response = await GET();
 
-    expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toEqual({ error: 'Failed to generate summary' });
+      expect(response.status).toBe(500);
+      await expect(response.json()).resolves.toEqual({ error: 'Failed to generate summary' });
+    } finally {
+      process.env.DATABASE_URL = originalDatabaseUrl;
+    }
   });
 });
