@@ -77,6 +77,47 @@ describe('/api/auth POST', () => {
     expect(mockCookieStore.set).toHaveBeenCalled();
   });
 
+  it('falls back to "admin" when environment password is not set and settings are empty', async () => {
+    const originalPassword = process.env.ADMIN_PASSWORD;
+    try {
+      delete process.env.ADMIN_PASSWORD;
+
+      const response = await POST({
+        json: async () => ({ password: 'admin' }),
+      } as Request);
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ success: true });
+      expect(mockCookieStore.set).toHaveBeenCalled();
+    } finally {
+      if (originalPassword === undefined) {
+        delete process.env.ADMIN_PASSWORD;
+      } else {
+        process.env.ADMIN_PASSWORD = originalPassword;
+      }
+    }
+  });
+
+  it('handles missing database URL correctly', async () => {
+    const originalDatabaseUrl = process.env.DATABASE_URL;
+    try {
+      delete process.env.DATABASE_URL;
+
+      const response = await POST({
+        json: async () => ({ password: 'wrong' }),
+      } as Request);
+
+      expect(response.status).toBe(500);
+      await expect(response.json()).resolves.toEqual({ error: 'Failed to authenticate' });
+    } finally {
+      if (originalDatabaseUrl === undefined) {
+        delete process.env.DATABASE_URL;
+      } else {
+        process.env.DATABASE_URL = originalDatabaseUrl;
+      }
+    }
+  });
+
   it('rejects invalid passwords', async () => {
     mockSql.mockImplementation((queryType) => {
       if (queryType === 'settings') {

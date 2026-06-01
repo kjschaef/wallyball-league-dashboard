@@ -20,3 +20,11 @@
 ## 2024-05-24 - Environment Variable Manipulation in Jest
 **Learning:** In Next.js App Router API testing, deleting required environment variables (like `DATABASE_URL`) without a fail-safe restoration block will silently pollute the process environment and cause subsequent tests to fail unexpectedly, since `process.env` mutations are global across the suite.
 **Action:** Always wrap code blocks that manipulate or delete global environment variables in a `try...finally` block, ensuring variables are explicitly restored in the `finally` statement so they reset even if assertions throw errors.
+
+## 2026-06-01 - Jest NextRequest json parsing behavior
+**Learning:** When mocking Next.js API `POST` requests in Jest, initializing `NextRequest` objects with stringified bodies often causes unexpected parsing errors during `await request.json()`. Using a generic `Request` fallback or constructing a custom mock object that explicitly defines the `json()` resolver method bypasses these stringify bugs and stabilizes tests.
+**Action:** Use a custom mock function like `createMockRequest(bodyObj) { return { json: async () => bodyObj } as Request; }` to predictably resolve `await request.json()` calls in Next.js App Router API tests.
+
+## 2026-06-01 - Safe environment variable mocking in Node.js
+**Learning:** In Node.js, `process.env` properties are strictly strings. If an original environment variable was `undefined` and a test restores it by assigning `process.env.VAR = originalVar`, it will cast the `undefined` to the literal string `"undefined"`. Because `"undefined"` is truthy, subsequent tests that check for the presence of the variable using `if (process.env.VAR)` will fail, causing severe cross-test pollution.
+**Action:** When mocking environment variables that might be initially undefined, always conditionally restore them using `delete process.env.VAR` if the cached original value was `undefined`, rather than a direct assignment.
