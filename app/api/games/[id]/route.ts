@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { getDatabase } from "../../../../db/config";
 import { matches } from "../../../../db/schema";
@@ -8,6 +9,12 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const db = getDatabase();
     const gameId = parseInt(params.id);
     // deleting game id: server
