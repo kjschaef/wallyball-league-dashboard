@@ -20,3 +20,7 @@
 ## 2024-05-24 - Environment Variable Manipulation in Jest
 **Learning:** In Next.js App Router API testing, deleting required environment variables (like `DATABASE_URL`) without a fail-safe restoration block will silently pollute the process environment and cause subsequent tests to fail unexpectedly, since `process.env` mutations are global across the suite.
 **Action:** Always wrap code blocks that manipulate or delete global environment variables in a `try...finally` block, ensuring variables are explicitly restored in the `finally` statement so they reset even if assertions throw errors.
+
+## 2026-06-03 - Next.js Route DB URL Validation
+**Learning:** When creating Next.js API routes that connect to the database via `@neondatabase/serverless`, explicitly verify the existence of `process.env.DATABASE_URL` and throw a controlled error if missing, rather than passing a potentially undefined value to the `neon()` client which causes application crashes.
+**Action:** When implementing or modifying an API route, ensure it checks for the `DATABASE_URL` and throws an error like `throw new Error('Database URL not configured')` before initializing the database connection.

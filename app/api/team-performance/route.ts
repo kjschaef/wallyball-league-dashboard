@@ -15,7 +15,11 @@ interface TeamStats {
 
 export async function GET(request: Request) {
   try {
-    const sql = neon(process.env.DATABASE_URL!);
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Database URL not configured');
+    }
+
+    const sql = neon(process.env.DATABASE_URL);
     const { searchParams } = new URL(request.url);
     const seasonParam = searchParams.get('season');
 

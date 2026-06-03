@@ -610,5 +610,22 @@ describe('/api/team-performance', () => {
             const data = await res.json();
             expect(data.error).toBe('Failed to fetch team performance data');
         });
+
+        it('should throw and return 500 when DATABASE_URL is not configured', async () => {
+            const originalDbUrl = process.env.DATABASE_URL;
+            try {
+                delete process.env.DATABASE_URL;
+                const res = await GET(new NextRequest('http://localhost/api/team-performance'));
+                expect(res.status).toBe(500);
+                const data = await res.json();
+                expect(data.error).toBe('Failed to fetch team performance data');
+            } finally {
+                if (originalDbUrl !== undefined) {
+                    process.env.DATABASE_URL = originalDbUrl;
+                } else {
+                    delete process.env.DATABASE_URL;
+                }
+            }
+        });
     });
 });
