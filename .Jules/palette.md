@@ -40,3 +40,7 @@
 ## 2024-05-23 - Metric Toggle Buttons and tablist
 **Learning:** Container elements for sets of toggle buttons (like "Win %" and "Total Wins" in metric selectors) are often mistakenly given `role="tablist"`. Unless these implement full keyboard arrow navigation per W3C ARIA tab patterns, they will fail accessibility checks or be confusing for screen reader users.
 **Action:** Remove `role="tablist"` from simple inline button groups. Instead, use standard `<button>` elements equipped with `aria-pressed={boolean}` and strong keyboard focus styles (`focus-visible:ring-2`, `focus-visible:z-10` to prevent clipping, and appropriate border radius `rounded-l-md/rounded-r-md` to match the container).
+
+## 2024-06-04 - Contextual ARIA Labels for List Action Buttons
+**Learning:** Icon-only delete or action buttons within mapped lists (like waitlists or player signups) are often given generic `aria-label` or `title` attributes (e.g., "Remove player"). This forces screen reader users to rely on surrounding DOM context to determine *which* item is being removed, and visual users lack clear tooltip feedback.
+**Action:** Always interpolate the specific item's name or identifier into the `aria-label` and `title` for list action buttons (e.g., `aria-label={"Remove " + player.name}`). Additionally, ensure these inline action buttons have explicit `focus-visible:ring` states.

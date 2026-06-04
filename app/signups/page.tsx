@@ -345,8 +345,8 @@ export default function SignupsPage() {
                     <span>{player.name}</span>
                     <button
                       onClick={() => handleRemoveUnavailable(player.id)}
-                      className="rounded-full p-1 text-rose-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
-                      title="Remove unavailable player"
+                      className="rounded-full p-1 text-rose-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-1"
+                      title={`Remove ${player.name} from unavailable list`}
                       aria-label={`Remove ${player.name} from unavailable list`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -403,8 +403,9 @@ export default function SignupsPage() {
                             </div>
                             <button
                               onClick={() => handleDelete(signup.id)}
-                              className="text-red-400 hover:text-red-600 p-2 rounded-md hover:bg-red-50"
-                              title="Remove player"
+                              className="text-red-400 hover:text-red-600 p-2 rounded-md hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1"
+                              title={`Remove ${signup.name} from signup list`}
+                              aria-label={`Remove ${signup.name} from signup list`}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -425,7 +426,9 @@ export default function SignupsPage() {
                             <span>{idx + 1}. {signup.name}</span>
                             <button
                               onClick={() => handleDelete(signup.id)}
-                              className="text-orange-400 hover:text-orange-600 p-1 rounded hover:bg-orange-100"
+                              className="text-orange-400 hover:text-orange-600 p-1 rounded hover:bg-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1"
+                              title={`Remove ${signup.name} from waitlist`}
+                              aria-label={`Remove ${signup.name} from waitlist`}
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>

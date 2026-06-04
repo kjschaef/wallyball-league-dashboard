@@ -133,7 +133,7 @@ describe('SignupsPage', () => {
     });
 
     // Wait for the specific element to appear to signify rendering is complete
-    const removePlayerButtons = await screen.findAllByTitle('Remove player');
+    const removePlayerButtons = await screen.findAllByTitle('Remove Bob from signup list');
     expect(removePlayerButtons).toHaveLength(1);
 
     // Use findByText for assertion to ensure it's fully rendered
@@ -146,6 +146,6 @@ describe('SignupsPage', () => {
     });
 
     // Using findByTitle waits for the fetch requests to resolve and state to update
-    expect(await screen.findByTitle('Remove unavailable player')).toBeInTheDocument();
+    expect(await screen.findByTitle('Remove Alice from unavailable list')).toBeInTheDocument();
   });
 });
