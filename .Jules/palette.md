@@ -40,3 +40,7 @@
 ## 2024-05-23 - Metric Toggle Buttons and tablist
 **Learning:** Container elements for sets of toggle buttons (like "Win %" and "Total Wins" in metric selectors) are often mistakenly given `role="tablist"`. Unless these implement full keyboard arrow navigation per W3C ARIA tab patterns, they will fail accessibility checks or be confusing for screen reader users.
 **Action:** Remove `role="tablist"` from simple inline button groups. Instead, use standard `<button>` elements equipped with `aria-pressed={boolean}` and strong keyboard focus styles (`focus-visible:ring-2`, `focus-visible:z-10` to prevent clipping, and appropriate border radius `rounded-l-md/rounded-r-md` to match the container).
+
+## 2024-06-07 - Dynamic Toggle Buttons Accessibility
+**Learning:** Custom dynamic toggle buttons generated during interactions (like disambiguating players) are often missed during accessibility sweeps. They require both `aria-pressed` states to communicate their status to screen readers and distinct focus styles (`focus-visible`) for keyboard navigability.
+**Action:** When implementing custom dynamic toggle buttons, ensure they have `aria-pressed` bound to their selection state and include explicit `focus-visible` utility classes for clear keyboard focus indicators.
