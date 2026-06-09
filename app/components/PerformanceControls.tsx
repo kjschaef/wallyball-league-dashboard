@@ -70,8 +70,9 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
     <div className="controls bg-white shadow-sm rounded-md p-4">
       <div className="primary flex flex-wrap items-end gap-4">
         <div className="flex flex-col">
-          <label id="season-label" className="text-xs text-gray-500 mb-1">Season</label>
+          <label htmlFor="season-select" className="text-xs text-gray-500 mb-1">Season</label>
           <select
+            id="season-select"
             aria-label="Season"
             className="w-56 bg-gray-50 border border-gray-200 px-3 py-2 rounded-md text-sm h-10"
             value={selectedSeason || 'current'}
@@ -86,8 +87,8 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
         </div>
 
         <div className="flex flex-col">
-          <label id="metric-label" className="text-xs text-gray-500 mb-1">Metric</label>
-          <div className="inline-flex rounded-md shadow-sm bg-gray-100">
+          <span id="metric-label" className="text-xs text-gray-500 mb-1 block">Metric</span>
+          <div className="inline-flex rounded-md shadow-sm bg-gray-100" role="group" aria-labelledby="metric-label">
             <button
               aria-pressed={metric === 'winPercentage'}
               onClick={() => onChange({ metric: 'winPercentage' })}
@@ -108,9 +109,10 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
         {/* Penalties and smoothing controls removed */}
 
         <div className="flex flex-col" style={{ minWidth: 220 }}>
-          <label id="compare-label" className="text-xs text-gray-500 mb-1">Compare</label>
+          <label htmlFor="compare-select" className="text-xs text-gray-500 mb-1">Compare</label>
           <div>
             <Select
+              inputId="compare-select"
               isMulti
               options={players.map(p => ({ value: p.id, label: p.name }))}
               classNamePrefix="react-select"

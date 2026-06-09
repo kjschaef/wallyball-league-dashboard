@@ -40,3 +40,6 @@
 ## 2024-05-23 - Metric Toggle Buttons and tablist
 **Learning:** Container elements for sets of toggle buttons (like "Win %" and "Total Wins" in metric selectors) are often mistakenly given `role="tablist"`. Unless these implement full keyboard arrow navigation per W3C ARIA tab patterns, they will fail accessibility checks or be confusing for screen reader users.
 **Action:** Remove `role="tablist"` from simple inline button groups. Instead, use standard `<button>` elements equipped with `aria-pressed={boolean}` and strong keyboard focus styles (`focus-visible:ring-2`, `focus-visible:z-10` to prevent clipping, and appropriate border radius `rounded-l-md/rounded-r-md` to match the container).
+## 2024-06-09 - Custom Input Label Associations
+**Learning:** Using a `<label>` element without a native `<input>` (e.g., for custom button groups acting as a selector) triggers ESLint `jsx-a11y/label-has-associated-control` errors and provides poor support for screen readers.
+**Action:** When a label describes a custom component or a group of buttons instead of a native input, use a styled `<span>` or `<div>` with an `id`. Then use `role="group"` on the container and associate the label text using `aria-labelledby="[id-of-span]"`. Also, when using third-party components like `react-select`, properly link labels using the `inputId` prop.
