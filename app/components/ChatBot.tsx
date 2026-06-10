@@ -813,8 +813,9 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                       return (
                         <button
                           key={player}
+                          aria-pressed={isSelected}
                           onClick={() => handlePlayerChoice(amb.letter, player)}
-                          className={`px-3 py-1 rounded text-sm font-medium transition-colors ${isSelected
+                          className={`px-3 py-1 rounded text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-1 ${isSelected
                             ? 'bg-yellow-500 text-white'
                             : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                             }`}

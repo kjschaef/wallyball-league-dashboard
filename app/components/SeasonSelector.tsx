@@ -20,12 +20,14 @@ export function SeasonSelector({ seasons = [], currentSeason = 'current', onSeas
     <div className="flex items-center space-x-4">
       <div className="flex items-center space-x-2">
         <button
+          aria-pressed={selected === 'current'}
           className={selected === 'current' ? 'bg-blue-600 text-white px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1'}
           onClick={() => onSeasonChange('current')}
         >
           Current Season
         </button>
         <button
+          aria-pressed={selected === 'lifetime'}
           className={selected === 'lifetime' ? 'bg-blue-600 text-white px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1'}
           onClick={() => onSeasonChange('lifetime')}
         >
