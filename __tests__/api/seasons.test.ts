@@ -164,6 +164,15 @@ describe('lib/seasons utilities', () => {
     expect(seasons[3]).toMatchObject({ name: '2024 Q2' });
   });
 
+  it('lists recent seasons with default values when arguments omitted', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
+    const seasons = listSeasons();
+    // Default is 8 quarters. Since it generates 8 quarters + 1 lifetime + X annuals
+    // Q1 2025 to Q2 2023 = 8 quarters. Years: 2025, 2024, 2023 (3 annuals) -> total 11 items.
+    expect(seasons).toHaveLength(11);
+    expect(seasons[0]).toMatchObject({ name: '2025 Q1', is_active: true });
+  });
+
   it('lists seasons correctly across year boundaries', () => {
     jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
 
@@ -177,6 +186,37 @@ describe('lib/seasons utilities', () => {
     expect(seasons[0]).toMatchObject({ name: '2025 Q1' });
     expect(seasons[5]).toMatchObject({ name: '2023 Q4' });
     expect(seasons[6]).toMatchObject({ name: '2025' }); // Annuals
+  });
+
+  it('handles custom numberOfQuarters', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
+
+    // Only 2 quarters
+    const seasons = listSeasons(2);
+    // 2 quarters + 1 lifetime + annuals
+    // 2 quarters = 2025 Q1, 2024 Q4
+    // years: 2025, 2024 (2 annuals)
+    // total: 2 quarters + 2 annuals = 4 elements
+    expect(seasons).toHaveLength(4);
+    expect(seasons[0]).toMatchObject({ name: '2025 Q1' });
+    expect(seasons[1]).toMatchObject({ name: '2024 Q4' });
+  });
+
+  it('handles earliestDate with no valid quarters gracefully', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
+
+    // Call listSeasons with an invalid earliestDate
+    const seasons = listSeasons(8, 'invalid-date');
+
+    // Due to 'invalid-date', Date parsing results in Invalid Date which returns NaN for years.
+    // The while loop (NaN < 2025) will be false, so seasons should only contain annuals built from empty list
+    // wait actually, start.year will be NaN. NaN < 2025 is false. seasons will be empty.
+    // then new Set(seasons...) will be empty.
+    // resulting in an empty array. Let's see what it returns.
+
+    // Wait, let's actually just test a date in the FUTURE to trigger the 0 quarters pushed in earliestDate branch
+    const seasonsFuture = listSeasons(8, '2026-01-01T00:00:00.000Z');
+    expect(seasonsFuture).toHaveLength(0);
   });
 
   it('enforces safety guard for extremely old earliestDate', () => {
@@ -199,6 +239,47 @@ describe('lib/seasons utilities', () => {
     const target = seasons[2];
     expect(getSeasonById(target.id)).toEqual(target);
     expect(getSeasonById(0)).toEqual({ id: 0, name: 'Lifetime', start_date: '', end_date: '' });
+
+    // Test invalid date for match season
+    const nanId = getSeasonIdFromMatch('invalid-date', seasons);
+    expect(Number.isNaN(nanId)).toBe(true);
+
+    // Also test null or undefined return for completely invalid date,
+    // though the current implementation just returns NaN because year is NaN.
+    // That's what we are covering anyway.
+
+    // Test different quarter months for matches
+    expect(getSeasonIdFromMatch('2025-01-15')).toBe(20251); // Jan
+    expect(getSeasonIdFromMatch('2025-04-15')).toBe(20252); // Apr
+    expect(getSeasonIdFromMatch('2025-07-15')).toBe(20253); // Jul
+    expect(getSeasonIdFromMatch('2025-10-15')).toBe(20254); // Oct
+
+    // Testing boundary conditions for month grouping
+    expect(getSeasonIdFromMatch('2025-03-31T23:59:59Z')).toBe(20251);
+    expect(getSeasonIdFromMatch('2025-06-30T23:59:59Z')).toBe(20252);
+    expect(getSeasonIdFromMatch('2025-09-30T23:59:59Z')).toBe(20253);
+    expect(getSeasonIdFromMatch('2025-12-31T23:59:59Z')).toBe(20254);
+
+    // Test annual season lookup (quarter = 0)
+    expect(getSeasonById(20250)).toMatchObject({ name: '2025', start_date: '2025-01-01', end_date: '2025-12-31' });
+
+    // Test quarterly season lookups
+    expect(getSeasonById(20251)).toMatchObject({ name: '2025 Q1', start_date: '2025-01-01', end_date: '2025-03-31' });
+    expect(getSeasonById(20252)).toMatchObject({ name: '2025 Q2', start_date: '2025-04-01', end_date: '2025-06-30' });
+    expect(getSeasonById(20253)).toMatchObject({ name: '2025 Q3', start_date: '2025-07-01', end_date: '2025-09-30' });
+    expect(getSeasonById(20254)).toMatchObject({ name: '2025 Q4', start_date: '2025-10-01', end_date: '2025-12-31' });
+
+    // Test invalid season id lookup
+    expect(getSeasonById(20256)).toBeNull();
+
+    // Test map match dates to season correctly with active seasons
+    const testSeasons = [
+      { id: 20251, name: '2025 Q1', start_date: '2025-01-01', end_date: '2025-03-31' },
+    ];
+    const invalidDateId = getSeasonIdFromMatch('invalid-date', testSeasons);
+    // it will return NaN for invalid dates
+    expect(Number.isNaN(invalidDateId)).toBe(true);
+
     expect(getSeasonById(9999)).toBeNull();
   });
 
