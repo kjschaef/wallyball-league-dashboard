@@ -161,8 +161,9 @@ export default function GamesPage() {
             {playerFilter && (
               <button
                 onClick={() => setPlayerFilter("")}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 title="Clear search"
+                aria-label="Clear search"
               >
                 <X className="h-3 w-3 text-gray-400" />
               </button>
@@ -200,7 +201,8 @@ export default function GamesPage() {
               Player: &quot;{playerFilter}&quot;
               <button
                 onClick={() => setPlayerFilter("")}
-                className="hover:bg-blue-200 rounded-full p-0.5"
+                className="hover:bg-blue-200 rounded-full p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-label="Clear player filter"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -214,7 +216,8 @@ export default function GamesPage() {
                   setFromDate("");
                   setToDate("");
                 }}
-                className="hover:bg-green-200 rounded-full p-0.5"
+                className="hover:bg-green-200 rounded-full p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                aria-label="Clear date filter"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -284,8 +287,9 @@ export default function GamesPage() {
 
                       <button
                         onClick={() => handleDeleteMatch(match.id)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                         title="Delete match"
+                        aria-label="Delete match"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
