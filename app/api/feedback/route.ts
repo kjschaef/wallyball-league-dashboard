@@ -51,10 +51,7 @@ ${formattedTranscript}
   } catch (error) {
     console.error('Error submitting feedback:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to submit feedback',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: 'Failed to submit feedback' },
       { status: 500 }
     );
   }
