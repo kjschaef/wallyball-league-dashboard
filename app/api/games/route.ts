@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getDatabase } from "../../../db/config";
 import { matches, players } from "../../../db/schema";
 
 export async function POST(request: Request) {
   try {
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const db = getDatabase();
     const data = await request.json();
     // recording new game (server)
