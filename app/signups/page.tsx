@@ -304,7 +304,7 @@ export default function SignupsPage() {
               disabled={!selectedPlayerId}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${selectedPlayerUnavailable
                 ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'} disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto`}
+                : 'bg-blue-600 text-white hover:bg-blue-700'} disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto`}
             >
               {selectedPlayerUnavailable ? "I'm Back In" : 'Out This Week'}
             </button>
