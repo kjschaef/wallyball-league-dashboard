@@ -147,6 +147,13 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/modelClient.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/modelClient.ts"
+      ]
+    },
+    {
       "path": "app/lib/__tests__/playerFiltering.test.ts",
       "kind": "app-lib",
       "covers": [
@@ -249,6 +256,9 @@
     "app/lib/constants.ts": [
       "app/lib/__tests__/playerFiltering.test.ts"
     ],
+    "app/lib/modelClient.ts": [
+      "app/lib/__tests__/modelClient.test.ts"
+    ],
     "app/lib/playerFiltering.ts": [
       "app/lib/__tests__/playerFiltering.test.ts"
     ],
@@ -341,7 +351,8 @@
     {
       "taskId": "ai-chatbot",
       "tests": [
-        "__tests__/components/DashboardPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx",
+        "app/lib/__tests__/modelClient.test.ts"
       ],
       "gaps": [
         "app/api/chatbot/route.ts",

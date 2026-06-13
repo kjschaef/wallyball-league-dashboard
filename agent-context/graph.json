@@ -733,6 +733,19 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/__tests__/modelClient.test.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/modelClient.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/modelClient.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/__tests__/playerFiltering.test.ts",
       "type": "app-lib",
       "tags": [
