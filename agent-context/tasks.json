@@ -14,7 +14,6 @@
       "startFiles": [
         "app/api/players/route.ts",
         "app/api/players/[id]/route.ts",
-        "app/players/page.tsx",
         "app/page.tsx",
         "db/schema.ts"
       ],
@@ -24,20 +23,19 @@
         "app/components/ChatBot.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
-        "app/components/PlayerCard.tsx",
         "app/components/PlayerCards.tsx",
         "app/components/PlayerGrid.tsx",
         "app/components/PlayerPerformanceRadar.tsx",
         "app/components/PlayerSelector.tsx",
         "app/components/PlayerSelectorDialog.tsx",
-        "app/components/RecentMatches.tsx"
+        "app/components/RecentMatches.tsx",
+        "app/components/RecordMatchModal.tsx"
       ],
       "testCommands": [
-        "pnpm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx"
+        "pnpm test -- __tests__/components/DashboardPage.test.tsx"
       ],
       "mappedTests": [
-        "__tests__/components/DashboardPage.test.tsx",
-        "__tests__/components/PlayersPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx"
       ],
       "riskAreas": [
         "API responses are enriched and consumed directly by UI components.",
@@ -123,9 +121,9 @@
         "app/api/seasons/route.ts",
         "app/components/ChatBot.tsx",
         "app/components/PerformanceControls.tsx",
-        "app/components/PlayerCard.tsx",
         "app/components/PlayerCards.tsx",
-        "app/components/PlayerGrid.tsx"
+        "app/components/PlayerGrid.tsx",
+        "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
         "pnpm test -- __tests__/api/player-stats.test.ts __tests__/api/player-trends.test.ts __tests__/api/seasonal-player-stats.test.ts __tests__/api/team-performance.test.ts app/components/__tests__/PerformanceControls.test.tsx app/components/__tests__/PerformanceTrend.test.tsx app/lib/__tests__/stats.test.ts"

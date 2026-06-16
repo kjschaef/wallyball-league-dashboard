@@ -156,6 +156,36 @@
       ]
     },
     {
+      "file": "app/api/notifications/incoming-sms/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/notifications/reminders/route.ts",
+      "type": "api-route",
+      "tags": [],
+      "imports": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/api/player-stats/route.ts",
       "type": "api-route",
       "tags": [
@@ -215,9 +245,7 @@
       "imports": [],
       "importedBy": [],
       "related": [
-        "app/components/PlayerCard.tsx",
-        "app/components/PlayerGrid.tsx",
-        "app/players/page.tsx"
+        "app/components/PlayerGrid.tsx"
       ],
       "overrideNotes": [
         "Returns players enriched with matches and stats; it is not a thin CRUD-only route."
@@ -331,7 +359,6 @@
         "app/games/page.tsx",
         "app/layout.tsx",
         "app/page.tsx",
-        "app/players/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
@@ -342,7 +369,6 @@
         "app/games/page.tsx",
         "app/layout.tsx",
         "app/page.tsx",
-        "app/players/page.tsx",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
@@ -457,21 +483,6 @@
         "app/lib/playerFiltering.ts",
         "app/lib/tooltip.ts",
         "app/page.tsx"
-      ],
-      "overrideNotes": []
-    },
-    {
-      "file": "app/components/PlayerCard.tsx",
-      "type": "component",
-      "tags": [
-        "players"
-      ],
-      "imports": [],
-      "importedBy": [
-        "app/players/page.tsx"
-      ],
-      "related": [
-        "app/players/page.tsx"
       ],
       "overrideNotes": []
     },
@@ -819,6 +830,19 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/__tests__/twilio.test.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/twilio.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/twilio.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/__tests__/utils.test.ts",
       "type": "app-lib",
       "tags": [],
@@ -934,12 +958,16 @@
       "tags": [],
       "imports": [],
       "importedBy": [
+        "app/api/notifications/incoming-sms/route.ts",
+        "app/api/notifications/reminders/route.ts",
         "app/api/settings/route.ts",
         "app/api/signups/route.ts",
         "app/settings/page.tsx",
         "app/signups/page.tsx"
       ],
       "related": [
+        "app/api/notifications/incoming-sms/route.ts",
+        "app/api/notifications/reminders/route.ts",
         "app/api/settings/route.ts",
         "app/api/signups/route.ts",
         "app/settings/page.tsx",
@@ -994,6 +1022,21 @@
       ],
       "related": [
         "app/components/PerformanceTrend.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/twilio.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/api/notifications/incoming-sms/route.ts",
+        "app/api/notifications/reminders/route.ts"
+      ],
+      "related": [
+        "app/api/notifications/incoming-sms/route.ts",
+        "app/api/notifications/reminders/route.ts"
       ],
       "overrideNotes": []
     },
@@ -1067,23 +1110,6 @@
       "overrideNotes": [
         "Main dashboard orchestration surface for modal state, refresh flow, season filters, and AI entrypoints."
       ]
-    },
-    {
-      "file": "app/players/page.tsx",
-      "type": "page",
-      "tags": [
-        "players"
-      ],
-      "imports": [
-        "app/components/AdminProvider.tsx",
-        "app/components/PlayerCard.tsx"
-      ],
-      "importedBy": [],
-      "related": [
-        "app/components/AdminProvider.tsx",
-        "app/components/PlayerCard.tsx"
-      ],
-      "overrideNotes": []
     },
     {
       "file": "app/results/page.tsx",

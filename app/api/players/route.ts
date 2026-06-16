@@ -59,6 +59,8 @@ export async function GET() {
         id: player.id,
         name: player.name,
         startYear: player.start_year,
+        phoneNumber: player.phone_number,
+        smsOptIn: player.sms_opt_in,
         createdAt: player.created_at ? new Date(player.created_at).toISOString() : null,
         matches: processedMatches,
         stats: {
@@ -103,8 +105,8 @@ export async function POST(request: Request) {
 
     // Create new player in database
     const newPlayers = await sql`
-      INSERT INTO players (name, start_year, created_at)
-      VALUES (${body.name.trim()}, ${body.startYear || new Date().getFullYear()}, NOW())
+      INSERT INTO players (name, start_year, phone_number, sms_opt_in, created_at)
+      VALUES (${body.name.trim()}, ${body.startYear || new Date().getFullYear()}, ${body.phoneNumber || null}, ${body.smsOptIn ?? false}, NOW())
       RETURNING *
     `;
 
@@ -115,6 +117,8 @@ export async function POST(request: Request) {
       id: newPlayer.id,
       name: newPlayer.name,
       startYear: newPlayer.start_year,
+      phoneNumber: newPlayer.phone_number,
+      smsOptIn: newPlayer.sms_opt_in,
       createdAt: new Date(newPlayer.created_at).toISOString(),
       matches: [],
       stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
@@ -162,7 +166,11 @@ export async function PUT(request: Request) {
     // Update player in database
     const updatedPlayers = await sql`
       UPDATE players 
-      SET name = ${body.name.trim()}, start_year = ${body.startYear || null}
+      SET 
+        name = ${body.name.trim()}, 
+        start_year = ${body.startYear || null},
+        phone_number = ${body.phoneNumber || null},
+        sms_opt_in = ${body.smsOptIn ?? false}
       WHERE id = ${body.id}
       RETURNING *
     `;
@@ -181,6 +189,8 @@ export async function PUT(request: Request) {
       id: updatedPlayer.id,
       name: updatedPlayer.name,
       startYear: updatedPlayer.start_year,
+      phoneNumber: updatedPlayer.phone_number,
+      smsOptIn: updatedPlayer.sms_opt_in,
       createdAt: new Date(updatedPlayer.created_at).toISOString(),
     };
     

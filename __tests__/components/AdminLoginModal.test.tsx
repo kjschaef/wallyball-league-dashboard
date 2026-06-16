@@ -35,7 +35,7 @@ describe('AdminLoginModal', () => {
     render(
       <AdminLoginModal isOpen={true} onClose={mockOnClose} onSuccess={mockOnSuccess} />
     );
-    const closeButton = screen.getByLabelText('Close modal');
+    const closeButton = screen.getByRole('button', { name: 'Close' });
     fireEvent.click(closeButton);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });

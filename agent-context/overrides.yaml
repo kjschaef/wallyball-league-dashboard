@@ -26,9 +26,7 @@ overrides:
       - Returns players enriched with matches and stats; it is not a thin CRUD-only route.
     priority: 90
     relatedFiles:
-      - app/players/page.tsx
       - app/components/PlayerGrid.tsx
-      - app/components/PlayerCard.tsx
   - match: app/api/matches/route.ts
     taskTags: match-recording, stats-rankings
     notes:

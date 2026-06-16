@@ -1,10 +1,12 @@
-import { pgTable, text, serial, integer, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, index, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const players = pgTable("players", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   startYear: integer("start_year"),
+  phoneNumber: text("phone_number"),
+  smsOptIn: boolean("sms_opt_in").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -51,6 +53,9 @@ export const siteSettings = pgTable("site_settings", {
   signupCloseDayOfWeek: integer("signup_close_day_of_week").default(0), // 0 = Sunday
   signupCloseTime: text("signup_close_time").default("16:00"), // HH:mm
   availableDays: text("available_days").default(JSON.stringify(["Monday", "Tuesday", "Thursday"])),
+  smsRemindersEnabled: boolean("sms_reminders_enabled").default(false),
+  smsRemindersDayOfWeek: integer("sms_reminders_day_of_week").default(3), // 3 = Wednesday
+  smsRemindersTime: text("sms_reminders_time").default("12:00"), // HH:mm
 });
 
 // Weekly signups

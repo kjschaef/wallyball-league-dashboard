@@ -42,6 +42,9 @@ function buildSignupSettings(settingsRows: SignupSettingsRow[]): SignupSettings 
         signupCloseDayOfWeek: settingsRows[0].signup_close_day_of_week ?? DEFAULT_SIGNUP_SETTINGS.signupCloseDayOfWeek,
         signupCloseTime: settingsRows[0].signup_close_time ?? DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
         availableDays: parseAvailableDays(settingsRows[0].available_days),
+        smsRemindersEnabled: false,
+        smsRemindersDayOfWeek: 3,
+        smsRemindersTime: '12:00',
       }
     : DEFAULT_SIGNUP_SETTINGS;
 }

@@ -145,6 +145,18 @@
           "references": null
         },
         {
+          "field": "phoneNumber",
+          "kind": "text",
+          "column": "phone_number",
+          "references": null
+        },
+        {
+          "field": "smsOptIn",
+          "kind": "boolean",
+          "column": "sms_opt_in",
+          "references": null
+        },
+        {
           "field": "createdAt",
           "kind": "timestamp",
           "column": "created_at",
@@ -156,6 +168,7 @@
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
         "migrations/0007_blue_edwin_jarvis.sql",
+        "migrations/0009_bumpy_impossible_man.sql",
         "migrations/004_add_inactivity_exemptions.sql",
         "migrations/007_add_signups.sql",
         "migrations/009_add_weekly_unavailable.sql",
@@ -208,12 +221,31 @@
           "kind": "text",
           "column": "available_days",
           "references": null
+        },
+        {
+          "field": "smsRemindersEnabled",
+          "kind": "boolean",
+          "column": "sms_reminders_enabled",
+          "references": null
+        },
+        {
+          "field": "smsRemindersDayOfWeek",
+          "kind": "integer",
+          "column": "sms_reminders_day_of_week",
+          "references": null
+        },
+        {
+          "field": "smsRemindersTime",
+          "kind": "text",
+          "column": "sms_reminders_time",
+          "references": null
         }
       ],
       "selectType": "SiteSetting",
       "insertType": "NewSiteSetting",
       "migrationTouchpoints": [
         "migrations/0007_blue_edwin_jarvis.sql",
+        "migrations/0009_bumpy_impossible_man.sql",
         "migrations/007_add_signups.sql",
         "migrations/008_add_signup_close_settings.sql"
       ]

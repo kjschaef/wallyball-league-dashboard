@@ -12,6 +12,8 @@ export interface PlayerStats {
 
     actualWinPercentage?: number;
     lastGameDate?: string | null;
+    phoneNumber?: string | null;
+    smsOptIn?: boolean | null;
 }
 
 
@@ -100,7 +102,9 @@ export async function calculatePlayerStats(
                 totalPlayingTime,
 
                 actualWinPercentage: winPercentage,
-                lastGameDate
+                lastGameDate,
+                phoneNumber: player.phone_number,
+                smsOptIn: player.sms_opt_in,
             };
         } catch (error) {
             console.error(`Error processing player ${player.name} (ID ${player.id}):`, error);
@@ -114,7 +118,9 @@ export async function calculatePlayerStats(
                 totalPlayingTime: 0,
 
                 actualWinPercentage: 0,
-                lastGameDate: null
+                lastGameDate: null,
+                phoneNumber: player.phone_number,
+                smsOptIn: player.sms_opt_in,
             };
         }
     }));
