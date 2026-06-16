@@ -17,6 +17,7 @@
 ## 2024-05-21 - [Added API feedback unit tests]
 **Learning:** Testing Next.js route handlers that take a `NextRequest` can be simplified in unit tests by casting a plain JS object that mimics the `json()` method. This avoids `NextRequest` constructor stringify bugs when not in a full integration environment.
 **Action:** When unit testing App Router POST API routes in Next.js, use a mock request object with an async `json()` method instead of instantiating `NextRequest` if simple body assertion is needed.
+
 ## 2024-05-24 - Environment Variable Manipulation in Jest
 **Learning:** In Next.js App Router API testing, deleting required environment variables (like `DATABASE_URL`) without a fail-safe restoration block will silently pollute the process environment and cause subsequent tests to fail unexpectedly, since `process.env` mutations are global across the suite.
 **Action:** Always wrap code blocks that manipulate or delete global environment variables in a `try...finally` block, ensuring variables are explicitly restored in the `finally` statement so they reset even if assertions throw errors.
@@ -24,3 +25,7 @@
 ## 2025-06-05 - Mocking API methods effectively
 **Learning:** For Next.js App Router unit tests covering API endpoints with complex logic, properly isolating the database functionality inside mocked tagged template literal `mockSql` functions allows rigorous assertion on specific input arguments and response shapes.
 **Action:** Always structure API unit tests to thoroughly replace database drivers while avoiding overly broad mocks, so the code paths specific to error states like "missing DATABASE_URL" can still be exercised by setting and restoring `process.env`.
+
+## 2026-06-10 - Shared Mock Function References for Class Instantiations
+**Learning:** When testing a module that instantiates a class at the top level (e.g., `const client = new OpenAI(...)` outside of any exported function), using `jest.mock` and trying to assert against `mockCreate = client.chat.completions.create` within a `beforeEach` can lead to reference mismatches or initialization errors (Cannot access before initialization) if the mock isn't structured carefully.
+**Action:** When mocking module-level class instantiations in Jest, ensure the `jest.mock` factory uses a shared mock function reference (e.g., `const mCreate = jest.fn()` inside the factory but outside the returned mock implementation) so both the test suite and the application code interact with the same mock instance.
