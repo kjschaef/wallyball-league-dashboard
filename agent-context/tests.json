@@ -44,6 +44,13 @@
       ]
     },
     {
+      "path": "__tests__/api/players.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/players/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/seasonal-player-stats.test.ts",
       "kind": "test",
       "covers": [
@@ -225,6 +232,9 @@
     "app/api/player-trends/route.ts": [
       "__tests__/api/player-trends.test.ts"
     ],
+    "app/api/players/route.ts": [
+      "__tests__/api/players.test.ts"
+    ],
     "app/api/seasons/current/route.ts": [
       "__tests__/api/seasons.test.ts"
     ],
@@ -314,7 +324,6 @@
         "__tests__/components/PlayersPage.test.tsx"
       ],
       "gaps": [
-        "app/api/players/route.ts",
         "app/api/players/[id]/route.ts",
         "db/schema.ts"
       ]
