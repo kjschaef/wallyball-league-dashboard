@@ -22,6 +22,10 @@
 **Learning:** In Next.js App Router API testing, deleting required environment variables (like `DATABASE_URL`) without a fail-safe restoration block will silently pollute the process environment and cause subsequent tests to fail unexpectedly, since `process.env` mutations are global across the suite.
 **Action:** Always wrap code blocks that manipulate or delete global environment variables in a `try...finally` block, ensuring variables are explicitly restored in the `finally` statement so they reset even if assertions throw errors.
 
+## 2025-06-04 - Testing fallback error messages in catch blocks
+**Learning:** When API routes contain fallback logic for unknown errors (e.g., `details: error instanceof Error ? error.message : 'Unknown error'`), this path is often missed in coverage because standard error mocks return `Error` objects.
+**Action:** Explicitly trigger the 'Unknown error' path in Jest by mocking the failing dependency (like `request.json()`) to reject with a primitive string (e.g., `mockRejectedValue('String error')`) instead of an Error object.
+
 ## 2025-06-05 - Mocking API methods effectively
 **Learning:** For Next.js App Router unit tests covering API endpoints with complex logic, properly isolating the database functionality inside mocked tagged template literal `mockSql` functions allows rigorous assertion on specific input arguments and response shapes.
 **Action:** Always structure API unit tests to thoroughly replace database drivers while avoiding overly broad mocks, so the code paths specific to error states like "missing DATABASE_URL" can still be exercised by setting and restoring `process.env`.

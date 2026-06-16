@@ -94,4 +94,23 @@ describe('/api/auth POST', () => {
     await expect(response.json()).resolves.toEqual({ error: 'Invalid password' });
     expect(mockCookieStore.set).not.toHaveBeenCalled();
   });
+
+  it('handles database errors gracefully', async () => {
+    mockSql.mockImplementation(() => {
+      return Promise.reject(new Error('Database connection failed'));
+    });
+
+    const originalConsoleError = console.error;
+    console.error = jest.fn();
+
+    const response = await POST({
+      json: async () => ({ password: 'some-password' }),
+    } as Request);
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: 'Failed to authenticate' });
+    expect(console.error).toHaveBeenCalled();
+
+    console.error = originalConsoleError;
+  });
 });
