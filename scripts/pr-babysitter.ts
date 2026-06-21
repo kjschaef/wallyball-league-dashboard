@@ -75,6 +75,22 @@ async function addLabel(issueNumber: number, label: string) {
   });
 }
 
+async function removeLabel(issueNumber: number, label: string) {
+  console.log(`[Action] Removing label '${label}' from PR #${issueNumber}`);
+  if (DRY_RUN) {
+    console.log(`[Dry Run] Would remove label: ${label}`);
+    return;
+  }
+  if (!GITHUB_TOKEN) {
+    console.log('[Warning] No GITHUB_TOKEN found, skipping label removal.');
+    return;
+  }
+  // GitHub API returns 404 if the label doesn't exist on the issue, which we can ignore
+  await githubFetch(`/repos/${REPO}/issues/${issueNumber}/labels/${encodeURIComponent(label)}`, {
+    method: 'DELETE',
+  });
+}
+
 async function auditPRs() {
   console.log(`Auditing repo: ${REPO}`);
   if (DRY_RUN) console.log('Running in DRY_RUN mode.');
@@ -106,8 +122,8 @@ async function auditPRs() {
     for (const run of allCheckRuns) {
       if (run.status !== 'completed') {
         pending = true;
-      } else if (run.conclusion === 'failure' || run.conclusion === 'timed_out' || run.conclusion === 'action_required') {
-        failures.push(`Check Run: ${run.name}`);
+      } else if (run.conclusion === 'failure' || run.conclusion === 'timed_out' || run.conclusion === 'action_required' || run.conclusion === 'cancelled' || run.conclusion === 'stale') {
+        failures.push(`Check Run: ${run.name} (${run.conclusion})`);
       }
     }
 
@@ -128,7 +144,13 @@ async function auditPRs() {
       }
     }
 
+    const labels = pr.labels.map((l: any) => l.name);
+
     if (failures.length > 0) {
+      if (labels.includes('status: ready-to-merge')) {
+        await removeLabel(pr.number, 'status: ready-to-merge');
+      }
+
       const commentBody = `⚠️ Hello @${pr.user.login}, it looks like some CI checks have failed on this PR:\n\n` +
         failures.map(f => `- ${f}`).join('\n') +
         `\n\nPlease address these failures so the PR can be moved toward a mergeable state.`;
@@ -149,6 +171,9 @@ async function auditPRs() {
     }
 
     if (pending) {
+      if (labels.includes('status: ready-to-merge')) {
+        await removeLabel(pr.number, 'status: ready-to-merge');
+      }
       console.log(`  Checks are still pending for PR #${pr.number}. Skipping.`);
       continue;
     }
@@ -168,21 +193,24 @@ async function auditPRs() {
 
     console.log(`  Approvals: ${approvals}/${MIN_APPROVALS}, Changes Requested: ${changesRequested}`);
 
-    if (changesRequested) {
-      console.log(`  PR #${pr.number} has active 'Changes Requested'.`);
+    if (changesRequested || approvals < MIN_APPROVALS) {
+      if (labels.includes('status: ready-to-merge')) {
+        await removeLabel(pr.number, 'status: ready-to-merge');
+      }
+
+      if (changesRequested) {
+        console.log(`  PR #${pr.number} has active 'Changes Requested'.`);
+      } else {
+        console.log(`  PR #${pr.number} does not have enough approvals yet.`);
+      }
       continue;
     }
 
     // 3. Take Action on Ready PRs
-    if (approvals >= MIN_APPROVALS) {
-      const labels = pr.labels.map((l: any) => l.name);
-      if (!labels.includes('status: ready-to-merge')) {
-        await addLabel(pr.number, 'status: ready-to-merge');
-      } else {
-        console.log(`  PR #${pr.number} is already marked as status: ready-to-merge.`);
-      }
+    if (!labels.includes('status: ready-to-merge')) {
+      await addLabel(pr.number, 'status: ready-to-merge');
     } else {
-      console.log(`  PR #${pr.number} does not have enough approvals yet.`);
+      console.log(`  PR #${pr.number} is already marked as status: ready-to-merge.`);
     }
   }
 }
