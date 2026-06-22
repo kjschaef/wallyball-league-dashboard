@@ -16,7 +16,6 @@
     "db:seed": "tsx scripts/seed.ts",
     "context:generate": "ts-node --transpile-only --compiler-options '{\"module\":\"commonjs\",\"moduleResolution\":\"node\"}' scripts/generate-agent-context.ts",
     "context:check": "ts-node --transpile-only --compiler-options '{\"module\":\"commonjs\",\"moduleResolution\":\"node\"}' scripts/check-agent-context.ts",
-    "pr-babysitter": "tsx scripts/pr-babysitter.ts",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix"
   },
