@@ -36,7 +36,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          model: "claude-3-7-sonnet-20250219"
+          model: "claude-3-5-sonnet-20241022"
 
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |

@@ -176,8 +176,11 @@ async function auditPRs() {
     const failures: string[] = [];
     let pending = false;
 
+    const observedContexts = new Set<string>();
+
     // Evaluate Check Runs (GitHub Actions)
     for (const run of checkRuns.check_runs) {
+      observedContexts.add(run.name);
       const isRequired = !requiredChecks || requiredChecks.includes(run.name);
 
       if (run.status !== 'completed') {
@@ -198,6 +201,7 @@ async function auditPRs() {
     }
 
     for (const status of latestStatuses.values()) {
+      observedContexts.add(status.context);
       const isRequired = !requiredChecks || requiredChecks.includes(status.context);
 
       if (status.state === 'pending') {
@@ -205,6 +209,16 @@ async function auditPRs() {
       } else if (status.state === 'failure' || status.state === 'error') {
         if (isRequired) {
           failures.push(`Status: ${status.context}`);
+        }
+      }
+    }
+
+    // Treat missing required checks as pending
+    if (requiredChecks) {
+      for (const required of requiredChecks) {
+        if (!observedContexts.has(required)) {
+          console.log(`  Required check '${required}' has not reported yet. Treating as pending.`);
+          pending = true;
         }
       }
     }
@@ -252,6 +266,8 @@ async function auditPRs() {
 
     const latestReviews = new Map<string, string>();
     for (const review of reviews) {
+      // Ignore comment-only reviews when deriving blockers/approvals
+      if (review.state === 'COMMENTED') continue;
       latestReviews.set(review.user.login, review.state);
     }
 
