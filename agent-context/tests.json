@@ -44,6 +44,13 @@
       ]
     },
     {
+      "path": "__tests__/api/players.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/players/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/seasonal-player-stats.test.ts",
       "kind": "test",
       "covers": [
@@ -147,6 +154,13 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/modelClient.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/modelClient.ts"
+      ]
+    },
+    {
       "path": "app/lib/__tests__/playerFiltering.test.ts",
       "kind": "app-lib",
       "covers": [
@@ -189,6 +203,13 @@
       "covers": [
         "app/lib/utils.ts"
       ]
+    },
+    {
+      "path": "lib/__tests__/rag.test.ts",
+      "kind": "lib",
+      "covers": [
+        "lib/rag.ts"
+      ]
     }
   ],
   "coverageByFile": {
@@ -210,6 +231,9 @@
     ],
     "app/api/player-trends/route.ts": [
       "__tests__/api/player-trends.test.ts"
+    ],
+    "app/api/players/route.ts": [
+      "__tests__/api/players.test.ts"
     ],
     "app/api/seasons/current/route.ts": [
       "__tests__/api/seasons.test.ts"
@@ -249,6 +273,9 @@
     "app/lib/constants.ts": [
       "app/lib/__tests__/playerFiltering.test.ts"
     ],
+    "app/lib/modelClient.ts": [
+      "app/lib/__tests__/modelClient.test.ts"
+    ],
     "app/lib/playerFiltering.ts": [
       "app/lib/__tests__/playerFiltering.test.ts"
     ],
@@ -282,6 +309,9 @@
     "app/signups/page.tsx": [
       "__tests__/components/SignupsPage.test.tsx"
     ],
+    "lib/rag.ts": [
+      "lib/__tests__/rag.test.ts"
+    ],
     "lib/seasons.ts": [
       "__tests__/api/seasons.test.ts"
     ]
@@ -294,7 +324,6 @@
         "__tests__/components/PlayersPage.test.tsx"
       ],
       "gaps": [
-        "app/api/players/route.ts",
         "app/api/players/[id]/route.ts",
         "db/schema.ts"
       ]
@@ -341,14 +370,15 @@
     {
       "taskId": "ai-chatbot",
       "tests": [
-        "__tests__/components/DashboardPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx",
+        "app/lib/__tests__/modelClient.test.ts",
+        "lib/__tests__/rag.test.ts"
       ],
       "gaps": [
         "app/api/chatbot/route.ts",
         "app/components/ChatBot.tsx",
         "app/lib/openai.ts",
-        "app/lib/prompts.ts",
-        "lib/rag.ts"
+        "app/lib/prompts.ts"
       ]
     }
   ]
