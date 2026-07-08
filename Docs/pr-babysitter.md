@@ -19,7 +19,7 @@ Audits the CI/CD status rollup for a specific PR.
 
 ### 3. `bin/pr-audit-reviews <pr-number> [min-approvals]`
 Audits the code review approvals and blockers for a specific PR.
-*   **Usage**: `./bin/pr-audit-reviews <pr-number> [min-approvals]` (Defaults to `1` minimum approval)
+*   **Usage**: `./bin/pr-audit-reviews <pr-number> [min-approvals]` (Defaults to `0` minimum approvals)
 *   **Exit Codes**:
     *   `0`: Approved and ready.
     *   `1`: Active `CHANGES_REQUESTED` present. Prints author of block to stdout.

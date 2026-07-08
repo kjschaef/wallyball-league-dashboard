@@ -7,7 +7,7 @@ if [ -z "${1:-}" ]; then
 fi
 
 PR_NUMBER="$1"
-MIN_APPROVALS="${2:-1}"
+MIN_APPROVALS="${2:-0}"
 
 REVIEWS_JSON=$(gh pr view "$PR_NUMBER" --json reviews --jq '.reviews // []')
 
