@@ -52,23 +52,18 @@ describe('/api/seasons', () => {
     });
 
     it('falls back to computed seasons when DATABASE_URL is not set', async () => {
-      const originalUrl = process.env.DATABASE_URL;
       delete process.env.DATABASE_URL;
-      try {
-        jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
+      jest.useFakeTimers().setSystemTime(new Date('2025-02-15T00:00:00.000Z').getTime());
 
-        const request = new NextRequest('http://localhost:3000/api/seasons');
-        const response = await getSeasonsRoute(request);
-        const data = await response.json();
+      const request = new NextRequest('http://localhost:3000/api/seasons');
+      const response = await getSeasonsRoute(request);
+      const data = await response.json();
 
-        expect(response.status).toBe(200);
-        expect(data.length).toBe(17); // 12 computed + lifetime + annuals
-        expect(data[0]).toMatchObject({ name: '2025 Q1', is_active: true });
-        expect(data[data.length - 1]).toMatchObject({ name: 'Lifetime', id: 0 });
-        expect(neon).not.toHaveBeenCalled();
-      } finally {
-        process.env.DATABASE_URL = originalUrl;
-      }
+      expect(response.status).toBe(200);
+      expect(data.length).toBe(17); // 12 computed + lifetime + annuals
+      expect(data[0]).toMatchObject({ name: '2025 Q1', is_active: true });
+      expect(data[data.length - 1]).toMatchObject({ name: 'Lifetime', id: 0 });
+      expect(neon).not.toHaveBeenCalled();
     });
 
     it('handles database errors gracefully', async () => {
