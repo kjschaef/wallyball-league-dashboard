@@ -744,6 +744,19 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/__tests__/modelClient.test.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/modelClient.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/modelClient.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/__tests__/playerFiltering.test.ts",
       "type": "app-lib",
       "tags": [
@@ -1202,6 +1215,19 @@
         "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",
         "db/config.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "lib/__tests__/rag.test.ts",
+      "type": "lib",
+      "tags": [],
+      "imports": [
+        "lib/rag.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "lib/rag.ts"
       ],
       "overrideNotes": []
     },

@@ -231,10 +231,12 @@
         "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
-        "pnpm test -- __tests__/components/DashboardPage.test.tsx"
+        "pnpm test -- __tests__/components/DashboardPage.test.tsx app/lib/__tests__/modelClient.test.ts lib/__tests__/rag.test.ts"
       ],
       "mappedTests": [
-        "__tests__/components/DashboardPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx",
+        "app/lib/__tests__/modelClient.test.ts",
+        "lib/__tests__/rag.test.ts"
       ],
       "riskAreas": [
         "Prompt behavior depends on season-aware stat payloads and RAG content.",

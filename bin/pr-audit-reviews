@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ -z "${1:-}" ]; then
+  echo "Usage: $0 <pr-number> [min-approvals]" >&2
+  exit 1
+fi
+
+PR_NUMBER="$1"
+MIN_APPROVALS="${2:-0}"
+
+REVIEWS_JSON=$(gh pr view "$PR_NUMBER" --json reviews --jq '.reviews // []')
+
+# Filter out COMMENTED reviews, group by author.login, sort by submittedAt, and take the latest review for each user
+LATEST_REVIEWS=$(echo "$REVIEWS_JSON" | jq -c '
+  [ .[] | select(.state != "COMMENTED") ]
+  | group_by(.author.login)
+  | map(sort_by(.submittedAt)[-1])
+')
+
+CHANGES_REQUESTED=$(echo "$LATEST_REVIEWS" | jq -r '.[] | select(.state == "CHANGES_REQUESTED") | .author.login')
+APPROVAL_COUNT=$(echo "$LATEST_REVIEWS" | jq '[ .[] | select(.state == "APPROVED") ] | length')
+
+if [ -n "$CHANGES_REQUESTED" ]; then
+  echo "CHANGES_REQUESTED by: $(echo "$CHANGES_REQUESTED" | paste -sd, -)"
+  exit 1
+fi
+
+if (( APPROVAL_COUNT < MIN_APPROVALS )); then
+  echo "INSUFFICIENT_APPROVALS: $APPROVAL_COUNT of $MIN_APPROVALS approved"
+  exit 2
+fi
+
+echo "APPROVED"
+exit 0
