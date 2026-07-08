@@ -14,7 +14,6 @@
     "db:migrate": "drizzle-kit migrate",
     "db:check": "drizzle-kit check",
     "db:seed": "tsx scripts/seed.ts",
-    "pr-babysitter": "tsx scripts/pr-babysitter.ts",
     "context:generate": "ts-node --transpile-only --compiler-options '{\"module\":\"commonjs\",\"moduleResolution\":\"node\"}' scripts/generate-agent-context.ts",
     "context:check": "ts-node --transpile-only --compiler-options '{\"module\":\"commonjs\",\"moduleResolution\":\"node\"}' scripts/check-agent-context.ts",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",

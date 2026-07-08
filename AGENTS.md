@@ -25,25 +25,29 @@ Use `Docs/` as secondary human-oriented documentation. Do not default to it for 
 - `pnpm lint`
 - `pnpm run context:generate`
 - `pnpm run context:check`
-- `pnpm pr-babysitter`
+- `bin/pr-list`
+- `bin/pr-audit-status`
+- `bin/pr-audit-reviews`
+- `bin/pr-comment`
+- `bin/pr-label-ready`
+- `bin/pr-label-remove`
 
 ## PR Babysitter Instructions
 
 You are a repository automation assistant. Your job is to audit all active, non-draft Pull Requests to ensure they are moving toward a mergeable state.
-For each open PR found in the repository, execute the following steps:
+For each open PR found in the repository, you can leverage the dedicated bash scripts in `bin/`:
  1. **Filter Active PRs:**
-   * Fetch all open PRs.
-   * If a PR is marked as a **Draft**, skip it entirely.
+   * Fetch open PRs using `./bin/pr-list`. This returns active (non-draft) PR numbers and titles.
  2. **Audit CI/CD Status:**
-   * Retrieve the latest check runs and commit statuses for the head SHA.
-   * **If any required check has failed:** Drop a comment tagging the PR author with a summary of the failing jobs so they can fix it immediately.
-   * **If checks are still pending/running:** Skip and leave it alone to let CI finish.
+   * Audit statuses using `./bin/pr-audit-status <pr-number>`.
+   * **If any check has failed (exits with 1):** Drop a comment tagging the PR author with a summary of the failing jobs (using `./bin/pr-comment <pr-number> "<message>"`) so they can fix it immediately.
+   * **If checks are still pending/running (exits with 2):** Skip and leave it alone.
  3. **Verify Code Review Approvals:**
-   * Retrieve the review states for the PR.
-   * Verify that the PR has met the repository's minimum required number of peer approvals and that there are no active "Changes Requested" blocks.
+   * Audit reviews using `./bin/pr-audit-reviews <pr-number> [min-approvals]`.
+   * If there are active `CHANGES_REQUESTED` (exits with 1) or insufficient approvals (exits with 2), skip it.
  4. **Take Action on Ready PRs:**
-   * If all CI/CD checks have **passed** AND the PR has the required **approvals**:
-     * Add the label status: ready-to-merge.
+   * If both status and reviews audit report success (exit 0), add the `status: ready-to-merge` label using `./bin/pr-label-ready <pr-number>`.
+   * If a previously ready PR is no longer ready, remove the label using `./bin/pr-label-remove <pr-number>`.
 
 ## Validation Workflow (CRITICAL)
 
