@@ -6,8 +6,6 @@ import {
   generateWeekDates,
   getSignupCycleState,
   isDateInSignupWeek,
-  parseAvailableDays,
-  normalizeTimeInputValue,
   parseTime,
   DEFAULT_SIGNUP_SETTINGS,
   type SignupSettings,
