@@ -24,14 +24,18 @@ jest.mock('@neondatabase/serverless', () => ({
 
 
 const { neon } = require('@neondatabase/serverless') as { neon: jest.Mock };
+let consoleSpy: jest.SpyInstance;
 const originalDbUrl = process.env.DATABASE_URL;
 
 beforeEach(() => {
+  // Suppress expected console.error logs to clean up test output
+  consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   process.env.DATABASE_URL = 'mock-db-url';
   jest.clearAllMocks();
 });
 
 afterEach(() => {
+  consoleSpy.mockRestore();
   process.env.DATABASE_URL = originalDbUrl;
   jest.useRealTimers();
 });
