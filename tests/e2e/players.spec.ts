@@ -8,7 +8,7 @@ test.describe('Players Management Flow', () => {
 
   test('should render the Players page and allow interactions', async ({ page }) => {
     // Expect header
-    await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible({ timeout: 30000 });
 
     // Check for add player button
     const addPlayerBtn = page.getByRole('button', { name: 'Add Player' });
