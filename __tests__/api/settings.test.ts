@@ -72,6 +72,9 @@ describe('/api/settings', () => {
           signup_close_day_of_week: 3,
           signup_close_time: '14:00:59',
           available_days: '["Tuesday","Thursday"]',
+          sms_reminders_enabled: true,
+          sms_reminders_day_of_week: 4,
+          sms_reminders_time: '13:00',
         }]);
       }
 
@@ -87,6 +90,9 @@ describe('/api/settings', () => {
       signupCloseDayOfWeek: 3,
       signupCloseTime: '14:00',
       availableDays: ['Tuesday', 'Thursday'],
+      smsRemindersEnabled: true,
+      smsRemindersDayOfWeek: 4,
+      smsRemindersTime: '13:00',
     });
   });
 
@@ -100,6 +106,9 @@ describe('/api/settings', () => {
       signupCloseDayOfWeek: 0,
       signupCloseTime: '16:00',
       availableDays: ['Monday', 'Tuesday', 'Thursday'],
+      smsRemindersEnabled: false,
+      smsRemindersDayOfWeek: 3,
+      smsRemindersTime: '12:00',
     });
   });
 
@@ -228,6 +237,9 @@ describe('/api/settings', () => {
       signupCloseDayOfWeek: 0,
       signupCloseTime: '16:00',
       availableDays: ['Monday', 'Tuesday', 'Thursday'],
+      smsRemindersEnabled: false,
+      smsRemindersDayOfWeek: 3,
+      smsRemindersTime: '12:00',
     });
   });
 

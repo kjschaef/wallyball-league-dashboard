@@ -6,6 +6,9 @@ export interface SignupSettings {
   signupCloseDayOfWeek: number;
   signupCloseTime: string;
   availableDays: string[];
+  smsRemindersEnabled: boolean;
+  smsRemindersDayOfWeek: number;
+  smsRemindersTime: string;
 }
 
 export const DEFAULT_SIGNUP_SETTINGS: SignupSettings = {
@@ -14,6 +17,9 @@ export const DEFAULT_SIGNUP_SETTINGS: SignupSettings = {
   signupCloseDayOfWeek: 0,
   signupCloseTime: '16:00',
   availableDays: ['Monday', 'Tuesday', 'Thursday'],
+  smsRemindersEnabled: false,
+  smsRemindersDayOfWeek: 3,
+  smsRemindersTime: '12:00',
 };
 
 export function parseAvailableDays(rawAvailableDays: string | null | undefined): string[] {

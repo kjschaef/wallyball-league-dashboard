@@ -74,6 +74,8 @@ export async function GET(
       id: player[0].id,
       name: player[0].name,
       startYear: player[0].startYear,
+      phoneNumber: player[0].phoneNumber,
+      smsOptIn: player[0].smsOptIn,
       createdAt: player[0].createdAt?.toISOString() || null,
       matches: processedMatches,
       stats: {
@@ -140,7 +142,9 @@ export async function PUT(
       .update(players)
       .set({
         name: body.name?.trim() || existingPlayer[0].name,
-        startYear: body.startYear !== undefined ? body.startYear : existingPlayer[0].startYear
+        startYear: body.startYear !== undefined ? body.startYear : existingPlayer[0].startYear,
+        phoneNumber: body.phoneNumber !== undefined ? body.phoneNumber : existingPlayer[0].phoneNumber,
+        smsOptIn: body.smsOptIn !== undefined ? body.smsOptIn : existingPlayer[0].smsOptIn,
       })
       .where(eq(players.id, playerId))
       .returning();

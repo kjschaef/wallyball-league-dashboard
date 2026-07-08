@@ -115,6 +115,26 @@
     },
     {
       "kind": "api",
+      "route": "/api/notifications/incoming-sms",
+      "file": "app/api/notifications/incoming-sms/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/notifications/reminders",
+      "file": "app/api/notifications/reminders/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "app/lib/signups.ts",
+        "app/lib/twilio.ts"
+      ]
+    },
+    {
+      "kind": "api",
       "route": "/api/player-stats",
       "file": "app/api/player-stats/route.ts",
       "params": [],
@@ -217,16 +237,6 @@
       "params": [],
       "likelySourceFiles": [
         "app/components/AdminProvider.tsx"
-      ]
-    },
-    {
-      "kind": "page",
-      "route": "/players",
-      "file": "app/players/page.tsx",
-      "params": [],
-      "likelySourceFiles": [
-        "app/components/AdminProvider.tsx",
-        "app/components/PlayerCard.tsx"
       ]
     },
     {

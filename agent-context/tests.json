@@ -111,14 +111,6 @@
       ]
     },
     {
-      "path": "__tests__/components/PlayersPage.test.tsx",
-      "kind": "test",
-      "covers": [
-        "app/components/AdminProvider.tsx",
-        "app/players/page.tsx"
-      ]
-    },
-    {
       "path": "__tests__/components/SeasonSelector.test.tsx",
       "kind": "test",
       "covers": [
@@ -198,6 +190,13 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/twilio.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/twilio.ts"
+      ]
+    },
+    {
       "path": "app/lib/__tests__/utils.test.ts",
       "kind": "app-lib",
       "covers": [
@@ -255,8 +254,7 @@
     ],
     "app/components/AdminProvider.tsx": [
       "__tests__/components/DashboardPage.test.tsx",
-      "__tests__/components/GamesPage.test.tsx",
-      "__tests__/components/PlayersPage.test.tsx"
+      "__tests__/components/GamesPage.test.tsx"
     ],
     "app/components/PerformanceControls.tsx": [
       "app/components/__tests__/PerformanceControls.test.tsx"
@@ -291,6 +289,9 @@
     "app/lib/tooltip.ts": [
       "app/lib/__tests__/tooltip.test.ts"
     ],
+    "app/lib/twilio.ts": [
+      "app/lib/__tests__/twilio.test.ts"
+    ],
     "app/lib/types.ts": [
       "app/lib/__tests__/team-balancer.test.ts"
     ],
@@ -299,9 +300,6 @@
     ],
     "app/page.tsx": [
       "__tests__/components/DashboardPage.test.tsx"
-    ],
-    "app/players/page.tsx": [
-      "__tests__/components/PlayersPage.test.tsx"
     ],
     "app/settings/page.tsx": [
       "__tests__/components/SettingsPage.test.tsx"
@@ -320,8 +318,7 @@
     {
       "taskId": "player-crud",
       "tests": [
-        "__tests__/components/DashboardPage.test.tsx",
-        "__tests__/components/PlayersPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx"
       ],
       "gaps": [
         "app/api/players/[id]/route.ts",
