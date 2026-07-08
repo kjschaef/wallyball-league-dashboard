@@ -26,6 +26,18 @@ jest.mock('@neondatabase/serverless', () => ({
   neon: jest.fn(() => createMockSql()),
 }));
 
+// Mock the seasons module to allow testing dynamic imports
+jest.mock('@/lib/seasons', () => ({
+  listSeasons: jest.fn(() => [
+    { id: 20241, name: '2024 Q1', start_date: '2024-01-01', end_date: '2024-03-31', is_active: true }
+  ]),
+  getSeasonById: jest.fn((id) => {
+    if (id === 20241) return { id: 20241, name: '2024 Q1', start_date: '2024-01-01', end_date: '2024-03-31', is_active: true };
+    return null;
+  })
+}), { virtual: true });
+
+
 
 
 // Mock Next.js environment
@@ -91,9 +103,9 @@ describe('/api/player-stats', () => {
       const response = await GET(request);
       const playerStats = await response.json();
 
-      const alice = playerStats.find((p: any) => p.name === 'Alice');
-      const bob = playerStats.find((p: any) => p.name === 'Bob');
-      const charlie = playerStats.find((p: any) => p.name === 'Charlie');
+      const alice = playerStats.find((p: { name: string }) => p.name === 'Alice');
+      const bob = playerStats.find((p: { name: string }) => p.name === 'Bob');
+      const charlie = playerStats.find((p: { name: string }) => p.name === 'Charlie');
 
       // The ORIGINAL BUG would have calculated totalGames as:
       // Alice: Match1(3+2) + Match2(1+4) = 10 total games  
@@ -176,10 +188,10 @@ describe('/api/player-stats', () => {
       expect(playerStats).toHaveLength(4);
 
       // Find each player's stats
-      const alice = playerStats.find((p: any) => p.name === 'Alice');
-      const bob = playerStats.find((p: any) => p.name === 'Bob');
-      const charlie = playerStats.find((p: any) => p.name === 'Charlie');
-      const diana = playerStats.find((p: any) => p.name === 'Diana');
+      const alice = playerStats.find((p: { name: string }) => p.name === 'Alice');
+      const bob = playerStats.find((p: { name: string }) => p.name === 'Bob');
+      const charlie = playerStats.find((p: { name: string }) => p.name === 'Charlie');
+      const diana = playerStats.find((p: { name: string }) => p.name === 'Diana');
 
       // Alice's game count verification:
       // Match 1: Won 3, Lost 2 (was on winning team)
@@ -225,7 +237,7 @@ describe('/api/player-stats', () => {
       // Match 1: 5 games × 4 players = 20 player-game instances
       // Match 2: 3 games × 2 players = 6 player-game instances  
       // Total: 26 player-game instances
-      const totalPlayerGames = playerStats.reduce((sum: number, player: any) => sum + player.record.totalGames, 0);
+      const totalPlayerGames = playerStats.reduce((sum: number, player: { record: { totalGames: number } }) => sum + player.record.totalGames, 0);
       expect(totalPlayerGames).toBe(26); // This would have caught the original bug!
     });
 
@@ -269,7 +281,7 @@ describe('/api/player-stats', () => {
       // Total unique games: 3 (2+1)
       // Players per match: 3 (Alice, Bob, Charlie)
       // Expected total player-games: 3 games × 3 players = 9
-      const totalPlayerGames = playerStats.reduce((sum: number, player: any) => sum + player.record.totalGames, 0);
+      const totalPlayerGames = playerStats.reduce((sum: number, player: { record: { totalGames: number } }) => sum + player.record.totalGames, 0);
       expect(totalPlayerGames).toBe(9);
     });
 
@@ -308,8 +320,8 @@ describe('/api/player-stats', () => {
       const response = await GET(request);
       const playerStats = await response.json();
 
-      const alice = playerStats.find((p: any) => p.name === 'Alice');
-      const bob = playerStats.find((p: any) => p.name === 'Bob');
+      const alice = playerStats.find((p: { name: string }) => p.name === 'Alice');
+      const bob = playerStats.find((p: { name: string }) => p.name === 'Bob');
 
       // Alice was on the winning team (team one)
       expect(alice.record.wins).toBe(3);    // Her team's games won
@@ -418,15 +430,17 @@ describe('/api/player-stats', () => {
       const originalUrl = process.env.DATABASE_URL;
       delete process.env.DATABASE_URL;
 
-      const request = new NextRequest('http://localhost:3000/api/player-stats');
-      const response = await GET(request);
+      try {
+        const request = new NextRequest('http://localhost:3000/api/player-stats');
+        const response = await GET(request);
 
-      expect(response.status).toBe(500);
-      const data = await response.json();
-      expect(data).toEqual({ error: 'Failed to fetch player statistics' });
-
-      // Restore environment variable
-      process.env.DATABASE_URL = originalUrl;
+        expect(response.status).toBe(500);
+        const data = await response.json();
+        expect(data).toEqual({ error: 'Failed to fetch player statistics' });
+      } finally {
+        // Restore environment variable
+        process.env.DATABASE_URL = originalUrl;
+      }
     });
 
     it('should validate total game counts across multiple complex match scenarios', async () => {
@@ -513,12 +527,12 @@ describe('/api/player-stats', () => {
       expect(playerStats).toHaveLength(6);
 
       // Find each player's stats
-      const alice = playerStats.find((p: any) => p.name === 'Alice');
-      const bob = playerStats.find((p: any) => p.name === 'Bob');
-      const charlie = playerStats.find((p: any) => p.name === 'Charlie');
-      const diana = playerStats.find((p: any) => p.name === 'Diana');
-      const eve = playerStats.find((p: any) => p.name === 'Eve');
-      const frank = playerStats.find((p: any) => p.name === 'Frank');
+      const alice = playerStats.find((p: { name: string }) => p.name === 'Alice');
+      const bob = playerStats.find((p: { name: string }) => p.name === 'Bob');
+      const charlie = playerStats.find((p: { name: string }) => p.name === 'Charlie');
+      const diana = playerStats.find((p: { name: string }) => p.name === 'Diana');
+      const eve = playerStats.find((p: { name: string }) => p.name === 'Eve');
+      const frank = playerStats.find((p: { name: string }) => p.name === 'Frank');
 
       // Alice's detailed game count verification:
       // Match 1: Won 4, Lost 2 (team one won 4-2)
@@ -589,7 +603,7 @@ describe('/api/player-stats', () => {
       // Match 3: 5 games (2+3), 2 players = 10 player-game instances  
       // Match 4: 3 games (1+2), 3 players = 9 player-game instances
       // Total expected: 71 player-game instances
-      const totalPlayerGames = playerStats.reduce((sum: number, player: any) => sum + player.record.totalGames, 0);
+      const totalPlayerGames = playerStats.reduce((sum: number, player: { record: { totalGames: number } }) => sum + player.record.totalGames, 0);
       expect(totalPlayerGames).toBe(71);
 
       // Additional validation: wins + losses should equal total games for each player
@@ -598,8 +612,8 @@ describe('/api/player-stats', () => {
       });
 
       // BUG DETECTED: Total wins should equal total losses in a balanced system
-      const totalWins = playerStats.reduce((sum: number, player: any) => sum + player.record.wins, 0);
-      const totalLosses = playerStats.reduce((sum: number, player: any) => sum + player.record.losses, 0);
+      const totalWins = playerStats.reduce((sum: number, player: { record: { totalGames: number } }) => sum + player.record.wins, 0);
+      const totalLosses = playerStats.reduce((sum: number, player: { record: { totalGames: number } }) => sum + player.record.losses, 0);
 
       // This test revealed a bug: uneven team sizes break the wins/losses balance
       // Match 4 (2v1) creates: 4 wins, 5 losses instead of balanced 4.5 wins, 4.5 losses per logical game
@@ -804,7 +818,7 @@ describe('/api/player-stats', () => {
       expect(playerStats).toHaveLength(4); // All 4 players should be returned
 
       // Find Jarod's stats
-      const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
+      const jarod = playerStats.find((p: { name: string }) => p.name === 'Jarod D.');
 
       // This should NOT be undefined - this is the bug we're testing for
       expect(jarod).toBeDefined();
@@ -823,9 +837,9 @@ describe('/api/player-stats', () => {
       expect(jarod.winPercentage).toBe(37.5);
 
       // Ensure other players are also present
-      const chad = playerStats.find((p: any) => p.name === 'Chad');
-      const paul = playerStats.find((p: any) => p.name === 'Paul');
-      const mark = playerStats.find((p: any) => p.name === 'Mark');
+      const chad = playerStats.find((p: { name: string }) => p.name === 'Chad');
+      const paul = playerStats.find((p: { name: string }) => p.name === 'Paul');
+      const mark = playerStats.find((p: { name: string }) => p.name === 'Mark');
 
       expect(chad).toBeDefined();
       expect(paul).toBeDefined();
@@ -888,7 +902,7 @@ describe('/api/player-stats', () => {
       expect(response.status).toBe(200);
       expect(playerStats).toHaveLength(6); // All 6 players should be returned
 
-      const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
+      const jarod = playerStats.find((p: { name: string }) => p.name === 'Jarod D.');
       expect(jarod).toBeDefined();
 
       // Calculate expected stats:
@@ -933,8 +947,8 @@ describe('/api/player-stats', () => {
       // CRITICAL: Both players should appear even if they have no matches
       expect(playerStats).toHaveLength(2);
 
-      const jarod = playerStats.find((p: any) => p.name === 'Jarod D.');
-      const alice = playerStats.find((p: any) => p.name === 'Alice');
+      const jarod = playerStats.find((p: { name: string }) => p.name === 'Jarod D.');
+      const alice = playerStats.find((p: { name: string }) => p.name === 'Alice');
 
       // Both players should exist in the response
       expect(jarod).toBeDefined();
@@ -948,6 +962,44 @@ describe('/api/player-stats', () => {
       });
 
       expect(jarod.winPercentage).toBe(0);
+    });
+  });
+
+  describe('Season filtering', () => {
+    it('should return stats for current season', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=current');
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+      expect(mockSql).toHaveBeenCalledWith('players');
+      expect(mockSql).toHaveBeenCalledWith('matches');
+    });
+
+    it('should return stats for lifetime season', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=lifetime');
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+    });
+
+    it('should return stats for a specific season ID', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=20241');
+      const response = await GET(request);
+      expect(response.status).toBe(200);
+    });
+
+    it('should return 404 if season ID is not found', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=99999');
+      const response = await GET(request);
+      expect(response.status).toBe(404);
+      const data = await response.json();
+      expect(data.error).toBe('Season not found');
+    });
+
+    it('should return 400 for invalid season parameter', async () => {
+      const request = new NextRequest('http://localhost:3000/api/player-stats?season=invalid-season');
+      const response = await GET(request);
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toContain('Invalid season parameter');
     });
   });
 });
