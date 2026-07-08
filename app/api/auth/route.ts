@@ -20,9 +20,9 @@ export async function POST(request: Request) {
     if (settings.length > 0 && settings[0].admin_password_hash) {
       // Simple string comparison for light security
       isValid = body.password === settings[0].admin_password_hash;
-    } else {
+    } else if (process.env.ADMIN_PASSWORD) {
       // Fallback if settings table is empty
-      isValid = body.password === (process.env.ADMIN_PASSWORD || 'admin');
+      isValid = body.password === process.env.ADMIN_PASSWORD;
     }
 
     if (isValid) {

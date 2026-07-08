@@ -97,7 +97,7 @@ export async function PUT(request: Request) {
           ${body.signupCloseDayOfWeek ?? 0},
           ${normalizedCloseTime},
           ${JSON.stringify(body.availableDays || DEFAULT_SIGNUP_SETTINGS.availableDays)},
-          ${body.adminPassword || 'admin'}
+          ${body.adminPassword || null}
         )
       `;
     }
