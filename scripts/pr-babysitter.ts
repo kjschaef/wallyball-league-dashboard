@@ -37,7 +37,7 @@ async function githubFetch(path: string, options: RequestInit & { ignoreErrors?:
 
   if (!response.ok) {
     if (ignoreErrors?.includes(response.status)) {
-      return null;
+      return { _error: response.status };
     }
     const errorBody = await response.text();
     console.error(`GitHub API error: ${response.status} ${response.statusText}\n${errorBody}`);
@@ -100,14 +100,19 @@ async function removeLabel(issueNumber: number, label: string) {
   });
 }
 
-async function getRequiredChecks(branchName: string): Promise<string[] | null> {
+async function getRequiredChecks(branchName: string): Promise<string[] | 'UNKNOWN' | null> {
   // Attempt to fetch required status checks for the base branch
-  const protection = await githubFetch(`/repos/${REPO}/branches/${encodeURIComponent(branchName)}/protection/required_status_checks`, {
+  const result = await githubFetch(`/repos/${REPO}/branches/${encodeURIComponent(branchName)}/protection/required_status_checks`, {
     ignoreErrors: [404, 403], // 404 if no protection, 403 if lack of permissions
   });
 
-  if (protection && Array.isArray(protection.contexts)) {
-    return protection.contexts;
+  if (result && typeof result === 'object' && '_error' in result) {
+    if (result._error === 403) return 'UNKNOWN';
+    return null;
+  }
+
+  if (result && Array.isArray(result.contexts)) {
+    return result.contexts;
   }
   return null;
 }
@@ -141,7 +146,7 @@ async function auditPRs() {
   console.log(`Found ${allPulls.length} open PRs.`);
 
   // Cache required checks for base branches to minimize API calls
-  const requiredChecksCache = new Map<string, string[] | null>();
+  const requiredChecksCache = new Map<string, string[] | 'UNKNOWN' | null>();
 
   for (const pr of allPulls) {
     if (pr.draft) {
@@ -167,7 +172,9 @@ async function auditPRs() {
     }
     const requiredChecks = requiredChecksCache.get(baseBranch);
 
-    if (requiredChecks) {
+    if (requiredChecks === 'UNKNOWN') {
+      console.log(`  Could not retrieve required checks for ${baseBranch} (403). Treating all checks as required.`);
+    } else if (requiredChecks) {
       console.log(`  Required checks for ${baseBranch}: ${requiredChecks.join(', ')}`);
     } else {
       console.log(`  No specific required checks found for ${baseBranch}, auditing all failures.`);
@@ -181,7 +188,7 @@ async function auditPRs() {
     // Evaluate Check Runs (GitHub Actions)
     for (const run of checkRuns.check_runs) {
       observedContexts.add(run.name);
-      const isRequired = !requiredChecks || requiredChecks.includes(run.name);
+      const isRequired = requiredChecks === 'UNKNOWN' || !requiredChecks || requiredChecks.includes(run.name);
 
       if (run.status !== 'completed') {
         if (isRequired) pending = true;
@@ -202,7 +209,7 @@ async function auditPRs() {
 
     for (const status of latestStatuses.values()) {
       observedContexts.add(status.context);
-      const isRequired = !requiredChecks || requiredChecks.includes(status.context);
+      const isRequired = requiredChecks === 'UNKNOWN' || !requiredChecks || requiredChecks.includes(status.context);
 
       if (status.state === 'pending') {
         if (isRequired) pending = true;
@@ -214,7 +221,7 @@ async function auditPRs() {
     }
 
     // Treat missing required checks as pending
-    if (requiredChecks) {
+    if (requiredChecks && Array.isArray(requiredChecks)) {
       for (const required of requiredChecks) {
         if (!observedContexts.has(required)) {
           console.log(`  Required check '${required}' has not reported yet. Treating as pending.`);
@@ -230,7 +237,7 @@ async function auditPRs() {
         await removeLabel(pr.number, 'status: ready-to-merge');
       }
 
-      const commentBody = `⚠️ Hello @${pr.user.login}, it looks like some CI checks have failed on this PR:\n\n` +
+      const commentBody = `⚠️ Hello @${pr.user.login}, it looks like some CI checks have failed on this PR (Head SHA: ${pr.head.sha}):\n\n` +
         failures.map(f => `- ${f}`).join('\n') +
         `\n\nPlease address these failures so the PR can be moved toward a mergeable state.`;
 
@@ -238,13 +245,14 @@ async function auditPRs() {
       const comments = await githubFetch(`/repos/${REPO}/issues/${pr.number}/comments`);
       const alreadyCommented = Array.isArray(comments) && comments.some((c: any) =>
         c.body.includes('CI checks have failed') &&
+        c.body.includes(pr.head.sha) &&
         (c.user.login === 'PR-Babysitter-Bot' || c.user.login === 'github-actions[bot]')
       );
 
       if (!alreadyCommented) {
         await postComment(pr.number, commentBody);
       } else {
-        console.log(`  Failures found, but already commented on PR #${pr.number}`);
+        console.log(`  Failures found, but already commented on PR #${pr.number} for SHA ${pr.head.sha}`);
       }
       continue;
     }
