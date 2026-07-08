@@ -48,7 +48,11 @@ async function githubFetch(path: string, options: RequestInit & { ignoreErrors?:
     return true;
   }
 
-  return response.json();
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  }
+  return response.text();
 }
 
 async function postComment(issueNumber: number, body: string) {
@@ -125,8 +129,8 @@ async function auditPRs() {
   let page = 1;
   let hasMore = true;
   while (hasMore) {
-    const pulls: any[] = await githubFetch(`/repos/${REPO}/pulls?state=open&per_page=100&page=${page}`);
-    if (!pulls || pulls.length === 0) {
+    const pulls: any = await githubFetch(`/repos/${REPO}/pulls?state=open&per_page=100&page=${page}`);
+    if (!pulls || !Array.isArray(pulls) || pulls.length === 0) {
       hasMore = false;
       break;
     }
@@ -186,36 +190,40 @@ async function auditPRs() {
     const observedContexts = new Set<string>();
 
     // Evaluate Check Runs (GitHub Actions)
-    for (const run of checkRuns.check_runs) {
-      observedContexts.add(run.name);
-      const isRequired = requiredChecks === 'UNKNOWN' || !requiredChecks || requiredChecks.includes(run.name);
+    if (checkRuns.check_runs) {
+      for (const run of checkRuns.check_runs) {
+        observedContexts.add(run.name);
+        const isRequired = requiredChecks === 'UNKNOWN' || !requiredChecks || requiredChecks.includes(run.name);
 
-      if (run.status !== 'completed') {
-        if (isRequired) pending = true;
-      } else if (run.conclusion === 'failure' || run.conclusion === 'timed_out' || run.conclusion === 'action_required' || run.conclusion === 'cancelled' || run.conclusion === 'stale') {
-        if (isRequired) {
-          failures.push(`Check Run: ${run.name} (${run.conclusion})`);
+        if (run.status !== 'completed') {
+          if (isRequired) pending = true;
+        } else if (run.conclusion === 'failure' || run.conclusion === 'timed_out' || run.conclusion === 'action_required' || run.conclusion === 'cancelled' || run.conclusion === 'stale') {
+          if (isRequired) {
+            failures.push(`Check Run: ${run.name} (${run.conclusion})`);
+          }
         }
       }
     }
 
     // Evaluate Commit Statuses
-    const latestStatuses = new Map<string, any>();
-    for (const status of statuses) {
-      if (!latestStatuses.has(status.context)) {
-        latestStatuses.set(status.context, status);
+    if (Array.isArray(statuses)) {
+      const latestStatuses = new Map<string, any>();
+      for (const status of statuses) {
+        if (!latestStatuses.has(status.context)) {
+          latestStatuses.set(status.context, status);
+        }
       }
-    }
 
-    for (const status of latestStatuses.values()) {
-      observedContexts.add(status.context);
-      const isRequired = requiredChecks === 'UNKNOWN' || !requiredChecks || requiredChecks.includes(status.context);
+      for (const status of latestStatuses.values()) {
+        observedContexts.add(status.context);
+        const isRequired = requiredChecks === 'UNKNOWN' || !requiredChecks || requiredChecks.includes(status.context);
 
-      if (status.state === 'pending') {
-        if (isRequired) pending = true;
-      } else if (status.state === 'failure' || status.state === 'error') {
-        if (isRequired) {
-          failures.push(`Status: ${status.context}`);
+        if (status.state === 'pending') {
+          if (isRequired) pending = true;
+        } else if (status.state === 'failure' || status.state === 'error') {
+          if (isRequired) {
+            failures.push(`Status: ${status.context}`);
+          }
         }
       }
     }
@@ -267,7 +275,7 @@ async function auditPRs() {
 
     // 2. Verify Code Review Approvals
     const reviews = await githubFetch(`/repos/${REPO}/pulls/${pr.number}/reviews`);
-    if (!reviews) {
+    if (!reviews || !Array.isArray(reviews)) {
       console.log(`  Could not retrieve reviews for PR #${pr.number}. Skipping.`);
       continue;
     }

@@ -23,7 +23,6 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
-      id-token: write
     
     steps:
       - name: Checkout repository
@@ -36,10 +35,10 @@ jobs:
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ github.token }}
 
           # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4)
-          model: "claude-3-5-sonnet-20240620"
+          model: "claude-3-5-sonnet-20241022"
           
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
