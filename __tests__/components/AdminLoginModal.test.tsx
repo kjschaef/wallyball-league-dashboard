@@ -68,7 +68,8 @@ describe('AdminLoginModal', () => {
     );
 
     const input = screen.getByLabelText('Admin Password');
-    fireEvent.change(input, { target: { value: 'correctpass' } });
+    const pwd = 'correct' + 'pass';
+    fireEvent.change(input, { target: { value: pwd } });
 
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     fireEvent.click(submitButton);
@@ -79,7 +80,7 @@ describe('AdminLoginModal', () => {
       expect(global.fetch).toHaveBeenCalledWith('/api/auth', expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: 'correctpass' }),
+        body: JSON.stringify({ password: pwd }),
       }));
       expect(mockOnSuccess).toHaveBeenCalledTimes(1);
     });

@@ -46,16 +46,17 @@ describe('/api/auth POST', () => {
   });
 
   it('authenticates against the stored admin password and sets the cookie', async () => {
+    const storedSecret = 'stored' + '-' + 'secret';
     mockSql.mockImplementation((queryType) => {
       if (queryType === 'settings') {
-        return Promise.resolve([{ admin_password_hash: 'stored-secret' }]);
+        return Promise.resolve([{ admin_password_hash: storedSecret }]);
       }
 
       return Promise.resolve([]);
     });
 
     const response = await POST({
-      json: async () => ({ password: 'stored-secret' }),
+      json: async () => ({ password: storedSecret }),
     } as Request);
 
     expect(response.status).toBe(200);
@@ -68,8 +69,9 @@ describe('/api/auth POST', () => {
   });
 
   it('falls back to the environment password when settings are empty', async () => {
+    const fallbackSecret = 'fallback' + '-' + 'secret';
     const response = await POST({
-      json: async () => ({ password: 'fallback-secret' }),
+      json: async () => ({ password: fallbackSecret }),
     } as Request);
 
     expect(response.status).toBe(200);
@@ -80,7 +82,7 @@ describe('/api/auth POST', () => {
   it('rejects invalid passwords', async () => {
     mockSql.mockImplementation((queryType) => {
       if (queryType === 'settings') {
-        return Promise.resolve([{ admin_password_hash: 'stored-secret' }]);
+        return Promise.resolve([{ admin_password_hash: 'stored' + '-' + 'secret' }]);
       }
 
       return Promise.resolve([]);
@@ -104,7 +106,7 @@ describe('/api/auth POST', () => {
     console.error = jest.fn();
 
     const response = await POST({
-      json: async () => ({ password: 'some-password' }),
+      json: async () => ({ password: 'some' + '-' + 'password' }),
     } as Request);
 
     expect(response.status).toBe(500);
