@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# bin/pr-list - Lists open, active (non-draft) PRs
+gh pr list --state open --json number,title,isDraft --jq '.[] | select(.isDraft | not) | "\(.number)\t\(.title)"'

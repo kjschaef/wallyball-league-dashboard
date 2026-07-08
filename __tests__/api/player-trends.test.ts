@@ -24,14 +24,18 @@ jest.mock('@neondatabase/serverless', () => ({
 
 
 const { neon } = require('@neondatabase/serverless') as { neon: jest.Mock };
+let consoleSpy: jest.SpyInstance;
 const originalDbUrl = process.env.DATABASE_URL;
 
 beforeEach(() => {
+  // Suppress expected console.error logs to clean up test output
+  consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   process.env.DATABASE_URL = 'mock-db-url';
   jest.clearAllMocks();
 });
 
 afterEach(() => {
+  consoleSpy.mockRestore();
   process.env.DATABASE_URL = originalDbUrl;
   jest.useRealTimers();
 });
@@ -41,14 +45,16 @@ describe('/api/player-trends', () => {
     const originalUrl = process.env.DATABASE_URL;
     delete process.env.DATABASE_URL;
 
-    const request = new NextRequest('http://localhost:3000/api/player-trends');
-    const response = await GET(request);
-    const data = await response.json();
+    try {
+      const request = new NextRequest('http://localhost:3000/api/player-trends');
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data).toEqual({ error: 'Failed to fetch player trends' });
-
-    process.env.DATABASE_URL = originalUrl;
+      expect(response.status).toBe(500);
+      expect(data).toEqual({ error: 'Failed to fetch player trends' });
+    } finally {
+      process.env.DATABASE_URL = originalUrl;
+    }
   });
 
   it('returns 400 when an invalid season string is provided', async () => {
