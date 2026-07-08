@@ -1,0 +1,4 @@
+## 2025-05-25 - Hardcoded Default Admin Password
+**Vulnerability:** The application had a literal `'admin'` password fallback in `app/api/auth/route.ts` and `app/api/settings/route.ts`. If the database entry was empty or unconfigured, it allowed access with this default password.
+**Learning:** Hardcoding default credentials creates a significant risk as attackers will predictably try common passwords like `'admin'`. It also undermines the security of having an environment variable fallback (`ADMIN_PASSWORD`).
+**Prevention:** Never hardcode default passwords in authentication logic. Ensure that if no valid credential exists (either in the DB or as an environment variable), authentication explicitly fails. When initializing settings, insert `null` instead of a default string to enforce proper credential configuration.
