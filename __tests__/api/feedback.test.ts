@@ -144,8 +144,7 @@ describe('POST /api/feedback', () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({
-      error: 'Failed to submit feedback',
-      details: 'Unknown error'
+      error: 'Failed to submit feedback'
     });
 
     expect(mockConsoleError).toHaveBeenCalledTimes(1);
