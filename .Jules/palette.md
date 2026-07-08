@@ -40,3 +40,7 @@
 ## 2024-05-23 - Metric Toggle Buttons and tablist
 **Learning:** Container elements for sets of toggle buttons (like "Win %" and "Total Wins" in metric selectors) are often mistakenly given `role="tablist"`. Unless these implement full keyboard arrow navigation per W3C ARIA tab patterns, they will fail accessibility checks or be confusing for screen reader users.
 **Action:** Remove `role="tablist"` from simple inline button groups. Instead, use standard `<button>` elements equipped with `aria-pressed={boolean}` and strong keyboard focus styles (`focus-visible:ring-2`, `focus-visible:z-10` to prevent clipping, and appropriate border radius `rounded-l-md/rounded-r-md` to match the container).
+
+## 2025-05-22 - [Accessible FAB with Dropdown]
+**Learning:** Floating Action Buttons (FABs) with dropdown menus require explicit keyboard event listeners (Escape key) and click-outside handling to meet accessibility expectations, as native HTML doesn't provide this behavior for custom dropdowns.
+**Action:** Always implement `keydown` (Escape) and `mousedown` (outside container) listeners using `useEffect` when building custom interactive overlays like FAB dropdowns.
