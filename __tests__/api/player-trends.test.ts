@@ -41,14 +41,16 @@ describe('/api/player-trends', () => {
     const originalUrl = process.env.DATABASE_URL;
     delete process.env.DATABASE_URL;
 
-    const request = new NextRequest('http://localhost:3000/api/player-trends');
-    const response = await GET(request);
-    const data = await response.json();
+    try {
+      const request = new NextRequest('http://localhost:3000/api/player-trends');
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data).toEqual({ error: 'Failed to fetch player trends' });
-
-    process.env.DATABASE_URL = originalUrl;
+      expect(response.status).toBe(500);
+      expect(data).toEqual({ error: 'Failed to fetch player trends' });
+    } finally {
+      process.env.DATABASE_URL = originalUrl;
+    }
   });
 
   it('returns 400 when an invalid season string is provided', async () => {
