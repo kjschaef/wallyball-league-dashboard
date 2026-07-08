@@ -265,7 +265,7 @@ export default function SignupsPage() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       {/* Header */}
-      <div className="border-b border-gray-200 pb-4 flex flex-col sm:flex-row justify-between sm:items-end gap-4">
+      <div className="border-b border-gray-200 pb-4 flex justify-between items-end">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-800">Weekly Signups</h1>
@@ -288,11 +288,11 @@ export default function SignupsPage() {
           </p>
         </div>
         {isOpen && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
             <select
               value={selectedPlayerId}
               onChange={(e) => setSelectedPlayerId(e.target.value)}
-              className="p-2 border rounded-md focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
+              className="p-2 border rounded-md focus:ring-2 focus:ring-blue-500 w-48"
             >
               <option value="">-- Who are you? --</option>
               {[...players].sort((a, b) => a.name.localeCompare(b.name)).map(p => (
@@ -304,7 +304,7 @@ export default function SignupsPage() {
               disabled={!selectedPlayerId}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${selectedPlayerUnavailable
                 ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                : 'bg-blue-600 text-white hover:bg-blue-700'} disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto`}
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'} disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {selectedPlayerUnavailable ? "I'm Back In" : 'Out This Week'}
             </button>

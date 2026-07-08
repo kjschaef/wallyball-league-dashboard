@@ -41,22 +41,14 @@ jest.mock('next/headers', () => ({
 
 import { GET, PUT } from '@/app/api/settings/route';
 
-let consoleSpy: jest.SpyInstance;
-
 describe('/api/settings', () => {
   const originalDatabaseUrl = process.env.DATABASE_URL;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Suppress expected console.error logs to clean up test output
-    consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     process.env.DATABASE_URL = 'mock-database-url';
     mockCookieStore.get.mockReturnValue(undefined);
     mockSql.mockImplementation(() => Promise.resolve([]));
-  });
-
-  afterEach(() => {
-    consoleSpy.mockRestore();
   });
 
   afterAll(() => {

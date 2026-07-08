@@ -15,13 +15,13 @@ export function Navbar() {
 
   return (
     <nav className="bg-gray-900 text-white p-4">
-      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
+      <div className="container mx-auto flex flex-wrap items-center justify-between">
         <Link href="/" className="font-bold text-lg rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
           Wallyball League
         </Link>
 
         <div className="flex items-center space-x-4">
-          <div className="flex flex-wrap justify-center gap-1">
+          <div className="flex space-x-1">
             <Link 
               href="/" 
               aria-current={isActive('/') ? 'page' : undefined}
@@ -62,7 +62,7 @@ export function Navbar() {
               }`}
             >
               {isAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-              <span className="hidden sm:inline">{isAdmin ? 'Admin Mode On' : 'Admin Login'}</span>
+              {isAdmin ? 'Admin Mode On' : 'Admin Login'}
             </button>
           </div>
         </div>

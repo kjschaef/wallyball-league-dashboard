@@ -430,17 +430,15 @@ describe('/api/player-stats', () => {
       const originalUrl = process.env.DATABASE_URL;
       delete process.env.DATABASE_URL;
 
-      try {
-        const request = new NextRequest('http://localhost:3000/api/player-stats');
-        const response = await GET(request);
+      const request = new NextRequest('http://localhost:3000/api/player-stats');
+      const response = await GET(request);
 
-        expect(response.status).toBe(500);
-        const data = await response.json();
-        expect(data).toEqual({ error: 'Failed to fetch player statistics' });
-      } finally {
-        // Restore environment variable
-        process.env.DATABASE_URL = originalUrl;
-      }
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data).toEqual({ error: 'Failed to fetch player statistics' });
+
+      // Restore environment variable
+      process.env.DATABASE_URL = originalUrl;
     });
 
     it('should validate total game counts across multiple complex match scenarios', async () => {

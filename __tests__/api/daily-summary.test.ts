@@ -53,25 +53,17 @@ jest.mock('@/lib/seasons', () => ({
 
 import { GET } from '@/app/api/daily-summary/route';
 
-let consoleSpy: jest.SpyInstance;
-
 describe('/api/daily-summary GET', () => {
   const originalDatabaseUrl = process.env.DATABASE_URL;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Suppress expected console.error logs to clean up test output
-    consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     process.env.DATABASE_URL = 'mock-database-url';
     mockGetCurrentSeasonByDate.mockReturnValue({
       start_date: '2026-01-01T00:00:00.000Z',
       end_date: '2026-03-31T23:59:59.000Z',
     });
     mockSql.mockImplementation(() => Promise.resolve([]));
-  });
-
-  afterEach(() => {
-    consoleSpy.mockRestore();
   });
 
   afterAll(() => {
@@ -199,16 +191,11 @@ describe('/api/daily-summary GET', () => {
   });
 
   it('returns 500 when the route cannot initialize', async () => {
-    const originalDatabaseUrl = process.env.DATABASE_URL;
     delete process.env.DATABASE_URL;
 
-    try {
-      const response = await GET();
+    const response = await GET();
 
-      expect(response.status).toBe(500);
-      await expect(response.json()).resolves.toEqual({ error: 'Failed to generate summary' });
-    } finally {
-      process.env.DATABASE_URL = originalDatabaseUrl;
-    }
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: 'Failed to generate summary' });
   });
 });

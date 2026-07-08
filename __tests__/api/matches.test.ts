@@ -335,17 +335,15 @@ describe('/api/matches', () => {
       const originalUrl = process.env.DATABASE_URL;
       delete process.env.DATABASE_URL;
 
-      try {
-        const request = new NextRequest('http://localhost:3000/api/matches');
-        const response = await GET(request);
+      const request = new NextRequest('http://localhost:3000/api/matches');
+      const response = await GET(request);
 
-        expect(response.status).toBe(500);
-        const data = await response.json();
-        expect(data).toEqual({ error: 'Failed to fetch matches' });
-      } finally {
-        // Restore environment variable
-        process.env.DATABASE_URL = originalUrl;
-      }
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data).toEqual({ error: 'Failed to fetch matches' });
+
+      // Restore environment variable
+      process.env.DATABASE_URL = originalUrl;
     });
 
     it('should handle stats=true with database error', async () => {

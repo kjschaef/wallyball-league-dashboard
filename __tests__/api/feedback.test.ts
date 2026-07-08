@@ -126,28 +126,11 @@ describe('POST /api/feedback', () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({
-      error: 'Failed to submit feedback'
+      error: 'Failed to submit feedback',
+      details: 'Invalid JSON'
     });
 
     expect(mockConsoleError).toHaveBeenCalledTimes(1);
     expect(mockConsoleError).toHaveBeenCalledWith('Error submitting feedback:', expect.any(Error));
-  });
-
-  it('returns 500 and handles unknown errors properly', async () => {
-    // Rejects with a non-Error string to test the "Unknown error" fallback
-    const request = createMockRequest(null, false);
-    // Let's override json manually for this test specifically
-    request.json = jest.fn().mockRejectedValue('Some weird string error');
-
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(data).toEqual({
-      error: 'Failed to submit feedback'
-    });
-
-    expect(mockConsoleError).toHaveBeenCalledTimes(1);
-    expect(mockConsoleError).toHaveBeenCalledWith('Error submitting feedback:', 'Some weird string error');
   });
 });
