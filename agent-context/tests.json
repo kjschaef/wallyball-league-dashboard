@@ -5,7 +5,8 @@
       "path": "__tests__/api/auth.test.ts",
       "kind": "test",
       "covers": [
-        "app/api/auth/route.ts"
+        "app/api/auth/route.ts",
+        "app/lib/auth.ts"
       ]
     },
     {
@@ -269,6 +270,9 @@
     ],
     "app/games/page.tsx": [
       "__tests__/components/GamesPage.test.tsx"
+    ],
+    "app/lib/auth.ts": [
+      "__tests__/api/auth.test.ts"
     ],
     "app/lib/constants.ts": [
       "app/lib/__tests__/playerFiltering.test.ts"

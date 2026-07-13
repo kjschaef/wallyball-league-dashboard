@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
+import { verifyPassword } from '../../lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -18,11 +19,11 @@ export async function POST(request: Request) {
     let isValid = false;
     
     if (settings.length > 0 && settings[0].admin_password_hash) {
-      // Simple string comparison for light security
-      isValid = body.password === settings[0].admin_password_hash;
+      // Use secure verification (supports both hashed and legacy plaintext)
+      isValid = verifyPassword(body.password, settings[0].admin_password_hash);
     } else if (process.env.ADMIN_PASSWORD) {
       // Fallback if settings table is empty
-      isValid = body.password === process.env.ADMIN_PASSWORD;
+      isValid = verifyPassword(body.password, process.env.ADMIN_PASSWORD);
     }
 
     if (isValid) {
