@@ -182,13 +182,14 @@
         "app/components/PlayerCards.tsx"
       ],
       "testCommands": [
-        "pnpm test -- __tests__/api/seasonal-player-stats.test.ts __tests__/api/seasons.test.ts __tests__/components/DashboardPage.test.tsx __tests__/components/SeasonSelector.test.tsx"
+        "pnpm test -- __tests__/api/seasonal-player-stats.test.ts __tests__/api/seasons.test.ts __tests__/components/DashboardPage.test.tsx __tests__/components/SeasonSelector.test.tsx lib/__tests__/seasons.test.ts"
       ],
       "mappedTests": [
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/seasons.test.ts",
         "__tests__/components/DashboardPage.test.tsx",
-        "__tests__/components/SeasonSelector.test.tsx"
+        "__tests__/components/SeasonSelector.test.tsx",
+        "lib/__tests__/seasons.test.ts"
       ],
       "riskAreas": [
         "Season IDs are computed, not stored as an actively managed table.",
