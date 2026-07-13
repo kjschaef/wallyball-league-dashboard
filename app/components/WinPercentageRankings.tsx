@@ -146,6 +146,7 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
             key={player.id}
             className={`${player.matches < 50 ? 'bg-gray-100 opacity-90' : 'bg-white'} border border-gray-200 rounded-lg p-2 hover:shadow-sm transition-shadow w-full sm:w-[200px] flex-grow flex-shrink-0`}
             style={borderStyle}
+            title={player.matches < 50 ? "Provisional ranking (less than 50 games played)" : undefined}
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center space-x-2 min-w-0 flex-1">
