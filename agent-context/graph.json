@@ -23,9 +23,13 @@
       "file": "app/api/auth/route.ts",
       "type": "api-route",
       "tags": [],
-      "imports": [],
+      "imports": [
+        "app/lib/auth.ts"
+      ],
       "importedBy": [],
-      "related": [],
+      "related": [
+        "app/lib/auth.ts"
+      ],
       "overrideNotes": []
     },
     {
@@ -258,10 +262,12 @@
       "type": "api-route",
       "tags": [],
       "imports": [
+        "app/lib/auth.ts",
         "app/lib/signups.ts"
       ],
       "importedBy": [],
       "related": [
+        "app/lib/auth.ts",
         "app/lib/signups.ts"
       ],
       "overrideNotes": []
@@ -828,6 +834,21 @@
       "importedBy": [],
       "related": [
         "app/lib/utils.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/auth.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/api/auth/route.ts",
+        "app/api/settings/route.ts"
+      ],
+      "related": [
+        "app/api/auth/route.ts",
+        "app/api/settings/route.ts"
       ],
       "overrideNotes": []
     },

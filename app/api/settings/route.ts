@@ -6,6 +6,7 @@ import {
   normalizeTimeInputValue,
   parseAvailableDays,
 } from '../../lib/signups';
+import { hashPassword } from '../../lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -66,6 +67,9 @@ export async function PUT(request: Request) {
       body.signupCloseTime,
       DEFAULT_SIGNUP_SETTINGS.signupCloseTime,
     );
+
+    // Hash admin password if provided
+    const hashedPassword = body.adminPassword ? hashPassword(body.adminPassword) : null;
     
     if (!process.env.DATABASE_URL) {
       throw new Error('Database URL not configured');
@@ -85,7 +89,7 @@ export async function PUT(request: Request) {
           signup_close_day_of_week = COALESCE(${body.signupCloseDayOfWeek}, signup_close_day_of_week),
           signup_close_time = COALESCE(${normalizedCloseTime}, signup_close_time),
           available_days = COALESCE(${JSON.stringify(body.availableDays)}, available_days),
-          admin_password_hash = COALESCE(${body.adminPassword}, admin_password_hash)
+          admin_password_hash = COALESCE(${hashedPassword}, admin_password_hash)
         WHERE id = ${existing[0].id}
       `;
     } else {
@@ -97,7 +101,7 @@ export async function PUT(request: Request) {
           ${body.signupCloseDayOfWeek ?? 0},
           ${normalizedCloseTime},
           ${JSON.stringify(body.availableDays || DEFAULT_SIGNUP_SETTINGS.availableDays)},
-          ${body.adminPassword || null}
+          ${hashedPassword}
         )
       `;
     }

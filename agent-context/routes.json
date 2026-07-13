@@ -22,7 +22,9 @@
       "route": "/api/auth",
       "file": "app/api/auth/route.ts",
       "params": [],
-      "likelySourceFiles": []
+      "likelySourceFiles": [
+        "app/lib/auth.ts"
+      ]
     },
     {
       "kind": "api",
@@ -175,6 +177,7 @@
       "file": "app/api/settings/route.ts",
       "params": [],
       "likelySourceFiles": [
+        "app/lib/auth.ts",
         "app/lib/signups.ts"
       ]
     },
