@@ -70,7 +70,9 @@ export function TopTeams() {
                             <div className="space-y-2">
                                 {season.teams.map((team, index) => (
                                     <div key={team.id} className="flex items-start gap-2">
-                                        <span className="text-base leading-tight mt-0.5">{RANK_LABELS[index]}</span>
+                                        <span className="text-base leading-tight mt-0.5" role="img" aria-label={index === 0 ? "First place" : index === 1 ? "Second place" : "Third place"}>
+                                            {RANK_LABELS[index]}
+                                        </span>
                                         <div className="flex-1 min-w-0">
                                             <div className="text-sm font-medium text-gray-900 leading-tight truncate" title={formatTeamName(team.players)}>
                                                 {formatTeamName(team.players)}

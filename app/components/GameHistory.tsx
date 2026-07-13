@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 
 interface GameHistoryProps {
   games: Array<{
@@ -62,6 +63,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                 className="w-full text-left p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
                 onClick={() => toggleGameExpansion(game.id)}
                 aria-expanded={expandedGameId === game.id}
+                title="View match details"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <span className="text-sm text-gray-500">
@@ -91,10 +93,10 @@ export function GameHistory({ games }: GameHistoryProps) {
                   </span>
                   
                   <span
-                    className="ml-4 p-1"
+                    className={`ml-4 p-1 transition-transform duration-200 ${expandedGameId === game.id ? 'rotate-90' : ''}`}
                     aria-hidden="true"
                   >
-                    {expandedGameId === game.id ? '▼' : '▶'}
+                    <ChevronRight className="h-5 w-5" />
                   </span>
                 </div>
               </button>

@@ -32,7 +32,7 @@ export function QuarterlyChampions() {
                     return (
                         <div key={winner.seasonId} className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center text-center space-y-2 min-h-[140px]">
                             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{winner.seasonName}</div>
-                            <div className="py-1"><span className="text-2xl">🏆</span></div>
+                            <div className="py-1"><span className="text-2xl" role="img" aria-label="Trophy">🏆</span></div>
                             <div className="space-y-0.5">
                                 <h3 className="text-sm font-bold text-gray-900 leading-tight">{winner.player.name}</h3>
                                 <div className="text-lg font-bold text-blue-600">{winner.player.winPercentage.toFixed(1)}%</div>
@@ -75,7 +75,7 @@ function AnnualChampionCard({ winner }: { winner: Winner }) {
             <div className="relative aspect-[2/3] w-full max-w-sm mx-auto bg-gray-100 rounded-lg shadow-inner flex flex-col items-center justify-center p-6 text-center border-2 border-dashed border-gray-300">
                 <span className="text-2xl font-bold text-gray-400 mb-2">{winner.seasonName}</span>
                 <span className="text-lg text-gray-400 font-medium">In Progress</span>
-                <span className="text-4xl mt-4 opacity-20">🏆</span>
+                <span className="text-4xl mt-4 opacity-20" role="img" aria-label="Trophy">🏆</span>
             </div>
         );
     }
@@ -100,7 +100,7 @@ function AnnualChampionCard({ winner }: { winner: Winner }) {
                 <span className="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">Annual Champion</span>
             </div>
             <div className="text-4xl font-extrabold text-blue-900 mb-2">{winner.seasonName}</div>
-            <span className="text-6xl my-4">🏆</span>
+            <span className="text-6xl my-4" role="img" aria-label="Trophy">🏆</span>
             <h3 className="text-2xl font-bold text-gray-900">{winner.player.name}</h3>
             <div className="text-xl font-bold text-blue-600 mt-2">{winner.player.winPercentage.toFixed(1)}%</div>
         </div>

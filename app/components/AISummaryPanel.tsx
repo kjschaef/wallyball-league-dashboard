@@ -67,7 +67,7 @@ export function AISummaryPanel({ onAskAI }: AISummaryPanelProps) {
                 {onAskAI && (
                     <button
                         onClick={onAskAI}
-                        className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+                        className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 rounded"
                     >
                         Read full report <span aria-hidden="true">&rarr;</span>
                     </button>
