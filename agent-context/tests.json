@@ -210,6 +210,13 @@
       "covers": [
         "lib/rag.ts"
       ]
+    },
+    {
+      "path": "lib/__tests__/seasons.test.ts",
+      "kind": "lib",
+      "covers": [
+        "lib/seasons.ts"
+      ]
     }
   ],
   "coverageByFile": {
@@ -313,7 +320,8 @@
       "lib/__tests__/rag.test.ts"
     ],
     "lib/seasons.ts": [
-      "__tests__/api/seasons.test.ts"
+      "__tests__/api/seasons.test.ts",
+      "lib/__tests__/seasons.test.ts"
     ]
   },
   "coverageByArea": [
@@ -361,7 +369,8 @@
         "__tests__/api/seasonal-player-stats.test.ts",
         "__tests__/api/seasons.test.ts",
         "__tests__/components/DashboardPage.test.tsx",
-        "__tests__/components/SeasonSelector.test.tsx"
+        "__tests__/components/SeasonSelector.test.tsx",
+        "lib/__tests__/seasons.test.ts"
       ],
       "gaps": [
         "app/hooks/useTopTeams.ts"
