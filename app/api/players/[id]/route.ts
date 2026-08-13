@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDatabase } from '../../../../db/config';
+import { verifyAdminToken } from '../../../lib/auth';
 import { players, matches } from '../../../../db/schema';
 import { eq, or } from 'drizzle-orm';
 
@@ -101,7 +102,7 @@ export async function PUT(
   const db = getDatabase();
   const playerId = parseInt(params.id);
   const cookieStore = await cookies();
-  const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+  const isAdmin = verifyAdminToken(cookieStore.get('admin_token')?.value);
 
   if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -162,7 +163,7 @@ export async function DELETE(
   const db = getDatabase();
   const playerId = parseInt(params.id);
   const cookieStore = await cookies();
-  const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+  const isAdmin = verifyAdminToken(cookieStore.get('admin_token')?.value);
 
   if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

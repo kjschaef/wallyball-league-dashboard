@@ -10,6 +10,7 @@ import {
   parseAvailableDays,
   type SignupSettings,
 } from '../../lib/signups';
+import { verifyAdminToken } from '../../lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -148,7 +149,7 @@ export async function POST(request: Request) {
       LIMIT 1
     ` as SignupSettingsRow[];
     const cookieStore = await cookies();
-    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+    const isAdmin = verifyAdminToken(cookieStore.get('admin_token')?.value);
     const signupSettings = buildSignupSettings(settings);
     const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
 

@@ -6,7 +6,7 @@ import {
   normalizeTimeInputValue,
   parseAvailableDays,
 } from '../../lib/signups';
-import { hashPassword } from '../../lib/auth';
+import { hashPassword, verifyAdminToken } from '../../lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -53,7 +53,7 @@ export async function PUT(request: Request) {
   try {
     // Check admin auth
     const cookieStore = await cookies();
-    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+    const isAdmin = verifyAdminToken(cookieStore.get('admin_token')?.value);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

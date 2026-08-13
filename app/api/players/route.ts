@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
+import { verifyAdminToken } from '../../lib/auth';
 
 export async function GET() {
   try {
@@ -82,7 +83,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
-    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+    const isAdmin = verifyAdminToken(cookieStore.get('admin_token')?.value);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -133,7 +134,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const cookieStore = await cookies();
-    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+    const isAdmin = verifyAdminToken(cookieStore.get('admin_token')?.value);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -197,7 +198,7 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const cookieStore = await cookies();
-    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+    const isAdmin = verifyAdminToken(cookieStore.get('admin_token')?.value);
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const url = new URL(request.url);

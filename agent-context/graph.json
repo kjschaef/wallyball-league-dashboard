@@ -5,9 +5,13 @@
       "file": "app/api/auth/check/route.ts",
       "type": "api-route",
       "tags": [],
-      "imports": [],
+      "imports": [
+        "app/lib/auth.ts"
+      ],
       "importedBy": [],
-      "related": [],
+      "related": [
+        "app/lib/auth.ts"
+      ],
       "overrideNotes": []
     },
     {
@@ -137,9 +141,13 @@
       "tags": [
         "matches"
       ],
-      "imports": [],
+      "imports": [
+        "app/lib/auth.ts"
+      ],
       "importedBy": [],
-      "related": [],
+      "related": [
+        "app/lib/auth.ts"
+      ],
       "overrideNotes": []
     },
     {
@@ -148,12 +156,15 @@
       "tags": [
         "matches"
       ],
-      "imports": [],
+      "imports": [
+        "app/lib/auth.ts"
+      ],
       "importedBy": [],
       "related": [
         "__tests__/api/matches.test.ts",
         "app/api/chatbot/image/route.ts",
-        "app/components/RecordMatchModal.tsx"
+        "app/components/RecordMatchModal.tsx",
+        "app/lib/auth.ts"
       ],
       "overrideNotes": [
         "Accepts both manual match payloads and image-analysis payloads before inserting a match."
@@ -200,11 +211,13 @@
         "players"
       ],
       "imports": [
+        "app/lib/auth.ts",
         "db/config.ts",
         "db/schema.ts"
       ],
       "importedBy": [],
       "related": [
+        "app/lib/auth.ts",
         "db/config.ts",
         "db/schema.ts"
       ],
@@ -216,11 +229,14 @@
       "tags": [
         "players"
       ],
-      "imports": [],
+      "imports": [
+        "app/lib/auth.ts"
+      ],
       "importedBy": [],
       "related": [
         "app/components/PlayerCard.tsx",
         "app/components/PlayerGrid.tsx",
+        "app/lib/auth.ts",
         "app/players/page.tsx"
       ],
       "overrideNotes": [
@@ -277,10 +293,12 @@
       "type": "api-route",
       "tags": [],
       "imports": [
+        "app/lib/auth.ts",
         "app/lib/signups.ts"
       ],
       "importedBy": [],
       "related": [
+        "app/lib/auth.ts",
         "app/lib/signups.ts"
       ],
       "overrideNotes": []
@@ -843,12 +861,24 @@
       "tags": [],
       "imports": [],
       "importedBy": [
+        "app/api/auth/check/route.ts",
         "app/api/auth/route.ts",
-        "app/api/settings/route.ts"
+        "app/api/matches/[id]/route.ts",
+        "app/api/matches/route.ts",
+        "app/api/players/[id]/route.ts",
+        "app/api/players/route.ts",
+        "app/api/settings/route.ts",
+        "app/api/signups/route.ts"
       ],
       "related": [
+        "app/api/auth/check/route.ts",
         "app/api/auth/route.ts",
-        "app/api/settings/route.ts"
+        "app/api/matches/[id]/route.ts",
+        "app/api/matches/route.ts",
+        "app/api/players/[id]/route.ts",
+        "app/api/players/route.ts",
+        "app/api/settings/route.ts",
+        "app/api/signups/route.ts"
       ],
       "overrideNotes": []
     },

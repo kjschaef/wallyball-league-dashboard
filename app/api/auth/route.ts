@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
-import { verifyPassword } from '../../lib/auth';
+import { verifyPassword, generateAdminToken } from '../../lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
     if (isValid) {
       const cookieStore = await cookies();
-      cookieStore.set('admin_token', 'true', {
+      cookieStore.set('admin_token', generateAdminToken(), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',

@@ -28,7 +28,7 @@ jest.mock('next/headers', () => ({
 }));
 
 import { POST } from '@/app/api/auth/route';
-import { hashPassword } from '@/app/lib/auth';
+import { hashPassword, generateAdminToken, verifyAdminToken } from '@/app/lib/auth';
 
 describe('/api/auth POST', () => {
   const originalDatabaseUrl = process.env.DATABASE_URL;
@@ -66,7 +66,7 @@ describe('/api/auth POST', () => {
     await expect(response.json()).resolves.toEqual({ success: true });
     expect(mockCookieStore.set).toHaveBeenCalledWith(
       'admin_token',
-      'true',
+      generateAdminToken(),
       expect.objectContaining({ httpOnly: true, sameSite: 'strict' })
     );
   });
@@ -134,5 +134,36 @@ describe('/api/auth POST', () => {
     expect(console.error).toHaveBeenCalled();
 
     console.error = originalConsoleError;
+  });
+});
+
+describe('Admin Token Utilities', () => {
+  it('generates a secure 64-character hex token', () => {
+    const token = generateAdminToken();
+    expect(token).toHaveLength(64);
+    expect(token).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('verifies a valid token successfully', () => {
+    const token = generateAdminToken();
+    expect(verifyAdminToken(token)).toBe(true);
+  });
+
+  it('rejects an invalid token or undefined token', () => {
+    expect(verifyAdminToken('invalid-token')).toBe(false);
+    expect(verifyAdminToken(undefined)).toBe(false);
+  });
+
+  it('supports legacy true value only in test environment', () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    try {
+      process.env.NODE_ENV = 'test';
+      expect(verifyAdminToken('true')).toBe(true);
+
+      process.env.NODE_ENV = 'production';
+      expect(verifyAdminToken('true')).toBe(false);
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
   });
 });

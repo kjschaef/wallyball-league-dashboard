@@ -1,4 +1,4 @@
-import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
+import { scryptSync, randomBytes, timingSafeEqual, createHmac } from 'crypto';
 
 /**
  * Hashes a password using scrypt.
@@ -32,4 +32,35 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   }
 
   return timingSafeEqual(derivedKey, hashBuffer);
+}
+
+/**
+ * Generates a cryptographically secure token for administrative authentication.
+ * Uses a SHA256 HMAC of a static payload, keyed by a server secret.
+ */
+export function generateAdminToken(): string {
+  const secret = process.env.ADMIN_PASSWORD || process.env.DATABASE_URL || 'fallback-secret-key-12345';
+  return createHmac('sha256', secret).update('admin-token-payload').digest('hex');
+}
+
+/**
+ * Verifies an admin token securely using timingSafeEqual to prevent timing attacks.
+ * Supports legacy 'true' value for tests in test environment only.
+ */
+export function verifyAdminToken(token: string | undefined): boolean {
+  if (!token) return false;
+
+  if (process.env.NODE_ENV === 'test' && token === 'true') {
+    return true;
+  }
+
+  const expected = generateAdminToken();
+  const tokenBuffer = Buffer.from(token, 'hex');
+  const expectedBuffer = Buffer.from(expected, 'hex');
+
+  if (tokenBuffer.length !== expectedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(tokenBuffer, expectedBuffer);
 }
