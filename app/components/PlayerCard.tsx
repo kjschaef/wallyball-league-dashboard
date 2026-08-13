@@ -1,6 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
 
 interface Player {
   id: number;
@@ -20,6 +30,7 @@ interface PlayerCardProps {
 
 export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editedName, setEditedName] = useState(player.name);
   const [editedStartYear, setEditedStartYear] = useState(player.startYear?.toString() || '');
 
@@ -42,6 +53,11 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     };
     if (onEdit) onEdit(updatedPlayer);
     setShowEditDialog(false);
+  };
+
+  const handleDeleteConfirm = () => {
+    onDelete?.(player.id);
+    setShowDeleteDialog(false);
   };
 
   return (
@@ -67,11 +83,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               </svg>
             </button>
             <button
-              onClick={() => {
-                if (confirm(`Are you sure you want to delete ${player.name}?`)) {
-                  onDelete?.(player.id);
-                }
-              }}
+              onClick={() => setShowDeleteDialog(true)}
               className="text-red-500 hover:text-red-700 p-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
               aria-label="Delete player"
             >
@@ -129,6 +141,28 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
             </div>
           </div>
         )}
+
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Player</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete {player.name}? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                className="bg-red-600 hover:bg-red-700 text-white focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-2">
