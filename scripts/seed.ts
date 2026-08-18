@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { getDatabase } from '../db/config';
 import * as schema from '../db/schema';
+import { neon } from '@neondatabase/serverless';
 
 async function main() {
   if (process.env.VERCEL_ENV === 'production') {
@@ -19,6 +20,16 @@ async function main() {
 
   // 1. Clear existing data
   console.log('Clearing existing data...');
+  if (process.env.DATABASE_URL) {
+    try {
+      const rawSql = neon(process.env.DATABASE_URL);
+      await rawSql`DROP TABLE IF EXISTS "player_achievements" CASCADE;`;
+      await rawSql`DROP TABLE IF EXISTS "achievements" CASCADE;`;
+    } catch (err) {
+      console.warn('⚠️ Warning dropping legacy tables:', err);
+    }
+  }
+
   try {
     await db.delete(schema.matchGames);
   } catch (err) {

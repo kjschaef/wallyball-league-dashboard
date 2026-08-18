@@ -18,6 +18,10 @@ async function main() {
     try {
       const sql = neon(process.env.DATABASE_URL);
 
+      // Drop any orphaned legacy tables that break foreign keys on seed
+      await sql`DROP TABLE IF EXISTS "player_achievements" CASCADE;`;
+      await sql`DROP TABLE IF EXISTS "achievements" CASCADE;`;
+
       // Ensure match_games table and index exist
       await sql`
         CREATE TABLE IF NOT EXISTS "match_games" (
