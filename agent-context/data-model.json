@@ -90,7 +90,7 @@
       "selectType": "MatchGame",
       "insertType": "NewMatchGame",
       "migrationTouchpoints": [
-        "migrations/010_add_match_games.sql"
+        "migrations/0009_abnormal_dracula.sql"
       ]
     },
     {
@@ -163,8 +163,8 @@
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
         "migrations/0007_blue_edwin_jarvis.sql",
+        "migrations/0009_abnormal_dracula.sql",
         "migrations/005_remove_seasons.sql",
-        "migrations/010_add_match_games.sql",
         "migrations/add_daily_summaries.sql",
         "migrations/relations.ts",
         "migrations/schema.ts"

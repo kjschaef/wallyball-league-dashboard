@@ -19,7 +19,11 @@ async function main() {
 
   // 1. Clear existing data
   console.log('Clearing existing data...');
-  await db.delete(schema.matchGames);
+  try {
+    await db.delete(schema.matchGames);
+  } catch (err) {
+    console.warn('⚠️ Warning clearing match_games (table may not exist yet):', err);
+  }
   await db.delete(schema.matches);
   await db.delete(schema.weeklySignups);
   await db.delete(schema.weeklyUnavailable);
@@ -77,14 +81,18 @@ async function main() {
 
   // Insert sample match games
   if (insertedMatches.length >= 2) {
-    await db.insert(schema.matchGames).values([
-      { matchId: insertedMatches[0].id, gameNumber: 1, teamOneScore: 11, teamTwoScore: 7 },
-      { matchId: insertedMatches[0].id, gameNumber: 2, teamOneScore: 11, teamTwoScore: 5 },
-      { matchId: insertedMatches[0].id, gameNumber: 3, teamOneScore: 11, teamTwoScore: 8 },
-      { matchId: insertedMatches[1].id, gameNumber: 1, teamOneScore: 11, teamTwoScore: 9 },
-      { matchId: insertedMatches[1].id, gameNumber: 2, teamOneScore: 8, teamTwoScore: 11 },
-      { matchId: insertedMatches[1].id, gameNumber: 3, teamOneScore: 11, teamTwoScore: 6 },
-    ]);
+    try {
+      await db.insert(schema.matchGames).values([
+        { matchId: insertedMatches[0].id, gameNumber: 1, teamOneScore: 11, teamTwoScore: 7 },
+        { matchId: insertedMatches[0].id, gameNumber: 2, teamOneScore: 11, teamTwoScore: 5 },
+        { matchId: insertedMatches[0].id, gameNumber: 3, teamOneScore: 11, teamTwoScore: 8 },
+        { matchId: insertedMatches[1].id, gameNumber: 1, teamOneScore: 11, teamTwoScore: 9 },
+        { matchId: insertedMatches[1].id, gameNumber: 2, teamOneScore: 8, teamTwoScore: 11 },
+        { matchId: insertedMatches[1].id, gameNumber: 3, teamOneScore: 11, teamTwoScore: 6 },
+      ]);
+    } catch (err) {
+      console.warn('⚠️ Warning seeding match_games:', err);
+    }
   }
 
   console.log('Seeding completed successfully!');

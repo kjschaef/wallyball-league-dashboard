@@ -15,14 +15,19 @@ function main() {
 
     console.log('🚧 Preview environment detected: Running database migrations and seed...');
     try {
-      // Execute the push and seed commands
-      // Use --force for db:push to automatically accept data loss warnings since Vercel has no TTY
-      execSync('pnpm exec drizzle-kit push --force', { stdio: 'inherit' });
+      // Execute migrations first to avoid interactive prompt during drizzle-kit push
+      try {
+        execSync('pnpm exec drizzle-kit migrate', { stdio: 'inherit' });
+      } catch {
+        // Fallback to push with force if migrate is already up to date
+        execSync('pnpm exec drizzle-kit push --force', { stdio: 'inherit' });
+      }
+
       execSync('pnpm run db:seed', { stdio: 'inherit' });
       console.log('✅ Database setup for preview completed successfully.');
     } catch (error) {
       console.error('❌ Failed to setup database for preview:', error);
-      // Exit with an error code to optionally fail the build if DB setup fails
+      // Exit with an error code to fail the build if DB setup fails
       process.exit(1);
     }
   } else {
