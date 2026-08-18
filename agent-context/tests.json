@@ -10,6 +10,20 @@
       ]
     },
     {
+      "path": "__tests__/api/chatbot-image.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/chatbot/image/route.ts"
+      ]
+    },
+    {
+      "path": "__tests__/api/chatbot.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/chatbot/route.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/daily-summary.test.ts",
       "kind": "test",
       "covers": [
@@ -224,6 +238,12 @@
     "app/api/auth/route.ts": [
       "__tests__/api/auth.test.ts"
     ],
+    "app/api/chatbot/image/route.ts": [
+      "__tests__/api/chatbot-image.test.ts"
+    ],
+    "app/api/chatbot/route.ts": [
+      "__tests__/api/chatbot.test.ts"
+    ],
     "app/api/daily-summary/route.ts": [
       "__tests__/api/daily-summary.test.ts"
     ],
@@ -388,7 +408,6 @@
         "lib/__tests__/rag.test.ts"
       ],
       "gaps": [
-        "app/api/chatbot/route.ts",
         "app/components/ChatBot.tsx",
         "app/lib/openai.ts",
         "app/lib/prompts.ts"
