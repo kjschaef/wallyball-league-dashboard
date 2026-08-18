@@ -44,3 +44,7 @@
 ## 2025-05-22 - [Accessible FAB with Dropdown]
 **Learning:** Floating Action Buttons (FABs) with dropdown menus require explicit keyboard event listeners (Escape key) and click-outside handling to meet accessibility expectations, as native HTML doesn't provide this behavior for custom dropdowns.
 **Action:** Always implement `keydown` (Escape) and `mousedown` (outside container) listeners using `useEffect` when building custom interactive overlays like FAB dropdowns.
+
+## 2025-05-23 - Replacement of Browser-Native Modal Prompts
+**Learning:** Browser-native dialog wrappers like `confirm()` block the main execution thread, disrupt keyboard-only focus loops, and degrade the premium feel of custom interfaces. Implementing custom Radix-based `AlertDialog` components provides seamless, styled, and fully screen-reader accessible interactions.
+**Action:** When auditing confirm triggers or deletion prompts, replace native `confirm()` statements with the standardized Radix UI `<AlertDialog>` elements wrapped with clear focus focus-visible states.
