@@ -11,9 +11,9 @@ test.describe('Match Recording Flow', () => {
     await page.getByTitle('Actions').click();
     await page.getByRole('menuitem', { name: 'Record Match' }).click();
 
-    // 2. Wait for the Record Game modal to appear and players to load
+    // 2. Wait for the Record Match modal to appear and players to load
     const modal = page.locator('.fixed.inset-0').locator('.bg-white');
-    await expect(modal.getByRole('heading', { name: 'Record Game' })).toBeVisible();
+    await expect(modal.getByRole('heading', { name: 'Record Match' })).toBeVisible();
 
     // Locate team sections by their heading text
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
@@ -44,7 +44,7 @@ test.describe('Match Recording Flow', () => {
     await teamTwoIncrease.click();
 
     // 6. Submit the match
-    await modal.getByRole('button', { name: 'Record Game' }).click();
+    await modal.getByRole('button', { name: 'Record Match' }).click();
 
     // 7. Admin authentication modal should appear (use heading to avoid strict mode)
     const authHeading = page.getByRole('heading', { name: 'Admin Authentication Required' });
@@ -65,7 +65,7 @@ test.describe('Match Recording Flow', () => {
 
     // 2. Wait for modal
     const modal = page.locator('.fixed.inset-0').locator('.bg-white');
-    await expect(modal.getByRole('heading', { name: 'Record Game' })).toBeVisible();
+    await expect(modal.getByRole('heading', { name: 'Record Match' })).toBeVisible();
 
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
@@ -77,7 +77,7 @@ test.describe('Match Recording Flow', () => {
     await teamTwoSection.getByRole('button', { name: 'Charlie' }).click();
 
     // 4. Submit
-    await modal.getByRole('button', { name: 'Record Game' }).click();
+    await modal.getByRole('button', { name: 'Record Match' }).click();
 
     // 5. Enter an invalid password
     await page.getByPlaceholder('Enter admin password').fill('wrongpassword');
