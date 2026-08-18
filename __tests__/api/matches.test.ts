@@ -15,12 +15,16 @@ const createMockSql = () => {
       const query = strings.join('');
       if (query.includes('SELECT team_one_games_won, team_two_games_won, date FROM matches')) {
         return mockSql('stats');
+      } else if (query.includes('SELECT match_id, game_number, team_one_score, team_two_score FROM match_games')) {
+        return mockSql('match_games');
       } else if (query.includes('SELECT * FROM matches ORDER BY date DESC LIMIT')) {
         return mockSql('matches-limit');
       } else if (query.includes('SELECT * FROM matches ORDER BY date DESC')) {
         return mockSql('matches');
       } else if (query.includes('SELECT * FROM players')) {
         return mockSql('players');
+      } else if (query.includes('INSERT INTO match_games')) {
+        return mockSql('insert_match_games');
       } else if (query.includes('INSERT INTO matches')) {
         return mockSql('insert');
       }
@@ -571,6 +575,89 @@ describe('/api/matches', () => {
 
       const response = await POST(request);
       expect(response.status).toBe(500);
+    });
+
+    it('should return 400 Bad Request if game scores contains a tie', async () => {
+      mockCookieStore.get.mockReturnValue({ value: 'true' });
+
+      const request = createMockRequest({
+        teamOnePlayerOneId: 1,
+        teamTwoPlayerOneId: 2,
+        gameScores: [
+          { gameNumber: 1, teamOneScore: 11, teamTwoScore: 11 }
+        ]
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe('A game cannot end in a tie');
+    });
+
+    it('should return 400 Bad Request if game scores contains negative numbers', async () => {
+      mockCookieStore.get.mockReturnValue({ value: 'true' });
+
+      const request = createMockRequest({
+        teamOnePlayerOneId: 1,
+        teamTwoPlayerOneId: 2,
+        gameScores: [
+          { gameNumber: 1, teamOneScore: -1, teamTwoScore: 11 }
+        ]
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toContain('scores must be non-negative numbers');
+    });
+
+    it('should insert match_games and auto-compute games won when gameScores are provided', async () => {
+      mockCookieStore.get.mockReturnValue({ value: 'true' });
+
+      const mockInsertedMatch = {
+        id: 10,
+        team_one_player_one_id: 1,
+        team_one_player_two_id: null,
+        team_one_player_three_id: null,
+        team_two_player_one_id: 2,
+        team_two_player_two_id: null,
+        team_two_player_three_id: null,
+        team_one_games_won: 2,
+        team_two_games_won: 1,
+        date: '2023-01-01T12:00:00Z',
+      };
+
+      const mockPlayers = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' }
+      ];
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'insert') return Promise.resolve([mockInsertedMatch]);
+        if (queryType === 'insert_match_games') return Promise.resolve([]);
+        if (queryType === 'players') return Promise.resolve(mockPlayers);
+        return Promise.resolve([]);
+      });
+
+      const request = createMockRequest({
+        teamOnePlayerOneId: 1,
+        teamTwoPlayerOneId: 2,
+        date: '2023-01-01',
+        gameScores: [
+          { gameNumber: 1, teamOneScore: 11, teamTwoScore: 8 },
+          { gameNumber: 2, teamOneScore: 9, teamTwoScore: 11 },
+          { gameNumber: 3, teamOneScore: 11, teamTwoScore: 4 }
+        ]
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(201);
+      const data = await response.json();
+      expect(data.teamOneGamesWon).toBe(2);
+      expect(data.teamTwoGamesWon).toBe(1);
+      expect(data.gameScores).toHaveLength(3);
+      expect(data.gameScores[0]).toEqual({ gameNumber: 1, teamOneScore: 11, teamTwoScore: 8 });
+      expect(mockSql).toHaveBeenCalledWith('insert_match_games');
     });
   });
 });

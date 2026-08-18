@@ -51,6 +51,29 @@ export async function GET(request: Request) {
       allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
     }
 
+    // Fetch match games to attach game scores
+    let allMatchGames: any[] = [];
+    try {
+      allMatchGames = await sql`SELECT match_id, game_number, team_one_score, team_two_score FROM match_games ORDER BY match_id, game_number ASC`;
+    } catch {
+      // In case table is not yet populated or in test environment
+      allMatchGames = [];
+    }
+
+    const gamesMap = new Map<number, Array<{ gameNumber: number; teamOneScore: number; teamTwoScore: number }>>();
+    if (Array.isArray(allMatchGames)) {
+      for (const mg of allMatchGames) {
+        if (!gamesMap.has(mg.match_id)) {
+          gamesMap.set(mg.match_id, []);
+        }
+        gamesMap.get(mg.match_id)!.push({
+          gameNumber: mg.game_number,
+          teamOneScore: mg.team_one_score,
+          teamTwoScore: mg.team_two_score,
+        });
+      }
+    }
+
     // Get all players to map IDs to names
     const allPlayers = await sql`SELECT * FROM players`;
     const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
@@ -81,7 +104,8 @@ export async function GET(request: Request) {
         teamTwoGamesWon: match.team_two_games_won,
         date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
         teamOnePlayers,
-        teamTwoPlayers
+        teamTwoPlayers,
+        gameScores: gamesMap.get(match.id) || []
       };
     });
 
@@ -99,8 +123,6 @@ async function getPlayerIdsFromNames(sql: any, playerNames: string[]) {
   if (playerNames.length === 0) {
     return [];
   }
-  // Use sql.query for conventional function-call style with placeholders
-  // Build the right number of placeholders for the IN clause
   const placeholders = playerNames.map((_, i) => `$${i + 1}`).join(', ');
   const query = `SELECT id FROM players WHERE name IN (${placeholders})`;
   const players = await sql.query(query, playerNames);
@@ -126,6 +148,25 @@ export async function POST(request: Request) {
     let teamOneGamesWon: number;
     let teamTwoGamesWon: number;
 
+    const gameScores: Array<{ gameNumber: number; teamOneScore: number; teamTwoScore: number }> =
+      Array.isArray(body.gameScores) ? body.gameScores : [];
+
+    // Validate game scores if provided
+    for (const gs of gameScores) {
+      if (typeof gs.teamOneScore !== 'number' || typeof gs.teamTwoScore !== 'number' || gs.teamOneScore < 0 || gs.teamTwoScore < 0) {
+        return NextResponse.json(
+          { error: 'Invalid game score values: scores must be non-negative numbers' },
+          { status: 400 }
+        );
+      }
+      if (gs.teamOneScore === gs.teamTwoScore) {
+        return NextResponse.json(
+          { error: 'A game cannot end in a tie' },
+          { status: 400 }
+        );
+      }
+    }
+
     if (body.matchNumber) { // This is a MatchResult from image analysis
       const team1Ids = await getPlayerIdsFromNames(sql, body.team1.players);
       const team2Ids = await getPlayerIdsFromNames(sql, body.team2.players);
@@ -139,7 +180,7 @@ export async function POST(request: Request) {
       teamOneGamesWon = body.team1.wins;
       teamTwoGamesWon = body.team2.wins;
 
-    } else { // This is a regular match creation request
+    } else { // Regular match creation request
       if (body.teamOnePlayerOneId === undefined || body.teamTwoPlayerOneId === undefined) {
         return NextResponse.json(
           { error: 'At least one player per team is required' },
@@ -147,11 +188,19 @@ export async function POST(request: Request) {
         );
       }
 
-      if (body.teamOneGamesWon === undefined || body.teamTwoGamesWon === undefined) {
-        return NextResponse.json(
-          { error: 'Game scores are required' },
-          { status: 400 }
-        );
+      if (gameScores.length > 0) {
+        // Auto-calculate games won from scores
+        teamOneGamesWon = gameScores.filter(g => g.teamOneScore > g.teamTwoScore).length;
+        teamTwoGamesWon = gameScores.filter(g => g.teamTwoScore > g.teamOneScore).length;
+      } else {
+        if (body.teamOneGamesWon === undefined || body.teamTwoGamesWon === undefined) {
+          return NextResponse.json(
+            { error: 'Game scores are required' },
+            { status: 400 }
+          );
+        }
+        teamOneGamesWon = body.teamOneGamesWon;
+        teamTwoGamesWon = body.teamTwoGamesWon;
       }
 
       teamOnePlayerIds[0] = body.teamOnePlayerOneId;
@@ -160,11 +209,9 @@ export async function POST(request: Request) {
       teamTwoPlayerIds[0] = body.teamTwoPlayerOneId;
       teamTwoPlayerIds[1] = body.teamTwoPlayerTwoId || null;
       teamTwoPlayerIds[2] = body.teamTwoPlayerThreeId || null;
-      teamOneGamesWon = body.teamOneGamesWon;
-      teamTwoGamesWon = body.teamTwoGamesWon;
     }
 
-    // Create new match in database (no season_id column)
+    // Create new match in database
     const newMatches = await sql`
       INSERT INTO matches (
         team_one_player_one_id, team_one_player_two_id, team_one_player_three_id,
@@ -179,12 +226,24 @@ export async function POST(request: Request) {
       RETURNING *
     `;
 
+    const match = newMatches[0];
+
+    // Insert game scores if provided
+    if (gameScores.length > 0) {
+      for (let i = 0; i < gameScores.length; i++) {
+        const gs = gameScores[i];
+        const gameNumber = gs.gameNumber || (i + 1);
+        await sql`
+          INSERT INTO match_games (match_id, game_number, team_one_score, team_two_score)
+          VALUES (${match.id}, ${gameNumber}, ${gs.teamOneScore}, ${gs.teamTwoScore})
+        `;
+      }
+    }
 
     // Get player names for the response
     const allPlayers = await sql`SELECT * FROM players`;
     const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
 
-    const match = newMatches[0];
     const teamOnePlayers = [
       match.team_one_player_one_id && playerMap.get(match.team_one_player_one_id),
       match.team_one_player_two_id && playerMap.get(match.team_one_player_two_id),
@@ -209,7 +268,12 @@ export async function POST(request: Request) {
       teamTwoGamesWon: match.team_two_games_won,
       date: new Date(match.date).toISOString(),
       teamOnePlayers,
-      teamTwoPlayers
+      teamTwoPlayers,
+      gameScores: gameScores.map((g, idx) => ({
+        gameNumber: g.gameNumber || (idx + 1),
+        teamOneScore: g.teamOneScore,
+        teamTwoScore: g.teamTwoScore
+      }))
     };
 
     return NextResponse.json(responseMatch, { status: 201 });

@@ -2,20 +2,11 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { GameHistory } from './GameHistory';
-
-interface Match {
-  id: number;
-  date: string;
-  teamOnePlayers: string[];
-  teamTwoPlayers: string[];
-  teamOneGamesWon: number;
-  teamTwoGamesWon: number;
-}
+import { GameHistory, MatchHistoryItem } from './GameHistory';
 
 export function RecentMatches() {
   const [loading, setLoading] = useState(true);
-  const [matches, setMatches] = useState<Match[]>([]);
+  const [matches, setMatches] = useState<MatchHistoryItem[]>([]);
 
   useEffect(() => {
     const fetchRecentMatches = async () => {
@@ -41,7 +32,7 @@ export function RecentMatches() {
   }, []);
 
   // Filter matches to only include those from the most recent day with games
-  const filterLastDayMatches = (matches: Match[]): Match[] => {
+  const filterLastDayMatches = (matches: MatchHistoryItem[]): MatchHistoryItem[] => {
     if (matches.length === 0) return [];
     
     // Sort matches by date (most recent first)

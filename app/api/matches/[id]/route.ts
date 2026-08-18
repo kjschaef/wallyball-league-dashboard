@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
@@ -34,6 +33,14 @@ export async function GET(
       );
     }
     
+    // Fetch associated game scores
+    let matchGames: any[] = [];
+    try {
+      matchGames = await sql`SELECT game_number, team_one_score, team_two_score FROM match_games WHERE match_id = ${matchId} ORDER BY game_number ASC`;
+    } catch {
+      matchGames = [];
+    }
+
     // Get all players to map IDs to names
     const allPlayers = await sql`SELECT * FROM players`;
     const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
@@ -63,7 +70,12 @@ export async function GET(
       teamTwoGamesWon: match.team_two_games_won,
       date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
       teamOnePlayers,
-      teamTwoPlayers
+      teamTwoPlayers,
+      gameScores: (matchGames || []).map((mg: any) => ({
+        gameNumber: mg.game_number,
+        teamOneScore: mg.team_one_score,
+        teamTwoScore: mg.team_two_score,
+      }))
     };
 
     return NextResponse.json(processedMatch);
@@ -113,21 +125,73 @@ export async function PUT(
       );
     }
 
+    let teamOneGamesWon = body.teamOneGamesWon !== undefined ? body.teamOneGamesWon : existingMatches[0].team_one_games_won;
+    let teamTwoGamesWon = body.teamTwoGamesWon !== undefined ? body.teamTwoGamesWon : existingMatches[0].team_two_games_won;
+
+    const gameScores: Array<{ gameNumber: number; teamOneScore: number; teamTwoScore: number }> | undefined =
+      Array.isArray(body.gameScores) ? body.gameScores : undefined;
+
+    if (gameScores !== undefined) {
+      // Validate game scores
+      for (const gs of gameScores) {
+        if (typeof gs.teamOneScore !== 'number' || typeof gs.teamTwoScore !== 'number' || gs.teamOneScore < 0 || gs.teamTwoScore < 0) {
+          return NextResponse.json(
+            { error: 'Invalid game score values: scores must be non-negative numbers' },
+            { status: 400 }
+          );
+        }
+        if (gs.teamOneScore === gs.teamTwoScore) {
+          return NextResponse.json(
+            { error: 'A game cannot end in a tie' },
+            { status: 400 }
+          );
+        }
+      }
+
+      if (gameScores.length > 0) {
+        teamOneGamesWon = gameScores.filter(g => g.teamOneScore > g.teamTwoScore).length;
+        teamTwoGamesWon = gameScores.filter(g => g.teamTwoScore > g.teamOneScore).length;
+      }
+    }
+
     // Update match in database
     const updatedMatches = await sql`
       UPDATE matches 
       SET 
-        team_one_player_one_id = ${body.teamOnePlayerOneId || existingMatches[0].team_one_player_one_id},
-        team_one_player_two_id = ${body.teamOnePlayerTwoId || existingMatches[0].team_one_player_two_id},
-        team_one_player_three_id = ${body.teamOnePlayerThreeId || existingMatches[0].team_one_player_three_id},
-        team_two_player_one_id = ${body.teamTwoPlayerOneId || existingMatches[0].team_two_player_one_id},
-        team_two_player_two_id = ${body.teamTwoPlayerTwoId || existingMatches[0].team_two_player_two_id},
-        team_two_player_three_id = ${body.teamTwoPlayerThreeId || existingMatches[0].team_two_player_three_id},
-        team_one_games_won = ${body.teamOneGamesWon !== undefined ? body.teamOneGamesWon : existingMatches[0].team_one_games_won},
-        team_two_games_won = ${body.teamTwoGamesWon !== undefined ? body.teamTwoGamesWon : existingMatches[0].team_two_games_won}
+        team_one_player_one_id = ${body.teamOnePlayerOneId !== undefined ? body.teamOnePlayerOneId : existingMatches[0].team_one_player_one_id},
+        team_one_player_two_id = ${body.teamOnePlayerTwoId !== undefined ? body.teamOnePlayerTwoId : existingMatches[0].team_one_player_two_id},
+        team_one_player_three_id = ${body.teamOnePlayerThreeId !== undefined ? body.teamOnePlayerThreeId : existingMatches[0].team_one_player_three_id},
+        team_two_player_one_id = ${body.teamTwoPlayerOneId !== undefined ? body.teamTwoPlayerOneId : existingMatches[0].team_two_player_one_id},
+        team_two_player_two_id = ${body.teamTwoPlayerTwoId !== undefined ? body.teamTwoPlayerTwoId : existingMatches[0].team_two_player_two_id},
+        team_two_player_three_id = ${body.teamTwoPlayerThreeId !== undefined ? body.teamTwoPlayerThreeId : existingMatches[0].team_two_player_three_id},
+        team_one_games_won = ${teamOneGamesWon},
+        team_two_games_won = ${teamTwoGamesWon}
       WHERE id = ${matchId}
       RETURNING *
     `;
+
+    // Sync game scores if provided
+    if (gameScores !== undefined) {
+      await sql`DELETE FROM match_games WHERE match_id = ${matchId}`;
+      if (gameScores.length > 0) {
+        for (let i = 0; i < gameScores.length; i++) {
+          const gs = gameScores[i];
+          const gameNumber = gs.gameNumber || (i + 1);
+          await sql`
+            INSERT INTO match_games (match_id, game_number, team_one_score, team_two_score)
+            VALUES (${matchId}, ${gameNumber}, ${gs.teamOneScore}, ${gs.teamTwoScore})
+          `;
+        }
+      }
+    }
+
+    // Fetch updated game scores
+    let updatedMatchGames: any[] = [];
+    try {
+      updatedMatchGames = await sql`SELECT game_number, team_one_score, team_two_score FROM match_games WHERE match_id = ${matchId} ORDER BY game_number ASC`;
+    } catch {
+      updatedMatchGames = [];
+    }
 
     // Get player names for the response
     const allPlayers = await sql`SELECT * FROM players`;
@@ -158,7 +222,12 @@ export async function PUT(
       teamTwoGamesWon: match.team_two_games_won,
       date: new Date(match.date).toISOString(),
       teamOnePlayers,
-      teamTwoPlayers
+      teamTwoPlayers,
+      gameScores: (updatedMatchGames || []).map((mg: any) => ({
+        gameNumber: mg.game_number,
+        teamOneScore: mg.team_one_score,
+        teamTwoScore: mg.team_two_score,
+      }))
     };
 
     return NextResponse.json(responseMatch);
@@ -206,7 +275,12 @@ export async function DELETE(
       );
     }
 
-    // Delete match from database
+    // Delete match from database (cascade handles match_games, but explicit deletion is safe)
+    try {
+      await sql`DELETE FROM match_games WHERE match_id = ${matchId}`;
+    } catch {
+      // Ignore if table/rows already removed
+    }
     await sql`DELETE FROM matches WHERE id = ${matchId}`;
 
     return NextResponse.json({ message: 'Match deleted successfully' });

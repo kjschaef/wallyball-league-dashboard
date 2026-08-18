@@ -75,9 +75,30 @@ export async function GET() {
         // Get matches from the last day with games
         let recentMatches: RecentMatch[] = [];
         if (allMatches.length > 0) {
+            let allMatchGames: any[] = [];
+            try {
+                allMatchGames = await sql`SELECT match_id, game_number, team_one_score, team_two_score FROM match_games ORDER BY match_id, game_number ASC`;
+            } catch {
+                allMatchGames = [];
+            }
+            const gamesMap = new Map<number, Array<{ gameNumber: number; teamOneScore: number; teamTwoScore: number }>>();
+            if (Array.isArray(allMatchGames)) {
+                for (const mg of allMatchGames) {
+                    if (!gamesMap.has(mg.match_id)) {
+                        gamesMap.set(mg.match_id, []);
+                    }
+                    gamesMap.get(mg.match_id)!.push({
+                        gameNumber: mg.game_number,
+                        teamOneScore: mg.team_one_score,
+                        teamTwoScore: mg.team_two_score,
+                    });
+                }
+            }
+
             const matches = allMatches.map((m: any) => ({
                 ...m,
-                date: new Date(m.date).toISOString()
+                date: new Date(m.date).toISOString(),
+                gameScores: gamesMap.get(m.id) || []
             }));
             const mostRecentDate = new Date(matches[0].date).toISOString().split('T')[0];
             recentMatches = matches.filter((m: any) => new Date(m.date).toISOString().split('T')[0] === mostRecentDate);

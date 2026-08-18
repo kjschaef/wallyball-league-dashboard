@@ -28,6 +28,7 @@ export interface RecentMatch {
   team_two_player_one_id: number | null;
   team_two_player_two_id: number | null;
   team_two_player_three_id: number | null;
+  gameScores?: Array<{ gameNumber: number; teamOneScore: number; teamTwoScore: number }>;
 }
 
 export async function generateDailySummary(

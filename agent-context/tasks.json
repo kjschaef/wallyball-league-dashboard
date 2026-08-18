@@ -61,7 +61,6 @@
       "startFiles": [
         "app/components/RecordMatchModal.tsx",
         "app/api/matches/route.ts",
-        "app/api/games/route.ts",
         "app/page.tsx",
         "db/schema.ts"
       ],

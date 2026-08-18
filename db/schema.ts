@@ -53,6 +53,18 @@ export const siteSettings = pgTable("site_settings", {
   availableDays: text("available_days").default(JSON.stringify(["Monday", "Tuesday", "Thursday"])),
 });
 
+// Match games (individual game point scores within a match)
+export const matchGames = pgTable("match_games", {
+  id: serial("id").primaryKey(),
+  matchId: integer("match_id").references(() => matches.id, { onDelete: "cascade" }).notNull(),
+  gameNumber: integer("game_number").notNull(),
+  teamOneScore: integer("team_one_score").notNull(),
+  teamTwoScore: integer("team_two_score").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  matchIdIdx: index("match_games_match_id_idx").on(table.matchId),
+}));
+
 // Weekly signups
 export const weeklySignups = pgTable("weekly_signups", {
   id: serial("id").primaryKey(),
@@ -79,6 +91,8 @@ export const insertPlayerSchema = createInsertSchema(players);
 export const selectPlayerSchema = createSelectSchema(players);
 export const insertMatchSchema = createInsertSchema(matches);
 export const selectMatchSchema = createSelectSchema(matches);
+export const insertMatchGameSchema = createInsertSchema(matchGames);
+export const selectMatchGameSchema = createSelectSchema(matchGames);
 
 export const insertDailySummarySchema = createInsertSchema(dailySummaries);
 export const selectDailySummarySchema = createSelectSchema(dailySummaries);
@@ -95,6 +109,8 @@ export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type Match = typeof matches.$inferSelect;
 export type NewMatch = typeof matches.$inferInsert;
+export type MatchGame = typeof matchGames.$inferSelect;
+export type NewMatchGame = typeof matchGames.$inferInsert;
 
 export type DailySummary = typeof dailySummaries.$inferSelect;
 export type NewDailySummary = typeof dailySummaries.$inferInsert;
@@ -106,3 +122,4 @@ export type WeeklySignup = typeof weeklySignups.$inferSelect;
 export type NewWeeklySignup = typeof weeklySignups.$inferInsert;
 export type WeeklyUnavailable = typeof weeklyUnavailable.$inferSelect;
 export type NewWeeklyUnavailable = typeof weeklyUnavailable.$inferInsert;
+

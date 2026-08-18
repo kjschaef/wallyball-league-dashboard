@@ -77,7 +77,6 @@ const TASK_DEFINITIONS: TaskDefinition[] = [
     triggers: ['match', 'record match', 'games', 'score entry', 'record result'],
     matchers: [
       'app/api/matches/**',
-      'app/api/games/**',
       'app/components/RecordMatchModal.tsx',
       'app/components/RecentMatches.tsx',
       'app/components/GameHistory.tsx',
@@ -86,7 +85,6 @@ const TASK_DEFINITIONS: TaskDefinition[] = [
     startHints: [
       'app/components/RecordMatchModal.tsx',
       'app/api/matches/route.ts',
-      'app/api/games/route.ts',
       'app/page.tsx',
       'db/schema.ts',
     ],

@@ -17,6 +17,7 @@ interface MatchData {
   teamOneGamesWon: number;
   teamTwoGamesWon: number;
   date: string;
+  gameScores?: Array<{ gameNumber: number; teamOneScore: number; teamTwoScore: number }>;
 }
 
 interface PlayerData {
@@ -109,7 +110,8 @@ export default function DashboardPage() {
       teamTwoPlayerThreeId: matchData.teamTwoPlayers[2] || null,
       teamOneGamesWon: matchData.teamOneGamesWon,
       teamTwoGamesWon: matchData.teamTwoGamesWon,
-      date: matchData.date
+      date: matchData.date,
+      gameScores: matchData.gameScores
     };
 
     return fetch('/api/matches', {
