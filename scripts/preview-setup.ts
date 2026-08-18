@@ -8,6 +8,11 @@ function main() {
   }
 
   if (process.env.VERCEL_ENV === 'preview') {
+    if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('dummy') || process.env.DATABASE_URL.includes('localhost')) {
+      console.log('⏭️ Skipping database setup: DATABASE_URL is not configured for this preview build.');
+      return;
+    }
+
     console.log('🚧 Preview environment detected: Running database migrations and seed...');
     try {
       // Execute the push and seed commands
