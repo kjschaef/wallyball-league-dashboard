@@ -76,14 +76,18 @@ test.describe('Match Recording Flow', () => {
     await teamOneSection.getByRole('button', { name: 'Alice' }).click();
     await teamTwoSection.getByRole('button', { name: 'Charlie' }).click();
 
-    // 4. Submit
+    // 4. Set score (Team One wins 1-0)
+    const teamOneIncrease = modal.getByLabel('Increase team one games won').filter({ visible: true });
+    await teamOneIncrease.click();
+
+    // 5. Submit
     await modal.getByRole('button', { name: 'Record Match' }).click();
 
-    // 5. Enter an invalid password
+    // 6. Enter an invalid password
     await page.getByPlaceholder('Enter admin password').fill('wrongpassword');
     await page.getByRole('button', { name: 'Submit' }).click();
 
-    // 6. Error message should be visible
+    // 7. Error message should be visible
     await expect(page.getByText('Invalid password')).toBeVisible({ timeout: 10000 });
   });
 });
