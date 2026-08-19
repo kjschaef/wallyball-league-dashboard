@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { getDatabase } from '../db/config';
 import * as schema from '../db/schema';
-import { sql } from 'drizzle-orm';
+import { neon } from '@neondatabase/serverless';
 
 async function main() {
   if (process.env.VERCEL_ENV === 'production') {
@@ -20,6 +20,21 @@ async function main() {
 
   // 1. Clear existing data
   console.log('Clearing existing data...');
+  if (process.env.DATABASE_URL) {
+    try {
+      const rawSql = neon(process.env.DATABASE_URL);
+      await rawSql`DROP TABLE IF EXISTS "player_achievements" CASCADE;`;
+      await rawSql`DROP TABLE IF EXISTS "achievements" CASCADE;`;
+    } catch (err) {
+      console.warn('⚠️ Warning dropping legacy tables:', err);
+    }
+  }
+
+  try {
+    await db.delete(schema.matchGames);
+  } catch (err) {
+    console.warn('⚠️ Warning clearing match_games (table may not exist yet):', err);
+  }
   await db.delete(schema.matches);
   await db.delete(schema.weeklySignups);
   await db.delete(schema.weeklyUnavailable);
@@ -52,9 +67,9 @@ async function main() {
     availableDays: JSON.stringify(['Monday', 'Tuesday', 'Thursday']),
   });
 
-  // 4. Insert Matches
+  // 4. Insert Matches & Games
   console.log('Inserting matches...');
-  await db.insert(schema.matches).values([
+  const insertedMatches = await db.insert(schema.matches).values([
     {
       teamOnePlayerOneId: p('Alice'),
       teamOnePlayerTwoId: p('Bob'),
@@ -73,7 +88,23 @@ async function main() {
       teamTwoGamesWon: 1,
       date: new Date('2024-01-02T18:00:00Z'),
     },
-  ]);
+  ]).returning();
+
+  // Insert sample match games
+  if (insertedMatches.length >= 2) {
+    try {
+      await db.insert(schema.matchGames).values([
+        { matchId: insertedMatches[0].id, gameNumber: 1, teamOneScore: 11, teamTwoScore: 7 },
+        { matchId: insertedMatches[0].id, gameNumber: 2, teamOneScore: 11, teamTwoScore: 5 },
+        { matchId: insertedMatches[0].id, gameNumber: 3, teamOneScore: 11, teamTwoScore: 8 },
+        { matchId: insertedMatches[1].id, gameNumber: 1, teamOneScore: 11, teamTwoScore: 9 },
+        { matchId: insertedMatches[1].id, gameNumber: 2, teamOneScore: 8, teamTwoScore: 11 },
+        { matchId: insertedMatches[1].id, gameNumber: 3, teamOneScore: 11, teamTwoScore: 6 },
+      ]);
+    } catch (err) {
+      console.warn('⚠️ Warning seeding match_games:', err);
+    }
+  }
 
   console.log('Seeding completed successfully!');
 }

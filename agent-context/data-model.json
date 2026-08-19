@@ -47,6 +47,53 @@
       ]
     },
     {
+      "symbol": "matchGames",
+      "table": "match_games",
+      "columns": [
+        {
+          "field": "id",
+          "kind": "serial",
+          "column": "id",
+          "references": null
+        },
+        {
+          "field": "matchId",
+          "kind": "integer",
+          "column": "match_id",
+          "references": null
+        },
+        {
+          "field": "gameNumber",
+          "kind": "integer",
+          "column": "game_number",
+          "references": null
+        },
+        {
+          "field": "teamOneScore",
+          "kind": "integer",
+          "column": "team_one_score",
+          "references": null
+        },
+        {
+          "field": "teamTwoScore",
+          "kind": "integer",
+          "column": "team_two_score",
+          "references": null
+        },
+        {
+          "field": "createdAt",
+          "kind": "timestamp",
+          "column": "created_at",
+          "references": null
+        }
+      ],
+      "selectType": "MatchGame",
+      "insertType": "NewMatchGame",
+      "migrationTouchpoints": [
+        "migrations/0009_abnormal_dracula.sql"
+      ]
+    },
+    {
       "symbol": "matches",
       "table": "matches",
       "columns": [
@@ -116,6 +163,7 @@
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
         "migrations/0007_blue_edwin_jarvis.sql",
+        "migrations/0009_abnormal_dracula.sql",
         "migrations/005_remove_seasons.sql",
         "migrations/add_daily_summaries.sql",
         "migrations/relations.ts",

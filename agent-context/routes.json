@@ -79,28 +79,6 @@
     },
     {
       "kind": "api",
-      "route": "/api/games",
-      "file": "app/api/games/route.ts",
-      "params": [],
-      "likelySourceFiles": [
-        "db/config.ts",
-        "db/schema.ts"
-      ]
-    },
-    {
-      "kind": "api",
-      "route": "/api/games/[id]",
-      "file": "app/api/games/[id]/route.ts",
-      "params": [
-        "id"
-      ],
-      "likelySourceFiles": [
-        "db/config.ts",
-        "db/schema.ts"
-      ]
-    },
-    {
-      "kind": "api",
       "route": "/api/matches",
       "file": "app/api/matches/route.ts",
       "params": [],

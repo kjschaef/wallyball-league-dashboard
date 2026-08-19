@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# bin/merge-main-to-all - Merges main into all open failing PR branches to trigger fresh builds
+
+# Ensure main is up to date
+git checkout main
+git pull
+
+# Read list of open active PRs
+./bin/pr-list | while read -r pr title; do
+  # Run status check audit. If it passes, we don't need to rebuild it
+  if ./bin/pr-audit-status "$pr" >/dev/null 2>&1; then
+    echo "PR #$pr is already SUCCESS. Skipping."
+    continue
+  fi
+
+  # Retrieve head branch name
+  branch=$(gh pr view "$pr" --json headRefName --jq .headRefName)
+  echo "============================================="
+  echo "PR #$pr ($title)"
+  echo "Branch: $branch"
+  echo "============================================="
+
+  # Checkout the branch
+  git checkout "$branch"
+
+  # Merge main
+  echo "Merging main into $branch..."
+  if git merge main -m "merge: merge main to update dependencies and configs"; then
+    echo "Successfully merged main. Pushing to origin..."
+    if git push origin "$branch"; then
+      echo "Push succeeded for PR #$pr."
+    else
+      echo "Failed to push $branch."
+    fi
+  else
+    echo "Conflict detected during merge. Aborting merge."
+    git merge --abort
+  fi
+  echo ""
+done
+
+# Return to main
+git checkout main

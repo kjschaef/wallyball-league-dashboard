@@ -3,15 +3,24 @@
 import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 
+export interface GameScore {
+  gameNumber: number;
+  teamOneScore: number;
+  teamTwoScore: number;
+}
+
+export interface MatchHistoryItem {
+  id: number;
+  date: string;
+  teamOnePlayers: string[];
+  teamTwoPlayers: string[];
+  teamOneGamesWon: number;
+  teamTwoGamesWon: number;
+  gameScores?: GameScore[];
+}
+
 interface GameHistoryProps {
-  games: Array<{
-    id: number;
-    date: string;
-    teamOnePlayers: string[];
-    teamTwoPlayers: string[];
-    teamOneGamesWon: number;
-    teamTwoGamesWon: number;
-  }>;
+  games: MatchHistoryItem[];
 }
 
 export function GameHistory({ games }: GameHistoryProps) {
@@ -34,7 +43,7 @@ export function GameHistory({ games }: GameHistoryProps) {
   };
 
   // Determine the winning team
-  const getWinningTeam = (game: GameHistoryProps['games'][0]) => {
+  const getWinningTeam = (game: MatchHistoryItem) => {
     if (game.teamOneGamesWon > game.teamTwoGamesWon) {
       return 'teamOne';
     } else if (game.teamTwoGamesWon > game.teamOneGamesWon) {
@@ -52,11 +61,12 @@ export function GameHistory({ games }: GameHistoryProps) {
       ) : (
         games.map((game) => {
           const winningTeam = getWinningTeam(game);
+          const hasGameScores = game.gameScores && game.gameScores.length > 0;
           
           return (
             <div
               key={game.id}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white"
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
             >
               {/* Game Summary Row */}
               <button
@@ -75,7 +85,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                       {game.teamOnePlayers.join(' & ')}
                     </span>
                     
-                    <span className="mx-2 font-bold">vs</span>
+                    <span className="mx-2 font-bold text-gray-400">vs</span>
                     
                     <span className={`font-semibold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
                       {game.teamTwoPlayers.join(' & ')}
@@ -83,17 +93,25 @@ export function GameHistory({ games }: GameHistoryProps) {
                   </div>
                 </div>
                 
-                <div className="flex items-center">
-                  <span className={`text-xl font-bold ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
-                    {game.teamOneGamesWon}
-                  </span>
-                  <span className="mx-1 text-xl">-</span>
-                  <span className={`text-xl font-bold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
-                    {game.teamTwoGamesWon}
-                  </span>
+                <div className="flex items-center gap-3">
+                  {hasGameScores && (
+                    <span className="hidden md:inline-block text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {game.gameScores!.map(gs => `${gs.teamOneScore}-${gs.teamTwoScore}`).join(', ')}
+                    </span>
+                  )}
+
+                  <div className="flex items-center">
+                    <span className={`text-xl font-bold ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
+                      {game.teamOneGamesWon}
+                    </span>
+                    <span className="mx-1 text-xl text-gray-400">-</span>
+                    <span className={`text-xl font-bold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
+                      {game.teamTwoGamesWon}
+                    </span>
+                  </div>
                   
                   <span
-                    className={`ml-4 p-1 transition-transform duration-200 ${expandedGameId === game.id ? 'rotate-90' : ''}`}
+                    className={`p-1 text-gray-400 transition-transform duration-200 ${expandedGameId === game.id ? 'rotate-90 text-gray-700' : ''}`}
                     aria-hidden="true"
                   >
                     <ChevronRight className="h-5 w-5" />
@@ -103,22 +121,20 @@ export function GameHistory({ games }: GameHistoryProps) {
               
               {/* Expanded Game Details */}
               {expandedGameId === game.id && (
-                <div className="px-4 pb-4 pt-2 border-t border-gray-200">
-                  <h4 className="font-semibold mb-2">Game Details</h4>
-                  
+                <div className="px-4 pb-4 pt-2 border-t border-gray-200 space-y-4 bg-gray-50">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-500 mb-1">Team 1</h5>
-                      <ul className="list-disc pl-5">
+                    <div className="bg-white p-3 rounded-lg border border-gray-200">
+                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team 1</h5>
+                      <ul className="list-disc pl-5 text-sm text-gray-800 space-y-1">
                         {game.teamOnePlayers.map((player, idx) => (
                           <li key={idx}>{player}</li>
                         ))}
                       </ul>
                     </div>
                     
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-500 mb-1">Team 2</h5>
-                      <ul className="list-disc pl-5">
+                    <div className="bg-white p-3 rounded-lg border border-gray-200">
+                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team 2</h5>
+                      <ul className="list-disc pl-5 text-sm text-gray-800 space-y-1">
                         {game.teamTwoPlayers.map((player, idx) => (
                           <li key={idx}>{player}</li>
                         ))}
@@ -126,18 +142,59 @@ export function GameHistory({ games }: GameHistoryProps) {
                     </div>
                   </div>
                   
-                  <div className="mt-4">
-                    <h5 className="text-sm font-medium text-gray-500 mb-1">Match Result</h5>
-                    <p>
-                      <span className={`font-medium ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
-                        Team 1: {game.teamOneGamesWon}
-                      </span>
-                      {' - '}
-                      <span className={`font-medium ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
-                        Team 2: {game.teamTwoGamesWon}
-                      </span>
-                    </p>
-                  </div>
+                  {hasGameScores ? (
+                    <div className="bg-white p-3 rounded-lg border border-gray-200">
+                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Individual Game Scores</h5>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-gray-200 text-left text-xs text-gray-500">
+                              <th className="pb-2 font-medium">Game</th>
+                              <th className="pb-2 font-medium text-center">Team 1</th>
+                              <th className="pb-2 font-medium text-center">Team 2</th>
+                              <th className="pb-2 font-medium text-right">Outcome</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {game.gameScores!.map((gs) => {
+                              const t1Wins = gs.teamOneScore > gs.teamTwoScore;
+                              return (
+                                <tr key={gs.gameNumber}>
+                                  <td className="py-2 font-medium text-gray-700">Game {gs.gameNumber}</td>
+                                  <td className={`py-2 text-center font-semibold ${t1Wins ? 'text-green-600' : 'text-gray-600'}`}>
+                                    {gs.teamOneScore}
+                                  </td>
+                                  <td className={`py-2 text-center font-semibold ${!t1Wins ? 'text-green-600' : 'text-gray-600'}`}>
+                                    {gs.teamTwoScore}
+                                  </td>
+                                  <td className="py-2 text-right">
+                                    <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded ${
+                                      t1Wins ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                                    }`}>
+                                      {t1Wins ? 'Team 1 Win' : 'Team 2 Win'}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white p-3 rounded-lg border border-gray-200">
+                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Match Result</h5>
+                      <p className="text-sm font-medium">
+                        <span className={winningTeam === 'teamOne' ? 'text-green-600 font-bold' : 'text-gray-700'}>
+                          Team 1: {game.teamOneGamesWon}
+                        </span>
+                        {' — '}
+                        <span className={winningTeam === 'teamTwo' ? 'text-green-600 font-bold' : 'text-gray-700'}>
+                          Team 2: {game.teamTwoGamesWon}
+                        </span>
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

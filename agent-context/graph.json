@@ -98,40 +98,6 @@
       "overrideNotes": []
     },
     {
-      "file": "app/api/games/[id]/route.ts",
-      "type": "api-route",
-      "tags": [
-        "matches"
-      ],
-      "imports": [
-        "db/config.ts",
-        "db/schema.ts"
-      ],
-      "importedBy": [],
-      "related": [
-        "db/config.ts",
-        "db/schema.ts"
-      ],
-      "overrideNotes": []
-    },
-    {
-      "file": "app/api/games/route.ts",
-      "type": "api-route",
-      "tags": [
-        "matches"
-      ],
-      "imports": [
-        "db/config.ts",
-        "db/schema.ts"
-      ],
-      "importedBy": [],
-      "related": [
-        "db/config.ts",
-        "db/schema.ts"
-      ],
-      "overrideNotes": []
-    },
-    {
       "file": "app/api/matches/[id]/route.ts",
       "type": "api-route",
       "tags": [
@@ -1163,14 +1129,10 @@
         "db/schema.ts"
       ],
       "importedBy": [
-        "app/api/games/[id]/route.ts",
-        "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",
         "db/index.ts"
       ],
       "related": [
-        "app/api/games/[id]/route.ts",
-        "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",
         "db/index.ts",
         "db/schema.ts"
@@ -1200,14 +1162,10 @@
       ],
       "imports": [],
       "importedBy": [
-        "app/api/games/[id]/route.ts",
-        "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",
         "db/config.ts"
       ],
       "related": [
-        "app/api/games/[id]/route.ts",
-        "app/api/games/route.ts",
         "app/api/players/[id]/route.ts",
         "db/config.ts"
       ],

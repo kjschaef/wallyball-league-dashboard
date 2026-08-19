@@ -368,7 +368,6 @@
       ],
       "gaps": [
         "app/components/RecordMatchModal.tsx",
-        "app/api/games/route.ts",
         "db/schema.ts"
       ]
     },

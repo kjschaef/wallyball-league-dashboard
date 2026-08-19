@@ -12,9 +12,15 @@ export interface PlayerStats {
 
     actualWinPercentage?: number;
     lastGameDate?: string | null;
+
+    // Supplemental point metrics from scored games
+    pointDifferential: number;
+    pointsScored: number;
+    pointsAllowed: number;
+    avgPointsScored: number;
+    avgPointsAllowed: number;
+    scoredGamesPlayed: number;
 }
-
-
 
 export async function calculatePlayerStats(
     allPlayers: unknown[],
@@ -23,6 +29,27 @@ export async function calculatePlayerStats(
     _seasonParam: string | null,
     _seasonData: unknown
 ): Promise<PlayerStats[]> {
+    const gamesMap = new Map<number, Array<{ gameNumber: number; teamOneScore: number; teamTwoScore: number }>>();
+    if (_sql && typeof (_sql as any) === 'function') {
+        try {
+            const allMatchGames = await (_sql as any)`SELECT match_id, game_number, team_one_score, team_two_score FROM match_games ORDER BY match_id, game_number ASC`;
+            if (Array.isArray(allMatchGames)) {
+                for (const mg of allMatchGames) {
+                    if (!gamesMap.has(mg.match_id)) {
+                        gamesMap.set(mg.match_id, []);
+                    }
+                    gamesMap.get(mg.match_id)!.push({
+                        gameNumber: mg.game_number,
+                        teamOneScore: mg.team_one_score,
+                        teamTwoScore: mg.team_two_score,
+                    });
+                }
+            }
+        } catch {
+            // In case table is not populated yet or test environment
+        }
+    }
+
     const playerStats: PlayerStats[] = await Promise.all((allPlayers as any[]).map(async player => {
         try {
             // Find matches where this player participated
@@ -35,7 +62,11 @@ export async function calculatePlayerStats(
                 match.team_two_player_three_id === player.id
             );
 
-            // Process matches to determine wins/losses for this player
+            // Process matches to determine wins/losses and point metrics for this player
+            let pointsScored = 0;
+            let pointsAllowed = 0;
+            let scoredGamesPlayed = 0;
+
             const processedMatches = playerMatches.map(match => {
                 const isTeamOne = match.team_one_player_one_id === player.id ||
                     match.team_one_player_two_id === player.id ||
@@ -44,6 +75,17 @@ export async function calculatePlayerStats(
                 const won = isTeamOne
                     ? match.team_one_games_won > match.team_two_games_won
                     : match.team_two_games_won > match.team_one_games_won;
+
+                const matchScores = match.gameScores || match.game_scores || gamesMap.get(match.id) || [];
+                for (const gs of matchScores) {
+                    const scored = isTeamOne ? (gs.teamOneScore ?? gs.team_one_score) : (gs.teamTwoScore ?? gs.team_two_score);
+                    const allowed = isTeamOne ? (gs.teamTwoScore ?? gs.team_two_score) : (gs.teamOneScore ?? gs.team_one_score);
+                    if (typeof scored === 'number' && typeof allowed === 'number') {
+                        pointsScored += scored;
+                        pointsAllowed += allowed;
+                        scoredGamesPlayed += 1;
+                    }
+                }
 
                 return {
                     won,
@@ -78,14 +120,16 @@ export async function calculatePlayerStats(
             }));
             const totalPlayingTime = Math.round((uniqueDays.size * 90) / 60); // Convert to hours
 
-
-
             // Calculate win percentage
             const winPercentage = gamesWon + gamesLost > 0 ? (gamesWon / (gamesWon + gamesLost)) * 100 : 0;
 
             const lastGameDate = processedMatches.length > 0
                 ? new Date(Math.max(...processedMatches.map(m => new Date(m.date).getTime()))).toISOString()
                 : null;
+
+            const pointDifferential = pointsScored - pointsAllowed;
+            const avgPointsScored = scoredGamesPlayed > 0 ? Number((pointsScored / scoredGamesPlayed).toFixed(1)) : 0;
+            const avgPointsAllowed = scoredGamesPlayed > 0 ? Number((pointsAllowed / scoredGamesPlayed).toFixed(1)) : 0;
 
             return {
                 id: player.id,
@@ -100,11 +144,17 @@ export async function calculatePlayerStats(
                 totalPlayingTime,
 
                 actualWinPercentage: winPercentage,
-                lastGameDate
+                lastGameDate,
+
+                pointDifferential,
+                pointsScored,
+                pointsAllowed,
+                avgPointsScored,
+                avgPointsAllowed,
+                scoredGamesPlayed
             };
         } catch (error) {
             console.error(`Error processing player ${player.name} (ID ${player.id}):`, error);
-            // Return a minimal stats object so the player still appears
             return {
                 id: player.id,
                 name: player.name,
@@ -114,7 +164,14 @@ export async function calculatePlayerStats(
                 totalPlayingTime: 0,
 
                 actualWinPercentage: 0,
-                lastGameDate: null
+                lastGameDate: null,
+
+                pointDifferential: 0,
+                pointsScored: 0,
+                pointsAllowed: 0,
+                avgPointsScored: 0,
+                avgPointsAllowed: 0,
+                scoredGamesPlayed: 0
             };
         }
     }));

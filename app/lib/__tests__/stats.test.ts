@@ -149,4 +149,46 @@ describe('calculatePlayerStats', () => {
 
         consoleSpy.mockRestore();
     });
+
+    it('calculates point metrics (pointDifferential, PPG, PAPG) when gameScores exist', async () => {
+        const matchesWithScores = [
+            {
+                id: 10,
+                date: '2024-01-01T12:00:00.000Z',
+                team_one_player_one_id: 1,
+                team_one_player_two_id: null,
+                team_one_player_three_id: null,
+                team_two_player_one_id: 3,
+                team_two_player_two_id: null,
+                team_two_player_three_id: null,
+                team_one_games_won: 2,
+                team_two_games_won: 1,
+                gameScores: [
+                    { gameNumber: 1, teamOneScore: 11, teamTwoScore: 9 },
+                    { gameNumber: 2, teamOneScore: 7, teamTwoScore: 11 },
+                    { gameNumber: 3, teamOneScore: 11, teamTwoScore: 4 }
+                ]
+            }
+        ];
+
+        const stats = await calculatePlayerStats(mockPlayers, matchesWithScores, null, null, null);
+        const alice = stats.find(p => p.id === 1)!;
+        const charlie = stats.find(p => p.id === 3)!;
+
+        // Alice (Team 1): Scored 11 + 7 + 11 = 29. Allowed: 9 + 11 + 4 = 24. Diff = +5. PPG = 29/3 = 9.7. PAPG = 24/3 = 8.0.
+        expect(alice.pointsScored).toBe(29);
+        expect(alice.pointsAllowed).toBe(24);
+        expect(alice.pointDifferential).toBe(5);
+        expect(alice.avgPointsScored).toBe(9.7);
+        expect(alice.avgPointsAllowed).toBe(8);
+        expect(alice.scoredGamesPlayed).toBe(3);
+
+        // Charlie (Team 2): Scored 24. Allowed: 29. Diff = -5. PPG = 24/3 = 8.0. PAPG = 29/3 = 9.7.
+        expect(charlie.pointsScored).toBe(24);
+        expect(charlie.pointsAllowed).toBe(29);
+        expect(charlie.pointDifferential).toBe(-5);
+        expect(charlie.avgPointsScored).toBe(8);
+        expect(charlie.avgPointsAllowed).toBe(9.7);
+        expect(charlie.scoredGamesPlayed).toBe(3);
+    });
 });

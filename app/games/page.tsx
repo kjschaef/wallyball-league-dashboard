@@ -12,6 +12,7 @@ interface Match {
   teamTwoPlayers: string[];
   teamOneGamesWon: number;
   teamTwoGamesWon: number;
+  gameScores?: Array<{ gameNumber: number; teamOneScore: number; teamTwoScore: number }>;
 }
 
 export default function GamesPage() {
@@ -276,6 +277,12 @@ export default function GamesPage() {
 
                     {/* Right side: Score and delete button */}
                     <div className="flex items-center gap-3">
+                      {match.gameScores && match.gameScores.length > 0 && (
+                        <span className="hidden md:inline-block text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          {match.gameScores.map(gs => `${gs.teamOneScore}-${gs.teamTwoScore}`).join(', ')}
+                        </span>
+                      )}
+
                       <div className="text-right">
                         <span className="font-medium">
                           {match.teamOneGamesWon} - {match.teamTwoGamesWon}
