@@ -71,14 +71,14 @@ test.describe('Players Management Flow', () => {
     await updatedCard.getByLabel('Delete player').click();
 
     // Confirm deletion dialog
-    const deleteModal = page.locator('.fixed.inset-0').filter({ hasText: 'Delete Player' });
-    await expect(deleteModal).toBeVisible();
-    await deleteModal.getByRole('button', { name: 'Delete', exact: true }).click();
+    const deleteDialog = page.getByRole('alertdialog');
+    await expect(deleteDialog).toBeVisible();
+    await deleteDialog.getByRole('button', { name: 'Delete', exact: true }).click();
 
-    // Wait for either admin prompt or delete modal dismissal
+    // Wait for either admin prompt or delete dialog dismissal
     const deleteAdminOrClosed = await Promise.race([
       adminHeading.waitFor({ state: 'visible', timeout: 5000 }).then(() => 'admin').catch(() => null),
-      deleteModal.waitFor({ state: 'hidden', timeout: 5000 }).then(() => 'closed').catch(() => null),
+      deleteDialog.waitFor({ state: 'hidden', timeout: 5000 }).then(() => 'closed').catch(() => null),
     ]);
 
     if (deleteAdminOrClosed === 'admin') {
