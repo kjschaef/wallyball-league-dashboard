@@ -68,6 +68,9 @@ jobs:
           node-version: 18
           cache: 'pnpm'
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Cache Playwright Browsers
         id: playwright-cache
         uses: actions/cache@v4
