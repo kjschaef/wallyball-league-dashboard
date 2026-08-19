@@ -31,25 +31,24 @@ CREATE TABLE IF NOT EXISTS "weekly_unavailable" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-ALTER TABLE "seasons" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-DROP TABLE "seasons" CASCADE;--> statement-breakpoint
-ALTER TABLE "player_achievements" DROP CONSTRAINT "player_achievements_player_id_fkey";
+DROP TABLE IF EXISTS "seasons" CASCADE;--> statement-breakpoint
+ALTER TABLE "player_achievements" DROP CONSTRAINT IF EXISTS "player_achievements_player_id_fkey";
 --> statement-breakpoint
-ALTER TABLE "player_achievements" DROP CONSTRAINT "player_achievements_achievement_id_fkey";
+ALTER TABLE "player_achievements" DROP CONSTRAINT IF EXISTS "player_achievements_achievement_id_fkey";
 --> statement-breakpoint
-ALTER TABLE "matches" DROP CONSTRAINT "matches_team_one_player_one_id_fkey";
+ALTER TABLE "matches" DROP CONSTRAINT IF EXISTS "matches_team_one_player_one_id_fkey";
 --> statement-breakpoint
-ALTER TABLE "matches" DROP CONSTRAINT "matches_team_one_player_two_id_fkey";
+ALTER TABLE "matches" DROP CONSTRAINT IF EXISTS "matches_team_one_player_two_id_fkey";
 --> statement-breakpoint
-ALTER TABLE "matches" DROP CONSTRAINT "matches_team_one_player_three_id_fkey";
+ALTER TABLE "matches" DROP CONSTRAINT IF EXISTS "matches_team_one_player_three_id_fkey";
 --> statement-breakpoint
-ALTER TABLE "matches" DROP CONSTRAINT "matches_team_two_player_one_id_fkey";
+ALTER TABLE "matches" DROP CONSTRAINT IF EXISTS "matches_team_two_player_one_id_fkey";
 --> statement-breakpoint
-ALTER TABLE "matches" DROP CONSTRAINT "matches_team_two_player_two_id_fkey";
+ALTER TABLE "matches" DROP CONSTRAINT IF EXISTS "matches_team_two_player_two_id_fkey";
 --> statement-breakpoint
-ALTER TABLE "matches" DROP CONSTRAINT "matches_team_two_player_three_id_fkey";
+ALTER TABLE "matches" DROP CONSTRAINT IF EXISTS "matches_team_two_player_three_id_fkey";
 --> statement-breakpoint
-ALTER TABLE "matches" DROP CONSTRAINT "matches_season_id_fkey";
+ALTER TABLE "matches" DROP CONSTRAINT IF EXISTS "matches_season_id_fkey";
 --> statement-breakpoint
 DROP INDEX IF EXISTS "match_season_date_idx";--> statement-breakpoint
 DROP INDEX IF EXISTS "match_season_idx";--> statement-breakpoint
