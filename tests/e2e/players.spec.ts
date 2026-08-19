@@ -48,11 +48,17 @@ test.describe('Players Management Flow', () => {
     await playerCard.getByLabel('Edit player').click();
 
     const editModal = page.locator('.fixed.inset-0').filter({ hasText: 'Edit Player' });
+    await expect(editModal).toBeVisible();
     await editModal.getByLabel('Name').fill(updatedPlayerName);
     await editModal.getByRole('button', { name: 'Update Player' }).click();
 
-    // If prompted for admin, fill password; otherwise it passes with existing cookie
-    if (await adminHeading.isVisible()) {
+    // Wait for either admin prompt or edit modal dismissal
+    const editAdminOrClosed = await Promise.race([
+      adminHeading.waitFor({ state: 'visible', timeout: 5000 }).then(() => 'admin').catch(() => null),
+      editModal.waitFor({ state: 'hidden', timeout: 5000 }).then(() => 'closed').catch(() => null),
+    ]);
+
+    if (editAdminOrClosed === 'admin') {
       await page.getByPlaceholder('Enter admin password').fill('admin123');
       await page.getByRole('button', { name: 'Submit' }).click();
     }
@@ -65,12 +71,17 @@ test.describe('Players Management Flow', () => {
     await updatedCard.getByLabel('Delete player').click();
 
     // Confirm deletion dialog
-    const deleteHeading = page.getByRole('heading', { name: 'Delete Player' });
-    await expect(deleteHeading).toBeVisible();
-    await page.getByRole('button', { name: 'Delete', exact: true }).click();
+    const deleteModal = page.locator('.fixed.inset-0').filter({ hasText: 'Delete Player' });
+    await expect(deleteModal).toBeVisible();
+    await deleteModal.getByRole('button', { name: 'Delete', exact: true }).click();
 
-    // If prompted for admin, fill password
-    if (await adminHeading.isVisible()) {
+    // Wait for either admin prompt or delete modal dismissal
+    const deleteAdminOrClosed = await Promise.race([
+      adminHeading.waitFor({ state: 'visible', timeout: 5000 }).then(() => 'admin').catch(() => null),
+      deleteModal.waitFor({ state: 'hidden', timeout: 5000 }).then(() => 'closed').catch(() => null),
+    ]);
+
+    if (deleteAdminOrClosed === 'admin') {
       await page.getByPlaceholder('Enter admin password').fill('admin123');
       await page.getByRole('button', { name: 'Submit' }).click();
     }
