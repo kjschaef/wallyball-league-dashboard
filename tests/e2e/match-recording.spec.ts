@@ -58,6 +58,69 @@ test.describe('Match Recording Flow', () => {
     await expect(authHeading).not.toBeVisible({ timeout: 10000 });
   });
 
+  test('should record a match with detailed individual game scores', async ({ page }) => {
+    // 1. Open the FAB and select Record Match
+    await page.getByTitle('Actions').click();
+    await page.getByRole('menuitem', { name: 'Record Match' }).click();
+
+    // 2. Wait for the Record Match modal to appear and players to load
+    const modal = page.locator('.fixed.inset-0').locator('.bg-white');
+    await expect(modal.getByRole('heading', { name: 'Record Match' })).toBeVisible();
+
+    const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
+    const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
+
+    await expect(teamOneSection.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
+
+    // 3. Select players for Team One (Alice, Bob) and Team Two (Charlie, David)
+    await teamOneSection.getByRole('button', { name: 'Alice' }).click();
+    await teamOneSection.getByRole('button', { name: 'Bob' }).click();
+    await teamTwoSection.getByRole('button', { name: 'Charlie' }).click();
+    await teamTwoSection.getByRole('button', { name: 'David' }).click();
+
+    // 4. Toggle "Log Individual Game Scores" switch
+    const switchToggle = modal.getByRole('switch');
+    await expect(switchToggle).toBeVisible();
+    await switchToggle.click();
+
+    // 5. Verify game scores inputs appear
+    await expect(modal.getByRole('heading', { name: 'Game Scores' })).toBeVisible();
+
+    // Fill scores for 3 games (Game 1: 11-7, Game 2: 9-11, Game 3: 11-6)
+    const t1Game1 = modal.getByLabel('Team 1 score for Game 1');
+    const t2Game1 = modal.getByLabel('Team 2 score for Game 1');
+    await t1Game1.fill('11');
+    await t2Game1.fill('7');
+
+    const t1Game2 = modal.getByLabel('Team 1 score for Game 2');
+    const t2Game2 = modal.getByLabel('Team 2 score for Game 2');
+    await t1Game2.fill('9');
+    await t2Game2.fill('11');
+
+    const t1Game3 = modal.getByLabel('Team 1 score for Game 3');
+    const t2Game3 = modal.getByLabel('Team 2 score for Game 3');
+    await t1Game3.fill('11');
+    await t2Game3.fill('6');
+
+    // 6. Verify calculated result text (2 - 1)
+    await expect(modal.getByText('Calculated Match Result:')).toBeVisible();
+    await expect(modal.getByText('2 - 1')).toBeVisible();
+
+    // 7. Submit the match
+    await modal.getByRole('button', { name: 'Record Match' }).click();
+
+    // 8. Admin authentication modal should appear
+    const authHeading = page.getByRole('heading', { name: 'Admin Authentication Required' });
+    await expect(authHeading).toBeVisible();
+
+    // 9. Enter password and submit
+    await page.getByPlaceholder('Enter admin password').fill('admin123');
+    await page.getByRole('button', { name: 'Submit' }).click();
+
+    // 10. Success: auth modal should close
+    await expect(authHeading).not.toBeVisible({ timeout: 10000 });
+  });
+
   test('should show error for invalid password', async ({ page }) => {
     // 1. Open the FAB and select Record Match
     await page.getByTitle('Actions').click();
