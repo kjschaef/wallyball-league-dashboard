@@ -70,6 +70,14 @@ const createMockSql = () => Object.assign(
       return mockSql('delete-unavailable-by-player-week');
     }
 
+    if (query.includes('delete from weekly_signups') && query.includes("interval '14 days'")) {
+      return mockSql('cleanup-signups');
+    }
+
+    if (query.includes('delete from weekly_unavailable') && query.includes("interval '14 days'")) {
+      return mockSql('cleanup-unavailable');
+    }
+
     if (query.includes('delete from weekly_signups where id =')) {
       return mockSql('delete-signup');
     }
@@ -246,6 +254,24 @@ describe('/api/signups', () => {
 
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toEqual([]);
+    });
+
+    it('triggers retention cleanup of signups and unavailable records older than 14 days', async () => {
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'cleanup-signups' || queryType === 'cleanup-unavailable') {
+          return Promise.resolve([]);
+        }
+        if (queryType === 'recent') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const response = await GET({ url: 'http://localhost/api/signups' } as Request);
+
+      expect(response.status).toBe(200);
+      expect(mockSql).toHaveBeenCalledWith('cleanup-signups');
+      expect(mockSql).toHaveBeenCalledWith('cleanup-unavailable');
     });
   });
 

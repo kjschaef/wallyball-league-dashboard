@@ -46,6 +46,29 @@ function buildSignupSettings(settingsRows: SignupSettingsRow[]): SignupSettings 
     : DEFAULT_SIGNUP_SETTINGS;
 }
 
+// Retention policy: automatically clean up signups and unavailable records older than 14 days (2 weeks)
+async function cleanupExpiredSignups(sql: any) {
+  try {
+    await sql`
+      DELETE FROM weekly_signups
+      WHERE date::date < CURRENT_DATE - INTERVAL '14 days'
+    `;
+  } catch (cleanupError) {
+    console.warn('Failed to clean up expired weekly_signups:', cleanupError);
+  }
+
+  try {
+    await sql`
+      DELETE FROM weekly_unavailable
+      WHERE week_start::date < CURRENT_DATE - INTERVAL '14 days'
+    `;
+  } catch (cleanupError) {
+    if (!isMissingWeeklyUnavailableTable(cleanupError)) {
+      console.warn('Failed to clean up expired weekly_unavailable:', cleanupError);
+    }
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
@@ -55,6 +78,8 @@ export async function GET(request: Request) {
 
     if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
     const sql = neon(process.env.DATABASE_URL);
+
+    await cleanupExpiredSignups(sql);
 
     if (unavailableParam === '1') {
       const settings = await sql`

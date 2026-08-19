@@ -20,6 +20,10 @@ const createMockSql = () =>
         return mockSql('cached-summary');
       }
 
+      if (query.includes('delete from daily_summaries') && query.includes("created_at < now() - interval '7 days'")) {
+        return mockSql('cleanup-cache');
+      }
+
       if (query.includes('select id from daily_summaries')) {
         return mockSql('existing-cache');
       }
@@ -196,6 +200,28 @@ describe('/api/daily-summary GET', () => {
         },
       ]
     );
+  });
+
+  it('triggers cleanup of summaries older than 7 days', async () => {
+    mockSql.mockImplementation((queryType) => {
+      if (queryType === 'cleanup-cache') {
+        return Promise.resolve([]);
+      }
+      if (queryType === 'matches') {
+        return Promise.resolve([]);
+      }
+      if (queryType === 'players') {
+        return Promise.resolve([]);
+      }
+      if (queryType === 'cached-summary') {
+        return Promise.resolve([{ summary: 'Default cached', last_match_id: null }]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect(mockSql).toHaveBeenCalledWith('cleanup-cache');
   });
 
   it('returns 500 when the route cannot initialize', async () => {
