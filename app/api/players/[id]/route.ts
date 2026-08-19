@@ -6,10 +6,11 @@ import { eq, or } from 'drizzle-orm';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   const db = getDatabase();
-  const playerId = parseInt(params.id);
+  const resolvedParams = await params;
+  const playerId = parseInt(resolvedParams.id);
 
   if (isNaN(playerId)) {
     return NextResponse.json(
@@ -96,10 +97,11 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   const db = getDatabase();
-  const playerId = parseInt(params.id);
+  const resolvedParams = await params;
+  const playerId = parseInt(resolvedParams.id);
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get('admin_token')?.value === 'true';
 
@@ -157,10 +159,11 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   const db = getDatabase();
-  const playerId = parseInt(params.id);
+  const resolvedParams = await params;
+  const playerId = parseInt(resolvedParams.id);
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get('admin_token')?.value === 'true';
 

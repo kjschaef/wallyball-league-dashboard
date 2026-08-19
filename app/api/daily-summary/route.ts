@@ -16,6 +16,13 @@ export async function GET() {
 
         const sql = neon(process.env.DATABASE_URL);
 
+        // Retention policy: automatically clean up summaries older than 7 days (1 week)
+        try {
+            await sql`DELETE FROM daily_summaries WHERE created_at < NOW() - INTERVAL '7 days'`;
+        } catch (cleanupErr) {
+            console.error('[daily-summary] ✗ Failed to clean up expired daily summaries:', cleanupErr);
+        }
+
         // Fetch all matches and players
         const now = new Date();
         const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Results Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to results
-    await page.goto('/results', { waitUntil: 'networkidle', timeout: 90000 });
+    await page.goto('/results');
   });
 
   test('should render the Results & Standings page with statistics', async ({ page }) => {
