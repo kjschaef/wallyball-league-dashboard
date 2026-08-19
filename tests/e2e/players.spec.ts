@@ -47,12 +47,9 @@ test.describe('Players Management Flow', () => {
     const playerCard = page.locator('.bg-white.rounded-lg.shadow').filter({ hasText: testPlayerName });
     await playerCard.getByLabel('Edit player').click();
 
-    const editHeading = page.getByRole('heading', { name: 'Edit Player' });
-    await expect(editHeading).toBeVisible();
-
-    const editForm = page.locator('form');
-    await editForm.getByLabel('Name').fill(updatedPlayerName);
-    await editForm.getByRole('button', { name: 'Update' }).click();
+    const editModal = page.locator('.fixed.inset-0').filter({ hasText: 'Edit Player' });
+    await editModal.getByLabel('Name').fill(updatedPlayerName);
+    await editModal.getByRole('button', { name: 'Update Player' }).click();
 
     // If prompted for admin, fill password; otherwise it passes with existing cookie
     if (await adminHeading.isVisible()) {
@@ -60,7 +57,7 @@ test.describe('Players Management Flow', () => {
       await page.getByRole('button', { name: 'Submit' }).click();
     }
 
-    await expect(editHeading).not.toBeVisible({ timeout: 10000 });
+    await expect(editModal).not.toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('heading', { name: updatedPlayerName })).toBeVisible({ timeout: 10000 });
 
     // 4. Delete Player

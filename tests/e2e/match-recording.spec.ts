@@ -87,18 +87,18 @@ test.describe('Match Recording Flow', () => {
     await expect(modal.getByRole('heading', { name: 'Game Scores' })).toBeVisible();
 
     // Fill scores for 3 games (Game 1: 11-7, Game 2: 9-11, Game 3: 11-6)
-    const t1Game1 = modal.getByLabel('Team 1 score for Game 1');
-    const t2Game1 = modal.getByLabel('Team 2 score for Game 1');
+    const t1Game1 = modal.getByRole('spinbutton', { name: 'Team 1 score for Game 1' });
+    const t2Game1 = modal.getByRole('spinbutton', { name: 'Team 2 score for Game 1' });
     await t1Game1.fill('11');
     await t2Game1.fill('7');
 
-    const t1Game2 = modal.getByLabel('Team 1 score for Game 2');
-    const t2Game2 = modal.getByLabel('Team 2 score for Game 2');
+    const t1Game2 = modal.getByRole('spinbutton', { name: 'Team 1 score for Game 2' });
+    const t2Game2 = modal.getByRole('spinbutton', { name: 'Team 2 score for Game 2' });
     await t1Game2.fill('9');
     await t2Game2.fill('11');
 
-    const t1Game3 = modal.getByLabel('Team 1 score for Game 3');
-    const t2Game3 = modal.getByLabel('Team 2 score for Game 3');
+    const t1Game3 = modal.getByRole('spinbutton', { name: 'Team 1 score for Game 3' });
+    const t2Game3 = modal.getByRole('spinbutton', { name: 'Team 2 score for Game 3' });
     await t1Game3.fill('11');
     await t2Game3.fill('6');
 
