@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Settings Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to settings
-    await page.goto('/settings', { waitUntil: 'networkidle', timeout: 90000 });
+    await page.goto('/settings');
   });
 
   test('should edit schedule settings and save successfully with admin authentication', async ({ page }) => {

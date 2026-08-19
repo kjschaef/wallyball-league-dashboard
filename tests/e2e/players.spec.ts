@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Players Management Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to players
-    await page.goto('/players', { waitUntil: 'networkidle', timeout: 90000 });
+    await page.goto('/players');
   });
 
   test('should add, search, edit, and delete a player with admin authentication', async ({ page }) => {

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Signups Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to signups
-    await page.goto('/signups', { waitUntil: 'networkidle', timeout: 90000 });
+    await page.goto('/signups');
   });
 
   test('should render the Signups page and primary interactive elements', async ({ page }) => {

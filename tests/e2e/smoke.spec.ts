@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('has title and basic dashboard elements', async ({ page }) => {
-  // Use a longer timeout for the initial navigation in CI
-  await page.goto('/', { waitUntil: 'networkidle', timeout: 90000 });
+  await page.goto('/');
 
   // Expect a title "to contain" a substring.
   await expect(page, 'Page should have Wallyball title').toHaveTitle(/Wallyball/i);
