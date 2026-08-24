@@ -233,9 +233,10 @@
         "app/components/PlayerSelectorDialog.tsx"
       ],
       "testCommands": [
-        "pnpm test -- __tests__/components/DashboardPage.test.tsx app/lib/__tests__/modelClient.test.ts lib/__tests__/rag.test.ts"
+        "pnpm test -- __tests__/components/AISummaryPanel.test.tsx __tests__/components/DashboardPage.test.tsx app/lib/__tests__/modelClient.test.ts lib/__tests__/rag.test.ts"
       ],
       "mappedTests": [
+        "__tests__/components/AISummaryPanel.test.tsx",
         "__tests__/components/DashboardPage.test.tsx",
         "app/lib/__tests__/modelClient.test.ts",
         "lib/__tests__/rag.test.ts"

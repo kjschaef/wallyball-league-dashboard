@@ -437,7 +437,7 @@ export default function DashboardPage() {
       {/* Main Two-Column Split Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Column: Season Race */}
-        <div className={`space-y-6 lg:col-span-8 flex flex-col justify-between ${mobileTab === 'season' ? 'block' : 'hidden lg:block'}`}>
+        <div className={`space-y-6 lg:col-span-8 flex flex-col ${mobileTab === 'season' ? 'block' : 'hidden lg:block'}`}>
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
             <PerformanceTrend
               key={`trend-${refreshKey}`}
@@ -456,8 +456,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column: League Power Rankings */}
-        <div className={`lg:col-span-4 h-full flex flex-col ${mobileTab === 'elo' ? 'block' : 'hidden lg:block'}`}>
-          <PowerRankings key={`power-${refreshKey}`} className="h-full" />
+        <div className={`lg:col-span-4 min-h-0 h-full flex flex-col ${mobileTab === 'elo' ? 'block' : 'hidden lg:block'}`}>
+          <PowerRankings key={`power-${refreshKey}`} className="h-full min-h-0" />
         </div>
       </div>
 

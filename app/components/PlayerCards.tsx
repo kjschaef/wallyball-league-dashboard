@@ -21,6 +21,7 @@ import { Label } from "./ui/label";
 import { Edit, Trash2, TrendingUp, Calendar } from "lucide-react";
 import { useSeasonChampions } from "../hooks/useSeasonChampions";
 import { useAdmin } from "./AdminProvider";
+import { isPlayerActive } from "../lib/playerFiltering";
 
 interface PlayerStats {
   id: number;
@@ -422,18 +423,8 @@ export function PlayerCards() {
   }
 
   // Split players into active and inactive (> 6 months since last game)
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-  const mainPlayers = playerStats.filter((player) => {
-    if (!player.lastGameDate) return false;
-    return new Date(player.lastGameDate) >= sixMonthsAgo;
-  });
-
-  const inactivePlayers = playerStats.filter((player) => {
-    if (!player.lastGameDate) return true;
-    return new Date(player.lastGameDate) < sixMonthsAgo;
-  });
+  const mainPlayers = playerStats.filter((player) => isPlayerActive(player.lastGameDate));
+  const inactivePlayers = playerStats.filter((player) => !isPlayerActive(player.lastGameDate));
 
   return (
     <div className="space-y-8">

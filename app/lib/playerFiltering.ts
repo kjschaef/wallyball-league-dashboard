@@ -17,3 +17,15 @@ export const getPlayerThreshold = (players: PlayerWithGames[], showAllPlayers: b
     return count50 > 0 ? MINIMUM_GAMES_THRESHOLD : 1;
 };
 
+/**
+ * Determines whether a player is active based on their last game date.
+ * A player is active if they have played a match within the last 6 months.
+ */
+export const isPlayerActive = (lastGameDate?: string | null, referenceDate = new Date()): boolean => {
+    if (!lastGameDate) return false;
+    const cutoff = new Date(referenceDate);
+    cutoff.setMonth(cutoff.getMonth() - 6);
+    return new Date(lastGameDate) >= cutoff;
+};
+
+

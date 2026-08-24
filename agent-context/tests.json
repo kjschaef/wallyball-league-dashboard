@@ -103,6 +103,13 @@
       ]
     },
     {
+      "path": "__tests__/components/AISummaryPanel.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/AISummaryPanel.tsx"
+      ]
+    },
+    {
       "path": "__tests__/components/AdminLoginModal.test.tsx",
       "kind": "test",
       "covers": [
@@ -307,6 +314,9 @@
       "__tests__/components/GamesPage.test.tsx",
       "__tests__/components/PlayersPage.test.tsx"
     ],
+    "app/components/AISummaryPanel.tsx": [
+      "__tests__/components/AISummaryPanel.test.tsx"
+    ],
     "app/components/PerformanceControls.tsx": [
       "app/components/__tests__/PerformanceControls.test.tsx"
     ],
@@ -432,6 +442,7 @@
     {
       "taskId": "ai-chatbot",
       "tests": [
+        "__tests__/components/AISummaryPanel.test.tsx",
         "__tests__/components/DashboardPage.test.tsx",
         "app/lib/__tests__/modelClient.test.ts",
         "lib/__tests__/rag.test.ts"

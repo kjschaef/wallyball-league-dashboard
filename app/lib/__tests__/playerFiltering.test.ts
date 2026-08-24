@@ -1,4 +1,4 @@
-import { getPlayerThreshold } from '../playerFiltering';
+import { getPlayerThreshold, isPlayerActive } from '../playerFiltering';
 import { MINIMUM_GAMES_THRESHOLD } from '../constants';
 
 describe('getPlayerThreshold', () => {
@@ -42,3 +42,29 @@ describe('getPlayerThreshold', () => {
         expect(getPlayerThreshold(players, false)).toBe(MINIMUM_GAMES_THRESHOLD);
     });
 });
+
+describe('isPlayerActive', () => {
+    const referenceDate = new Date('2026-08-24T12:00:00.000Z');
+
+    it('returns false when lastGameDate is null, undefined, or empty', () => {
+        expect(isPlayerActive(null, referenceDate)).toBe(false);
+        expect(isPlayerActive(undefined, referenceDate)).toBe(false);
+        expect(isPlayerActive('', referenceDate)).toBe(false);
+    });
+
+    it('returns true when lastGameDate is within the last 6 months', () => {
+        // 1 month ago
+        const recentDate = new Date('2026-07-24T12:00:00.000Z').toISOString();
+        expect(isPlayerActive(recentDate, referenceDate)).toBe(true);
+
+        // Same day
+        expect(isPlayerActive(referenceDate.toISOString(), referenceDate)).toBe(true);
+    });
+
+    it('returns false when lastGameDate is more than 6 months ago', () => {
+        // 7 months ago
+        const oldDate = new Date('2026-01-10T12:00:00.000Z').toISOString();
+        expect(isPlayerActive(oldDate, referenceDate)).toBe(false);
+    });
+});
+
