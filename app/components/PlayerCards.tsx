@@ -138,33 +138,53 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
           </div>
         </div>
 
-        <div className="space-y-3">
-          {/* Win Percentage - Main Feature */}
-          <div className="text-center">
-            <div className="relative inline-block">
+        <div className="space-y-2.5">
+          {/* Dual Hero Metrics: Win Rate & Career Elo */}
+          <div className="grid grid-cols-2 gap-2 p-2 bg-gray-50/70 rounded-lg border border-gray-100">
+            {/* Win Percentage */}
+            <div className="text-center">
               <div
-                className={`text-2xl font-bold bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} bg-clip-text text-transparent leading-none`}
+                className={`text-xl font-bold bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} bg-clip-text text-transparent leading-none`}
               >
                 {player.winPercentage.toFixed(1)}%
               </div>
-              <p className="text-[10px] text-gray-500">Win Rate</p>
+              <p className="text-[10px] font-medium text-gray-500 mt-1">Win Rate</p>
+              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1 overflow-hidden">
+                <div
+                  className={`h-full bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} transition-all duration-500 ease-out`}
+                  style={{
+                    width: `${Math.min(100, Math.max(0, player.winPercentage))}%`,
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5 overflow-hidden">
-              <div
-                className={`h-full bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} transition-all duration-500 ease-out`}
-                style={{
-                  width: `${Math.min(100, Math.max(0, player.winPercentage))}%`,
-                }}
-              />
+            {/* Career Elo Rating */}
+            <div className="text-center" title={player.isProvisional ? "Provisional rating (< 10 career games)" : "Career Elo Rating"}>
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-xl font-bold text-indigo-700 leading-none">
+                  {player.elo ?? 1500}
+                </span>
+                {player.isProvisional && (
+                  <span className="text-[8px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-semibold leading-none">
+                    PROV
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] font-medium text-gray-500 mt-1">Career Elo</p>
+              <div className="w-full bg-indigo-100 rounded-full h-1.5 mt-1 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500 ease-out"
+                  style={{
+                    width: `${Math.min(100, Math.max(5, (((player.elo ?? 1500) - 1000) / 1000) * 100))}%`,
+                  }}
+                />
+              </div>
             </div>
           </div>
 
-
-
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
             <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`}>
               <p className="text-[9px] font-medium text-gray-600 mb-0.5">Record</p>
               <div className="flex items-center justify-center gap-0.5">
@@ -180,27 +200,13 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
 
             <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`}>
               <p className="text-[9px] font-medium text-gray-600 mb-0.5">
-                Time
+                Total Games
               </p>
               <div>
-                <span className="text-xs font-bold text-blue-600">
-                  {player.totalPlayingTime}
+                <span className="text-xs font-bold text-gray-800">
+                  {player.record.totalGames}
                 </span>
-                <span className="text-[9px] text-gray-500 ml-0.5">h</span>
-              </div>
-            </div>
-
-            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`} title={player.isProvisional ? "Provisional rating (< 10 games)" : "Career Elo Rating"}>
-              <p className="text-[9px] font-medium text-gray-600 mb-0.5">
-                Rating
-              </p>
-              <div>
-                <span className="text-xs font-bold text-indigo-700">
-                  {player.elo ?? 1500}
-                </span>
-                {player.isProvisional && (
-                  <span className="text-[8px] text-amber-600 ml-0.5 font-semibold">P</span>
-                )}
+                <span className="text-[9px] text-gray-500 ml-0.5">G</span>
               </div>
             </div>
           </div>
