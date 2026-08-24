@@ -56,6 +56,7 @@ Before pushing any PR or concluding that a coding task is complete, you MUST run
 2. Run `pnpm test` to ensure tests are passing and no side-effects break mocked environments.
 3. Run `pnpm lint` to catch syntax or unused variable errors.
 4. Run `pnpm run context:check` to ensure structural changes haven't made agent context artifacts stale.
+5. **E2E Playwright Coverage (Mandatory for Feature Changes)**: Whenever major user-facing functionality or primary page layouts are added or changed (such as new dashboard columns, tab switchers, rating systems, or workflows), you MUST add or update Playwright tests under `tests/e2e/` to cover at least the core interactions and verify they pass.
 Never skip this validation step.
 
 ## High-Value Invariants
@@ -65,6 +66,7 @@ Never skip this validation step.
 - Some API routes return enriched shapes, not raw table rows. Check current response contracts before changing UI consumers.
 - Ranking logic uses game-level semantics from `app/lib/stats.ts`; confirm whether a task needs games, matches, or both.
 - If code changes alter routes, schema, key task entrypoints, or coupling, regenerate the agent context bundle and commit it.
+- Always maintain end-to-end Playwright tests in `tests/e2e/` for any new major UI features or core dashboard layout flows.
 
 ## Context Maintenance
 
