@@ -200,7 +200,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
 
             <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`}>
               <p className="text-[9px] font-medium text-gray-600 mb-0.5">
-                Total Games
+                Games
               </p>
               <div>
                 <span className="text-xs font-bold text-gray-800">
