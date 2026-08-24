@@ -7,7 +7,7 @@ interface Season { id: number; name: string; start_date: string; end_date: strin
 
 interface Props {
   season?: string;
-  metric: 'winPercentage' | 'totalWins';
+  metric: 'winPercentage' | 'elo';
   compare: number[];
   showAllPlayers?: boolean;
   onChange: (opts: Partial<{ season: string; metric: any; compare: number[]; showAllPlayers: boolean; action?: string }>) => void;
@@ -96,11 +96,11 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
               Win %
             </button>
             <button
-              aria-pressed={metric === 'totalWins'}
-              onClick={() => onChange({ metric: 'totalWins' })}
-              className={`px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 rounded-r-md transition-colors ${metric === 'totalWins' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
+              aria-pressed={metric === 'elo'}
+              onClick={() => onChange({ metric: 'elo' })}
+              className={`px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 rounded-r-md transition-colors ${metric === 'elo' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
             >
-              Total Wins
+              Career Elo
             </button>
           </div>
         </div>

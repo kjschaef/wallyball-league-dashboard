@@ -17,6 +17,14 @@ export interface MatchHistoryItem {
   teamOneGamesWon: number;
   teamTwoGamesWon: number;
   gameScores?: GameScore[];
+  eloDetails?: {
+    teamOnePreAvg: number;
+    teamTwoPreAvg: number;
+    teamOneDelta: number;
+    teamTwoDelta: number;
+    isUpset: boolean;
+    expectedT1WinRate: number;
+  } | null;
 }
 
 interface GameHistoryProps {
@@ -53,7 +61,7 @@ export function GameHistory({ games }: GameHistoryProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {games.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           No match results found with the current filters.
@@ -62,50 +70,81 @@ export function GameHistory({ games }: GameHistoryProps) {
         games.map((game) => {
           const winningTeam = getWinningTeam(game);
           const hasGameScores = game.gameScores && game.gameScores.length > 0;
+          const elo = game.eloDetails;
+          const winningDelta = elo ? (winningTeam === 'teamOne' ? elo.teamOneDelta : elo.teamTwoDelta) : null;
           
           return (
             <div
               key={game.id}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+              className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all hover:border-gray-300"
             >
               {/* Game Summary Row */}
               <button
-                className="w-full text-left p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                className="w-full text-left p-3.5 sm:p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
                 onClick={() => toggleGameExpansion(game.id)}
                 aria-expanded={expandedGameId === game.id}
                 title="View match details"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {formatDate(game.date)}
                   </span>
                   
-                  <div className="flex items-center">
-                    <span className={`font-semibold ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
+                  <div className="flex items-center flex-wrap gap-1">
+                    <span className={`font-bold text-sm ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-800'}`}>
                       {game.teamOnePlayers.join(' & ')}
                     </span>
+                    {elo && (
+                      <span className="text-[10px] text-gray-400 font-normal">
+                        ({elo.teamOnePreAvg})
+                      </span>
+                    )}
                     
-                    <span className="mx-2 font-bold text-gray-400">vs</span>
+                    <span className="mx-1 font-bold text-gray-300 text-xs">vs</span>
                     
-                    <span className={`font-semibold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
+                    <span className={`font-bold text-sm ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-800'}`}>
                       {game.teamTwoPlayers.join(' & ')}
                     </span>
+                    {elo && (
+                      <span className="text-[10px] text-gray-400 font-normal">
+                        ({elo.teamTwoPreAvg})
+                      </span>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
+                  {elo?.isUpset && (
+                    <span
+                      title="Upset victory: The underdog team with a lower pre-match average Elo won this match!"
+                      className="hidden sm:inline-flex items-center text-[10px] font-extrabold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full border border-rose-200 cursor-help"
+                    >
+                      🔥 UPSET
+                    </span>
+                  )}
+
+                  {winningDelta !== null && (
+                    <span
+                      title={`Match Rating Impact: Winner gained ${winningDelta > 0 ? `+${winningDelta}` : winningDelta} Elo based on pre-match team averages (${elo?.teamOnePreAvg} vs ${elo?.teamTwoPreAvg})`}
+                      className="hidden md:inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-2.5 py-0.5 rounded-md cursor-help"
+                    >
+                      <span className="text-[10px] text-indigo-400 font-semibold uppercase">Winner:</span>
+                      {winningDelta > 0 ? `+${winningDelta}` : winningDelta} Elo
+                    </span>
+                  )}
+
                   {hasGameScores && (
-                    <span className="hidden md:inline-block text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    <span className="hidden lg:inline-block text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
                       {game.gameScores!.map(gs => `${gs.teamOneScore}-${gs.teamTwoScore}`).join(', ')}
                     </span>
                   )}
 
-                  <div className="flex items-center">
-                    <span className={`text-xl font-bold ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
+                  <div className="flex items-center bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
+                    <span className={`text-base font-bold ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
                       {game.teamOneGamesWon}
                     </span>
-                    <span className="mx-1 text-xl text-gray-400">-</span>
-                    <span className={`text-xl font-bold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
+                    <span className="mx-1 text-sm text-gray-400">-</span>
+                    <span className={`text-base font-bold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
                       {game.teamTwoGamesWon}
                     </span>
                   </div>
@@ -114,7 +153,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                     className={`p-1 text-gray-400 transition-transform duration-200 ${expandedGameId === game.id ? 'rotate-90 text-gray-700' : ''}`}
                     aria-hidden="true"
                   >
-                    <ChevronRight className="h-5 w-5" />
+                    <ChevronRight className="h-4 w-4" />
                   </span>
                 </div>
               </button>
@@ -122,6 +161,49 @@ export function GameHistory({ games }: GameHistoryProps) {
               {/* Expanded Game Details */}
               {expandedGameId === game.id && (
                 <div className="px-4 pb-4 pt-2 border-t border-gray-200 space-y-4 bg-gray-50">
+                  {/* Rating Impact Breakdown */}
+                  {elo && (() => {
+                    const t1Odds = elo.expectedT1WinRate <= 1
+                      ? Math.round(elo.expectedT1WinRate * 100)
+                      : Math.round(elo.expectedT1WinRate);
+                    const t2Odds = Math.max(0, Math.min(100, 100 - t1Odds));
+
+                    return (
+                      <div className="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 space-y-2">
+                        <div className="flex items-center justify-between flex-wrap gap-1">
+                          <h5 className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>⚡ Rating Impact (Elo)</span>
+                            {elo.isUpset && (
+                              <span className="text-[10px] bg-rose-100 text-rose-700 font-extrabold px-1.5 py-0.2 rounded-full border border-rose-200">
+                                🔥 UPSET
+                              </span>
+                            )}
+                          </h5>
+                          <span className="text-[11px] text-indigo-600 font-medium">
+                            Win Odds: Team 1 ({t1Odds}%) • Team 2 ({t2Odds}%)
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                          <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
+                            <span className="font-semibold text-gray-700">Team 1 ({elo.teamOnePreAvg} Avg)</span>
+                            <span className={`font-bold ${elo.teamOneDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Elo
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
+                            <span className="font-semibold text-gray-700">Team 2 ({elo.teamTwoPreAvg} Avg)</span>
+                            <span className={`font-bold ${elo.teamTwoDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Elo
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-indigo-600/70">
+                          Ratings adjust based on opponent difficulty, individual game outcomes, and margin of victory.
+                        </p>
+                      </div>
+                    );
+                  })()}
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white p-3 rounded-lg border border-gray-200">
                       <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team 1</h5>

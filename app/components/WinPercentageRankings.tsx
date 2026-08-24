@@ -45,13 +45,15 @@ const getPlayerColor = (playerName: string, allPlayers: string[]) => {
 };
 
 export function WinPercentageRankings({ season, showAllPlayers = false }: WinPercentageRankingsProps = {}) {
-  const [rankings, setRankings] = useState<Array<{
+  const [rankingMetric, setRankingMetric] = useState<'winPercentage' | 'elo'>('winPercentage');
+  const [allStats, setAllStats] = useState<Array<{
     id: number;
     name: string;
     winPercentage: number;
     matches: number;
-    hasInactivityPenalty?: boolean;
-    penaltyPercentage?: number;
+    elo: number;
+    isProvisional: boolean;
+    careerGames: number;
   }>>([]);
   const [loading, setLoading] = useState(true);
   const [recentMatchPlayers, setRecentMatchPlayers] = useState<string[]>([]);
@@ -61,7 +63,7 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
     // Fetch player stats and recent matches
     const fetchData = async () => {
       try {
-        // Fetch player stats (already calculated with game-level data)
+        // Fetch player stats (already calculated with game-level data and Elo)
         const seasonParam = season ? `season=${season}` : '';
         const [statsResponse, matchesResponse] = await Promise.all([
           fetch(`/api/player-stats${seasonParam ? `?${seasonParam}` : ''}`),
@@ -102,23 +104,27 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
 
         setRecentMatchPlayers(recentPlayers);
 
-        // Formatted threshold calculation using shared utility
-        const threshold = getPlayerThreshold(playerStats, showAllPlayers);
-        const formattedRankings = playerStats.filter((p: any) => (p.record?.totalGames ?? 0) >= threshold).map((player: any) => {
-          return {
-            id: player.id,
-            name: player.name,
-            winPercentage: player.winPercentage,
-            matches: player.record.totalGames
-          };
-        });
+        const mappedStats = playerStats.map((player: any) => ({
+          id: player.id,
+          name: player.name,
+          winPercentage: player.winPercentage ?? 0,
+          matches: player.record?.totalGames ?? 0,
+          elo: player.elo ?? 1500,
+          isProvisional: player.isProvisional ?? true,
+          careerGames: player.careerGames ?? player.record?.totalGames ?? 0,
+        }));
 
-        setRankings(formattedRankings);
+        setAllStats(mappedStats);
       } catch (error) {
         console.error('Error fetching data:', error);
-        setRankings(mockRankings.map(ranking => ({
-          ...ranking,
-          matches: ranking.games
+        setAllStats(mockRankings.map(ranking => ({
+          id: ranking.id,
+          name: ranking.name,
+          winPercentage: ranking.winPercentage,
+          matches: ranking.games,
+          elo: 1500,
+          isProvisional: true,
+          careerGames: ranking.games,
         })));
       } finally {
         setLoading(false);
@@ -132,46 +138,114 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
     return <div className="flex justify-center py-10">Loading rankings...</div>;
   }
 
-  return (
-    <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-      {rankings.map((player, index) => {
-        const isInRecentMatch = recentMatchPlayers.includes(player.name);
-        const playerColor = getPlayerColor(player.name, originalPlayerOrder);
-        const borderStyle = isInRecentMatch
-          ? { borderColor: playerColor, borderWidth: '2px' }
-          : {};
+  // Filter and sort based on selected ranking metric
+  const threshold = getPlayerThreshold(allStats.map(s => ({ ...s, record: { totalGames: s.matches } })), showAllPlayers);
+  
+  const displayedRankings = [...allStats]
+    .filter(p => rankingMetric === 'elo' || p.matches >= threshold)
+    .sort((a, b) => {
+      if (rankingMetric === 'elo') {
+        return b.elo - a.elo;
+      }
+      return b.winPercentage - a.winPercentage;
+    });
 
-        return (
-          <div
-            key={player.id}
-            className={`${player.matches < 50 ? 'bg-gray-100 opacity-90' : 'bg-white'} border border-gray-200 rounded-lg p-2 hover:shadow-sm transition-shadow w-full sm:w-[200px] flex-grow flex-shrink-0`}
-            style={borderStyle}
-            title={player.matches < 50 ? "Provisional ranking (less than 50 games played)" : undefined}
+  return (
+    <div className="space-y-3">
+      {/* Metric Toggle */}
+      <div className="flex items-center justify-between">
+        <div className="inline-flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs">
+          <button
+            type="button"
+            onClick={() => setRankingMetric('winPercentage')}
+            className={`px-3 py-1 font-medium rounded-md transition-all ${
+              rankingMetric === 'winPercentage'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center space-x-2 min-w-0 flex-1">
-                <div className="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium text-gray-700 flex-shrink-0">
-                  {index + 1}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div
-                    className="font-medium text-xs truncate"
-                    style={{ color: playerColor }}
-                  >
-                    {player.name}
+            Win % {season && season !== 'lifetime' ? `(${season === 'current' ? 'Season' : season})` : '(Lifetime)'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setRankingMetric('elo')}
+            className={`px-3 py-1 font-medium rounded-md transition-all ${
+              rankingMetric === 'elo'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Skill Rating (Career Elo)
+          </button>
+        </div>
+      </div>
+
+      {/* Rankings Grid */}
+      <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+        {displayedRankings.map((player, index) => {
+          const isInRecentMatch = recentMatchPlayers.includes(player.name);
+          const playerColor = getPlayerColor(player.name, originalPlayerOrder);
+          const borderStyle = isInRecentMatch
+            ? { borderColor: playerColor, borderWidth: '2px' }
+            : {};
+
+          const isProvisionalRank = rankingMetric === 'elo'
+            ? player.isProvisional
+            : player.matches < 50;
+
+          return (
+            <div
+              key={player.id}
+              className={`${isProvisionalRank ? 'bg-gray-100 opacity-90' : 'bg-white'} border border-gray-200 rounded-lg p-2 hover:shadow-sm transition-shadow w-full sm:w-[200px] flex-grow flex-shrink-0`}
+              style={borderStyle}
+              title={
+                rankingMetric === 'elo'
+                  ? (player.isProvisional ? 'Provisional rating (less than 10 career games played)' : undefined)
+                  : (player.matches < 50 ? 'Provisional ranking (less than 50 games played)' : undefined)
+              }
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-2 min-w-0 flex-1">
+                  <div className="bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium text-gray-700 flex-shrink-0">
+                    {index + 1}
                   </div>
-                  <div className="text-[10px] text-gray-500">{player.matches} games</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1">
+                      <span
+                        className="font-medium text-xs truncate"
+                        style={{ color: playerColor }}
+                      >
+                        {player.name}
+                      </span>
+                      {rankingMetric === 'elo' && player.isProvisional && (
+                        <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.2 rounded font-semibold flex-shrink-0">
+                          PROV
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-gray-500">
+                      {rankingMetric === 'elo'
+                        ? `${player.careerGames} career games`
+                        : `${player.matches} games`}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <div className="text-sm font-bold text-gray-900">
-                  {player.winPercentage.toFixed(1)}%
+                <div className="text-right flex-shrink-0">
+                  {rankingMetric === 'elo' ? (
+                    <div className="text-sm font-bold text-indigo-700">
+                      {player.elo} <span className="text-[10px] font-normal text-gray-500">Elo</span>
+                    </div>
+                  ) : (
+                    <div className="text-sm font-bold text-gray-900">
+                      {player.winPercentage.toFixed(1)}%
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

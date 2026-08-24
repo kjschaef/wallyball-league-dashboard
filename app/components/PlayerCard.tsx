@@ -22,7 +22,7 @@ interface Player {
 interface PlayerCardProps {
   player: Player & {
     matches: Array<{ won: boolean, date: string }>,
-    stats: { won: number, lost: number, totalMatchTime?: number }
+    stats: { won: number, lost: number, totalMatchTime?: number, elo?: number, isProvisional?: boolean }
   };
   onEdit?: (player: Player) => void;
   onDelete?: (id: number) => void;
@@ -164,56 +164,51 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
           </AlertDialogContent>
         </AlertDialog>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <div className="space-y-0.5">
-                <div className="text-left">
-                  <span className="text-xs text-gray-500 block">Record</span>
-                  <div className="flex items-start gap-1.5">
-                    <span className="font-medium text-sm">
-                      <span className="text-green-600">{stats.won}</span>
-                      {" - "}
-                      <span className="text-red-600">{stats.lost}</span>
-                    </span>
-                    <span className="text-[10px] text-gray-500 mt-0.5">
-                      {total} G
-                    </span>
-                  </div>
-                </div>
-                {stats.totalMatchTime !== undefined && (
-                  <div className="text-left">
-                    <span className="text-xs text-gray-500 block">Time</span>
-                    <div
-                      className="flex items-start gap-1.5"
-                      title="Based on 90-minute daily sessions"
-                    >
-                      <span className="font-medium text-sm">
-                        {stats.totalMatchTime}h
-                      </span>
-                    </div>
-                  </div>
-                )}
+        <div className="space-y-2">
+          {/* Dual Metrics: Win Rate & Elo Rating */}
+          <div className="grid grid-cols-2 gap-2 p-2 bg-gray-50/80 rounded-lg border border-gray-100">
+            <div className="text-center">
+              <span className={`text-lg font-bold ${winRate > 53 ? 'text-green-600' :
+                winRate >= 45 ? 'text-yellow-600' :
+                  'text-red-600'
+                }`}>{winRate.toFixed(1)}%</span>
+              <span className="text-[10px] text-gray-500 block">Win Rate</span>
+              <div className="w-full bg-gray-200 mt-1 rounded-full h-1">
+                <div
+                  className={`h-1 rounded-full ${winRate > 53 ? 'bg-green-600' :
+                    winRate >= 45 ? 'bg-yellow-600' :
+                      'bg-red-600'
+                    }`}
+                  style={{ width: `${Math.min(100, Math.max(0, winRate))}%` }}
+                />
               </div>
             </div>
 
+            <div className="text-center" title={stats.isProvisional ? "Provisional rating (< 10 career games)" : "Career Elo Rating"}>
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-lg font-bold text-indigo-700">
+                  {stats.elo ?? 1500}
+                </span>
+                {stats.isProvisional && (
+                  <span className="text-[8px] bg-amber-100 text-amber-700 px-1 py-0.2 rounded font-semibold">
+                    PROV
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-gray-500 block">Career Elo</span>
+              <div className="w-full bg-indigo-100 mt-1 rounded-full h-1">
+                <div
+                  className="h-1 rounded-full bg-indigo-600"
+                  style={{ width: `${Math.min(100, Math.max(5, (((stats.elo ?? 1500) - 1000) / 1000) * 100))}%` }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="text-right flex flex-col justify-end">
-            <span className="text-xs text-gray-500 block mb-0.5">Win %</span>
-            <span className={`text-xl font-bold ${winRate > 53 ? 'text-green-600' :
-              winRate >= 45 ? 'text-yellow-600' :
-                'text-red-600'
-              }`}>{winRate.toFixed(1)}%</span>
-            <div className="w-full bg-gray-200 mt-1.5 rounded-full h-1.5">
-              <div
-                className={`h-1.5 rounded-full ${winRate > 53 ? 'bg-green-600' :
-                  winRate >= 45 ? 'bg-yellow-600' :
-                    'bg-red-600'
-                  }`}
-                style={{ width: `${Math.min(100, Math.max(0, winRate))}%` }}
-              />
-            </div>
+          {/* Record */}
+          <div className="flex justify-between items-center px-1 text-xs text-gray-600">
+            <span>Record: <strong className="text-green-600">{stats.won}</strong> - <strong className="text-red-600">{stats.lost}</strong></span>
+            <span className="text-gray-500">{total} games</span>
           </div>
         </div>
       </div>

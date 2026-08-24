@@ -36,6 +36,10 @@ interface PlayerStats {
 
   actualWinPercentage?: number;
   lastGameDate?: string | null;
+
+  elo?: number;
+  isProvisional?: boolean;
+  careerGames?: number;
 }
 
 const getWinPercentageGradient = (percentage: number): string => {
@@ -134,55 +138,75 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
           </div>
         </div>
 
-        <div className="space-y-3">
-          {/* Win Percentage - Main Feature */}
-          <div className="text-center">
-            <div className="relative inline-block">
+        <div className="space-y-2.5">
+          {/* Dual Hero Metrics: Win Rate & Career Elo */}
+          <div className="grid grid-cols-2 gap-2 p-2 bg-gray-50/70 rounded-lg border border-gray-100">
+            {/* Win Percentage */}
+            <div className="text-center">
               <div
-                className={`text-2xl font-bold bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} bg-clip-text text-transparent leading-none`}
+                className={`text-xl font-bold bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} bg-clip-text text-transparent leading-none`}
               >
                 {player.winPercentage.toFixed(1)}%
               </div>
-              <p className="text-[10px] text-gray-500">Win Rate</p>
+              <p className="text-[10px] font-medium text-gray-500 mt-1">Win Rate</p>
+              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1 overflow-hidden">
+                <div
+                  className={`h-full bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} transition-all duration-500 ease-out`}
+                  style={{
+                    width: `${Math.min(100, Math.max(0, player.winPercentage))}%`,
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5 overflow-hidden">
-              <div
-                className={`h-full bg-gradient-to-r ${getWinPercentageGradient(player.winPercentage)} transition-all duration-500 ease-out`}
-                style={{
-                  width: `${Math.min(100, Math.max(0, player.winPercentage))}%`,
-                }}
-              />
+            {/* Career Elo Rating */}
+            <div className="text-center" title={player.isProvisional ? "Provisional rating (< 10 career games)" : "Career Elo Rating"}>
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-xl font-bold text-indigo-700 leading-none">
+                  {player.elo ?? 1500}
+                </span>
+                {player.isProvisional && (
+                  <span className="text-[8px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-semibold leading-none">
+                    PROV
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] font-medium text-gray-500 mt-1">Career Elo</p>
+              <div className="w-full bg-indigo-100 rounded-full h-1.5 mt-1 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500 ease-out"
+                  style={{
+                    width: `${Math.min(100, Math.max(5, (((player.elo ?? 1500) - 1000) / 1000) * 100))}%`,
+                  }}
+                />
+              </div>
             </div>
           </div>
 
-
-
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-2">
-            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-2 border`}>
-              <p className="text-[10px] font-medium text-gray-600 mb-0.5">Record</p>
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-sm font-bold text-emerald-600">
+            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`}>
+              <p className="text-[9px] font-medium text-gray-600 mb-0.5">Record</p>
+              <div className="flex items-center justify-center gap-0.5">
+                <span className="text-xs font-bold text-emerald-600">
                   {player.record.wins}
                 </span>
-                <span className="text-gray-400 text-xs">-</span>
-                <span className="text-sm font-bold text-rose-600">
+                <span className="text-gray-400 text-[10px]">-</span>
+                <span className="text-xs font-bold text-rose-600">
                   {player.record.losses}
                 </span>
               </div>
             </div>
 
-            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-2 border`}>
-              <p className="text-[10px] font-medium text-gray-600 mb-0.5">
-                Time
+            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`}>
+              <p className="text-[9px] font-medium text-gray-600 mb-0.5">
+                Games
               </p>
-              <div className="text-center">
-                <span className="text-sm font-bold text-blue-600">
-                  {player.totalPlayingTime}
+              <div>
+                <span className="text-xs font-bold text-gray-800">
+                  {player.record.totalGames}
                 </span>
-                <span className="text-[10px] text-gray-500 ml-0.5">h</span>
+                <span className="text-[9px] text-gray-500 ml-0.5">G</span>
               </div>
             </div>
           </div>

@@ -1,3 +1,5 @@
+import { computeChronologicalElo, INITIAL_ELO } from './elo';
+
 export interface PlayerStats {
     id: number;
     name: string;
@@ -20,6 +22,11 @@ export interface PlayerStats {
     avgPointsScored: number;
     avgPointsAllowed: number;
     scoredGamesPlayed: number;
+
+    // Career Elo rating metrics
+    elo: number;
+    isProvisional: boolean;
+    careerGames: number;
 }
 
 export async function calculatePlayerStats(
@@ -49,6 +56,27 @@ export async function calculatePlayerStats(
             // In case table is not populated yet or test environment
         }
     }
+
+    // Determine lifetime matches for career Elo replay
+    let lifetimeMatches = allMatches;
+    if (_sql && typeof (_sql as any) === 'function' && _seasonParam) {
+        try {
+            const now = new Date();
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            const rows = await (_sql as any)`SELECT * FROM matches WHERE date <= ${tomorrow} ORDER BY date ASC, id ASC`;
+            if (Array.isArray(rows) && rows.length > 0) {
+                lifetimeMatches = rows;
+            }
+        } catch {
+            // Fallback to allMatches
+        }
+    }
+
+    const eloMap = computeChronologicalElo(
+        (allPlayers as any[]) || [],
+        (lifetimeMatches as any[]) || [],
+        gamesMap
+    );
 
     const playerStats: PlayerStats[] = await Promise.all((allPlayers as any[]).map(async player => {
         try {
@@ -131,6 +159,11 @@ export async function calculatePlayerStats(
             const avgPointsScored = scoredGamesPlayed > 0 ? Number((pointsScored / scoredGamesPlayed).toFixed(1)) : 0;
             const avgPointsAllowed = scoredGamesPlayed > 0 ? Number((pointsAllowed / scoredGamesPlayed).toFixed(1)) : 0;
 
+            const eloState = eloMap.get(player.id);
+            const elo = eloState ? Math.round(eloState.elo) : INITIAL_ELO;
+            const isProvisional = eloState ? eloState.isProvisional : true;
+            const careerGames = eloState ? eloState.careerGames : 0;
+
             return {
                 id: player.id,
                 name: player.name,
@@ -151,10 +184,15 @@ export async function calculatePlayerStats(
                 pointsAllowed,
                 avgPointsScored,
                 avgPointsAllowed,
-                scoredGamesPlayed
+                scoredGamesPlayed,
+
+                elo,
+                isProvisional,
+                careerGames
             };
         } catch (error) {
             console.error(`Error processing player ${player.name} (ID ${player.id}):`, error);
+            const eloState = eloMap.get(player.id);
             return {
                 id: player.id,
                 name: player.name,
@@ -171,7 +209,11 @@ export async function calculatePlayerStats(
                 pointsAllowed: 0,
                 avgPointsScored: 0,
                 avgPointsAllowed: 0,
-                scoredGamesPlayed: 0
+                scoredGamesPlayed: 0,
+
+                elo: eloState ? Math.round(eloState.elo) : INITIAL_ELO,
+                isProvisional: eloState ? eloState.isProvisional : true,
+                careerGames: eloState ? eloState.careerGames : 0
             };
         }
     }));

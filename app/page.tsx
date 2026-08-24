@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { PerformanceTrend } from './components/PerformanceTrend';
-import { WinPercentageRankings } from './components/WinPercentageRankings';
+import { QuarterlyStandingsTable } from './components/QuarterlyStandingsTable';
+import { PowerRankings } from './components/PowerRankings';
 import { RecentMatches } from './components/RecentMatches';
 import { RecordMatchModal } from './components/RecordMatchModal';
 import { ChatBot } from './components/ChatBot';
@@ -377,15 +378,17 @@ export default function DashboardPage() {
     }
   };
 
+  const [mobileTab, setMobileTab] = useState<'season' | 'elo'>('season');
+
   const handleAskAI = () => {
     setChatInitialMessage("Write a full, detailed league report covering recent games, player highlights, and standing changes.");
     setIsChatOpen(true);
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex justify-between items-center border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Win Percentage</h1>
+        <h1 className="text-2xl font-bold text-gray-900">League Dashboard</h1>
       </div>
 
       {matchSubmissionStatus && (
@@ -405,30 +408,60 @@ export default function DashboardPage() {
 
       <AISummaryPanel onAskAI={handleAskAI} />
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Chart */}
-        <div>
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <PerformanceTrend key={`trend-${refreshKey}`} season={currentSeason} showAllPlayers={showAllPlayers} onSeasonChange={setCurrentSeason} onShowAllPlayersChange={setShowAllPlayers} />
+      {/* Mobile Segmented Switcher */}
+      <div className="lg:hidden flex bg-gray-100 p-1 rounded-xl shadow-inner">
+        <button
+          type="button"
+          onClick={() => setMobileTab('season')}
+          className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+            mobileTab === 'season'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          🏆 Season Race
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('elo')}
+          className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+            mobileTab === 'elo'
+              ? 'bg-white text-indigo-700 shadow-sm'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          ⚡ Power Rankings (Elo)
+        </button>
+      </div>
+
+      {/* Main Two-Column Split Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left Column: Season Race */}
+        <div className={`space-y-6 lg:col-span-8 flex flex-col justify-between ${mobileTab === 'season' ? 'block' : 'hidden lg:block'}`}>
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <PerformanceTrend
+              key={`trend-${refreshKey}`}
+              season={currentSeason}
+              showAllPlayers={showAllPlayers}
+              onSeasonChange={setCurrentSeason}
+              onShowAllPlayersChange={setShowAllPlayers}
+            />
           </div>
+
+          <QuarterlyStandingsTable
+            key={`standings-${refreshKey}`}
+            season={currentSeason}
+            showAllPlayers={showAllPlayers}
+          />
         </div>
 
-
-
-        {/* Rankings */}
-        <div>
-          <div className="bg-white p-4 rounded-lg border border-gray-200 h-full">
-            <div className="space-y-3">
-
-              <div className="space-y-2">
-                <WinPercentageRankings key={`rankings-${refreshKey}`} season={currentSeason} showAllPlayers={showAllPlayers} />
-              </div>
-            </div>
-          </div>
+        {/* Right Column: League Power Rankings */}
+        <div className={`lg:col-span-4 h-full flex flex-col ${mobileTab === 'elo' ? 'block' : 'hidden lg:block'}`}>
+          <PowerRankings key={`power-${refreshKey}`} className="h-full" />
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg border border-gray-200">
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
         <RecentMatches key={`recent-${refreshKey}`} />
       </div>
 

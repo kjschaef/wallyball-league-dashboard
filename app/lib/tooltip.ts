@@ -13,6 +13,10 @@ export function formatTooltip(
     return [`${formattedValue}%`, name];
   }
 
+  if (metric === 'elo') {
+    return [`${Math.round(value)} Elo`, name];
+  }
+
   return [formattedValue, name];
 }
 

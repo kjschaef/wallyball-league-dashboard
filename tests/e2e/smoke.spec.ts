@@ -10,7 +10,7 @@ test('has title and basic dashboard elements', async ({ page }) => {
   await expect(page.locator('nav')).toBeVisible();
 
   // Wait for application content to ensure we are not on a login or error page
-  await expect(page.getByRole('heading', { name: 'Win Percentage' })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('heading', { name: /League Dashboard|Win Percentage/i })).toBeVisible({ timeout: 30000 });
 
   // Ensure the Actions FAB is rendering
   const fab = page.getByTitle('Actions');

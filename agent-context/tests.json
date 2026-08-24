@@ -134,6 +134,20 @@
       ]
     },
     {
+      "path": "__tests__/components/PowerRankings.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/PowerRankings.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/components/QuarterlyStandingsTable.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/QuarterlyStandingsTable.tsx"
+      ]
+    },
+    {
       "path": "__tests__/components/SeasonSelector.test.tsx",
       "kind": "test",
       "covers": [
@@ -152,6 +166,13 @@
       "kind": "test",
       "covers": [
         "app/signups/page.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/lib/elo.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/lib/elo.ts"
       ]
     },
     {
@@ -292,6 +313,12 @@
     "app/components/PerformanceTrend.tsx": [
       "app/components/__tests__/PerformanceTrend.test.tsx"
     ],
+    "app/components/PowerRankings.tsx": [
+      "__tests__/components/PowerRankings.test.tsx"
+    ],
+    "app/components/QuarterlyStandingsTable.tsx": [
+      "__tests__/components/QuarterlyStandingsTable.test.tsx"
+    ],
     "app/components/SeasonSelector.tsx": [
       "__tests__/components/SeasonSelector.test.tsx"
     ],
@@ -303,6 +330,9 @@
     ],
     "app/lib/constants.ts": [
       "app/lib/__tests__/playerFiltering.test.ts"
+    ],
+    "app/lib/elo.ts": [
+      "__tests__/lib/elo.test.ts"
     ],
     "app/lib/modelClient.ts": [
       "app/lib/__tests__/modelClient.test.ts"

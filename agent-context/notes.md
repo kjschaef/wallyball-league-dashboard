@@ -7,3 +7,4 @@
 - `app/api/players/route.ts` and `app/api/matches/route.ts` return enriched payloads that front-end code consumes directly.
 - Ranking and trend features depend on game-level stats semantics from `app/lib/stats.ts`, not just match win/loss counts.
 - When context files look stale after structural edits, regenerate them with `pnpm run context:generate` and commit the updated JSON.
+- Maintain and update Playwright E2E tests in `tests/e2e/` whenever major features, layouts, or core user journeys are added or modified.
