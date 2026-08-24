@@ -6,6 +6,8 @@ import {
   generateWeekDates,
   getSignupCycleState,
   isDateInSignupWeek,
+  getNoResponsePlayers,
+  formatSignupExport,
   type SignupSettings,
 } from '../signups';
 
@@ -136,3 +138,98 @@ describe('getEasternWallTimeNow', () => {
     expect(easternTime.getHours()).toBe(7);
   });
 });
+
+describe('getNoResponsePlayers', () => {
+  const players = [
+    { id: 1, name: 'Charlie' },
+    { id: 2, name: 'Alice' },
+    { id: 3, name: 'Bob' },
+    { id: 4, name: 'Dave' },
+  ];
+
+  it('returns all players sorted when no one has responded or marked out', () => {
+    const noResponse = getNoResponsePlayers(players, [], [], ['2026-01-19', '2026-01-20'], '2026-01-18');
+    expect(noResponse.map((p) => p.name)).toEqual(['Alice', 'Bob', 'Charlie', 'Dave']);
+  });
+
+  it('filters out players who have signed up for any day in the week', () => {
+    const signups = [{ player_id: 2, date: '2026-01-19' }];
+    const noResponse = getNoResponsePlayers(players, signups, [], ['2026-01-19', '2026-01-20'], '2026-01-18');
+    expect(noResponse.map((p) => p.name)).toEqual(['Bob', 'Charlie', 'Dave']);
+  });
+
+  it('filters out players who are marked unavailable for that week', () => {
+    const unavailable = [{ player_id: 3, week_start: '2026-01-18' }];
+    const noResponse = getNoResponsePlayers(players, [], unavailable, ['2026-01-19', '2026-01-20'], '2026-01-18');
+    expect(noResponse.map((p) => p.name)).toEqual(['Alice', 'Charlie', 'Dave']);
+  });
+
+  it('filters out both signed up and unavailable players', () => {
+    const signups = [{ player_id: 1, date: '2026-01-20' }];
+    const unavailable = [{ player_id: 4, week_start: '2026-01-18' }];
+    const noResponse = getNoResponsePlayers(players, signups, unavailable, ['2026-01-19', '2026-01-20'], '2026-01-18');
+    expect(noResponse.map((p) => p.name)).toEqual(['Alice', 'Bob']);
+  });
+
+  it('does not filter out players with signups on different weeks or unavailable on different weeks', () => {
+    const signups = [{ player_id: 2, date: '2026-01-12' }];
+    const unavailable = [{ player_id: 3, week_start: '2026-01-11' }];
+    const noResponse = getNoResponsePlayers(players, signups, unavailable, ['2026-01-19', '2026-01-20'], '2026-01-18');
+    expect(noResponse.map((p) => p.name)).toEqual(['Alice', 'Bob', 'Charlie', 'Dave']);
+  });
+});
+
+describe('formatSignupExport', () => {
+  const sunday = new Date('2026-01-18T00:00:00');
+  const dates = ['2026-01-19', '2026-01-20'];
+  const players = [
+    { id: 1, name: 'Alice' },
+    { id: 2, name: 'Bob' },
+    { id: 3, name: 'Charlie' },
+    { id: 4, name: 'Dave' },
+  ];
+
+  it('includes day breakdowns, Out list, and No Response list', () => {
+    const signups = [
+      { id: 10, player_id: 1, name: 'Alice', date: '2026-01-19', status: 'registered' as const },
+    ];
+    const unavailable = [
+      { id: 20, player_id: 2, name: 'Bob', week_start: '2026-01-18' },
+    ];
+
+    const result = formatSignupExport({
+      sunday,
+      dates,
+      signups,
+      unavailablePlayers: unavailable,
+      players,
+    });
+
+    expect(result).toContain('Week of January 19 // 6:30-8:00 am');
+    expect(result).toContain('Monday - OPEN\n- Alice\n-');
+    expect(result).toContain('Tuesday - OPEN\n-');
+    expect(result).toContain('Out: Bob');
+    expect(result).toContain('No Response: Charlie, Dave');
+  });
+
+  it('omits Out and No Response sections when empty', () => {
+    const signups = [
+      { id: 10, player_id: 1, name: 'Alice', date: '2026-01-19', status: 'registered' as const },
+      { id: 11, player_id: 2, name: 'Bob', date: '2026-01-19', status: 'registered' as const },
+      { id: 12, player_id: 3, name: 'Charlie', date: '2026-01-20', status: 'registered' as const },
+      { id: 13, player_id: 4, name: 'Dave', date: '2026-01-20', status: 'registered' as const },
+    ];
+
+    const result = formatSignupExport({
+      sunday,
+      dates,
+      signups,
+      unavailablePlayers: [],
+      players,
+    });
+
+    expect(result).not.toContain('Out:');
+    expect(result).not.toContain('No Response:');
+  });
+});
+

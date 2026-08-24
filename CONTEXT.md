@@ -35,3 +35,15 @@ _Avoid_: Offensive points
 **Points Allowed**:
 The total number of points scored by the opposing team during scored games.
 _Avoid_: Defensive points conceded
+
+**Weekly Signups**:
+The weekly process where league players opt in to play on specific days of the upcoming week.
+_Avoid_: Registrations, RSVPs
+
+**Unavailable**:
+A status indicating a player has explicitly marked themselves out of playing for the entire week.
+_Avoid_: Absent, inactive, off
+
+**No Response**:
+Players on the active roster who have neither signed up for any playing day nor marked themselves unavailable for a given week.
+_Avoid_: Missing, MIA, unknown

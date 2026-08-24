@@ -148,4 +148,87 @@ describe('SignupsPage', () => {
     // Using findByTitle waits for the fetch requests to resolve and state to update
     expect(await screen.findByTitle('Remove unavailable player')).toBeInTheDocument();
   });
+
+  it('renders No Response section when all players responded', async () => {
+    await act(async () => {
+      render(<SignupsPage />);
+    });
+
+    // Alice is in unavailable (id: 1), Bob is in signups (id: 2) -> 0 no response
+    expect(await screen.findByText('No Response (0)')).toBeInTheDocument();
+    expect(screen.getByText('Everyone has responded!')).toBeInTheDocument();
+  });
+
+  it('renders players in No Response list when they have not responded', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: RequestInfo) => {
+      const requestUrl = String(url);
+      if (requestUrl === '/api/settings') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            signupOpenDayOfWeek: 0,
+            signupOpenTime: '12:00',
+            signupCloseDayOfWeek: 0,
+            signupCloseTime: '16:00',
+            availableDays: ['Monday'],
+          }),
+        } as Response);
+      }
+      if (requestUrl === '/api/players') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 1, name: 'Alice' },
+            { id: 2, name: 'Bob' },
+            { id: 3, name: 'Charlie' },
+          ],
+        } as Response);
+      }
+      if (requestUrl === '/api/signups') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 1, player_id: 1, name: 'Alice', date: '2026-01-19', status: 'registered', created_at: '2026-01-10T00:00:00.000Z' },
+          ],
+        } as Response);
+      }
+      if (requestUrl === '/api/signups?unavailable=1') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [],
+        } as Response);
+      }
+      return Promise.resolve({ ok: false, status: 404, json: async () => ({}) } as Response);
+    });
+
+    await act(async () => {
+      render(<SignupsPage />);
+    });
+
+    const noResponseSection = (await screen.findByText('No Response (2)')).closest('div')!;
+    expect(noResponseSection).toHaveTextContent('Bob');
+    expect(noResponseSection).toHaveTextContent('Charlie');
+  });
+
+  it('exports signup details including Out and No Response to clipboard', async () => {
+    const writeTextMock = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    await act(async () => {
+      render(<SignupsPage />);
+    });
+
+    const exportBtn = await screen.findByRole('button', { name: 'Export' });
+    await act(async () => {
+      fireEvent.click(exportBtn);
+    });
+
+    expect(writeTextMock).toHaveBeenCalledWith(expect.stringContaining('Week of January 19 // 6:30-8:00 am'));
+    expect(writeTextMock).toHaveBeenCalledWith(expect.stringContaining('Out: Alice'));
+  });
 });
+
