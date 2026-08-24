@@ -48,9 +48,9 @@ describe('PerformanceControls', () => {
     await screen.findByText('S2');
 
     // Metric toggle
-    const totalWinsBtn = screen.getByText('Total Wins');
-    fireEvent.click(totalWinsBtn);
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ metric: 'totalWins' }));
+    const eloBtn = screen.getByText('Career Elo');
+    fireEvent.click(eloBtn);
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ metric: 'elo' }));
 
     // Season select
     const seasonSelect = screen.getByLabelText('Season') as HTMLSelectElement;

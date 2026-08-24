@@ -17,6 +17,14 @@ export interface MatchHistoryItem {
   teamOneGamesWon: number;
   teamTwoGamesWon: number;
   gameScores?: GameScore[];
+  eloDetails?: {
+    teamOnePreAvg: number;
+    teamTwoPreAvg: number;
+    teamOneDelta: number;
+    teamTwoDelta: number;
+    isUpset: boolean;
+    expectedT1WinRate: number;
+  } | null;
 }
 
 interface GameHistoryProps {
@@ -53,7 +61,7 @@ export function GameHistory({ games }: GameHistoryProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {games.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           No match results found with the current filters.
@@ -62,50 +70,74 @@ export function GameHistory({ games }: GameHistoryProps) {
         games.map((game) => {
           const winningTeam = getWinningTeam(game);
           const hasGameScores = game.gameScores && game.gameScores.length > 0;
+          const elo = game.eloDetails;
+          const winningDelta = elo ? (winningTeam === 'teamOne' ? elo.teamOneDelta : elo.teamTwoDelta) : null;
           
           return (
             <div
               key={game.id}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+              className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all hover:border-gray-300"
             >
               {/* Game Summary Row */}
               <button
-                className="w-full text-left p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                className="w-full text-left p-3.5 sm:p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
                 onClick={() => toggleGameExpansion(game.id)}
                 aria-expanded={expandedGameId === game.id}
                 title="View match details"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {formatDate(game.date)}
                   </span>
                   
-                  <div className="flex items-center">
-                    <span className={`font-semibold ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
+                  <div className="flex items-center flex-wrap gap-1">
+                    <span className={`font-bold text-sm ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-800'}`}>
                       {game.teamOnePlayers.join(' & ')}
                     </span>
+                    {elo && (
+                      <span className="text-[10px] text-gray-400 font-normal">
+                        ({elo.teamOnePreAvg})
+                      </span>
+                    )}
                     
-                    <span className="mx-2 font-bold text-gray-400">vs</span>
+                    <span className="mx-1 font-bold text-gray-300 text-xs">vs</span>
                     
-                    <span className={`font-semibold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
+                    <span className={`font-bold text-sm ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-800'}`}>
                       {game.teamTwoPlayers.join(' & ')}
                     </span>
+                    {elo && (
+                      <span className="text-[10px] text-gray-400 font-normal">
+                        ({elo.teamTwoPreAvg})
+                      </span>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
+                  {elo?.isUpset && (
+                    <span className="hidden sm:inline-flex items-center text-[10px] font-extrabold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full border border-rose-200">
+                      🔥 UPSET
+                    </span>
+                  )}
+
+                  {winningDelta !== null && (
+                    <span className="hidden md:inline-block text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
+                      {winningDelta > 0 ? `+${winningDelta}` : winningDelta} Elo
+                    </span>
+                  )}
+
                   {hasGameScores && (
-                    <span className="hidden md:inline-block text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    <span className="hidden lg:inline-block text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
                       {game.gameScores!.map(gs => `${gs.teamOneScore}-${gs.teamTwoScore}`).join(', ')}
                     </span>
                   )}
 
-                  <div className="flex items-center">
-                    <span className={`text-xl font-bold ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
+                  <div className="flex items-center bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
+                    <span className={`text-base font-bold ${winningTeam === 'teamOne' ? 'text-green-600' : 'text-gray-700'}`}>
                       {game.teamOneGamesWon}
                     </span>
-                    <span className="mx-1 text-xl text-gray-400">-</span>
-                    <span className={`text-xl font-bold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
+                    <span className="mx-1 text-sm text-gray-400">-</span>
+                    <span className={`text-base font-bold ${winningTeam === 'teamTwo' ? 'text-green-600' : 'text-gray-700'}`}>
                       {game.teamTwoGamesWon}
                     </span>
                   </div>
@@ -114,7 +146,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                     className={`p-1 text-gray-400 transition-transform duration-200 ${expandedGameId === game.id ? 'rotate-90 text-gray-700' : ''}`}
                     aria-hidden="true"
                   >
-                    <ChevronRight className="h-5 w-5" />
+                    <ChevronRight className="h-4 w-4" />
                   </span>
                 </div>
               </button>

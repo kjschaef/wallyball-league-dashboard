@@ -4,6 +4,8 @@ import {
   calculateTeamAverageElo,
   calculateExpectedWinRate,
   computeChronologicalElo,
+  getSkillTier,
+  computeWeeklyMovers,
   INITIAL_ELO,
   PROVISIONAL_THRESHOLD
 } from '@/app/lib/elo';
@@ -166,4 +168,63 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(ratings.get(1)?.isProvisional).toBe(false);
     });
   });
+
+  describe('getSkillTier', () => {
+    it('returns Provisional for provisional players regardless of raw Elo', () => {
+      expect(getSkillTier(1700, true).name).toBe('Provisional');
+      expect(getSkillTier(1700, true).icon).toBe('🔰');
+    });
+
+    it('returns Diamond Tier for Elo >= 1650', () => {
+      const tier = getSkillTier(1650, false);
+      expect(tier.name).toBe('Diamond Tier');
+      expect(tier.icon).toBe('💎');
+    });
+
+    it('returns Gold Tier for Elo between 1525 and 1649', () => {
+      const tier = getSkillTier(1550, false);
+      expect(tier.name).toBe('Gold Tier');
+      expect(tier.icon).toBe('🥇');
+    });
+
+    it('returns Silver Tier for Elo between 1400 and 1524', () => {
+      const tier = getSkillTier(1450, false);
+      expect(tier.name).toBe('Silver Tier');
+      expect(tier.icon).toBe('🥈');
+    });
+
+    it('returns Bronze Tier for Elo < 1400', () => {
+      const tier = getSkillTier(1350, false);
+      expect(tier.name).toBe('Bronze Tier');
+      expect(tier.icon).toBe('🥉');
+    });
+  });
+
+  describe('computeWeeklyMovers', () => {
+    it('computes biggest gainer and faller over trailing period', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ];
+      const today = new Date().toISOString();
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 3,
+          team_two_games_won: 0,
+          date: today,
+        },
+      ];
+
+      const movers = computeWeeklyMovers(players, matches);
+      expect(movers.hasActivity).toBe(true);
+      expect(movers.biggestGainer?.id).toBe(1);
+      expect(movers.biggestGainer?.delta).toBeGreaterThan(0);
+      expect(movers.biggestFallen?.id).toBe(2);
+      expect(movers.biggestFallen?.delta).toBeLessThan(0);
+    });
+  });
 });
+

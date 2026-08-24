@@ -53,7 +53,7 @@ interface PlayerStats {
 }
 
 export function PerformanceTrend({ isExporting: _isExporting = false, season: initialSeason, showAllPlayers = false, onSeasonChange, onShowAllPlayersChange }: PerformanceTrendProps) {
-  const [metric, setMetric] = useState<'winPercentage' | 'totalWins'>('winPercentage');
+  const [metric, setMetric] = useState<'winPercentage' | 'elo'>('winPercentage');
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
   const [chartData, setChartData] = useState<Array<{ date: string;[key: string]: unknown }>>([]);
   const [trendsData, setTrendsData] = useState<any[]>([]);
@@ -99,7 +99,7 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
     );
 
     if (values.length === 0) {
-      return metric === 'winPercentage' ? [0, 100] : [0, 10];
+      return metric === 'winPercentage' ? [0, 100] : [1400, 1600];
     }
 
     const minValue = Math.min(...values);
@@ -113,10 +113,10 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
       ];
     }
 
-    const padding = Math.max(1, Math.ceil((maxValue - minValue) * 0.1));
+    const padding = 25;
     return [
-      Math.max(0, Math.floor(minValue - padding)),
-      Math.ceil(maxValue + padding),
+      Math.max(1000, Math.floor((minValue - padding) / 25) * 25),
+      Math.ceil((maxValue + padding) / 25) * 25,
     ];
   })();
 

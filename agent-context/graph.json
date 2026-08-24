@@ -114,12 +114,15 @@
       "tags": [
         "matches"
       ],
-      "imports": [],
+      "imports": [
+        "app/lib/elo.ts"
+      ],
       "importedBy": [],
       "related": [
         "__tests__/api/matches.test.ts",
         "app/api/chatbot/image/route.ts",
-        "app/components/RecordMatchModal.tsx"
+        "app/components/RecordMatchModal.tsx",
+        "app/lib/elo.ts"
       ],
       "overrideNotes": [
         "Accepts both manual match payloads and image-analysis payloads before inserting a match."
@@ -151,10 +154,12 @@
         "stats"
       ],
       "imports": [
+        "app/lib/elo.ts",
         "lib/seasons.ts"
       ],
       "importedBy": [],
       "related": [
+        "app/lib/elo.ts",
         "lib/seasons.ts"
       ],
       "overrideNotes": []
@@ -523,6 +528,22 @@
       "overrideNotes": []
     },
     {
+      "file": "app/components/PowerRankings.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [
+        "app/lib/elo.ts"
+      ],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/lib/elo.ts",
+        "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/components/Providers.tsx",
       "type": "component",
       "tags": [],
@@ -532,6 +553,19 @@
       ],
       "related": [
         "app/layout.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/QuarterlyStandingsTable.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/page.tsx"
+      ],
+      "related": [
+        "app/page.tsx"
       ],
       "overrideNotes": []
     },
@@ -635,12 +669,9 @@
       "imports": [
         "app/lib/playerFiltering.ts"
       ],
-      "importedBy": [
-        "app/page.tsx"
-      ],
+      "importedBy": [],
       "related": [
-        "app/lib/playerFiltering.ts",
-        "app/page.tsx"
+        "app/lib/playerFiltering.ts"
       ],
       "overrideNotes": []
     },
@@ -841,9 +872,15 @@
       "tags": [],
       "imports": [],
       "importedBy": [
+        "app/api/matches/route.ts",
+        "app/api/player-trends/route.ts",
+        "app/components/PowerRankings.tsx",
         "app/lib/stats.ts"
       ],
       "related": [
+        "app/api/matches/route.ts",
+        "app/api/player-trends/route.ts",
+        "app/components/PowerRankings.tsx",
         "app/lib/stats.ts"
       ],
       "overrideNotes": []
@@ -1051,9 +1088,10 @@
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
         "app/components/PlayerSelectorDialog.tsx",
+        "app/components/PowerRankings.tsx",
+        "app/components/QuarterlyStandingsTable.tsx",
         "app/components/RecentMatches.tsx",
-        "app/components/RecordMatchModal.tsx",
-        "app/components/WinPercentageRankings.tsx"
+        "app/components/RecordMatchModal.tsx"
       ],
       "importedBy": [],
       "related": [
@@ -1063,6 +1101,8 @@
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
         "app/components/PlayerSelectorDialog.tsx",
+        "app/components/PowerRankings.tsx",
+        "app/components/QuarterlyStandingsTable.tsx",
         "app/components/RecentMatches.tsx",
         "app/components/RecordMatchModal.tsx",
         "app/components/WinPercentageRankings.tsx"

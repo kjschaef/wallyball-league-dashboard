@@ -48,6 +48,25 @@ export async function GET(request: Request) {
       return `${y}-${m}-${day}`;
     };
 
+    // Compute rolling Elo trajectory across matches
+    const { computePlayerEloTrajectories } = await import('../../lib/elo');
+    const lifetimeMatches = await sql`SELECT * FROM matches ORDER BY date ASC, id ASC`;
+    const matchGames = await sql`SELECT match_id, game_number, team_one_score, team_two_score FROM match_games ORDER BY match_id, game_number`;
+    const gamesMap = new Map<number, any[]>();
+    for (const g of matchGames) {
+      if (!gamesMap.has(g.match_id)) gamesMap.set(g.match_id, []);
+      gamesMap.get(g.match_id)!.push({
+        gameNumber: g.game_number,
+        teamOneScore: g.team_one_score,
+        teamTwoScore: g.team_two_score,
+      });
+    }
+    const eloTrajectories = computePlayerEloTrajectories(allPlayers as any, lifetimeMatches as any, gamesMap);
+    const dateEloMap = new Map<string, { [playerName: string]: number | string }>();
+    for (const pt of eloTrajectories) {
+      dateEloMap.set(pt.date, pt);
+    }
+
     const playerTrends = allPlayers.map(player => {
       // Find matches where this player participated
       const playerMatches = allMatches.filter(match =>
@@ -82,11 +101,15 @@ export async function GET(request: Request) {
         const rawWinPercentage = totalGames > 0 ? (cumulativeGamesWon / totalGames) * 100 : 0;
 
         const dateKey = match.date ? toDateKeyLocal(new Date(match.date)) : toDateKeyLocal(new Date());
+        const eloPoint = dateEloMap.get(dateKey);
+        const playerElo = eloPoint && typeof eloPoint[player.name] === 'number' ? eloPoint[player.name] : 1500;
+
         dailyStats.set(dateKey, {
           winPercentage: rawWinPercentage,
           rawWinPercentage,
           totalWins: cumulativeGamesWon,
-          totalGames
+          totalGames,
+          elo: playerElo,
         });
       });
 

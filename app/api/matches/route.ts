@@ -78,6 +78,11 @@ export async function GET(request: Request) {
     const allPlayers = await sql`SELECT * FROM players`;
     const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
 
+    // Compute Elo match details
+    const { computeAllMatchesEloDetails } = await import('../../lib/elo');
+    const allLifetimeMatches = await sql`SELECT * FROM matches ORDER BY date ASC, id ASC`;
+    const eloDetailsMap = computeAllMatchesEloDetails(allPlayers as any, allLifetimeMatches as any, gamesMap);
+
     // Process matches to include player names
     const processedMatches = allMatches.map(match => {
       const teamOnePlayers = [
@@ -92,6 +97,8 @@ export async function GET(request: Request) {
         match.team_two_player_three_id && playerMap.get(match.team_two_player_three_id)
       ].filter(Boolean);
 
+      const eloDetails = eloDetailsMap.get(match.id);
+
       return {
         id: match.id,
         teamOnePlayerOneId: match.team_one_player_one_id,
@@ -105,7 +112,8 @@ export async function GET(request: Request) {
         date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
         teamOnePlayers,
         teamTwoPlayers,
-        gameScores: gamesMap.get(match.id) || []
+        gameScores: gamesMap.get(match.id) || [],
+        eloDetails: eloDetails || null
       };
     });
 

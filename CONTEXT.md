@@ -77,3 +77,19 @@ _Avoid_: Default score, zero-point
 **Provisional Rating**:
 The calibration phase during a player's first 10 career games where an elevated K-factor accelerates rating convergence.
 _Avoid_: Placement matches, unranked phase
+
+**Season Race**:
+The quarterly competition tracking player games, win percentages, and point differentials within an active season window.
+_Avoid_: Season ladder, quarter tournament
+
+**League Power Rankings**:
+The global, rolling skill hierarchy ranking all active players by career Elo rating, tiers, and recent movement.
+_Avoid_: Global leaderboard, all-time standing
+
+**Weekly Movers**:
+Players who experienced the largest net Elo rating increases or decreases over the preceding 7-day period.
+_Avoid_: Hot streak, weekly delta list
+
+**Skill Tier**:
+The competitive badge classification (Diamond: 1650+, Gold: 1525-1649, Silver: 1400-1524, Bronze: <1400) assigned based on a player's career Elo rating.
+_Avoid_: League division, skill bracket

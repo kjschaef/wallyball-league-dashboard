@@ -30,7 +30,7 @@
         "app/components/PlayerPerformanceRadar.tsx",
         "app/components/PlayerSelector.tsx",
         "app/components/PlayerSelectorDialog.tsx",
-        "app/components/RecentMatches.tsx"
+        "app/components/PowerRankings.tsx"
       ],
       "testCommands": [
         "pnpm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx"
@@ -74,9 +74,9 @@
         "app/components/GameHistory.tsx",
         "app/components/PerformanceTrend.tsx",
         "app/components/PlayerSelectorDialog.tsx",
-        "app/components/RecentMatches.tsx",
-        "app/components/TeamSuggestionModal.tsx",
-        "app/components/WinPercentageRankings.tsx"
+        "app/components/PowerRankings.tsx",
+        "app/components/QuarterlyStandingsTable.tsx",
+        "app/components/RecentMatches.tsx"
       ],
       "testCommands": [
         "pnpm test -- __tests__/api/matches.test.ts __tests__/components/DashboardPage.test.tsx"

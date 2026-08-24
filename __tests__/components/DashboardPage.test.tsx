@@ -16,8 +16,12 @@ jest.mock('@/app/components/PerformanceTrend', () => ({
   PerformanceTrend: () => <div>Performance Trend</div>,
 }));
 
-jest.mock('@/app/components/WinPercentageRankings', () => ({
-  WinPercentageRankings: () => <div>Win Percentage Rankings</div>,
+jest.mock('@/app/components/QuarterlyStandingsTable', () => ({
+  QuarterlyStandingsTable: () => <div>Quarterly Standings Table</div>,
+}));
+
+jest.mock('@/app/components/PowerRankings', () => ({
+  PowerRankings: () => <div>Power Rankings</div>,
 }));
 
 jest.mock('@/app/components/RecentMatches', () => ({
