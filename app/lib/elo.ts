@@ -500,7 +500,7 @@ export function computeAllMatchesEloDetails(
       teamOneDelta: avgT1Delta,
       teamTwoDelta: avgT2Delta,
       isUpset,
-      expectedT1WinRate: Math.round(expectedT1 * 100),
+      expectedT1WinRate: Number(expectedT1.toFixed(3)),
     });
   }
 

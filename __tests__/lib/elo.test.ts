@@ -258,6 +258,7 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(details.teamOneDelta).toBeGreaterThan(0);
       expect(details.teamTwoDelta).toBeLessThan(0);
       expect(typeof details.isUpset).toBe('boolean');
+      expect(details.expectedT1WinRate).toBe(0.5);
     });
   });
 
