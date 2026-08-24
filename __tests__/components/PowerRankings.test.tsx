@@ -4,12 +4,17 @@ import '@testing-library/jest-dom';
 import { PowerRankings } from '@/app/components/PowerRankings';
 
 describe('PowerRankings Component', () => {
+  const recentDate = new Date().toISOString();
+  const oldDate = new Date(Date.now() - 250 * 24 * 60 * 60 * 1000).toISOString(); // ~8 months ago
+
   const mockStats = [
-    { id: 1, name: 'Alice', elo: 1680, isProvisional: false, careerGames: 45, winPercentage: 65 },
-    { id: 2, name: 'Bob', elo: 1610, isProvisional: false, careerGames: 35, winPercentage: 60 },
-    { id: 3, name: 'Charlie', elo: 1540, isProvisional: false, careerGames: 25, winPercentage: 55 },
-    { id: 4, name: 'Dave', elo: 1480, isProvisional: false, careerGames: 18, winPercentage: 48 },
-    { id: 5, name: 'Eve', elo: 1520, isProvisional: true, careerGames: 5, winPercentage: 50 },
+    { id: 1, name: 'Alice', elo: 1680, isProvisional: false, careerGames: 45, winPercentage: 65, lastGameDate: recentDate },
+    { id: 2, name: 'Bob', elo: 1610, isProvisional: false, careerGames: 35, winPercentage: 60, lastGameDate: recentDate },
+    { id: 3, name: 'Charlie', elo: 1540, isProvisional: false, careerGames: 25, winPercentage: 55, lastGameDate: recentDate },
+    { id: 4, name: 'Dave', elo: 1480, isProvisional: false, careerGames: 18, winPercentage: 48, lastGameDate: recentDate },
+    { id: 5, name: 'Eve', elo: 1520, isProvisional: true, careerGames: 5, winPercentage: 50, lastGameDate: recentDate },
+    { id: 6, name: 'OldPlayer', elo: 1750, isProvisional: false, careerGames: 60, winPercentage: 70, lastGameDate: oldDate },
+    { id: 7, name: 'NeverPlayed', elo: 1500, isProvisional: true, careerGames: 0, winPercentage: 0, lastGameDate: null },
   ];
 
   beforeEach(() => {
@@ -43,7 +48,7 @@ describe('PowerRankings Component', () => {
     jest.resetAllMocks();
   });
 
-  it('renders League Power Rankings with podium medals and ladder', async () => {
+  it('renders League Power Rankings with podium medals and ladder for active players', async () => {
     await act(async () => {
       render(<PowerRankings />);
     });
@@ -55,6 +60,15 @@ describe('PowerRankings Component', () => {
     expect(screen.getByText('Bob')).toBeInTheDocument();
     expect(screen.getByText('Charlie')).toBeInTheDocument();
     expect(screen.getByText('Dave')).toBeInTheDocument();
+  });
+
+  it('excludes inactive players who have not played in the last 6 months or have never played', async () => {
+    await act(async () => {
+      render(<PowerRankings />);
+    });
+
+    expect(screen.queryByText('OldPlayer')).not.toBeInTheDocument();
+    expect(screen.queryByText('NeverPlayed')).not.toBeInTheDocument();
   });
 
   it('displays provisional badge for provisional players', async () => {

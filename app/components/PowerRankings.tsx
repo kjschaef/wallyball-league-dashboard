@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getSkillTier, computeWeeklyMovers, SkillTier } from '../lib/elo';
+import { isPlayerActive } from '../lib/playerFiltering';
 
 export interface PowerRankingsPlayer {
   id: number;
@@ -10,6 +11,7 @@ export interface PowerRankingsPlayer {
   isProvisional?: boolean;
   careerGames?: number;
   winPercentage: number;
+  lastGameDate?: string | null;
 }
 
 interface WeeklyMoverInfo {
@@ -37,8 +39,11 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
         if (!statsRes.ok) throw new Error('Failed to load stats');
         const statsData: PowerRankingsPlayer[] = await statsRes.json();
 
-        // Sort players by Elo descending
-        const sorted = (statsData || []).map(p => ({
+        // Filter out inactive players (> 6 months since last game or never played)
+        const activePlayers = (statsData || []).filter(p => isPlayerActive(p.lastGameDate));
+
+        // Sort active players by Elo descending
+        const sorted = activePlayers.map(p => ({
           ...p,
           elo: p.elo ?? 1500,
         })).sort((a, b) => (b.elo ?? 1500) - (a.elo ?? 1500));
@@ -118,9 +123,9 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
   };
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-5 shadow-sm flex flex-col justify-between gap-4 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 p-5 shadow-sm flex flex-col justify-between gap-4 min-h-0 ${className}`}>
       {/* Top Section */}
-      <div className="space-y-4">
+      <div className="space-y-4 shrink-0">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -215,10 +220,10 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
       {/* Ranked Ladder List (#4+) */}
       {remaining.length > 0 && (
         <div className="flex-1 flex flex-col min-h-0 pt-2 border-t border-gray-100">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 shrink-0">
             Skill Ladder
           </h3>
-          <div className="flex-1 divide-y divide-gray-100 overflow-y-auto pr-1 max-h-[360px] lg:max-h-none">
+          <div className="flex-1 min-h-0 divide-y divide-gray-100 overflow-y-auto pr-1 max-h-[300px] lg:max-h-none">
             {remaining.map((player, idx) => {
               const rank = idx + 4;
               const elo = player.elo ?? 1500;
@@ -260,7 +265,7 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
       )}
 
       {/* Skill Tier Breakdown Legend */}
-      <div className="pt-3 border-t border-gray-100 mt-auto">
+      <div className="pt-3 border-t border-gray-100 mt-auto shrink-0">
         <div className="grid grid-cols-2 gap-1.5 text-[10px] text-gray-500 bg-gray-50/80 p-2.5 rounded-lg border border-gray-100">
           <div className="flex items-center gap-1"><span>💎</span> <span className="font-semibold text-gray-700">Diamond:</span> 1650+</div>
           <div className="flex items-center gap-1"><span>🥇</span> <span className="font-semibold text-gray-700">Gold:</span> 1525–1649</div>

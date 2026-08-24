@@ -17,7 +17,7 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
     await expect(page.getByText(/All-Time Career Elo/i)).toBeVisible();
 
     // Verify Podium Medals exist
-    await expect(page.getByText('#1')).toBeVisible();
+    await expect(page.getByText('#1', { exact: true })).toBeVisible();
 
     // Verify Chart metric toggle to Career Elo
     const eloBtn = page.getByRole('button', { name: 'Career Elo' });
