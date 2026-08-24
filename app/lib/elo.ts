@@ -60,7 +60,8 @@ export function getKFactor(careerGames: number): number {
 
 /**
  * Calculates logarithmic margin of victory multiplier.
- * Formula: ln(|margin| + 1) * 0.6
+ * Formula: 1.0 + ln(max(1, |margin|)) * 0.35
+ * Bound between 1.0 (baseline for a 1-point win or unscored match) and 2.0 (blowout cap).
  * Falls back to 1.0 (neutral) when scores are missing.
  */
 export function calculateMarginMultiplier(teamOneScore?: number | null, teamTwoScore?: number | null): number {
@@ -68,13 +69,19 @@ export function calculateMarginMultiplier(teamOneScore?: number | null, teamTwoS
     return 1.0;
   }
   const margin = Math.abs(teamOneScore - teamTwoScore);
-  // Logarithmic scaling with a 0.6 factor:
-  // margin 2: ln(3) * 0.6 ≈ 0.66
-  // margin 5: ln(6) * 0.6 ≈ 1.07
-  // margin 10: ln(11) * 0.6 ≈ 1.44
-  const multiplier = Math.log(margin + 1) * 0.6;
-  // Bound multiplier between 0.5 and 2.0 to prevent runaway distortion
-  return Math.max(0.5, Math.min(2.0, multiplier));
+  if (margin <= 1) return 1.0;
+  const multiplier = 1.0 + Math.log(margin) * 0.35;
+  return Math.min(2.0, Math.max(1.0, multiplier));
+}
+
+/**
+ * Chronological comparator for sorting matches from oldest to newest.
+ */
+export function compareMatchesChronologically(a: ReplayMatch, b: ReplayMatch): number {
+  const dateA = a.date ? new Date(a.date).getTime() : 0;
+  const dateB = b.date ? new Date(b.date).getTime() : 0;
+  if (dateA !== dateB) return dateA - dateB;
+  return (a.id ?? 0) - (b.id ?? 0);
 }
 
 /**
@@ -137,12 +144,7 @@ export function computeChronologicalElo(
   }
 
   // Sort matches chronologically (oldest to newest)
-  const sortedMatches = [...allMatches].sort((a, b) => {
-    const dateA = a.date ? new Date(a.date).getTime() : 0;
-    const dateB = b.date ? new Date(b.date).getTime() : 0;
-    if (dateA !== dateB) return dateA - dateB;
-    return (a.id ?? 0) - (b.id ?? 0);
-  });
+  const sortedMatches = [...allMatches].sort(compareMatchesChronologically);
 
   for (const match of sortedMatches) {
     const { teamOnePlayerIds, teamTwoPlayerIds } = extractTeamPlayerIds(match);
@@ -306,11 +308,7 @@ export function computeWeeklyMovers(
     return { biggestGainer: null, biggestFallen: null, hasActivity: false, periodLabel: 'This Week' };
   }
 
-  const sortedMatches = [...allMatches].sort((a, b) => {
-    const dateA = a.date ? new Date(a.date).getTime() : 0;
-    const dateB = b.date ? new Date(b.date).getTime() : 0;
-    return dateA - dateB;
-  });
+  const sortedMatches = [...allMatches].sort(compareMatchesChronologically);
 
   const latestMatchDate = sortedMatches[sortedMatches.length - 1].date
     ? new Date(sortedMatches[sortedMatches.length - 1].date!)
@@ -393,7 +391,7 @@ export interface MatchEloDetails {
 }
 
 /**
- * Computes pre-match ratings and deltas for all matches.
+ * Computes match-by-match Elo details for match history lists.
  */
 export function computeAllMatchesEloDetails(
   allPlayers: Array<{ id: number; name?: string }>,
@@ -406,18 +404,14 @@ export function computeAllMatchesEloDetails(
   for (const player of allPlayers) {
     ratingsMap.set(player.id, {
       id: player.id,
+      name: player.name,
       elo: INITIAL_ELO,
       careerGames: 0,
       isProvisional: true,
     });
   }
 
-  const sortedMatches = [...allMatches].sort((a, b) => {
-    const dateA = a.date ? new Date(a.date).getTime() : 0;
-    const dateB = b.date ? new Date(b.date).getTime() : 0;
-    if (dateA !== dateB) return dateA - dateB;
-    return (a.id ?? 0) - (b.id ?? 0);
-  });
+  const sortedMatches = [...allMatches].sort(compareMatchesChronologically);
 
   for (const match of sortedMatches) {
     const { teamOnePlayerIds, teamTwoPlayerIds } = extractTeamPlayerIds(match);
@@ -526,12 +520,7 @@ export function computePlayerEloTrajectories(
     ratingsMap.set(p.id, { id: p.id, name: p.name, elo: INITIAL_ELO, careerGames: 0, isProvisional: true });
   }
 
-  const sortedMatches = [...allMatches].sort((a, b) => {
-    const dateA = a.date ? new Date(a.date).getTime() : 0;
-    const dateB = b.date ? new Date(b.date).getTime() : 0;
-    if (dateA !== dateB) return dateA - dateB;
-    return (a.id ?? 0) - (b.id ?? 0);
-  });
+  const sortedMatches = [...allMatches].sort(compareMatchesChronologically);
 
   const trajectory: Array<{ date: string; [playerName: string]: number | string }> = [];
   const playerNames = new Map(allPlayers.map(p => [p.id, p.name]));

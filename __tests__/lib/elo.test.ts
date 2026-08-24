@@ -32,20 +32,24 @@ describe('Elo Module (app/lib/elo)', () => {
   });
 
   describe('calculateMarginMultiplier', () => {
-    it('returns 1.0 when scores are missing or invalid', () => {
+    it('returns 1.0 for a 1-point margin or when scores are missing/invalid', () => {
       expect(calculateMarginMultiplier(undefined, undefined)).toBe(1.0);
       expect(calculateMarginMultiplier(null, null)).toBe(1.0);
       expect(calculateMarginMultiplier(NaN, 11)).toBe(1.0);
+      expect(calculateMarginMultiplier(15, 14)).toBe(1.0);
     });
 
     it('scales logarithmically with point margin', () => {
+      const margin1 = calculateMarginMultiplier(15, 14); // margin 1 -> 1.0
       const closeMultiplier = calculateMarginMultiplier(11, 9); // margin 2
       const mediumMultiplier = calculateMarginMultiplier(11, 6); // margin 5
       const blowoutMultiplier = calculateMarginMultiplier(11, 1); // margin 10
 
+      expect(margin1).toBe(1.0);
+      expect(margin1).toBeLessThan(closeMultiplier);
       expect(closeMultiplier).toBeLessThan(mediumMultiplier);
       expect(mediumMultiplier).toBeLessThan(blowoutMultiplier);
-      expect(closeMultiplier).toBeGreaterThan(0.5);
+      expect(closeMultiplier).toBeGreaterThan(1.0);
       expect(blowoutMultiplier).toBeLessThan(2.0);
     });
   });

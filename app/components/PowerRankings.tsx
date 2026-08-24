@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getSkillTier, SkillTier } from '../lib/elo';
+import { getSkillTier, computeWeeklyMovers, SkillTier } from '../lib/elo';
 
 export interface PowerRankingsPlayer {
   id: number;
@@ -13,6 +13,7 @@ export interface PowerRankingsPlayer {
 }
 
 interface WeeklyMoverInfo {
+  id: number;
   name: string;
   delta: number;
   currentElo: number;
@@ -44,39 +45,18 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
 
         setPlayers(sorted);
 
-        // Fetch recent matches to calculate weekly mover
+        // Fetch recent matches to calculate real weekly mover
         try {
-          const matchesRes = await fetch('/api/matches?limit=50');
+          const matchesRes = await fetch('/api/matches?limit=100');
           if (matchesRes.ok) {
             const matches = await matchesRes.json();
             if (matches && matches.length > 0) {
-              const now = new Date();
-              const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-              const recent = matches.filter((m: any) => m.date && new Date(m.date) >= sevenDaysAgo);
-
-              let activeMatches = recent;
-              let label = 'This Week';
-              if (recent.length === 0 && matches.length > 0) {
-                const latestDate = new Date(matches[0].date).toDateString();
-                activeMatches = matches.filter((m: any) => new Date(m.date).toDateString() === latestDate);
-                label = 'Last Match Night';
-              }
-              setPeriodLabel(label);
-
-              if (activeMatches.length > 0 && sorted.length > 0) {
-                const activePlayerNames = new Set<string>();
-                for (const m of activeMatches) {
-                  (m.teamOnePlayers || []).forEach((n: string) => activePlayerNames.add(n));
-                  (m.teamTwoPlayers || []).forEach((n: string) => activePlayerNames.add(n));
-                }
-                const activeSorted = sorted.filter(p => activePlayerNames.has(p.name));
-                if (activeSorted.length > 0) {
-                  setWeeklyMover({
-                    name: activeSorted[0].name,
-                    delta: 28.5,
-                    currentElo: activeSorted[0].elo ?? 1500,
-                  });
-                }
+              const movers = computeWeeklyMovers(sorted, matches);
+              if (movers.biggestGainer) {
+                setWeeklyMover(movers.biggestGainer);
+                setPeriodLabel(movers.periodLabel);
+              } else {
+                setWeeklyMover(null);
               }
             }
           }
