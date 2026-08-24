@@ -115,13 +115,20 @@ export function GameHistory({ games }: GameHistoryProps) {
                 
                 <div className="flex items-center gap-2.5">
                   {elo?.isUpset && (
-                    <span className="hidden sm:inline-flex items-center text-[10px] font-extrabold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full border border-rose-200">
+                    <span
+                      title="Upset victory: The underdog team with a lower pre-match average Elo won this match!"
+                      className="hidden sm:inline-flex items-center text-[10px] font-extrabold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full border border-rose-200 cursor-help"
+                    >
                       🔥 UPSET
                     </span>
                   )}
 
                   {winningDelta !== null && (
-                    <span className="hidden md:inline-block text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
+                    <span
+                      title={`Match Rating Impact: Winner gained ${winningDelta > 0 ? `+${winningDelta}` : winningDelta} Elo based on pre-match team averages (${elo?.teamOnePreAvg} vs ${elo?.teamTwoPreAvg})`}
+                      className="hidden md:inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-2.5 py-0.5 rounded-md cursor-help"
+                    >
+                      <span className="text-[10px] text-indigo-400 font-semibold uppercase">Winner:</span>
                       {winningDelta > 0 ? `+${winningDelta}` : winningDelta} Elo
                     </span>
                   )}
@@ -154,6 +161,42 @@ export function GameHistory({ games }: GameHistoryProps) {
               {/* Expanded Game Details */}
               {expandedGameId === game.id && (
                 <div className="px-4 pb-4 pt-2 border-t border-gray-200 space-y-4 bg-gray-50">
+                  {/* Rating Impact Breakdown */}
+                  {elo && (
+                    <div className="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 space-y-2">
+                      <div className="flex items-center justify-between flex-wrap gap-1">
+                        <h5 className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>⚡ Rating Impact (Elo)</span>
+                          {elo.isUpset && (
+                            <span className="text-[10px] bg-rose-100 text-rose-700 font-extrabold px-1.5 py-0.2 rounded-full border border-rose-200">
+                              🔥 UPSET
+                            </span>
+                          )}
+                        </h5>
+                        <span className="text-[11px] text-indigo-600 font-medium">
+                          Win Odds: Team 1 ({Math.round(elo.expectedT1WinRate * 100)}%) • Team 2 ({Math.round((1 - elo.expectedT1WinRate) * 100)}%)
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
+                          <span className="font-semibold text-gray-700">Team 1 ({elo.teamOnePreAvg} Avg)</span>
+                          <span className={`font-bold ${elo.teamOneDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Elo
+                          </span>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
+                          <span className="font-semibold text-gray-700">Team 2 ({elo.teamTwoPreAvg} Avg)</span>
+                          <span className={`font-bold ${elo.teamTwoDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Elo
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-indigo-600/70">
+                        Ratings adjust based on opponent difficulty, individual game outcomes, and margin of victory.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white p-3 rounded-lg border border-gray-200">
                       <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team 1</h5>
