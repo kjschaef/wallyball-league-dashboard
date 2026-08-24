@@ -13,11 +13,23 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
     await expect(page.getByText(/Season Standings/i)).toBeVisible();
 
     // Verify Right Column: League Power Rankings panel
-    await expect(page.getByText(/League Power Rankings/i)).toBeVisible();
+    const powerRankingsPanel = page.getByText(/League Power Rankings/i);
+    await expect(powerRankingsPanel).toBeVisible();
     await expect(page.getByText(/All-Time Career Elo/i)).toBeVisible();
 
     // Verify Podium Medals exist
     await expect(page.getByText('#1', { exact: true })).toBeVisible();
+
+    // Verify right column matches left column height on desktop
+    const leftCol = page.locator('.lg\\:col-span-8');
+    const rightCol = page.locator('.lg\\:col-span-4');
+    const leftBox = await leftCol.boundingBox();
+    const rightBox = await rightCol.boundingBox();
+    expect(leftBox).not.toBeNull();
+    expect(rightBox).not.toBeNull();
+    if (leftBox && rightBox) {
+      expect(Math.abs(leftBox.height - rightBox.height)).toBeLessThanOrEqual(5);
+    }
 
     // Verify Chart metric toggle to Career Elo
     const eloBtn = page.getByRole('button', { name: 'Career Elo' });
