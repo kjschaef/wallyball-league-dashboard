@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { useAdmin } from '../components/AdminProvider';
 import { Trash2, Plus, Clock, Copy, Check } from 'lucide-react';
 import {
   generateWeekDates,
   getEasternWallTimeNow,
   getSignupCycleState,
+  getNoResponsePlayers,
+  formatSignupExport,
   type SignupSettings,
 } from '../lib/signups';
 
@@ -202,6 +204,10 @@ export default function SignupsPage() {
     ? generateWeekDates(signupWeekSunday, settings.availableDays)
     : [];
 
+  const noResponseThisWeek = (isOpen && signupWeekStart && upcomingDates.length > 0)
+    ? getNoResponsePlayers(players, signups, unavailablePlayers, upcomingDates, signupWeekStart)
+    : [];
+
   // Current week dates (shown at bottom as reference)
   const currentWeekDates: string[] = settings
     ? generateWeekDates(currentWeekSunday, settings.availableDays)
@@ -222,39 +228,16 @@ export default function SignupsPage() {
   const handleExport = async (sunday: Date, dates: string[]) => {
     if (!sunday || dates.length === 0) return;
 
-    // Use Monday as the "Week of" date
-    const monday = addDays(sunday, 1);
-    let text = `Week of ${format(monday, 'MMMM d')} // 6:30-8:00 am\n\n`;
-
-    dates.forEach((dateStr) => {
-      const dateObj = new Date(dateStr + 'T12:00:00');
-      const dayName = format(dateObj, 'EEEE');
-      const daySignups = signups.filter((s) => s.date === dateStr);
-      const registered = daySignups.filter((s) => s.status === 'registered');
-      const waitlisted = daySignups.filter((s) => s.status === 'waitlisted');
-      const count = registered.length;
-      let status = 'OPEN';
-      if (count >= 6) {
-        status = 'CLOSED';
-      } else if (count >= 4) {
-        status = 'PLAYABLE';
-      }
-
-      text += `${dayName} - ${status}\n`;
-      registered.forEach((s) => {
-        text += `- ${s.name}\n`;
-      });
-      if (count < 6) {
-        text += `- \n`;
-      }
-      if (waitlisted.length > 0) {
-        text += `Waitlist: ${waitlisted.map((s) => s.name).join(', ')}\n`;
-      }
-      text += `\n`;
+    const text = formatSignupExport({
+      sunday,
+      dates,
+      signups,
+      unavailablePlayers,
+      players,
     });
 
     try {
-      await navigator.clipboard.writeText(text.trim());
+      await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -331,30 +314,54 @@ export default function SignupsPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-rose-800">Unavailable This Week</h2>
-            {unavailableThisWeek.length === 0 ? (
-              <p className="mt-1 text-sm text-rose-700">No one has marked themselves out yet.</p>
-            ) : (
-              <ul className="mt-2 flex flex-wrap gap-2">
-                {unavailableThisWeek.map((player) => (
-                  <li
-                    key={player.id}
-                    className="flex items-center gap-1 rounded-full border border-rose-200 bg-white px-3 py-1 text-sm text-rose-700"
-                  >
-                    <span>{player.name}</span>
-                    <button
-                      onClick={() => handleRemoveUnavailable(player.id)}
-                      className="rounded-full p-1 text-rose-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
-                      title="Remove unavailable player"
-                      aria-label={`Remove ${player.name} from unavailable list`}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-rose-800">
+                Unavailable This Week ({unavailableThisWeek.length})
+              </h2>
+              {unavailableThisWeek.length === 0 ? (
+                <p className="mt-1 text-sm text-rose-700">No one has marked themselves out yet.</p>
+              ) : (
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {unavailableThisWeek.map((player) => (
+                    <li
+                      key={player.id}
+                      className="flex items-center gap-1 rounded-full border border-rose-200 bg-white px-3 py-1 text-sm text-rose-700"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+                      <span>{player.name}</span>
+                      <button
+                        onClick={() => handleRemoveUnavailable(player.id)}
+                        className="rounded-full p-1 text-rose-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                        title="Remove unavailable player"
+                        aria-label={`Remove ${player.name} from unavailable list`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
+                No Response ({noResponseThisWeek.length})
+              </h2>
+              {noResponseThisWeek.length === 0 ? (
+                <p className="mt-1 text-sm font-medium text-emerald-700">Everyone has responded!</p>
+              ) : (
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {noResponseThisWeek.map((player) => (
+                    <li
+                      key={player.id}
+                      className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 shadow-sm"
+                    >
+                      <span>{player.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
           {upcomingDates.length === 0 ? (

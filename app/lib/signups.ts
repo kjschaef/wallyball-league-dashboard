@@ -189,3 +189,115 @@ export function isDateInSignupWeek(
 
   return generateWeekDates(signupWeekSunday, availableDays).includes(date);
 }
+
+export interface PlayerLike {
+  id: number;
+  name: string;
+}
+
+export interface SignupLike {
+  id?: number;
+  player_id: number;
+  name?: string;
+  date: string;
+  status?: 'registered' | 'waitlisted' | string;
+}
+
+export interface UnavailableLike {
+  id?: number;
+  player_id: number;
+  name?: string;
+  week_start: string;
+}
+
+export function getNoResponsePlayers<T extends PlayerLike>(
+  players: T[],
+  signups: SignupLike[],
+  unavailablePlayers: UnavailableLike[],
+  weekDates: string[],
+  weekStart: string,
+): T[] {
+  const dateSet = new Set(weekDates);
+  const respondedPlayerIds = new Set<number>();
+
+  for (const s of signups) {
+    if (dateSet.has(s.date)) {
+      respondedPlayerIds.add(s.player_id);
+    }
+  }
+
+  for (const u of unavailablePlayers) {
+    if (u.week_start === weekStart) {
+      respondedPlayerIds.add(u.player_id);
+    }
+  }
+
+  return players
+    .filter((p) => !respondedPlayerIds.has(p.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function formatSignupExport({
+  sunday,
+  dates,
+  signups,
+  unavailablePlayers = [],
+  players = [],
+}: {
+  sunday: Date;
+  dates: string[];
+  signups: SignupLike[];
+  unavailablePlayers?: UnavailableLike[];
+  players?: PlayerLike[];
+}): string {
+  if (!sunday || dates.length === 0) return '';
+
+  const monday = addDays(sunday, 1);
+  const weekStart = format(sunday, 'yyyy-MM-dd');
+  let text = `Week of ${format(monday, 'MMMM d')} // 6:30-8:00 am\n\n`;
+
+  dates.forEach((dateStr) => {
+    const dateObj = new Date(dateStr + 'T12:00:00');
+    const dayName = format(dateObj, 'EEEE');
+    const daySignups = signups.filter((s) => s.date === dateStr);
+    const registered = daySignups.filter((s) => s.status === 'registered');
+    const waitlisted = daySignups.filter((s) => s.status === 'waitlisted');
+    const count = registered.length;
+    let status = 'OPEN';
+    if (count >= 6) {
+      status = 'CLOSED';
+    } else if (count >= 4) {
+      status = 'PLAYABLE';
+    }
+
+    text += `${dayName} - ${status}\n`;
+    registered.forEach((s) => {
+      text += `- ${s.name}\n`;
+    });
+    if (count < 6) {
+      text += `- \n`;
+    }
+    if (waitlisted.length > 0) {
+      text += `Waitlist: ${waitlisted.map((s) => s.name).join(', ')}\n`;
+    }
+    text += `\n`;
+  });
+
+  const unavailableThisWeek = unavailablePlayers
+    .filter((u) => u.week_start === weekStart)
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  if (unavailableThisWeek.length > 0) {
+    text += `Out: ${unavailableThisWeek.map((u) => u.name).filter(Boolean).join(', ')}\n`;
+  }
+
+  if (players.length > 0) {
+    const noResponse = getNoResponsePlayers(players, signups, unavailablePlayers, dates, weekStart);
+    if (noResponse.length > 0) {
+      text += `No Response: ${noResponse.map((p) => p.name).join(', ')}\n`;
+    }
+  }
+
+  return text.trim();
+}
+
