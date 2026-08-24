@@ -134,6 +134,20 @@
       ]
     },
     {
+      "path": "__tests__/components/PowerRankings.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/PowerRankings.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/components/QuarterlyStandingsTable.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/QuarterlyStandingsTable.tsx"
+      ]
+    },
+    {
       "path": "__tests__/components/SeasonSelector.test.tsx",
       "kind": "test",
       "covers": [
@@ -298,6 +312,12 @@
     ],
     "app/components/PerformanceTrend.tsx": [
       "app/components/__tests__/PerformanceTrend.test.tsx"
+    ],
+    "app/components/PowerRankings.tsx": [
+      "__tests__/components/PowerRankings.test.tsx"
+    ],
+    "app/components/QuarterlyStandingsTable.tsx": [
+      "__tests__/components/QuarterlyStandingsTable.test.tsx"
     ],
     "app/components/SeasonSelector.tsx": [
       "__tests__/components/SeasonSelector.test.tsx"
