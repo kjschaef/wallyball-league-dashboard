@@ -1,0 +1,3 @@
+# Team-Average Elo Rating System
+
+To establish a transparent, competitive skill metric for players across variable team compositions (1 to 3 players per side), the league adopts a lifetime Team-Average Elo rating model. A team's rating is computed as the arithmetic mean of its players' current Elo ratings, and match rating deltas are applied equally to all participating team members. This balances simplicity, explainability to league players, and computational clarity over complex Bayesian models like TrueSkill, while maintaining seasonal standings based on win percentages and point differentials.

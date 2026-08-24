@@ -155,6 +155,13 @@
       ]
     },
     {
+      "path": "__tests__/lib/elo.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/lib/elo.ts"
+      ]
+    },
+    {
       "path": "app/components/__tests__/PerformanceControls.test.tsx",
       "kind": "component",
       "covers": [
@@ -303,6 +310,9 @@
     ],
     "app/lib/constants.ts": [
       "app/lib/__tests__/playerFiltering.test.ts"
+    ],
+    "app/lib/elo.ts": [
+      "__tests__/lib/elo.test.ts"
     ],
     "app/lib/modelClient.ts": [
       "app/lib/__tests__/modelClient.test.ts"

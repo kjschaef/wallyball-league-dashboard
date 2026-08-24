@@ -836,6 +836,19 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/elo.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/lib/stats.ts"
+      ],
+      "related": [
+        "app/lib/stats.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/modelClient.ts",
       "type": "app-lib",
       "tags": [],
@@ -940,7 +953,9 @@
       "tags": [
         "stats"
       ],
-      "imports": [],
+      "imports": [
+        "app/lib/elo.ts"
+      ],
       "importedBy": [
         "app/api/daily-summary/route.ts",
         "app/api/player-stats/route.ts"
@@ -949,7 +964,8 @@
         "__tests__/api/player-stats.test.ts",
         "__tests__/api/seasonal-player-stats.test.ts",
         "app/api/daily-summary/route.ts",
-        "app/api/player-stats/route.ts"
+        "app/api/player-stats/route.ts",
+        "app/lib/elo.ts"
       ],
       "overrideNotes": [
         "This module calculates game-level records from match rows and is a source of ranking semantics."

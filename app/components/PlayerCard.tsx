@@ -22,7 +22,7 @@ interface Player {
 interface PlayerCardProps {
   player: Player & {
     matches: Array<{ won: boolean, date: string }>,
-    stats: { won: number, lost: number, totalMatchTime?: number }
+    stats: { won: number, lost: number, totalMatchTime?: number, elo?: number, isProvisional?: boolean }
   };
   onEdit?: (player: Player) => void;
   onDelete?: (id: number) => void;
@@ -191,6 +191,21 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                       <span className="font-medium text-sm">
                         {stats.totalMatchTime}h
                       </span>
+                    </div>
+                  </div>
+                )}
+                {stats.elo !== undefined && (
+                  <div className="text-left">
+                    <span className="text-xs text-gray-500 block">Rating</span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-sm text-indigo-700">
+                        {stats.elo}
+                      </span>
+                      {stats.isProvisional && (
+                        <span className="text-[8px] bg-amber-100 text-amber-700 px-1 py-0.2 rounded font-semibold">
+                          PROV
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}

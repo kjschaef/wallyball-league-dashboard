@@ -36,6 +36,10 @@ interface PlayerStats {
 
   actualWinPercentage?: number;
   lastGameDate?: string | null;
+
+  elo?: number;
+  isProvisional?: boolean;
+  careerGames?: number;
 }
 
 const getWinPercentageGradient = (percentage: number): string => {
@@ -160,29 +164,43 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
 
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-2 border`}>
-              <p className="text-[10px] font-medium text-gray-600 mb-0.5">Record</p>
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-sm font-bold text-emerald-600">
+          <div className="grid grid-cols-3 gap-1.5">
+            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`}>
+              <p className="text-[9px] font-medium text-gray-600 mb-0.5">Record</p>
+              <div className="flex items-center justify-center gap-0.5">
+                <span className="text-xs font-bold text-emerald-600">
                   {player.record.wins}
                 </span>
-                <span className="text-gray-400 text-xs">-</span>
-                <span className="text-sm font-bold text-rose-600">
+                <span className="text-gray-400 text-[10px]">-</span>
+                <span className="text-xs font-bold text-rose-600">
                   {player.record.losses}
                 </span>
               </div>
             </div>
 
-            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-2 border`}>
-              <p className="text-[10px] font-medium text-gray-600 mb-0.5">
+            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`}>
+              <p className="text-[9px] font-medium text-gray-600 mb-0.5">
                 Time
               </p>
-              <div className="text-center">
-                <span className="text-sm font-bold text-blue-600">
+              <div>
+                <span className="text-xs font-bold text-blue-600">
                   {player.totalPlayingTime}
                 </span>
-                <span className="text-[10px] text-gray-500 ml-0.5">h</span>
+                <span className="text-[9px] text-gray-500 ml-0.5">h</span>
+              </div>
+            </div>
+
+            <div className={`${isInactive ? 'bg-gray-200/50 border-gray-300' : 'bg-white/60 border-gray-100'} rounded-lg p-1.5 border text-center`} title={player.isProvisional ? "Provisional rating (< 10 games)" : "Career Elo Rating"}>
+              <p className="text-[9px] font-medium text-gray-600 mb-0.5">
+                Rating
+              </p>
+              <div>
+                <span className="text-xs font-bold text-indigo-700">
+                  {player.elo ?? 1500}
+                </span>
+                {player.isProvisional && (
+                  <span className="text-[8px] text-amber-600 ml-0.5 font-semibold">P</span>
+                )}
               </div>
             </div>
           </div>

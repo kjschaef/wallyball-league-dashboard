@@ -1002,4 +1002,51 @@ describe('/api/player-stats', () => {
       expect(data.error).toContain('Invalid season parameter');
     });
   });
+
+  describe('Career Elo ratings in player-stats API', () => {
+    it('should include elo, isProvisional, and careerGames in the response', async () => {
+      const mockPlayers = [
+        { id: 1, name: 'Alice', start_year: 2020, created_at: '2020-01-01' },
+        { id: 2, name: 'Bob', start_year: 2020, created_at: '2020-01-01' },
+      ];
+
+      const mockMatches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_one_player_two_id: null,
+          team_one_player_three_id: null,
+          team_two_player_one_id: 2,
+          team_two_player_two_id: null,
+          team_two_player_three_id: null,
+          team_one_games_won: 3,
+          team_two_games_won: 0,
+          date: '2023-01-01'
+        }
+      ];
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') return Promise.resolve(mockPlayers);
+        if (queryType === 'matches') return Promise.resolve(mockMatches);
+        return Promise.resolve([]);
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/player-stats');
+      const response = await GET(request);
+      const playerStats = await response.json();
+
+      const alice = playerStats.find((p: any) => p.name === 'Alice');
+      const bob = playerStats.find((p: any) => p.name === 'Bob');
+
+      expect(alice).toHaveProperty('elo');
+      expect(alice).toHaveProperty('isProvisional');
+      expect(alice).toHaveProperty('careerGames');
+
+      expect(alice.elo).toBeGreaterThan(1500);
+      expect(bob.elo).toBeLessThan(1500);
+      expect(alice.careerGames).toBe(3);
+      expect(alice.isProvisional).toBe(true); // < 10 games
+    });
+  });
 });
+
