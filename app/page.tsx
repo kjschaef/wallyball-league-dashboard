@@ -456,7 +456,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column: League Power Rankings */}
-        <div className={`lg:col-span-4 min-h-0 h-full flex flex-col ${mobileTab === 'elo' ? 'block' : 'hidden lg:block'}`}>
+        <div className={`lg:col-span-4 lg:h-0 lg:min-h-full min-h-0 flex flex-col ${mobileTab === 'elo' ? 'block' : 'hidden lg:block'}`}>
           <PowerRankings key={`power-${refreshKey}`} className="h-full min-h-0" />
         </div>
       </div>
