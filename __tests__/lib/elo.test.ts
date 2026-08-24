@@ -6,6 +6,8 @@ import {
   computeChronologicalElo,
   getSkillTier,
   computeWeeklyMovers,
+  computeAllMatchesEloDetails,
+  computePlayerEloTrajectories,
   INITIAL_ELO,
   PROVISIONAL_THRESHOLD
 } from '@/app/lib/elo';
@@ -224,6 +226,59 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(movers.biggestGainer?.delta).toBeGreaterThan(0);
       expect(movers.biggestFallen?.id).toBe(2);
       expect(movers.biggestFallen?.delta).toBeLessThan(0);
+    });
+  });
+
+  describe('computeAllMatchesEloDetails', () => {
+    it('computes pre-match ratings, deltas, and upset flags', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ];
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 2,
+          team_two_games_won: 1,
+          date: '2025-01-01',
+        },
+      ];
+
+      const detailsMap = computeAllMatchesEloDetails(players, matches);
+      expect(detailsMap.has(1)).toBe(true);
+      const details = detailsMap.get(1)!;
+      expect(details.teamOnePreAvg).toBe(1500);
+      expect(details.teamTwoPreAvg).toBe(1500);
+      expect(details.teamOneDelta).toBeGreaterThan(0);
+      expect(details.teamTwoDelta).toBeLessThan(0);
+      expect(typeof details.isUpset).toBe('boolean');
+    });
+  });
+
+  describe('computePlayerEloTrajectories', () => {
+    it('generates date-by-date player Elo history points', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ];
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 2,
+          team_two_games_won: 0,
+          date: '2025-01-01',
+        },
+      ];
+
+      const trajectories = computePlayerEloTrajectories(players, matches);
+      expect(trajectories.length).toBe(1);
+      expect(trajectories[0].date).toBe('2025-01-01');
+      expect(trajectories[0]['Alice']).toBeGreaterThan(1500);
+      expect(trajectories[0]['Bob']).toBeLessThan(1500);
     });
   });
 });
