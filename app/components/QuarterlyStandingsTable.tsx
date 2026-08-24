@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getPlayerThreshold } from '../lib/playerFiltering';
 
 interface StandingPlayer {
   id: number;
@@ -33,8 +34,11 @@ export function QuarterlyStandingsTable({ season, showAllPlayers = false }: Quar
         if (!res.ok) throw new Error('Failed to fetch season stats');
         const data: StandingPlayer[] = await res.json();
 
-        // Filter players who played in this season unless showAllPlayers is on
-        const filtered = (data || []).filter(p => showAllPlayers || (p.record?.totalGames ?? 0) > 0);
+        // Calculate threshold (50 games if any players meet it, else 1 unless showAllPlayers is on)
+        const threshold = getPlayerThreshold(data || [], showAllPlayers);
+
+        // Filter players who meet the threshold
+        const filtered = (data || []).filter(p => (p.record?.totalGames ?? 0) >= threshold);
 
         // Sort by win percentage descending, then total wins
         filtered.sort((a, b) => {
