@@ -18,7 +18,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Edit, Trash2, TrendingUp, Calendar } from "lucide-react";
+import { Edit, Trash2, TrendingUp, Calendar, ChevronDown, ChevronRight } from "lucide-react";
 import { useSeasonChampions } from "../hooks/useSeasonChampions";
 import { useAdmin } from "./AdminProvider";
 import { isPlayerActive } from "../lib/playerFiltering";
@@ -140,7 +140,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
         </div>
 
         <div className="space-y-2.5">
-          {/* Dual Hero Metrics: Win Rate & Career Elo */}
+          {/* Dual Hero Metrics: Win Rate & Power Ranking */}
           <div className="grid grid-cols-2 gap-2 p-2 bg-gray-50/70 rounded-lg border border-gray-100">
             {/* Win Percentage */}
             <div className="text-center">
@@ -160,8 +160,8 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
               </div>
             </div>
 
-            {/* Career Elo Rating */}
-            <div className="text-center" title={player.isProvisional ? "Provisional rating (< 10 career games)" : "Career Elo Rating"}>
+            {/* Power Ranking */}
+            <div className="text-center" title={player.isProvisional ? "Provisional rating (< 10 career games)" : "Power Ranking"}>
               <div className="flex items-center justify-center gap-1">
                 <span className="text-xl font-bold text-indigo-700 leading-none">
                   {player.elo ?? 1500}
@@ -172,7 +172,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
                   </span>
                 )}
               </div>
-              <p className="text-[10px] font-medium text-gray-500 mt-1">Career Elo</p>
+              <p className="text-[10px] font-medium text-gray-500 mt-1">Power Ranking</p>
               <div className="w-full bg-indigo-100 rounded-full h-1.5 mt-1 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500 ease-out"
@@ -240,6 +240,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
 export function PlayerCards() {
   const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isInactiveOpen, setIsInactiveOpen] = useState(false);
   const { requireAdmin } = useAdmin();
   const queryClient = useQueryClient();
   const authRequiredError = "AUTH_REQUIRED";
@@ -453,26 +454,43 @@ export function PlayerCards() {
 
       {/* Inactive Players Section */}
       {inactivePlayers.length > 0 && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-gray-700">Inactive Players</h2>
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+        <div className="space-y-4 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => setIsInactiveOpen(!isInactiveOpen)}
+            aria-expanded={isInactiveOpen}
+            className="flex items-center gap-3 text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg p-1 -ml-1 transition-colors"
+          >
+            {isInactiveOpen ? (
+              <ChevronDown className="h-5 w-5 text-gray-500 group-hover:text-gray-700 transition-colors" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-gray-700 transition-colors" />
+            )}
+            <h2 className="text-2xl font-bold text-gray-700 group-hover:text-gray-900 transition-colors">
+              Inactive Players
+            </h2>
+            <span className="text-sm font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+              {inactivePlayers.length}
+            </span>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
               Inactive &gt; 6 mos
             </span>
-          </div>
-          <div className="flex flex-wrap gap-4 justify-center sm:justify-start opacity-80">
-            {inactivePlayers.map((player) => (
-              <div key={player.id} className="w-full sm:w-[200px] flex-grow">
-                <PlayerCard
-                  player={player}
-                  onEdit={handleEditPlayer}
-                  onDelete={handleDeletePlayer}
-                  isInactive={true}
-                  championshipCount={championshipCounts.get(player.id) || 0}
-                />
-              </div>
-            ))}
-          </div>
+          </button>
+          {isInactiveOpen && (
+            <div className="flex flex-wrap gap-4 justify-center sm:justify-start opacity-80 pt-2">
+              {inactivePlayers.map((player) => (
+                <div key={player.id} className="w-full sm:w-[200px] flex-grow">
+                  <PlayerCard
+                    player={player}
+                    onEdit={handleEditPlayer}
+                    onDelete={handleDeletePlayer}
+                    isInactive={true}
+                    championshipCount={championshipCounts.get(player.id) || 0}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

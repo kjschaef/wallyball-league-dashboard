@@ -48,7 +48,7 @@ describe('PerformanceControls', () => {
     await screen.findByText('S2');
 
     // Metric toggle
-    const eloBtn = screen.getByText('Career Elo');
+    const eloBtn = screen.getByText('Power Ranking');
     fireEvent.click(eloBtn);
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ metric: 'elo' }));
 

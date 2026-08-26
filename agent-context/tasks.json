@@ -33,10 +33,11 @@
         "app/components/PowerRankings.tsx"
       ],
       "testCommands": [
-        "pnpm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayersPage.test.tsx"
+        "pnpm test -- __tests__/components/DashboardPage.test.tsx __tests__/components/PlayerCards.test.tsx __tests__/components/PlayersPage.test.tsx"
       ],
       "mappedTests": [
         "__tests__/components/DashboardPage.test.tsx",
+        "__tests__/components/PlayerCards.test.tsx",
         "__tests__/components/PlayersPage.test.tsx"
       ],
       "riskAreas": [
@@ -79,11 +80,12 @@
         "app/components/RecentMatches.tsx"
       ],
       "testCommands": [
-        "pnpm test -- __tests__/api/matches.test.ts __tests__/components/DashboardPage.test.tsx"
+        "pnpm test -- __tests__/api/matches.test.ts __tests__/components/DashboardPage.test.tsx __tests__/components/RecordMatchModal.test.tsx"
       ],
       "mappedTests": [
         "__tests__/api/matches.test.ts",
-        "__tests__/components/DashboardPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx",
+        "__tests__/components/RecordMatchModal.test.tsx"
       ],
       "riskAreas": [
         "Team slots are positional and support up to three players per side.",

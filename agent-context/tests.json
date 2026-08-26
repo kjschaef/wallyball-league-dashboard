@@ -133,6 +133,14 @@
       ]
     },
     {
+      "path": "__tests__/components/PlayerCards.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/AdminProvider.tsx",
+        "app/components/PlayerCards.tsx"
+      ]
+    },
+    {
       "path": "__tests__/components/PlayersPage.test.tsx",
       "kind": "test",
       "covers": [
@@ -152,6 +160,13 @@
       "kind": "test",
       "covers": [
         "app/components/QuarterlyStandingsTable.tsx"
+      ]
+    },
+    {
+      "path": "__tests__/components/RecordMatchModal.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/RecordMatchModal.tsx"
       ]
     },
     {
@@ -312,6 +327,7 @@
     "app/components/AdminProvider.tsx": [
       "__tests__/components/DashboardPage.test.tsx",
       "__tests__/components/GamesPage.test.tsx",
+      "__tests__/components/PlayerCards.test.tsx",
       "__tests__/components/PlayersPage.test.tsx"
     ],
     "app/components/AISummaryPanel.tsx": [
@@ -323,11 +339,17 @@
     "app/components/PerformanceTrend.tsx": [
       "app/components/__tests__/PerformanceTrend.test.tsx"
     ],
+    "app/components/PlayerCards.tsx": [
+      "__tests__/components/PlayerCards.test.tsx"
+    ],
     "app/components/PowerRankings.tsx": [
       "__tests__/components/PowerRankings.test.tsx"
     ],
     "app/components/QuarterlyStandingsTable.tsx": [
       "__tests__/components/QuarterlyStandingsTable.test.tsx"
+    ],
+    "app/components/RecordMatchModal.tsx": [
+      "__tests__/components/RecordMatchModal.test.tsx"
     ],
     "app/components/SeasonSelector.tsx": [
       "__tests__/components/SeasonSelector.test.tsx"
@@ -393,6 +415,7 @@
       "taskId": "player-crud",
       "tests": [
         "__tests__/components/DashboardPage.test.tsx",
+        "__tests__/components/PlayerCards.test.tsx",
         "__tests__/components/PlayersPage.test.tsx"
       ],
       "gaps": [
@@ -404,10 +427,10 @@
       "taskId": "match-recording",
       "tests": [
         "__tests__/api/matches.test.ts",
-        "__tests__/components/DashboardPage.test.tsx"
+        "__tests__/components/DashboardPage.test.tsx",
+        "__tests__/components/RecordMatchModal.test.tsx"
       ],
       "gaps": [
-        "app/components/RecordMatchModal.tsx",
         "db/schema.ts"
       ]
     },

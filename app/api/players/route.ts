@@ -54,6 +54,9 @@ export async function GET() {
       const totalGames = processedMatches.reduce((total, match) => 
         total + match.teamOneGamesWon + match.teamTwoGamesWon, 0
       );
+      const lastGameDate = processedMatches.length > 0
+        ? new Date(Math.max(...processedMatches.map(m => new Date(m.date).getTime()))).toISOString()
+        : null;
       
       return {
         id: player.id,
@@ -61,6 +64,7 @@ export async function GET() {
         startYear: player.start_year,
         createdAt: player.created_at ? new Date(player.created_at).toISOString() : null,
         matches: processedMatches,
+        lastGameDate,
         stats: {
           won,
           lost,
@@ -117,6 +121,7 @@ export async function POST(request: Request) {
       startYear: newPlayer.start_year,
       createdAt: new Date(newPlayer.created_at).toISOString(),
       matches: [],
+      lastGameDate: null,
       stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
     };
     

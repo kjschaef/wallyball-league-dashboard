@@ -430,7 +430,7 @@ export default function DashboardPage() {
               : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          ⚡ Power Rankings (Elo)
+          ⚡ Power Rankings
         </button>
       </div>
 

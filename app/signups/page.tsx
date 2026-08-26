@@ -16,6 +16,8 @@ import {
 interface Player {
   id: number;
   name: string;
+  lastGameDate?: string | null;
+  matches?: Array<{ date: string }>;
 }
 
 interface Signup {

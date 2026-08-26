@@ -91,6 +91,7 @@ describe('/api/players', () => {
       expect(data).toHaveLength(2);
 
       const alice = data.find((p: any) => p.name === 'Alice');
+      expect(alice.lastGameDate).toBe('2024-01-02T00:00:00.000Z');
       expect(alice.stats).toEqual({
         won: 1,
         lost: 0,
@@ -98,6 +99,7 @@ describe('/api/players', () => {
       });
 
       const bob = data.find((p: any) => p.name === 'Bob');
+      expect(bob.lastGameDate).toBe('2024-01-02T00:00:00.000Z');
       expect(bob.stats).toEqual({
         won: 0,
         lost: 1,
@@ -152,6 +154,7 @@ describe('/api/players', () => {
         startYear: 2024,
         createdAt: '2024-02-01T00:00:00.000Z',
         matches: [],
+        lastGameDate: null,
         stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
       });
     });
