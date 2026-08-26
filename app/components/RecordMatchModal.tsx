@@ -160,7 +160,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
   const [teamTwoPlayers, setTeamTwoPlayers] = useState<number[]>([]);
   const [teamOneGamesWon, setTeamOneGamesWon] = useState(0);
   const [teamTwoGamesWon, setTeamTwoGamesWon] = useState(0);
-  const [enableGameScores, setEnableGameScores] = useState(false);
+  const [enableGameScores, setEnableGameScores] = useState(true);
   const [gameScores, setGameScores] = useState<GameScoreInput[]>([
     { gameNumber: 1, teamOneScore: 11, teamTwoScore: 0 },
     { gameNumber: 2, teamOneScore: 0, teamTwoScore: 11 },
@@ -265,7 +265,7 @@ export function RecordMatchModal({ isOpen, onClose, onSubmit, suggestedTeams, pr
     setTeamTwoPlayers([]);
     setTeamOneGamesWon(0);
     setTeamTwoGamesWon(0);
-    setEnableGameScores(false);
+    setEnableGameScores(true);
     setGameScores([
       { gameNumber: 1, teamOneScore: 11, teamTwoScore: 0 },
       { gameNumber: 2, teamOneScore: 0, teamTwoScore: 11 },

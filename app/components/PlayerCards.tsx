@@ -140,7 +140,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
         </div>
 
         <div className="space-y-2.5">
-          {/* Dual Hero Metrics: Win Rate & Career Elo */}
+          {/* Dual Hero Metrics: Win Rate & Power Ranking */}
           <div className="grid grid-cols-2 gap-2 p-2 bg-gray-50/70 rounded-lg border border-gray-100">
             {/* Win Percentage */}
             <div className="text-center">
@@ -160,8 +160,8 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
               </div>
             </div>
 
-            {/* Career Elo Rating */}
-            <div className="text-center" title={player.isProvisional ? "Provisional rating (< 10 career games)" : "Career Elo Rating"}>
+            {/* Power Ranking */}
+            <div className="text-center" title={player.isProvisional ? "Provisional rating (< 10 career games)" : "Power Ranking"}>
               <div className="flex items-center justify-center gap-1">
                 <span className="text-xl font-bold text-indigo-700 leading-none">
                   {player.elo ?? 1500}
@@ -172,7 +172,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
                   </span>
                 )}
               </div>
-              <p className="text-[10px] font-medium text-gray-500 mt-1">Career Elo</p>
+              <p className="text-[10px] font-medium text-gray-500 mt-1">Power Ranking</p>
               <div className="w-full bg-indigo-100 rounded-full h-1.5 mt-1 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500 ease-out"

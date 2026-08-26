@@ -19,6 +19,22 @@ test.describe('Match Recording Flow', () => {
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
 
+    // Expand inactive players if no active players
+    const inactiveToggle = teamOneSection.getByRole('button', { name: /Inactive Players/i });
+    if (await inactiveToggle.isVisible()) {
+      const activeCount = await teamOneSection.locator('.grid.grid-cols-3 button').count();
+      if (activeCount === 0) {
+        await inactiveToggle.click();
+      }
+    }
+    const teamTwoInactiveToggle = teamTwoSection.getByRole('button', { name: /Inactive Players/i });
+    if (await teamTwoInactiveToggle.isVisible()) {
+      const activeCount = await teamTwoSection.locator('.grid.grid-cols-3 button').count();
+      if (activeCount === 0) {
+        await teamTwoInactiveToggle.click();
+      }
+    }
+
     // Wait for player buttons to render in Team One
     const teamOneButtons = teamOneSection.locator('.grid.grid-cols-3 button');
     await expect(teamOneButtons.first()).toBeVisible({ timeout: 10000 });
@@ -31,13 +47,6 @@ test.describe('Match Recording Flow', () => {
     const teamTwoButtons = teamTwoSection.locator('.grid.grid-cols-3 button');
     await teamTwoButtons.nth(2).click();
     await teamTwoButtons.nth(3).click();
-
-    // Verify inactive players collapsible section exists
-    const inactiveToggle = teamOneSection.getByRole('button', { name: /Inactive Players/i });
-    if (await inactiveToggle.isVisible()) {
-      await inactiveToggle.click();
-      await expect(inactiveToggle).toHaveAttribute('aria-expanded', 'true');
-    }
 
     // 5. Set scores (Team One wins 3-1)
     //    The modal has mobile (md:hidden) and desktop (hidden md:grid) score controls
@@ -78,6 +87,22 @@ test.describe('Match Recording Flow', () => {
 
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
+
+    // Expand inactive players if no active players
+    const inactiveToggle = teamOneSection.getByRole('button', { name: /Inactive Players/i });
+    if (await inactiveToggle.isVisible()) {
+      const activeCount = await teamOneSection.locator('.grid.grid-cols-3 button').count();
+      if (activeCount === 0) {
+        await inactiveToggle.click();
+      }
+    }
+    const teamTwoInactiveToggle = teamTwoSection.getByRole('button', { name: /Inactive Players/i });
+    if (await teamTwoInactiveToggle.isVisible()) {
+      const activeCount = await teamTwoSection.locator('.grid.grid-cols-3 button').count();
+      if (activeCount === 0) {
+        await teamTwoInactiveToggle.click();
+      }
+    }
 
     const teamOneButtons = teamOneSection.locator('.grid.grid-cols-3 button');
     await expect(teamOneButtons.first()).toBeVisible({ timeout: 10000 });
@@ -144,6 +169,22 @@ test.describe('Match Recording Flow', () => {
 
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
+
+    // Expand inactive players if no active players
+    const inactiveToggle = teamOneSection.getByRole('button', { name: /Inactive Players/i });
+    if (await inactiveToggle.isVisible()) {
+      const activeCount = await teamOneSection.locator('.grid.grid-cols-3 button').count();
+      if (activeCount === 0) {
+        await inactiveToggle.click();
+      }
+    }
+    const teamTwoInactiveToggle = teamTwoSection.getByRole('button', { name: /Inactive Players/i });
+    if (await teamTwoInactiveToggle.isVisible()) {
+      const activeCount = await teamTwoSection.locator('.grid.grid-cols-3 button').count();
+      if (activeCount === 0) {
+        await teamTwoInactiveToggle.click();
+      }
+    }
 
     const teamOneButtons = teamOneSection.locator('.grid.grid-cols-3 button');
     await expect(teamOneButtons.first()).toBeVisible({ timeout: 10000 });

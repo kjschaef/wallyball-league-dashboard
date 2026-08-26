@@ -175,7 +175,7 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Skill Rating (Career Elo)
+            Power Ranking
           </button>
         </div>
       </div>
@@ -233,7 +233,7 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
                 <div className="text-right flex-shrink-0">
                   {rankingMetric === 'elo' ? (
                     <div className="text-sm font-bold text-indigo-700">
-                      {player.elo} <span className="text-[10px] font-normal text-gray-500">Elo</span>
+                      {player.elo} <span className="text-[10px] font-normal text-gray-500">Power Ranking</span>
                     </div>
                   ) : (
                     <div className="text-sm font-bold text-gray-900">

@@ -116,7 +116,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                 <div className="flex items-center gap-2.5">
                   {elo?.isUpset && (
                     <span
-                      title="Upset victory: The underdog team with a lower pre-match average Elo won this match!"
+                      title="Upset victory: The underdog team with a lower pre-match average Power Ranking won this match!"
                       className="hidden sm:inline-flex items-center text-[10px] font-extrabold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full border border-rose-200 cursor-help"
                     >
                       🔥 UPSET
@@ -125,11 +125,11 @@ export function GameHistory({ games }: GameHistoryProps) {
 
                   {winningDelta !== null && (
                     <span
-                      title={`Match Rating Impact: Winner gained ${winningDelta > 0 ? `+${winningDelta}` : winningDelta} Elo based on pre-match team averages (${elo?.teamOnePreAvg} vs ${elo?.teamTwoPreAvg})`}
+                      title={`Match Rating Impact: Winner gained ${winningDelta > 0 ? `+${winningDelta}` : winningDelta} Power Ranking based on pre-match team averages (${elo?.teamOnePreAvg} vs ${elo?.teamTwoPreAvg})`}
                       className="hidden md:inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/90 px-2.5 py-0.5 rounded-md cursor-help"
                     >
                       <span className="text-[10px] text-indigo-400 font-semibold uppercase">Winner:</span>
-                      {winningDelta > 0 ? `+${winningDelta}` : winningDelta} Elo
+                      {winningDelta > 0 ? `+${winningDelta}` : winningDelta} Power Ranking
                     </span>
                   )}
 
@@ -172,7 +172,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                       <div className="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 space-y-2">
                         <div className="flex items-center justify-between flex-wrap gap-1">
                           <h5 className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
-                            <span>⚡ Rating Impact (Elo)</span>
+                            <span>⚡ Power Ranking Impact</span>
                             {elo.isUpset && (
                               <span className="text-[10px] bg-rose-100 text-rose-700 font-extrabold px-1.5 py-0.2 rounded-full border border-rose-200">
                                 🔥 UPSET
@@ -187,13 +187,13 @@ export function GameHistory({ games }: GameHistoryProps) {
                           <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
                             <span className="font-semibold text-gray-700">Team 1 ({elo.teamOnePreAvg} Avg)</span>
                             <span className={`font-bold ${elo.teamOneDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Elo
+                              {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Power Ranking
                             </span>
                           </div>
                           <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
                             <span className="font-semibold text-gray-700">Team 2 ({elo.teamTwoPreAvg} Avg)</span>
                             <span className={`font-bold ${elo.teamTwoDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Elo
+                              {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Power Ranking
                             </span>
                           </div>
                         </div>

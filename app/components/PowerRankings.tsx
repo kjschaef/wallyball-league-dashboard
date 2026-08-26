@@ -132,7 +132,7 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <span>⚡ League Power Rankings</span>
             </h2>
-            <p className="text-xs text-gray-500">All-Time Career Elo & Skill Tiers</p>
+            <p className="text-xs text-gray-500">All-Time Power Rankings & Skill Tiers</p>
           </div>
         </div>
 
@@ -179,7 +179,7 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
                       {elo}
                     </span>
                     <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider">
-                      Elo
+                      Power Ranking
                     </span>
                   </div>
                 </div>
@@ -210,7 +210,7 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
             </div>
             <div className="text-right">
               <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-white/80 px-2 py-0.5 rounded-md border border-emerald-200">
-                +{weeklyMover.delta} Elo
+                +{weeklyMover.delta} Power Ranking
               </span>
             </div>
           </div>
@@ -255,7 +255,7 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
 
                   <div className="text-right">
                     <span className="text-sm font-bold text-indigo-700">{elo}</span>
-                    <span className="text-[10px] text-gray-400 ml-1">Elo</span>
+                    <span className="text-[10px] text-gray-400 ml-1">Power Ranking</span>
                   </div>
                 </div>
               );

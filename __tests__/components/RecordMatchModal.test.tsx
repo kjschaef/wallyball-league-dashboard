@@ -63,4 +63,20 @@ describe('RecordMatchModal', () => {
 
     expect(inactiveCharlieBtns[0]).toHaveAttribute('aria-pressed', 'true');
   });
+
+  it('defaults the log game scores toggle to ON', async () => {
+    await act(async () => {
+      render(
+        <RecordMatchModal
+          isOpen={true}
+          onClose={mockClose}
+          onSubmit={mockSubmit}
+        />
+      );
+    });
+
+    const toggle = screen.getByRole('switch');
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByText('Game Scores')).toBeInTheDocument();
+  });
 });

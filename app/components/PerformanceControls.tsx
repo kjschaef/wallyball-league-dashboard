@@ -100,7 +100,7 @@ export function PerformanceControls({ season, metric, compare, showAllPlayers = 
               onClick={() => onChange({ metric: 'elo' })}
               className={`px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:z-10 rounded-r-md transition-colors ${metric === 'elo' ? 'bg-gray-900 text-white border-gray-900' : 'bg-transparent text-gray-700 border-transparent hover:bg-gray-200'}`}
             >
-              Career Elo
+              Power Ranking
             </button>
           </div>
         </div>

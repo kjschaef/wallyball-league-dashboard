@@ -165,7 +165,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
         </AlertDialog>
 
         <div className="space-y-2">
-          {/* Dual Metrics: Win Rate & Elo Rating */}
+          {/* Dual Metrics: Win Rate & Power Ranking */}
           <div className="grid grid-cols-2 gap-2 p-2 bg-gray-50/80 rounded-lg border border-gray-100">
             <div className="text-center">
               <span className={`text-lg font-bold ${winRate > 53 ? 'text-green-600' :
@@ -184,7 +184,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               </div>
             </div>
 
-            <div className="text-center" title={stats.isProvisional ? "Provisional rating (< 10 career games)" : "Career Elo Rating"}>
+            <div className="text-center" title={stats.isProvisional ? "Provisional rating (< 10 career games)" : "Power Ranking"}>
               <div className="flex items-center justify-center gap-1">
                 <span className="text-lg font-bold text-indigo-700">
                   {stats.elo ?? 1500}
@@ -195,7 +195,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] text-gray-500 block">Career Elo</span>
+              <span className="text-[10px] text-gray-500 block">Power Ranking</span>
               <div className="w-full bg-indigo-100 mt-1 rounded-full h-1">
                 <div
                   className="h-1 rounded-full bg-indigo-600"

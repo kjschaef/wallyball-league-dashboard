@@ -14,7 +14,7 @@ export function formatTooltip(
   }
 
   if (metric === 'elo') {
-    return [`${Math.round(value)} Elo`, name];
+    return [`${Math.round(value)} Power Ranking`, name];
   }
 
   return [formattedValue, name];
