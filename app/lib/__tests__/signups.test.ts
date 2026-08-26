@@ -177,6 +177,27 @@ describe('getNoResponsePlayers', () => {
     const noResponse = getNoResponsePlayers(players, signups, unavailable, ['2026-01-19', '2026-01-20'], '2026-01-18');
     expect(noResponse.map((p) => p.name)).toEqual(['Alice', 'Bob', 'Charlie', 'Dave']);
   });
+
+  it('filters out inactive players (played > 6 months ago or never played)', () => {
+    const refDate = new Date('2026-08-25T12:00:00.000Z');
+    const mixedPlayers = [
+      { id: 1, name: 'Active Alice', lastGameDate: '2026-08-01T00:00:00.000Z' },
+      { id: 2, name: 'Inactive Bob', lastGameDate: '2025-12-01T00:00:00.000Z' }, // > 6 mos
+      { id: 3, name: 'Never Played Charlie', lastGameDate: null },
+      { id: 4, name: 'Active Dave', lastGameDate: '2026-07-15T00:00:00.000Z' },
+    ];
+
+    const noResponse = getNoResponsePlayers(
+      mixedPlayers,
+      [],
+      [],
+      ['2026-08-26', '2026-08-27'],
+      '2026-08-24',
+      refDate
+    );
+
+    expect(noResponse.map((p) => p.name)).toEqual(['Active Alice', 'Active Dave']);
+  });
 });
 
 describe('formatSignupExport', () => {

@@ -1,4 +1,5 @@
 import { addDays, format } from 'date-fns';
+import { isPlayerActive } from './playerFiltering';
 
 export interface SignupSettings {
   signupOpenDayOfWeek: number;
@@ -193,6 +194,8 @@ export function isDateInSignupWeek(
 export interface PlayerLike {
   id: number;
   name: string;
+  lastGameDate?: string | null;
+  matches?: Array<{ date: string }>;
 }
 
 export interface SignupLike {
@@ -216,6 +219,7 @@ export function getNoResponsePlayers<T extends PlayerLike>(
   unavailablePlayers: UnavailableLike[],
   weekDates: string[],
   weekStart: string,
+  referenceDate?: Date,
 ): T[] {
   const dateSet = new Set(weekDates);
   const respondedPlayerIds = new Set<number>();
@@ -233,7 +237,20 @@ export function getNoResponsePlayers<T extends PlayerLike>(
   }
 
   return players
-    .filter((p) => !respondedPlayerIds.has(p.id))
+    .filter((p) => {
+      if (respondedPlayerIds.has(p.id)) return false;
+      if (p.lastGameDate !== undefined) {
+        return isPlayerActive(p.lastGameDate, referenceDate);
+      }
+      if (p.matches && p.matches.length > 0) {
+        const latest = new Date(Math.max(...p.matches.map((m) => new Date(m.date).getTime()))).toISOString();
+        return isPlayerActive(latest, referenceDate);
+      }
+      if (p.matches && p.matches.length === 0) {
+        return false;
+      }
+      return true;
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 

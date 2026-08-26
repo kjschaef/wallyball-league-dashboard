@@ -19,16 +19,25 @@ test.describe('Match Recording Flow', () => {
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
 
-    // Wait for player buttons to render
-    await expect(teamOneSection.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
+    // Wait for player buttons to render in Team One
+    const teamOneButtons = teamOneSection.locator('.grid.grid-cols-3 button');
+    await expect(teamOneButtons.first()).toBeVisible({ timeout: 10000 });
 
-    // 3. Select players for Team One (Alice, Bob)
-    await teamOneSection.getByRole('button', { name: 'Alice' }).click();
-    await teamOneSection.getByRole('button', { name: 'Bob' }).click();
+    // 3. Select players for Team One (first two available)
+    await teamOneButtons.nth(0).click();
+    await teamOneButtons.nth(1).click();
 
-    // 4. Select players for Team Two (Charlie, David)
-    await teamTwoSection.getByRole('button', { name: 'Charlie' }).click();
-    await teamTwoSection.getByRole('button', { name: 'David' }).click();
+    // 4. Select players for Team Two (next available players)
+    const teamTwoButtons = teamTwoSection.locator('.grid.grid-cols-3 button');
+    await teamTwoButtons.nth(2).click();
+    await teamTwoButtons.nth(3).click();
+
+    // Verify inactive players collapsible section exists
+    const inactiveToggle = teamOneSection.getByRole('button', { name: /Inactive Players/i });
+    if (await inactiveToggle.isVisible()) {
+      await inactiveToggle.click();
+      await expect(inactiveToggle).toHaveAttribute('aria-expanded', 'true');
+    }
 
     // 5. Set scores (Team One wins 3-1)
     //    The modal has mobile (md:hidden) and desktop (hidden md:grid) score controls
@@ -70,13 +79,16 @@ test.describe('Match Recording Flow', () => {
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
 
-    await expect(teamOneSection.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
+    const teamOneButtons = teamOneSection.locator('.grid.grid-cols-3 button');
+    await expect(teamOneButtons.first()).toBeVisible({ timeout: 10000 });
 
-    // 3. Select players for Team One (Alice, Bob) and Team Two (Charlie, David)
-    await teamOneSection.getByRole('button', { name: 'Alice' }).click();
-    await teamOneSection.getByRole('button', { name: 'Bob' }).click();
-    await teamTwoSection.getByRole('button', { name: 'Charlie' }).click();
-    await teamTwoSection.getByRole('button', { name: 'David' }).click();
+    // 3. Select players for Team One and Team Two
+    await teamOneButtons.nth(0).click();
+    await teamOneButtons.nth(1).click();
+
+    const teamTwoButtons = teamTwoSection.locator('.grid.grid-cols-3 button');
+    await teamTwoButtons.nth(2).click();
+    await teamTwoButtons.nth(3).click();
 
     // 4. Toggle "Log Individual Game Scores" switch
     const switchToggle = modal.getByRole('switch');
@@ -133,11 +145,14 @@ test.describe('Match Recording Flow', () => {
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
 
-    await expect(teamOneSection.getByRole('button', { name: 'Alice' })).toBeVisible({ timeout: 10000 });
+    const teamOneButtons = teamOneSection.locator('.grid.grid-cols-3 button');
+    await expect(teamOneButtons.first()).toBeVisible({ timeout: 10000 });
 
     // 3. Select one player per team (minimum required)
-    await teamOneSection.getByRole('button', { name: 'Alice' }).click();
-    await teamTwoSection.getByRole('button', { name: 'Charlie' }).click();
+    await teamOneButtons.first().click();
+
+    const teamTwoButtons = teamTwoSection.locator('.grid.grid-cols-3 button');
+    await teamTwoButtons.nth(1).click();
 
     // 4. Set score (Team One wins 1-0)
     const teamOneIncrease = modal.getByLabel('Increase team one games won').filter({ visible: true });

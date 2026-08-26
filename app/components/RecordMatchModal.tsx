@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Plus, Minus, Calendar as CalendarIcon, Loader2, Trash2 } from "lucide-react";
+import { X, Plus, Minus, Calendar as CalendarIcon, Loader2, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { isPlayerActive } from "../lib/playerFiltering";
 
 interface Player {
   id: number;
   name: string;
+  lastGameDate?: string | null;
+  matches?: Array<{ won: boolean; date: string }>;
 }
 
 export interface GameScoreInput {
@@ -48,12 +51,71 @@ interface PlayerGridProps {
 }
 
 function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, title, disabledPlayers = [] }: PlayerGridProps) {
+  const [isInactiveOpen, setIsInactiveOpen] = useState(false);
+
   const handlePlayerClick = (playerId: number) => {
     if (selectedPlayers.includes(playerId)) {
       onPlayerToggle(playerId);
     } else if (selectedPlayers.length < maxPlayers && !disabledPlayers.includes(playerId)) {
       onPlayerToggle(playerId);
     }
+  };
+
+  const activePlayers = players.filter((player) => {
+    if (player.lastGameDate !== undefined) {
+      return isPlayerActive(player.lastGameDate);
+    }
+    if (player.matches && player.matches.length > 0) {
+      const latest = new Date(Math.max(...player.matches.map((m) => new Date(m.date).getTime()))).toISOString();
+      return isPlayerActive(latest);
+    }
+    if (player.matches && player.matches.length === 0) {
+      return false;
+    }
+    return true;
+  });
+
+  const inactivePlayers = players.filter((player) => {
+    if (player.lastGameDate !== undefined) {
+      return !isPlayerActive(player.lastGameDate);
+    }
+    if (player.matches && player.matches.length > 0) {
+      const latest = new Date(Math.max(...player.matches.map((m) => new Date(m.date).getTime()))).toISOString();
+      return !isPlayerActive(latest);
+    }
+    if (player.matches && player.matches.length === 0) {
+      return true;
+    }
+    return false;
+  });
+
+  const renderPlayerButton = (player: Player) => {
+    const isSelected = selectedPlayers.includes(player.id);
+    const isDisabled = disabledPlayers.includes(player.id);
+    const canSelect = (selectedPlayers.length < maxPlayers || isSelected) && !isDisabled;
+    
+    return (
+      <button
+        key={player.id}
+        type="button"
+        aria-pressed={isSelected}
+        onClick={() => handlePlayerClick(player.id)}
+        disabled={!canSelect}
+        className={`
+          px-3 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1
+          ${isSelected 
+            ? 'bg-blue-500 text-white' 
+            : isDisabled
+              ? 'bg-red-100 text-red-400 cursor-not-allowed'
+              : canSelect 
+                ? 'bg-gray-100 text-gray-900 hover:bg-gray-200' 
+                : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+          }
+        `}
+      >
+        {player.name}
+      </button>
+    );
   };
 
   return (
@@ -63,35 +125,31 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
         <p className="text-sm text-gray-600">Players (up to {maxPlayers})</p>
       </div>
       <div className="grid grid-cols-3 gap-2">
-        {players.map((player) => {
-          const isSelected = selectedPlayers.includes(player.id);
-          const isDisabled = disabledPlayers.includes(player.id);
-          const canSelect = (selectedPlayers.length < maxPlayers || isSelected) && !isDisabled;
-          
-          return (
-            <button
-              key={player.id}
-              type="button"
-              aria-pressed={isSelected}
-              onClick={() => handlePlayerClick(player.id)}
-              disabled={!canSelect}
-              className={`
-                px-3 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1
-                ${isSelected 
-                  ? 'bg-blue-500 text-white' 
-                  : isDisabled
-                    ? 'bg-red-100 text-red-400 cursor-not-allowed'
-                    : canSelect 
-                      ? 'bg-gray-100 text-gray-900 hover:bg-gray-200' 
-                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                }
-              `}
-            >
-              {player.name}
-            </button>
-          );
-        })}
+        {activePlayers.map(renderPlayerButton)}
       </div>
+
+      {inactivePlayers.length > 0 && (
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setIsInactiveOpen(!isInactiveOpen)}
+            aria-expanded={isInactiveOpen}
+            className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 py-1 transition-colors"
+          >
+            {isInactiveOpen ? (
+              <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+            )}
+            <span>Inactive Players ({inactivePlayers.length})</span>
+          </button>
+          {isInactiveOpen && (
+            <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-gray-100">
+              {inactivePlayers.map(renderPlayerButton)}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

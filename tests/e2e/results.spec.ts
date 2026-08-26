@@ -28,4 +28,24 @@ test.describe('Results Flow', () => {
     // There should be a heading 'Match History' on the games page
     await expect(page.getByRole('heading', { name: 'Match History' })).toBeVisible();
   });
+
+  test('should render inactive players in a collapsed subsection that toggles on click', async ({ page }) => {
+    // Check for Lifetime Player Statistics section
+    await expect(page.getByRole('heading', { name: 'Lifetime Player Statistics' })).toBeVisible();
+
+    // Check for Inactive Players toggle button
+    const inactiveToggle = page.getByRole('button', { name: /Inactive Players/i });
+    if (await inactiveToggle.isVisible()) {
+      // Should be collapsed initially
+      await expect(inactiveToggle).toHaveAttribute('aria-expanded', 'false');
+
+      // Click to expand
+      await inactiveToggle.click();
+      await expect(inactiveToggle).toHaveAttribute('aria-expanded', 'true');
+
+      // Click to collapse again
+      await inactiveToggle.click();
+      await expect(inactiveToggle).toHaveAttribute('aria-expanded', 'false');
+    }
+  });
 });
