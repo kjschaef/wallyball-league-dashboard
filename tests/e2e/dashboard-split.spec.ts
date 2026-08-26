@@ -15,7 +15,7 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
     // Verify Right Column: League Power Rankings panel
     const powerRankingsPanel = page.getByText(/League Power Rankings/i);
     await expect(powerRankingsPanel).toBeVisible();
-    await expect(page.getByText(/Career Elo & Skill Tiers/i)).toBeVisible();
+    await expect(page.getByText(/All-Time Power Rankings/i)).toBeVisible();
 
     // Verify Podium Medals exist
     await expect(page.getByText('#1', { exact: true })).toBeVisible();
@@ -31,8 +31,8 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
       expect(Math.abs(leftBox.height - rightBox.height)).toBeLessThanOrEqual(5);
     }
 
-    // Verify Chart metric toggle to Career Elo
-    const eloBtn = page.getByRole('button', { name: 'Career Elo', exact: true });
+    // Verify Chart metric toggle to Power Ranking
+    const eloBtn = page.getByRole('button', { name: 'Power Ranking', exact: true });
     await expect(eloBtn).toBeVisible();
     await eloBtn.click();
     await expect(eloBtn).toHaveAttribute('aria-pressed', 'true');
@@ -54,7 +54,7 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
 
     // Switch to Power Rankings tab
     await eloTab.click();
-    await expect(page.getByText(/Career Elo & Skill Tiers/i)).toBeVisible();
+    await expect(page.getByText(/All-Time Power Rankings/i)).toBeVisible();
 
     // Switch back to Season Race tab
     await seasonTab.click();

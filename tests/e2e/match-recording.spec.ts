@@ -48,10 +48,9 @@ test.describe('Match Recording Flow', () => {
     await teamTwoButtons.nth(2).click();
     await teamTwoButtons.nth(3).click();
 
-    // 5. Set scores (Team One wins 3-1)
-    //    The modal has mobile (md:hidden) and desktop (hidden md:grid) score controls
-    //    with identical aria-labels. Use .filter({ visible: true }) to target only
-    //    the controls visible at the current viewport (Desktop Chrome = 1280x720).
+    // 5. Toggle switch off to test simplified score counters (Team One wins 3-1)
+    await modal.getByRole('switch').click();
+
     const teamOneIncrease = modal.getByLabel('Increase team one games won').filter({ visible: true });
     const teamTwoIncrease = modal.getByLabel('Increase team two games won').filter({ visible: true });
 
@@ -115,10 +114,10 @@ test.describe('Match Recording Flow', () => {
     await teamTwoButtons.nth(2).click();
     await teamTwoButtons.nth(3).click();
 
-    // 4. Toggle "Log Individual Game Scores" switch
+    // 4. Verify "Log Individual Game Scores" switch is ON by default
     const switchToggle = modal.getByRole('switch');
     await expect(switchToggle).toBeVisible();
-    await switchToggle.click();
+    await expect(switchToggle).toHaveAttribute('aria-checked', 'true');
 
     // 5. Verify game scores inputs appear
     await expect(modal.getByRole('heading', { name: 'Game Scores' })).toBeVisible();
@@ -195,7 +194,8 @@ test.describe('Match Recording Flow', () => {
     const teamTwoButtons = teamTwoSection.locator('.grid.grid-cols-3 button');
     await teamTwoButtons.nth(1).click();
 
-    // 4. Set score (Team One wins 1-0)
+    // 4. Toggle switch off and set score (Team One wins 1-0)
+    await modal.getByRole('switch').click();
     const teamOneIncrease = modal.getByLabel('Increase team one games won').filter({ visible: true });
     await teamOneIncrease.click();
 
