@@ -7,6 +7,7 @@ import {
   getSkillTier,
   computeWeeklyMovers,
   computeAllMatchesEloDetails,
+  computePlayerRecentDeltas,
   computePlayerEloTrajectories,
   INITIAL_ELO,
   PROVISIONAL_THRESHOLD
@@ -259,6 +260,65 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(details.teamTwoDelta).toBeLessThan(0);
       expect(typeof details.isUpset).toBe('boolean');
       expect(details.expectedT1WinRate).toBe(0.5);
+      expect(details.hasScoredGames).toBe(false);
+      expect(details.averageMarginMultiplier).toBe(1.0);
+      expect(details.gameBreakdowns.length).toBe(3);
+    });
+
+    it('populates gameBreakdowns and multipliers for scored matches', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ];
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 2,
+          team_two_games_won: 0,
+          date: '2025-01-01',
+          gameScores: [
+            { gameNumber: 1, teamOneScore: 21, teamTwoScore: 11 },
+            { gameNumber: 2, teamOneScore: 21, teamTwoScore: 19 },
+          ],
+        },
+      ];
+
+      const detailsMap = computeAllMatchesEloDetails(players, matches);
+      const details = detailsMap.get(1)!;
+      expect(details.hasScoredGames).toBe(true);
+      expect(details.averageMarginMultiplier).toBeGreaterThan(1.0);
+      expect(details.gameBreakdowns[0].margin).toBe(10);
+      expect(details.gameBreakdowns[0].multiplier).toBeGreaterThan(1.5);
+      expect(details.gameBreakdowns[1].margin).toBe(2);
+      expect(details.gameBreakdowns[1].multiplier).toBeLessThan(details.gameBreakdowns[0].multiplier);
+    });
+  });
+
+  describe('computePlayerRecentDeltas', () => {
+    it('calculates recent session deltas for active players', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ];
+      const today = new Date().toISOString();
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 2,
+          team_two_games_won: 0,
+          date: today,
+        },
+      ];
+
+      const deltas = computePlayerRecentDeltas(players, matches);
+      expect(deltas.has(1)).toBe(true);
+      expect(deltas.get(1)).toBeGreaterThan(0);
+      expect(deltas.has(2)).toBe(true);
+      expect(deltas.get(2)).toBeLessThan(0);
     });
   });
 

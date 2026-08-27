@@ -24,6 +24,17 @@ export interface MatchHistoryItem {
     teamTwoDelta: number;
     isUpset: boolean;
     expectedT1WinRate: number;
+    hasScoredGames?: boolean;
+    averageMarginMultiplier?: number;
+    gameBreakdowns?: Array<{
+      gameNumber: number;
+      isScored: boolean;
+      teamOneScore?: number;
+      teamTwoScore?: number;
+      margin: number;
+      multiplier: number;
+      t1Won: boolean;
+    }>;
   } | null;
 }
 
@@ -69,7 +80,7 @@ export function GameHistory({ games }: GameHistoryProps) {
       ) : (
         games.map((game) => {
           const winningTeam = getWinningTeam(game);
-          const hasGameScores = game.gameScores && game.gameScores.length > 0;
+          const hasGameScores = (game.gameScores && game.gameScores.length > 0) || !!game.eloDetails?.hasScoredGames;
           const elo = game.eloDetails;
           const winningDelta = elo ? (winningTeam === 'teamOne' ? elo.teamOneDelta : elo.teamTwoDelta) : null;
           
@@ -133,9 +144,9 @@ export function GameHistory({ games }: GameHistoryProps) {
                     </span>
                   )}
 
-                  {hasGameScores && (
+                  {hasGameScores && game.gameScores && game.gameScores.length > 0 && (
                     <span className="hidden lg:inline-block text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      {game.gameScores!.map(gs => `${gs.teamOneScore}-${gs.teamTwoScore}`).join(', ')}
+                      {game.gameScores.map(gs => `${gs.teamOneScore}-${gs.teamTwoScore}`).join(', ')}
                     </span>
                   )}
 
@@ -167,22 +178,37 @@ export function GameHistory({ games }: GameHistoryProps) {
                       ? Math.round(elo.expectedT1WinRate * 100)
                       : Math.round(elo.expectedT1WinRate);
                     const t2Odds = Math.max(0, Math.min(100, 100 - t1Odds));
+                    const isScored = hasGameScores && (elo.hasScoredGames ?? true);
+                    const avgMultiplier = elo.averageMarginMultiplier ?? (isScored ? 1.4 : 1.0);
 
                     return (
-                      <div className="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 space-y-2">
-                        <div className="flex items-center justify-between flex-wrap gap-1">
+                      <div className="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 space-y-2.5">
+                        <div className="flex items-center justify-between flex-wrap gap-1.5">
                           <h5 className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
-                            <span>⚡ Power Ranking Impact</span>
+                            <span>⚡ Power Ranking Calculation Breakdown</span>
                             {elo.isUpset && (
                               <span className="text-[10px] bg-rose-100 text-rose-700 font-extrabold px-1.5 py-0.2 rounded-full border border-rose-200">
                                 🔥 UPSET
                               </span>
                             )}
                           </h5>
-                          <span className="text-[11px] text-indigo-600 font-medium">
-                            Win Odds: Team 1 ({t1Odds}%) • Team 2 ({t2Odds}%)
-                          </span>
+                          
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {isScored ? (
+                              <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200">
+                                📊 Scored Match ({avgMultiplier}x Margin Multiplier)
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full border border-gray-300">
+                                📝 Unscored Match (1.0x Baseline)
+                              </span>
+                            )}
+                            <span className="text-[11px] text-indigo-700 font-medium">
+                              Win Odds: Team 1 ({t1Odds}%) • Team 2 ({t2Odds}%)
+                            </span>
+                          </div>
                         </div>
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                           <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
                             <span className="font-semibold text-gray-700">Team 1 ({elo.teamOnePreAvg} Avg)</span>
@@ -197,9 +223,30 @@ export function GameHistory({ games }: GameHistoryProps) {
                             </span>
                           </div>
                         </div>
-                        <p className="text-[10px] text-indigo-600/70">
-                          Ratings adjust based on opponent difficulty, individual game outcomes, and margin of victory.
-                        </p>
+
+                        {/* Plain-English Explanation */}
+                        <div className="bg-white/80 p-2.5 rounded-lg border border-indigo-100 text-[11px] text-indigo-950 leading-relaxed space-y-1">
+                          <p>
+                            <strong>Why this change occurred:</strong>{' '}
+                            {winningTeam === 'teamOne' ? (
+                              <>
+                                Team 1 ({t1Odds}% expected win chance) defeated Team 2.{' '}
+                                {isScored
+                                  ? `Because exact scores were recorded with an average ${avgMultiplier}x Margin of Victory multiplier, the winning team gained +${elo.teamOneDelta} Power Ranking.`
+                                  : `Because this match was entered without point scores, it used the baseline 1.0x multiplier (+${elo.teamOneDelta} Power Ranking). Scored matches with point margins move rankings up to 2.0x faster.`}
+                              </>
+                            ) : winningTeam === 'teamTwo' ? (
+                              <>
+                                Team 2 ({t2Odds}% expected win chance) defeated Team 1.{' '}
+                                {isScored
+                                  ? `Because exact scores were recorded with an average ${avgMultiplier}x Margin of Victory multiplier, the winning team gained +${elo.teamTwoDelta} Power Ranking.`
+                                  : `Because this match was entered without point scores, it used the baseline 1.0x multiplier (+${elo.teamTwoDelta} Power Ranking). Scored matches with point margins move rankings up to 2.0x faster.`}
+                              </>
+                            ) : (
+                              'Teams tied in games won.'
+                            )}
+                          </p>
+                        </div>
                       </div>
                     );
                   })()}
@@ -224,9 +271,11 @@ export function GameHistory({ games }: GameHistoryProps) {
                     </div>
                   </div>
                   
-                  {hasGameScores ? (
+                  {hasGameScores && game.gameScores && game.gameScores.length > 0 ? (
                     <div className="bg-white p-3 rounded-lg border border-gray-200">
-                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Individual Game Scores</h5>
+                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        Individual Game Scores & Multipliers
+                      </h5>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
@@ -234,12 +283,16 @@ export function GameHistory({ games }: GameHistoryProps) {
                               <th className="pb-2 font-medium">Game</th>
                               <th className="pb-2 font-medium text-center">Team 1</th>
                               <th className="pb-2 font-medium text-center">Team 2</th>
-                              <th className="pb-2 font-medium text-right">Outcome</th>
+                              <th className="pb-2 font-medium text-center">Point Margin</th>
+                              <th className="pb-2 font-medium text-right">Outcome & Multiplier</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
-                            {game.gameScores!.map((gs) => {
+                            {game.gameScores.map((gs) => {
                               const t1Wins = gs.teamOneScore > gs.teamTwoScore;
+                              const margin = Math.abs(gs.teamOneScore - gs.teamTwoScore);
+                              const multiplier = margin <= 1 ? 1.0 : Math.min(2.0, 1.0 + Math.log(margin) * 0.35);
+
                               return (
                                 <tr key={gs.gameNumber}>
                                   <td className="py-2 font-medium text-gray-700">Game {gs.gameNumber}</td>
@@ -249,12 +302,20 @@ export function GameHistory({ games }: GameHistoryProps) {
                                   <td className={`py-2 text-center font-semibold ${!t1Wins ? 'text-green-600' : 'text-gray-600'}`}>
                                     {gs.teamTwoScore}
                                   </td>
+                                  <td className="py-2 text-center text-xs text-gray-500 font-medium">
+                                    +{margin} {margin === 1 ? 'pt' : 'pts'}
+                                  </td>
                                   <td className="py-2 text-right">
-                                    <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded ${
-                                      t1Wins ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                                    }`}>
-                                      {t1Wins ? 'Team 1 Win' : 'Team 2 Win'}
-                                    </span>
+                                    <div className="inline-flex items-center gap-1.5">
+                                      <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded ${
+                                        t1Wins ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                                      }`}>
+                                        {t1Wins ? 'Team 1 Win' : 'Team 2 Win'}
+                                      </span>
+                                      <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                                        {multiplier.toFixed(2)}x
+                                      </span>
+                                    </div>
                                   </td>
                                 </tr>
                               );

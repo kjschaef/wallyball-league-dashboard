@@ -60,4 +60,23 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
     await seasonTab.click();
     await expect(page.getByText(/Season Standings/i)).toBeVisible();
   });
+
+  test('opens the "How it works" Power Rankings explainer modal', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    const howItWorksBtn = page.getByRole('button', { name: /how it works/i });
+    await expect(howItWorksBtn).toBeVisible({ timeout: 30000 });
+    await howItWorksBtn.click();
+
+    await expect(page.getByRole('heading', { name: /How League Power Rankings Work/i })).toBeVisible();
+    await expect(page.getByText(/Scored Games vs\. Unscored Games/i)).toBeVisible();
+    await expect(page.getByText(/Up to 2\.0x Multiplier/i)).toBeVisible();
+
+    const closeBtn = page.getByRole('button', { name: /got it, close/i });
+    await expect(closeBtn).toBeVisible();
+    await closeBtn.click();
+
+    await expect(page.getByRole('heading', { name: /How League Power Rankings Work/i })).not.toBeVisible();
+  });
 });

@@ -71,12 +71,29 @@ describe('PowerRankings Component', () => {
     expect(screen.queryByText('NeverPlayed')).not.toBeInTheDocument();
   });
 
-  it('displays provisional badge for provisional players', async () => {
+  it('displays provisional badge with calibration count for provisional players', async () => {
     await act(async () => {
       render(<PowerRankings />);
     });
 
     expect(screen.getByText('Eve')).toBeInTheDocument();
-    expect(screen.getByText('PROV')).toBeInTheDocument();
+    expect(screen.getByText('PROV (5/10)')).toBeInTheDocument();
+  });
+
+  it('renders "How it works" button and opens explainer modal on click', async () => {
+    await act(async () => {
+      render(<PowerRankings />);
+    });
+
+    const howItWorksBtn = screen.getByRole('button', { name: /how it works/i });
+    expect(howItWorksBtn).toBeInTheDocument();
+
+    await act(async () => {
+      howItWorksBtn.click();
+    });
+
+    expect(screen.getByText(/How League Power Rankings Work/i)).toBeInTheDocument();
+    expect(screen.getByText(/Scored Games vs\. Unscored Games/i)).toBeInTheDocument();
+    expect(screen.getByText(/Up to 2\.0x Multiplier/i)).toBeInTheDocument();
   });
 });

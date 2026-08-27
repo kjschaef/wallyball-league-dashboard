@@ -534,6 +534,7 @@
       "type": "component",
       "tags": [],
       "imports": [
+        "app/components/PowerRankingsExplainerModal.tsx",
         "app/lib/elo.ts",
         "app/lib/playerFiltering.ts"
       ],
@@ -541,9 +542,23 @@
         "app/page.tsx"
       ],
       "related": [
+        "app/components/PowerRankingsExplainerModal.tsx",
         "app/lib/elo.ts",
         "app/lib/playerFiltering.ts",
         "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/PowerRankingsExplainerModal.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/components/PowerRankings.tsx"
+      ],
+      "related": [
+        "app/components/PowerRankings.tsx"
       ],
       "overrideNotes": []
     },
