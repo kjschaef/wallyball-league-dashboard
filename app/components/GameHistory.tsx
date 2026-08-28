@@ -225,75 +225,115 @@ export function GameHistory({ games }: GameHistoryProps) {
                         </div>
 
                         {/* Step-by-Step Formula & Numbers Calculation Breakdown */}
-                        <div className="bg-white/95 p-3 rounded-lg border border-indigo-100/90 text-xs text-indigo-950 space-y-2 font-sans shadow-2xs">
-                          <div className="flex items-center justify-between pb-1.5 border-b border-indigo-50">
-                            <span className="font-bold text-[11px] uppercase tracking-wider text-indigo-900">
-                              🧮 Rating Math Breakdown
+                        <div className="bg-white/95 p-3.5 rounded-xl border border-indigo-100/90 text-xs text-indigo-950 space-y-3 font-sans shadow-2xs">
+                          <div className="flex items-center justify-between pb-2 border-b border-indigo-100/70">
+                            <span className="font-bold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+                              <span>🧮</span> Power Ranking Calculation Breakdown
                             </span>
-                            <span className="text-[10px] text-gray-500 font-mono">
-                              Δ = K × (Actual − Expected) × Multiplier
+                            <span className="text-[10px] text-gray-500 font-mono bg-indigo-50/80 px-2 py-0.5 rounded border border-indigo-100">
+                              Δ = K × (Actual Wins − Expected Wins) × Multiplier
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
-                            {/* Step 1: Pre-match Odds */}
-                            <div className="bg-indigo-50/50 p-2 rounded border border-indigo-100/60">
-                              <span className="font-semibold text-indigo-900 block text-[10px] uppercase">
-                                1. Pre-Match Win Odds
-                              </span>
-                              <div className="mt-1 font-mono text-[11px] text-gray-700">
-                                1 / (1 + 10^({elo.teamTwoPreAvg}−{elo.teamOnePreAvg})/400)
+                          {/* Part 1: The Inputs & Explanations */}
+                          <div className="space-y-1.5">
+                            <h6 className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider">
+                              1. Inputs &amp; Parameters
+                            </h6>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
+                              <div className="bg-indigo-50/40 p-2 rounded-lg border border-indigo-100/60">
+                                <span className="font-semibold text-gray-800 block text-[10px] uppercase">
+                                  Pre-Match Ratings (R)
+                                </span>
+                                <p className="text-gray-500 text-[10px] mb-1">Starting skill average</p>
+                                <p className="font-bold text-indigo-900">
+                                  T1: {elo.teamOnePreAvg} • T2: {elo.teamTwoPreAvg}
+                                </p>
                               </div>
-                              <div className="mt-0.5 font-bold text-indigo-800">
-                                T1: {t1Odds}% • T2: {t2Odds}%
-                              </div>
-                            </div>
 
-                            {/* Step 2: Expected Games */}
-                            <div className="bg-indigo-50/50 p-2 rounded border border-indigo-100/60">
-                              <span className="font-semibold text-indigo-900 block text-[10px] uppercase">
-                                2. Expected vs. Actual Wins
-                              </span>
-                              <div className="mt-1 font-mono text-[11px] text-gray-700">
-                                {game.teamOneGamesWon + game.teamTwoGamesWon} games total
+                              <div className="bg-indigo-50/40 p-2 rounded-lg border border-indigo-100/60">
+                                <span className="font-semibold text-gray-800 block text-[10px] uppercase">
+                                  Win Probability (E)
+                                </span>
+                                <p className="text-gray-500 text-[10px] mb-1">Expected win odds per game</p>
+                                <p className="font-bold text-indigo-900">
+                                  T1: {t1Odds}% • T2: {t2Odds}%
+                                </p>
                               </div>
-                              <div className="mt-0.5 font-medium text-gray-800">
-                                T1: <span className="font-bold">{game.teamOneGamesWon}</span> (Exp: {((game.teamOneGamesWon + game.teamTwoGamesWon) * (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100)).toFixed(2)})
-                                <br />
-                                T2: <span className="font-bold">{game.teamTwoGamesWon}</span> (Exp: {((game.teamOneGamesWon + game.teamTwoGamesWon) * (1 - (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100))).toFixed(2)})
-                              </div>
-                            </div>
 
-                            {/* Step 3: Margin Scaling */}
-                            <div className="bg-indigo-50/50 p-2 rounded border border-indigo-100/60">
-                              <span className="font-semibold text-indigo-900 block text-[10px] uppercase">
-                                3. Margin Multiplier
-                              </span>
-                              <div className="mt-1 text-[11px] text-gray-700">
-                                {isScored ? (
-                                  <>
-                                    <span className="font-mono">1.0 + ln(margin)×0.35</span>
-                                    <span className="block mt-0.5 font-bold text-amber-900">Avg {avgMultiplier}x Multiplier</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="font-mono">Unscored Match</span>
-                                    <span className="block mt-0.5 font-bold text-gray-700">1.0x Baseline Multiplier</span>
-                                  </>
-                                )}
+                              <div className="bg-indigo-50/40 p-2 rounded-lg border border-indigo-100/60">
+                                <span className="font-semibold text-gray-800 block text-[10px] uppercase">
+                                  Actual vs. Exp. Wins
+                                </span>
+                                <p className="text-gray-500 text-[10px] mb-1">{totalGames} games in match</p>
+                                <p className="font-bold text-indigo-900">
+                                  T1: {game.teamOneGamesWon} (Exp: {((totalGames) * (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100)).toFixed(2)})<br />
+                                  T2: {game.teamTwoGamesWon} (Exp: {((totalGames) * (1 - (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100))).toFixed(2)})
+                                </p>
+                              </div>
+
+                              <div className="bg-indigo-50/40 p-2 rounded-lg border border-indigo-100/60">
+                                <span className="font-semibold text-gray-800 block text-[10px] uppercase">
+                                  Margin Multiplier (M)
+                                </span>
+                                <p className="text-gray-500 text-[10px] mb-1">{isScored ? 'Point spread scaling' : 'Unscored baseline'}</p>
+                                <p className="font-bold text-indigo-900">
+                                  {isScored ? `${avgMultiplier}x (Scored)` : '1.0x (Baseline)'}
+                                </p>
                               </div>
                             </div>
                           </div>
 
-                          <div className="pt-1.5 border-t border-indigo-50 text-[11px] text-gray-700 leading-relaxed">
-                            <strong>Takeaway:</strong>{' '}
+                          {/* Part 2: The Equation with Filled-In Numbers */}
+                          <div className="space-y-1.5 pt-1">
+                            <h6 className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider">
+                              2. Equation &amp; Calculation
+                            </h6>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                              {/* Team 1 Calculation */}
+                              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-[11px] space-y-1">
+                                <div className="font-bold font-sans text-gray-800 text-[11px] flex items-center justify-between">
+                                  <span>Team 1 Calculation:</span>
+                                  <span className={`px-1.5 py-0.2 rounded font-bold ${elo.teamOneDelta > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                                    {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta}
+                                  </span>
+                                </div>
+                                <div className="text-gray-600">
+                                  Δ = K × (Actual Wins − Expected Wins) × Multiplier
+                                </div>
+                                <div className="text-indigo-950 font-semibold">
+                                  Δ = K × ({game.teamOneGamesWon} − {((totalGames) * (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100)).toFixed(2)}) × {isScored ? avgMultiplier : '1.0'} = <span className={elo.teamOneDelta > 0 ? 'text-emerald-700' : 'text-rose-700'}>{elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta}</span>
+                                </div>
+                              </div>
+
+                              {/* Team 2 Calculation */}
+                              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-[11px] space-y-1">
+                                <div className="font-bold font-sans text-gray-800 text-[11px] flex items-center justify-between">
+                                  <span>Team 2 Calculation:</span>
+                                  <span className={`px-1.5 py-0.2 rounded font-bold ${elo.teamTwoDelta > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                                    {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta}
+                                  </span>
+                                </div>
+                                <div className="text-gray-600">
+                                  Δ = K × (Actual Wins − Expected Wins) × Multiplier
+                                </div>
+                                <div className="text-indigo-950 font-semibold">
+                                  Δ = K × ({game.teamTwoGamesWon} − {((totalGames) * (1 - (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100))).toFixed(2)}) × {isScored ? avgMultiplier : '1.0'} = <span className={elo.teamTwoDelta > 0 ? 'text-emerald-700' : 'text-rose-700'}>{elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Part 3: Plain-English Summary */}
+                          <div className="pt-2 border-t border-indigo-100/70 text-[11px] text-gray-700 leading-relaxed">
+                            <strong>Summary:</strong>{' '}
                             {winningTeam === 'teamOne' ? (
                               <>
-                                Team 1 ({t1Odds}% expected) won {game.teamOneGamesWon} of {game.teamOneGamesWon + game.teamTwoGamesWon} games. {isScored ? `Scored point margins scaled the rating delta by an average ${avgMultiplier}x.` : 'Unscored matches use the 1.0x baseline multiplier.'} Net outcome: Team 1 gained <strong className="text-emerald-700">{elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Power Ranking</strong>.
+                                Team 1 ({t1Odds}% expected) won {game.teamOneGamesWon} of {totalGames} games (vs {((totalGames) * (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100)).toFixed(2)} expected). {isScored ? `Scored point margins scaled the rating delta by an average ${avgMultiplier}x.` : 'Unscored matches use the 1.0x baseline multiplier.'} Net outcome: Team 1 changed by <strong className={elo.teamOneDelta > 0 ? 'text-emerald-700' : 'text-rose-700'}>{elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Power Ranking</strong>.
                               </>
                             ) : winningTeam === 'teamTwo' ? (
                               <>
-                                Team 2 ({t2Odds}% expected) won {game.teamTwoGamesWon} of {game.teamOneGamesWon + game.teamTwoGamesWon} games. {isScored ? `Scored point margins scaled the rating delta by an average ${avgMultiplier}x.` : 'Unscored matches use the 1.0x baseline multiplier.'} Net outcome: Team 2 gained <strong className="text-emerald-700">{elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Power Ranking</strong>.
+                                Team 2 ({t2Odds}% expected) won {game.teamTwoGamesWon} of {totalGames} games (vs {((totalGames) * (1 - (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100))).toFixed(2)} expected). {isScored ? `Scored point margins scaled the rating delta by an average ${avgMultiplier}x.` : 'Unscored matches use the 1.0x baseline multiplier.'} Net outcome: Team 2 changed by <strong className={elo.teamTwoDelta > 0 ? 'text-emerald-700' : 'text-rose-700'}>{elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Power Ranking</strong>.
                               </>
                             ) : (
                               'Match was tied in games won.'
