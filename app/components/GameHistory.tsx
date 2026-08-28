@@ -178,6 +178,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                       ? Math.round(elo.expectedT1WinRate * 100)
                       : Math.round(elo.expectedT1WinRate);
                     const t2Odds = Math.max(0, Math.min(100, 100 - t1Odds));
+                    const totalGames = game.teamOneGamesWon + game.teamTwoGamesWon;
                     const isScored = hasGameScores && (elo.hasScoredGames ?? true);
                     const avgMultiplier = elo.averageMarginMultiplier ?? (isScored ? 1.4 : 1.0);
 
