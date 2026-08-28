@@ -210,21 +210,6 @@ export function GameHistory({ games }: GameHistoryProps) {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                          <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
-                            <span className="font-semibold text-gray-700">Team 1 ({elo.teamOnePreAvg} Avg)</span>
-                            <span className={`font-bold ${elo.teamOneDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Power Ranking
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
-                            <span className="font-semibold text-gray-700">Team 2 ({elo.teamTwoPreAvg} Avg)</span>
-                            <span className={`font-bold ${elo.teamTwoDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Power Ranking
-                            </span>
-                          </div>
-                        </div>
-
                         {/* Step-by-Step Formula & Numbers Calculation Breakdown */}
                         <div className="bg-white/95 p-3.5 rounded-xl border border-indigo-100/90 text-xs text-indigo-950 space-y-3 font-sans shadow-2xs">
                           <div className="flex items-center justify-between pb-2 border-b border-indigo-100/70">
@@ -241,18 +226,8 @@ export function GameHistory({ games }: GameHistoryProps) {
                             <h6 className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider">
                               1. Inputs &amp; Parameters
                             </h6>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
-                              <div className="bg-indigo-50/40 p-2 rounded-lg border border-indigo-100/60">
-                                <span className="font-semibold text-gray-800 block text-[10px] uppercase">
-                                  Pre-Match Ratings (R)
-                                </span>
-                                <p className="text-gray-500 text-[10px] mb-1">Starting skill average</p>
-                                <p className="font-bold text-indigo-900">
-                                  T1: {elo.teamOnePreAvg} • T2: {elo.teamTwoPreAvg}
-                                </p>
-                              </div>
-
-                              <div className="bg-indigo-50/40 p-2 rounded-lg border border-indigo-100/60">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                              <div className="bg-indigo-50/40 p-2.5 rounded-lg border border-indigo-100/60">
                                 <span className="font-semibold text-gray-800 block text-[10px] uppercase">
                                   Win Probability (E)
                                 </span>
@@ -262,7 +237,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                                 </p>
                               </div>
 
-                              <div className="bg-indigo-50/40 p-2 rounded-lg border border-indigo-100/60">
+                              <div className="bg-indigo-50/40 p-2.5 rounded-lg border border-indigo-100/60">
                                 <span className="font-semibold text-gray-800 block text-[10px] uppercase">
                                   Actual vs. Exp. Wins
                                 </span>
@@ -273,7 +248,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                                 </p>
                               </div>
 
-                              <div className="bg-indigo-50/40 p-2 rounded-lg border border-indigo-100/60">
+                              <div className="bg-indigo-50/40 p-2.5 rounded-lg border border-indigo-100/60">
                                 <span className="font-semibold text-gray-800 block text-[10px] uppercase">
                                   Margin Multiplier (M)
                                 </span>
@@ -282,6 +257,22 @@ export function GameHistory({ games }: GameHistoryProps) {
                                   {isScored ? `${avgMultiplier}x (Scored)` : '1.0x (Baseline)'}
                                 </p>
                               </div>
+                            </div>
+
+                            {/* Detailed Margin Multiplier Explainer Card */}
+                            <div className="bg-amber-50/50 p-2.5 rounded-lg border border-amber-200/70 text-[11px] text-amber-950 space-y-1">
+                              <span className="font-bold text-amber-900 flex items-center gap-1">
+                                <span>💡</span> How the Margin Multiplier Works:
+                              </span>
+                              {isScored ? (
+                                <p className="text-gray-700 leading-relaxed">
+                                  Exact point scores were recorded for this match. Decisive victories scale up ranking movement using <code className="bg-white/80 px-1 py-0.5 rounded text-amber-900 font-mono text-[10px]">1.0 + ln(point margin) × 0.35</code> (capped at 2.0x). A 2-pt win yields ~1.24x, a 7-pt win yields ~1.68x, and blowouts (13+ pts) reach the maximum <strong>2.0x multiplier</strong>.
+                                </p>
+                              ) : (
+                                <p className="text-gray-700 leading-relaxed">
+                                  This match was entered without point scores (game wins only). Unscored games evaluate at the flat <strong>1.0x baseline multiplier</strong>, so rating changes are smaller. Entering exact point scores allows decisive winners to earn up to <strong>2.0x faster rating progression</strong>.
+                                </p>
+                              )}
                             </div>
                           </div>
 
@@ -296,7 +287,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                                 <div className="font-bold font-sans text-gray-800 text-[11px] flex items-center justify-between">
                                   <span>Team 1 Calculation:</span>
                                   <span className={`px-1.5 py-0.2 rounded font-bold ${elo.teamOneDelta > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                                    {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta}
+                                    {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Power Ranking
                                   </span>
                                 </div>
                                 <div className="text-gray-600">
@@ -312,7 +303,7 @@ export function GameHistory({ games }: GameHistoryProps) {
                                 <div className="font-bold font-sans text-gray-800 text-[11px] flex items-center justify-between">
                                   <span>Team 2 Calculation:</span>
                                   <span className={`px-1.5 py-0.2 rounded font-bold ${elo.teamTwoDelta > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                                    {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta}
+                                    {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Power Ranking
                                   </span>
                                 </div>
                                 <div className="text-gray-600">
