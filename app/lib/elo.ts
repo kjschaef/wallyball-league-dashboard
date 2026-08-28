@@ -172,17 +172,22 @@ export function computeChronologicalElo(
 
     if (totalGamesInMatch === 0) continue;
 
+    // Snapshot pre-match team ratings and expected win rates for all games within this match
+    const teamOnePreAvg = calculateTeamAverageElo(teamOnePlayerIds, ratingsMap);
+    const teamTwoPreAvg = calculateTeamAverageElo(teamTwoPlayerIds, ratingsMap);
+    const expectedT1 = calculateExpectedWinRate(teamOnePreAvg, teamTwoPreAvg);
+    const expectedT2 = 1 - expectedT1;
+
     // Get individual game scores if available
     const scoredGames = match.gameScores || match.game_scores || (gamesMap ? gamesMap.get(match.id) : undefined) || [];
 
+    const playerDeltas = new Map<number, number>();
+    for (const pid of [...teamOnePlayerIds, ...teamTwoPlayerIds]) {
+      playerDeltas.set(pid, 0);
+    }
+
     // Replay each individual game within the match
     for (let gIndex = 0; gIndex < totalGamesInMatch; gIndex++) {
-      const teamOneAvgElo = calculateTeamAverageElo(teamOnePlayerIds, ratingsMap);
-      const teamTwoAvgElo = calculateTeamAverageElo(teamTwoPlayerIds, ratingsMap);
-
-      const expectedT1 = calculateExpectedWinRate(teamOneAvgElo, teamTwoAvgElo);
-      const expectedT2 = 1 - expectedT1;
-
       // Determine game winner: use game score if available, else first t1Wins games won by T1
       let t1WonGame: boolean;
       const gameScore: MatchGameScore | undefined = scoredGames[gIndex];
@@ -202,25 +207,30 @@ export function computeChronologicalElo(
         gameScore?.teamTwoScore
       );
 
-      // Apply rating updates to Team 1 players
+      // Accumulate rating updates for Team 1 players
       for (const pid of teamOnePlayerIds) {
         const state = ratingsMap.get(pid)!;
         const k = getKFactor(state.careerGames);
         const delta = k * (actualT1 - expectedT1) * marginMultiplier;
-        state.elo = Math.round((state.elo + delta) * 100) / 100;
-        state.careerGames += 1;
-        state.isProvisional = state.careerGames < PROVISIONAL_THRESHOLD;
+        playerDeltas.set(pid, playerDeltas.get(pid)! + delta);
       }
 
-      // Apply rating updates to Team 2 players
+      // Accumulate rating updates for Team 2 players
       for (const pid of teamTwoPlayerIds) {
         const state = ratingsMap.get(pid)!;
         const k = getKFactor(state.careerGames);
         const delta = k * (actualT2 - expectedT2) * marginMultiplier;
-        state.elo = Math.round((state.elo + delta) * 100) / 100;
-        state.careerGames += 1;
-        state.isProvisional = state.careerGames < PROVISIONAL_THRESHOLD;
+        playerDeltas.set(pid, playerDeltas.get(pid)! + delta);
       }
+    }
+
+    // Apply net match updates to player states
+    for (const pid of [...teamOnePlayerIds, ...teamTwoPlayerIds]) {
+      const state = ratingsMap.get(pid)!;
+      const netDelta = playerDeltas.get(pid)!;
+      state.elo = Math.round((state.elo + netDelta) * 100) / 100;
+      state.careerGames += totalGamesInMatch;
+      state.isProvisional = state.careerGames < PROVISIONAL_THRESHOLD;
     }
   }
 
@@ -456,17 +466,15 @@ export function computeAllMatchesEloDetails(
 
     const scoredGames = match.gameScores || match.game_scores || (gamesMap ? gamesMap.get(match.id) : undefined) || [];
 
-    let matchT1NetDelta = 0;
-    let matchT2NetDelta = 0;
+    const playerDeltas = new Map<number, number>();
+    for (const pid of [...teamOnePlayerIds, ...teamTwoPlayerIds]) {
+      playerDeltas.set(pid, 0);
+    }
+
     const gameBreakdowns: GameEloBreakdown[] = [];
     let totalMarginMultiplier = 0;
 
     for (let gIndex = 0; gIndex < totalGamesInMatch; gIndex++) {
-      const t1Avg = calculateTeamAverageElo(teamOnePlayerIds, ratingsMap);
-      const t2Avg = calculateTeamAverageElo(teamTwoPlayerIds, ratingsMap);
-      const exp1 = calculateExpectedWinRate(t1Avg, t2Avg);
-      const exp2 = 1 - exp1;
-
       let t1WonGame: boolean;
       const gameScore: MatchGameScore | undefined = scoredGames[gIndex];
       const isScored = !!(gameScore && typeof gameScore.teamOneScore === 'number' && typeof gameScore.teamTwoScore === 'number');
@@ -496,22 +504,35 @@ export function computeAllMatchesEloDetails(
       for (const pid of teamOnePlayerIds) {
         const state = ratingsMap.get(pid)!;
         const k = getKFactor(state.careerGames);
-        const delta = k * (actualT1 - exp1) * marginMultiplier;
-        state.elo = Math.round((state.elo + delta) * 100) / 100;
-        state.careerGames += 1;
-        state.isProvisional = state.careerGames < PROVISIONAL_THRESHOLD;
-        matchT1NetDelta += delta;
+        const delta = k * (actualT1 - expectedT1) * marginMultiplier;
+        playerDeltas.set(pid, playerDeltas.get(pid)! + delta);
       }
 
       for (const pid of teamTwoPlayerIds) {
         const state = ratingsMap.get(pid)!;
         const k = getKFactor(state.careerGames);
-        const delta = k * (actualT2 - exp2) * marginMultiplier;
-        state.elo = Math.round((state.elo + delta) * 100) / 100;
-        state.careerGames += 1;
-        state.isProvisional = state.careerGames < PROVISIONAL_THRESHOLD;
-        matchT2NetDelta += delta;
+        const delta = k * (actualT2 - (1 - expectedT1)) * marginMultiplier;
+        playerDeltas.set(pid, playerDeltas.get(pid)! + delta);
       }
+    }
+
+    let matchT1NetDelta = 0;
+    let matchT2NetDelta = 0;
+    for (const pid of teamOnePlayerIds) {
+      const state = ratingsMap.get(pid)!;
+      const delta = playerDeltas.get(pid)!;
+      state.elo = Math.round((state.elo + delta) * 100) / 100;
+      state.careerGames += totalGamesInMatch;
+      state.isProvisional = state.careerGames < PROVISIONAL_THRESHOLD;
+      matchT1NetDelta += delta;
+    }
+    for (const pid of teamTwoPlayerIds) {
+      const state = ratingsMap.get(pid)!;
+      const delta = playerDeltas.get(pid)!;
+      state.elo = Math.round((state.elo + delta) * 100) / 100;
+      state.careerGames += totalGamesInMatch;
+      state.isProvisional = state.careerGames < PROVISIONAL_THRESHOLD;
+      matchT2NetDelta += delta;
     }
 
     const t1WonMatch = t1Wins > t2Wins;
@@ -638,12 +659,17 @@ export function computePlayerEloTrajectories(
       const totalGames = t1Wins + t2Wins;
       const scoredGames = match.gameScores || match.game_scores || (gamesMap ? gamesMap.get(match.id) : undefined) || [];
 
-      for (let gIndex = 0; gIndex < totalGames; gIndex++) {
-        const t1Avg = calculateTeamAverageElo(teamOnePlayerIds, ratingsMap);
-        const t2Avg = calculateTeamAverageElo(teamTwoPlayerIds, ratingsMap);
-        const exp1 = calculateExpectedWinRate(t1Avg, t2Avg);
-        const exp2 = 1 - exp1;
+      const t1Avg = calculateTeamAverageElo(teamOnePlayerIds, ratingsMap);
+      const t2Avg = calculateTeamAverageElo(teamTwoPlayerIds, ratingsMap);
+      const exp1 = calculateExpectedWinRate(t1Avg, t2Avg);
+      const exp2 = 1 - exp1;
 
+      const playerDeltas = new Map<number, number>();
+      for (const pid of [...teamOnePlayerIds, ...teamTwoPlayerIds]) {
+        playerDeltas.set(pid, 0);
+      }
+
+      for (let gIndex = 0; gIndex < totalGames; gIndex++) {
         let t1Won: boolean;
         const gs = scoredGames[gIndex];
         if (gs && typeof gs.teamOneScore === 'number' && typeof gs.teamTwoScore === 'number') {
@@ -659,17 +685,20 @@ export function computePlayerEloTrajectories(
         for (const pid of teamOnePlayerIds) {
           const s = ratingsMap.get(pid)!;
           const k = getKFactor(s.careerGames);
-          s.elo += k * (act1 - exp1) * mm;
-          s.careerGames += 1;
-          s.isProvisional = s.careerGames < PROVISIONAL_THRESHOLD;
+          playerDeltas.set(pid, playerDeltas.get(pid)! + k * (act1 - exp1) * mm);
         }
         for (const pid of teamTwoPlayerIds) {
           const s = ratingsMap.get(pid)!;
           const k = getKFactor(s.careerGames);
-          s.elo += k * (act2 - exp2) * mm;
-          s.careerGames += 1;
-          s.isProvisional = s.careerGames < PROVISIONAL_THRESHOLD;
+          playerDeltas.set(pid, playerDeltas.get(pid)! + k * (act2 - exp2) * mm);
         }
+      }
+
+      for (const pid of [...teamOnePlayerIds, ...teamTwoPlayerIds]) {
+        const s = ratingsMap.get(pid)!;
+        s.elo += playerDeltas.get(pid)!;
+        s.careerGames += totalGames;
+        s.isProvisional = s.careerGames < PROVISIONAL_THRESHOLD;
       }
     }
 

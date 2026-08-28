@@ -158,6 +158,30 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(charlie.elo).toBeLessThan(1500);
     });
 
+    it('avoids intra-match rating drift for multi-game unscored matches (5-2 win by favorite)', () => {
+      const players = [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }];
+      // Setup initial matches so Alice has ~1590 Elo and Bob has ~1430 Elo
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 5,
+          team_two_games_won: 2,
+          date: '2025-01-01',
+        },
+      ];
+
+      const ratings = computeChronologicalElo(players, matches);
+      const alice = ratings.get(1)!;
+      const bob = ratings.get(2)!;
+
+      // Alice won 5 games and lost 2 games out of 7 against an equal-start opponent
+      // Alice's rating MUST increase, not decrease
+      expect(alice.elo).toBeGreaterThan(1500);
+      expect(bob.elo).toBeLessThan(1500);
+    });
+
     it('transitions player from provisional to established at 10 games', () => {
       const players = [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }];
       // 5 matches of 2 games each = 10 games total
