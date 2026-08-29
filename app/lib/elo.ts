@@ -400,6 +400,16 @@ export interface GameEloBreakdown {
   t1Won: boolean;
 }
 
+export interface PlayerMatchEloDetail {
+  id: number;
+  name?: string;
+  preElo: number;
+  kFactor: number;
+  delta: number;
+  careerGames: number;
+  isProvisional: boolean;
+}
+
 export interface MatchEloDetails {
   matchId: number;
   teamOnePreAvg: number;
@@ -411,6 +421,8 @@ export interface MatchEloDetails {
   hasScoredGames: boolean;
   averageMarginMultiplier: number;
   gameBreakdowns: GameEloBreakdown[];
+  teamOnePlayerDetails?: PlayerMatchEloDetail[];
+  teamTwoPlayerDetails?: PlayerMatchEloDetail[];
 }
 
 /**
@@ -516,6 +528,36 @@ export function computeAllMatchesEloDetails(
       }
     }
 
+    const teamOnePlayerDetails: PlayerMatchEloDetail[] = teamOnePlayerIds.map(pid => {
+      const state = ratingsMap.get(pid)!;
+      const k = getKFactor(state.careerGames);
+      const delta = Math.round((playerDeltas.get(pid) ?? 0) * 10) / 10;
+      return {
+        id: pid,
+        name: state.name,
+        preElo: Math.round(state.elo),
+        kFactor: k,
+        delta,
+        careerGames: state.careerGames,
+        isProvisional: state.careerGames < PROVISIONAL_THRESHOLD,
+      };
+    });
+
+    const teamTwoPlayerDetails: PlayerMatchEloDetail[] = teamTwoPlayerIds.map(pid => {
+      const state = ratingsMap.get(pid)!;
+      const k = getKFactor(state.careerGames);
+      const delta = Math.round((playerDeltas.get(pid) ?? 0) * 10) / 10;
+      return {
+        id: pid,
+        name: state.name,
+        preElo: Math.round(state.elo),
+        kFactor: k,
+        delta,
+        careerGames: state.careerGames,
+        isProvisional: state.careerGames < PROVISIONAL_THRESHOLD,
+      };
+    });
+
     let matchT1NetDelta = 0;
     let matchT2NetDelta = 0;
     for (const pid of teamOnePlayerIds) {
@@ -555,6 +597,8 @@ export function computeAllMatchesEloDetails(
       hasScoredGames,
       averageMarginMultiplier,
       gameBreakdowns,
+      teamOnePlayerDetails,
+      teamTwoPlayerDetails,
     });
   }
 

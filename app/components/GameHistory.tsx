@@ -35,6 +35,24 @@ export interface MatchHistoryItem {
       multiplier: number;
       t1Won: boolean;
     }>;
+    teamOnePlayerDetails?: Array<{
+      id: number;
+      name?: string;
+      preElo: number;
+      kFactor: number;
+      delta: number;
+      careerGames: number;
+      isProvisional: boolean;
+    }>;
+    teamTwoPlayerDetails?: Array<{
+      id: number;
+      name?: string;
+      preElo: number;
+      kFactor: number;
+      delta: number;
+      careerGames: number;
+      isProvisional: boolean;
+    }>;
   } | null;
 }
 
@@ -323,25 +341,120 @@ export function GameHistory({ games }: GameHistoryProps) {
                     );
                   })()}
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team 1</h5>
-                      <ul className="list-disc pl-5 text-sm text-gray-800 space-y-1">
-                        {game.teamOnePlayers.map((player, idx) => (
-                          <li key={idx}>{player}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team 2</h5>
-                      <ul className="list-disc pl-5 text-sm text-gray-800 space-y-1">
-                        {game.teamTwoPlayers.map((player, idx) => (
-                          <li key={idx}>{player}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                  {/* Player Rosters & K-Factors */}
+                  {(() => {
+                    interface DisplayPlayer {
+                      name: string;
+                      kFactor?: number;
+                      delta?: number;
+                      isProvisional?: boolean;
+                      careerGames?: number;
+                    }
+
+                    const team1Players: DisplayPlayer[] = elo?.teamOnePlayerDetails && elo.teamOnePlayerDetails.length > 0
+                      ? elo.teamOnePlayerDetails.map((pd, idx) => ({
+                          name: game.teamOnePlayers[idx] || pd.name || `Player ${pd.id}`,
+                          kFactor: pd.kFactor,
+                          delta: pd.delta,
+                          isProvisional: pd.isProvisional,
+                          careerGames: pd.careerGames,
+                        }))
+                      : game.teamOnePlayers.map(name => ({ name }));
+
+                    const team2Players: DisplayPlayer[] = elo?.teamTwoPlayerDetails && elo.teamTwoPlayerDetails.length > 0
+                      ? elo.teamTwoPlayerDetails.map((pd, idx) => ({
+                          name: game.teamTwoPlayers[idx] || pd.name || `Player ${pd.id}`,
+                          kFactor: pd.kFactor,
+                          delta: pd.delta,
+                          isProvisional: pd.isProvisional,
+                          careerGames: pd.careerGames,
+                        }))
+                      : game.teamTwoPlayers.map(name => ({ name }));
+
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-2xs">
+                          <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-gray-100">
+                            <h5 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Team 1 Players</h5>
+                            {elo && <span className="text-[11px] text-gray-500 font-medium">Avg: {elo.teamOnePreAvg}</span>}
+                          </div>
+                          <div className="space-y-1.5">
+                            {team1Players.map((player, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-sm py-1 border-b border-gray-50 last:border-b-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-medium text-gray-900">{player.name}</span>
+                                  {player.kFactor !== undefined && (
+                                    <span
+                                      title={`K-Factor: ${player.kFactor} (${player.kFactor === 48 ? 'Provisional: <10 games' : player.kFactor === 32 ? 'Established: 10-30 games' : 'Veteran: >30 games'}). Rating sensitivity multiplier.`}
+                                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded border cursor-help ${
+                                        player.kFactor === 48
+                                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                          : player.kFactor === 32
+                                          ? 'bg-blue-50 text-blue-800 border-blue-200'
+                                          : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                                      }`}
+                                    >
+                                      K={player.kFactor}
+                                    </span>
+                                  )}
+                                  {player.isProvisional && (
+                                    <span className="text-[9px] bg-amber-100 text-amber-800 font-semibold px-1 py-0.2 rounded">
+                                      PROV
+                                    </span>
+                                  )}
+                                </div>
+                                {player.delta !== undefined && (
+                                  <span className={`text-xs font-mono font-bold ${player.delta > 0 ? 'text-emerald-700' : player.delta < 0 ? 'text-rose-700' : 'text-gray-500'}`}>
+                                    {player.delta > 0 ? `+${player.delta}` : player.delta}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-2xs">
+                          <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-gray-100">
+                            <h5 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Team 2 Players</h5>
+                            {elo && <span className="text-[11px] text-gray-500 font-medium">Avg: {elo.teamTwoPreAvg}</span>}
+                          </div>
+                          <div className="space-y-1.5">
+                            {team2Players.map((player, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-sm py-1 border-b border-gray-50 last:border-b-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-medium text-gray-900">{player.name}</span>
+                                  {player.kFactor !== undefined && (
+                                    <span
+                                      title={`K-Factor: ${player.kFactor} (${player.kFactor === 48 ? 'Provisional: <10 games' : player.kFactor === 32 ? 'Established: 10-30 games' : 'Veteran: >30 games'}). Rating sensitivity multiplier.`}
+                                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded border cursor-help ${
+                                        player.kFactor === 48
+                                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                          : player.kFactor === 32
+                                          ? 'bg-blue-50 text-blue-800 border-blue-200'
+                                          : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                                      }`}
+                                    >
+                                      K={player.kFactor}
+                                    </span>
+                                  )}
+                                  {player.isProvisional && (
+                                    <span className="text-[9px] bg-amber-100 text-amber-800 font-semibold px-1 py-0.2 rounded">
+                                      PROV
+                                    </span>
+                                  )}
+                                </div>
+                                {player.delta !== undefined && (
+                                  <span className={`text-xs font-mono font-bold ${player.delta > 0 ? 'text-emerald-700' : player.delta < 0 ? 'text-rose-700' : 'text-gray-500'}`}>
+                                    {player.delta > 0 ? `+${player.delta}` : player.delta}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   
                   {hasGameScores && game.gameScores && game.gameScores.length > 0 ? (
                     <div className="bg-white p-3 rounded-lg border border-gray-200">
