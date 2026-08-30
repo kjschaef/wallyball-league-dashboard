@@ -24,6 +24,35 @@ export interface MatchHistoryItem {
     teamTwoDelta: number;
     isUpset: boolean;
     expectedT1WinRate: number;
+    hasScoredGames?: boolean;
+    averageMarginMultiplier?: number;
+    gameBreakdowns?: Array<{
+      gameNumber: number;
+      isScored: boolean;
+      teamOneScore?: number;
+      teamTwoScore?: number;
+      margin: number;
+      multiplier: number;
+      t1Won: boolean;
+    }>;
+    teamOnePlayerDetails?: Array<{
+      id: number;
+      name?: string;
+      preElo: number;
+      kFactor: number;
+      delta: number;
+      careerGames: number;
+      isProvisional: boolean;
+    }>;
+    teamTwoPlayerDetails?: Array<{
+      id: number;
+      name?: string;
+      preElo: number;
+      kFactor: number;
+      delta: number;
+      careerGames: number;
+      isProvisional: boolean;
+    }>;
   } | null;
 }
 
@@ -69,7 +98,7 @@ export function GameHistory({ games }: GameHistoryProps) {
       ) : (
         games.map((game) => {
           const winningTeam = getWinningTeam(game);
-          const hasGameScores = game.gameScores && game.gameScores.length > 0;
+          const hasGameScores = (game.gameScores && game.gameScores.length > 0) || !!game.eloDetails?.hasScoredGames;
           const elo = game.eloDetails;
           const winningDelta = elo ? (winningTeam === 'teamOne' ? elo.teamOneDelta : elo.teamTwoDelta) : null;
           
@@ -133,9 +162,9 @@ export function GameHistory({ games }: GameHistoryProps) {
                     </span>
                   )}
 
-                  {hasGameScores && (
+                  {hasGameScores && game.gameScores && game.gameScores.length > 0 && (
                     <span className="hidden lg:inline-block text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      {game.gameScores!.map(gs => `${gs.teamOneScore}-${gs.teamTwoScore}`).join(', ')}
+                      {game.gameScores.map(gs => `${gs.teamOneScore}-${gs.teamTwoScore}`).join(', ')}
                     </span>
                   )}
 
@@ -167,66 +196,271 @@ export function GameHistory({ games }: GameHistoryProps) {
                       ? Math.round(elo.expectedT1WinRate * 100)
                       : Math.round(elo.expectedT1WinRate);
                     const t2Odds = Math.max(0, Math.min(100, 100 - t1Odds));
+                    const totalGames = game.teamOneGamesWon + game.teamTwoGamesWon;
+                    const isScored = hasGameScores && (elo.hasScoredGames ?? true);
+                    const avgMultiplier = elo.averageMarginMultiplier ?? (isScored ? 1.4 : 1.0);
+
+                    const t1ExpectedGames = Number(((totalGames) * (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100)).toFixed(2));
+                    const t2ExpectedGames = Number(((totalGames) * (1 - (elo.expectedT1WinRate <= 1 ? elo.expectedT1WinRate : elo.expectedT1WinRate / 100))).toFixed(2));
+
+                    const t1Diff = Number((game.teamOneGamesWon - t1ExpectedGames).toFixed(2));
+                    const t2Diff = Number((game.teamTwoGamesWon - t2ExpectedGames).toFixed(2));
 
                     return (
-                      <div className="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 space-y-2">
-                        <div className="flex items-center justify-between flex-wrap gap-1">
+                      <div className="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 space-y-3">
+                        {/* Header with Title and Margin Multiplier Popover Tooltip */}
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                           <h5 className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
-                            <span>⚡ Power Ranking Impact</span>
+                            <span>⚡ Power Ranking Calculation Breakdown</span>
                             {elo.isUpset && (
                               <span className="text-[10px] bg-rose-100 text-rose-700 font-extrabold px-1.5 py-0.2 rounded-full border border-rose-200">
                                 🔥 UPSET
                               </span>
                             )}
                           </h5>
-                          <span className="text-[11px] text-indigo-600 font-medium">
-                            Win Odds: Team 1 ({t1Odds}%) • Team 2 ({t2Odds}%)
-                          </span>
+
+                          {/* Margin Multiplier Popover Tooltip */}
+                          <div className="relative group">
+                            <div
+                              tabIndex={0}
+                              role="button"
+                              aria-label="Margin of victory multiplier details"
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 cursor-help transition-colors ${
+                                isScored
+                                  ? 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200'
+                                  : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                              }`}
+                            >
+                              <span>{isScored ? `📊 Margin Multiplier: ${avgMultiplier}x` : '📝 Margin Multiplier: 1.0x (Unscored)'}</span>
+                              <span className="text-[9px] bg-white/80 rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold">ℹ</span>
+                            </div>
+
+                            {/* Popover Content */}
+                            <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block group-focus:block z-30 w-72 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-xl border border-gray-700/80 pointer-events-none">
+                              <div className="font-bold text-amber-300 mb-1 flex items-center gap-1">
+                                <span>💡</span> Margin of Victory Multiplier
+                              </div>
+                              {isScored ? (
+                                <p className="text-gray-200 leading-snug">
+                                  Exact point scores were recorded. Winning games by decisive point spreads scales ranking adjustments via <code className="text-amber-200 bg-gray-800 px-1 py-0.5 rounded">1.0 + ln(margin) × 0.35</code> (capped at 2.0x for 13+ pt blowouts). Average applied multiplier for this match: <strong className="text-amber-300">{avgMultiplier}x</strong>.
+                                </p>
+                              ) : (
+                                <p className="text-gray-200 leading-snug">
+                                  This match was recorded with game wins only (no point scores). Unscored games evaluate at the flat <strong className="text-amber-300">1.0x baseline multiplier</strong>. Entering exact point scores allows decisive winners to accelerate ranking progression up to 2.0x.
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </div>
+
+                        {/* Panel 1: Expected vs Actual Wins & Difference */}
+                        <div className="bg-white/95 p-3 rounded-xl border border-indigo-100/90 text-xs shadow-2xs space-y-2">
+                          <div className="flex items-center justify-between pb-1.5 border-b border-indigo-100/60 text-[11px] font-bold text-indigo-900 uppercase tracking-wider">
+                            <span>Expected vs. Actual Wins &amp; Difference</span>
+                            <span className="text-gray-500 font-normal normal-case">{totalGames} games total</span>
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs border-collapse">
+                              <thead>
+                                <tr className="text-[10px] text-gray-500 uppercase border-b border-gray-100">
+                                  <th className="pb-1 font-semibold">Team</th>
+                                  <th className="pb-1 font-semibold text-center">Win Odds</th>
+                                  <th className="pb-1 font-semibold text-center">Expected Wins</th>
+                                  <th className="pb-1 font-semibold text-center">Actual Wins</th>
+                                  <th className="pb-1 font-semibold text-right">Difference vs. Exp.</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-50 text-[11px]">
+                                <tr>
+                                  <td className="py-1.5 font-bold text-gray-900">
+                                    Team 1 <span className="font-normal text-gray-500">({game.teamOnePlayers.join(' & ')})</span>
+                                  </td>
+                                  <td className="py-1.5 text-center font-medium text-indigo-700">{t1Odds}%</td>
+                                  <td className="py-1.5 text-center font-mono text-gray-600">{t1ExpectedGames}</td>
+                                  <td className="py-1.5 text-center font-bold text-gray-900">{game.teamOneGamesWon}</td>
+                                  <td className="py-1.5 text-right font-mono font-bold">
+                                    <span className={t1Diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
+                                      {t1Diff >= 0 ? `+${t1Diff}` : t1Diff}
+                                    </span>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td className="py-1.5 font-bold text-gray-900">
+                                    Team 2 <span className="font-normal text-gray-500">({game.teamTwoPlayers.join(' & ')})</span>
+                                  </td>
+                                  <td className="py-1.5 text-center font-medium text-indigo-700">{t2Odds}%</td>
+                                  <td className="py-1.5 text-center font-mono text-gray-600">{t2ExpectedGames}</td>
+                                  <td className="py-1.5 text-center font-bold text-gray-900">{game.teamTwoGamesWon}</td>
+                                  <td className="py-1.5 text-right font-mono font-bold">
+                                    <span className={t2Diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
+                                      {t2Diff >= 0 ? `+${t2Diff}` : t2Diff}
+                                    </span>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* Panel 2: Calculation Panels for each team */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                          <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
-                            <span className="font-semibold text-gray-700">Team 1 ({elo.teamOnePreAvg} Avg)</span>
-                            <span className={`font-bold ${elo.teamOneDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Power Ranking
-                            </span>
+                          {/* Team 1 Calculation */}
+                          <div className="bg-white p-3 rounded-xl border border-indigo-100 font-mono text-[11px] space-y-1.5 shadow-2xs">
+                            <div className="font-bold font-sans text-gray-800 text-xs flex items-center justify-between">
+                              <span>Team 1 Calculation</span>
+                              <span className={`px-1.5 py-0.2 rounded font-bold ${elo.teamOneDelta > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                                {elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta} Power Ranking
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-gray-500">
+                              Δ = K × (Actual Wins − Expected Wins) × Multiplier
+                            </div>
+                            <div className="text-indigo-950 font-semibold bg-indigo-50/50 p-2 rounded border border-indigo-100/60">
+                              Δ = K × ({game.teamOneGamesWon} − {t1ExpectedGames}) × {isScored ? avgMultiplier : '1.0'} = <span className={elo.teamOneDelta > 0 ? 'text-emerald-700' : 'text-rose-700'}>{elo.teamOneDelta > 0 ? `+${elo.teamOneDelta}` : elo.teamOneDelta}</span>
+                            </div>
                           </div>
-                          <div className="bg-white p-2.5 rounded-lg border border-indigo-100/80 flex items-center justify-between">
-                            <span className="font-semibold text-gray-700">Team 2 ({elo.teamTwoPreAvg} Avg)</span>
-                            <span className={`font-bold ${elo.teamTwoDelta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Power Ranking
-                            </span>
+
+                          {/* Team 2 Calculation */}
+                          <div className="bg-white p-3 rounded-xl border border-indigo-100 font-mono text-[11px] space-y-1.5 shadow-2xs">
+                            <div className="font-bold font-sans text-gray-800 text-xs flex items-center justify-between">
+                              <span>Team 2 Calculation</span>
+                              <span className={`px-1.5 py-0.2 rounded font-bold ${elo.teamTwoDelta > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                                {elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta} Power Ranking
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-gray-500">
+                              Δ = K × (Actual Wins − Expected Wins) × Multiplier
+                            </div>
+                            <div className="text-indigo-950 font-semibold bg-indigo-50/50 p-2 rounded border border-indigo-100/60">
+                              Δ = K × ({game.teamTwoGamesWon} − {t2ExpectedGames}) × {isScored ? avgMultiplier : '1.0'} = <span className={elo.teamTwoDelta > 0 ? 'text-emerald-700' : 'text-rose-700'}>{elo.teamTwoDelta > 0 ? `+${elo.teamTwoDelta}` : elo.teamTwoDelta}</span>
+                            </div>
                           </div>
                         </div>
-                        <p className="text-[10px] text-indigo-600/70">
-                          Ratings adjust based on opponent difficulty, individual game outcomes, and margin of victory.
-                        </p>
                       </div>
                     );
                   })()}
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team 1</h5>
-                      <ul className="list-disc pl-5 text-sm text-gray-800 space-y-1">
-                        {game.teamOnePlayers.map((player, idx) => (
-                          <li key={idx}>{player}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team 2</h5>
-                      <ul className="list-disc pl-5 text-sm text-gray-800 space-y-1">
-                        {game.teamTwoPlayers.map((player, idx) => (
-                          <li key={idx}>{player}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                  {/* Player Rosters & K-Factors */}
+                  {(() => {
+                    interface DisplayPlayer {
+                      name: string;
+                      kFactor?: number;
+                      delta?: number;
+                      isProvisional?: boolean;
+                      careerGames?: number;
+                    }
+
+                    const team1Players: DisplayPlayer[] = elo?.teamOnePlayerDetails && elo.teamOnePlayerDetails.length > 0
+                      ? elo.teamOnePlayerDetails.map((pd, idx) => ({
+                          name: game.teamOnePlayers[idx] || pd.name || `Player ${pd.id}`,
+                          kFactor: pd.kFactor,
+                          delta: pd.delta,
+                          isProvisional: pd.isProvisional,
+                          careerGames: pd.careerGames,
+                        }))
+                      : game.teamOnePlayers.map(name => ({ name }));
+
+                    const team2Players: DisplayPlayer[] = elo?.teamTwoPlayerDetails && elo.teamTwoPlayerDetails.length > 0
+                      ? elo.teamTwoPlayerDetails.map((pd, idx) => ({
+                          name: game.teamTwoPlayers[idx] || pd.name || `Player ${pd.id}`,
+                          kFactor: pd.kFactor,
+                          delta: pd.delta,
+                          isProvisional: pd.isProvisional,
+                          careerGames: pd.careerGames,
+                        }))
+                      : game.teamTwoPlayers.map(name => ({ name }));
+
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-2xs">
+                          <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-gray-100">
+                            <h5 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Team 1 Players</h5>
+                            {elo && <span className="text-[11px] text-gray-500 font-medium">Avg: {elo.teamOnePreAvg}</span>}
+                          </div>
+                          <div className="space-y-1.5">
+                            {team1Players.map((player, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-sm py-1 border-b border-gray-50 last:border-b-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-medium text-gray-900">{player.name}</span>
+                                  {player.kFactor !== undefined && (
+                                    <span
+                                      title={`K-Factor: ${player.kFactor} (${player.kFactor === 48 ? 'Provisional: <10 games' : player.kFactor === 32 ? 'Established: 10-30 games' : 'Veteran: >30 games'}). Rating sensitivity multiplier.`}
+                                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded border cursor-help ${
+                                        player.kFactor === 48
+                                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                          : player.kFactor === 32
+                                          ? 'bg-blue-50 text-blue-800 border-blue-200'
+                                          : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                                      }`}
+                                    >
+                                      K={player.kFactor}
+                                    </span>
+                                  )}
+                                  {player.isProvisional && (
+                                    <span className="text-[9px] bg-amber-100 text-amber-800 font-semibold px-1 py-0.2 rounded">
+                                      PROV
+                                    </span>
+                                  )}
+                                </div>
+                                {player.delta !== undefined && (
+                                  <span className={`text-xs font-mono font-bold ${player.delta > 0 ? 'text-emerald-700' : player.delta < 0 ? 'text-rose-700' : 'text-gray-500'}`}>
+                                    {player.delta > 0 ? `+${player.delta}` : player.delta}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-2xs">
+                          <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-gray-100">
+                            <h5 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Team 2 Players</h5>
+                            {elo && <span className="text-[11px] text-gray-500 font-medium">Avg: {elo.teamTwoPreAvg}</span>}
+                          </div>
+                          <div className="space-y-1.5">
+                            {team2Players.map((player, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-sm py-1 border-b border-gray-50 last:border-b-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-medium text-gray-900">{player.name}</span>
+                                  {player.kFactor !== undefined && (
+                                    <span
+                                      title={`K-Factor: ${player.kFactor} (${player.kFactor === 48 ? 'Provisional: <10 games' : player.kFactor === 32 ? 'Established: 10-30 games' : 'Veteran: >30 games'}). Rating sensitivity multiplier.`}
+                                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded border cursor-help ${
+                                        player.kFactor === 48
+                                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                          : player.kFactor === 32
+                                          ? 'bg-blue-50 text-blue-800 border-blue-200'
+                                          : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                                      }`}
+                                    >
+                                      K={player.kFactor}
+                                    </span>
+                                  )}
+                                  {player.isProvisional && (
+                                    <span className="text-[9px] bg-amber-100 text-amber-800 font-semibold px-1 py-0.2 rounded">
+                                      PROV
+                                    </span>
+                                  )}
+                                </div>
+                                {player.delta !== undefined && (
+                                  <span className={`text-xs font-mono font-bold ${player.delta > 0 ? 'text-emerald-700' : player.delta < 0 ? 'text-rose-700' : 'text-gray-500'}`}>
+                                    {player.delta > 0 ? `+${player.delta}` : player.delta}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   
-                  {hasGameScores ? (
+                  {hasGameScores && game.gameScores && game.gameScores.length > 0 ? (
                     <div className="bg-white p-3 rounded-lg border border-gray-200">
-                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Individual Game Scores</h5>
+                      <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        Individual Game Scores & Multipliers
+                      </h5>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
@@ -234,12 +468,16 @@ export function GameHistory({ games }: GameHistoryProps) {
                               <th className="pb-2 font-medium">Game</th>
                               <th className="pb-2 font-medium text-center">Team 1</th>
                               <th className="pb-2 font-medium text-center">Team 2</th>
-                              <th className="pb-2 font-medium text-right">Outcome</th>
+                              <th className="pb-2 font-medium text-center">Point Margin</th>
+                              <th className="pb-2 font-medium text-right">Outcome & Multiplier</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
-                            {game.gameScores!.map((gs) => {
+                            {game.gameScores.map((gs) => {
                               const t1Wins = gs.teamOneScore > gs.teamTwoScore;
+                              const margin = Math.abs(gs.teamOneScore - gs.teamTwoScore);
+                              const multiplier = margin <= 1 ? 1.0 : Math.min(2.0, 1.0 + Math.log(margin) * 0.35);
+
                               return (
                                 <tr key={gs.gameNumber}>
                                   <td className="py-2 font-medium text-gray-700">Game {gs.gameNumber}</td>
@@ -249,12 +487,20 @@ export function GameHistory({ games }: GameHistoryProps) {
                                   <td className={`py-2 text-center font-semibold ${!t1Wins ? 'text-green-600' : 'text-gray-600'}`}>
                                     {gs.teamTwoScore}
                                   </td>
+                                  <td className="py-2 text-center text-xs text-gray-500 font-medium">
+                                    +{margin} {margin === 1 ? 'pt' : 'pts'}
+                                  </td>
                                   <td className="py-2 text-right">
-                                    <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded ${
-                                      t1Wins ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                                    }`}>
-                                      {t1Wins ? 'Team 1 Win' : 'Team 2 Win'}
-                                    </span>
+                                    <div className="inline-flex items-center gap-1.5">
+                                      <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded ${
+                                        t1Wins ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                                      }`}>
+                                        {t1Wins ? 'Team 1 Win' : 'Team 2 Win'}
+                                      </span>
+                                      <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                                        {multiplier.toFixed(2)}x
+                                      </span>
+                                    </div>
                                   </td>
                                 </tr>
                               );
