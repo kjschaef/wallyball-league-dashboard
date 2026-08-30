@@ -224,6 +224,23 @@ export function computeChronologicalElo(
       }
     }
 
+    // Apply match-winner floor: match winners cannot lose rating, match losers cannot gain rating
+    if (t1Wins > t2Wins) {
+      for (const pid of teamOnePlayerIds) {
+        playerDeltas.set(pid, Math.max(0, playerDeltas.get(pid) ?? 0));
+      }
+      for (const pid of teamTwoPlayerIds) {
+        playerDeltas.set(pid, Math.min(0, playerDeltas.get(pid) ?? 0));
+      }
+    } else if (t2Wins > t1Wins) {
+      for (const pid of teamTwoPlayerIds) {
+        playerDeltas.set(pid, Math.max(0, playerDeltas.get(pid) ?? 0));
+      }
+      for (const pid of teamOnePlayerIds) {
+        playerDeltas.set(pid, Math.min(0, playerDeltas.get(pid) ?? 0));
+      }
+    }
+
     // Apply net match updates to player states
     for (const pid of [...teamOnePlayerIds, ...teamTwoPlayerIds]) {
       const state = ratingsMap.get(pid)!;
@@ -528,6 +545,23 @@ export function computeAllMatchesEloDetails(
       }
     }
 
+    // Apply match-winner floor: match winners cannot lose rating, match losers cannot gain rating
+    if (t1Wins > t2Wins) {
+      for (const pid of teamOnePlayerIds) {
+        playerDeltas.set(pid, Math.max(0, playerDeltas.get(pid) ?? 0));
+      }
+      for (const pid of teamTwoPlayerIds) {
+        playerDeltas.set(pid, Math.min(0, playerDeltas.get(pid) ?? 0));
+      }
+    } else if (t2Wins > t1Wins) {
+      for (const pid of teamTwoPlayerIds) {
+        playerDeltas.set(pid, Math.max(0, playerDeltas.get(pid) ?? 0));
+      }
+      for (const pid of teamOnePlayerIds) {
+        playerDeltas.set(pid, Math.min(0, playerDeltas.get(pid) ?? 0));
+      }
+    }
+
     const teamOnePlayerDetails: PlayerMatchEloDetail[] = teamOnePlayerIds.map(pid => {
       const state = ratingsMap.get(pid)!;
       const k = getKFactor(state.careerGames);
@@ -735,6 +769,23 @@ export function computePlayerEloTrajectories(
           const s = ratingsMap.get(pid)!;
           const k = getKFactor(s.careerGames);
           playerDeltas.set(pid, playerDeltas.get(pid)! + k * (act2 - exp2) * mm);
+        }
+      }
+
+      // Apply match-winner floor: match winners cannot lose rating, match losers cannot gain rating
+      if (t1Wins > t2Wins) {
+        for (const pid of teamOnePlayerIds) {
+          playerDeltas.set(pid, Math.max(0, playerDeltas.get(pid) ?? 0));
+        }
+        for (const pid of teamTwoPlayerIds) {
+          playerDeltas.set(pid, Math.min(0, playerDeltas.get(pid) ?? 0));
+        }
+      } else if (t2Wins > t1Wins) {
+        for (const pid of teamTwoPlayerIds) {
+          playerDeltas.set(pid, Math.max(0, playerDeltas.get(pid) ?? 0));
+        }
+        for (const pid of teamOnePlayerIds) {
+          playerDeltas.set(pid, Math.min(0, playerDeltas.get(pid) ?? 0));
         }
       }
 
