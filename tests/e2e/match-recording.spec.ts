@@ -19,6 +19,11 @@ test.describe('Match Recording Flow', () => {
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
 
+    // Wait for players to load in modal (either active buttons or inactive toggle)
+    await expect(
+      teamOneSection.locator('.grid.grid-cols-3 button, button:has-text("Inactive Players")').first()
+    ).toBeVisible({ timeout: 15000 });
+
     // Expand inactive players if no active players
     const inactiveToggle = teamOneSection.getByRole('button', { name: /Inactive Players/i });
     if (await inactiveToggle.isVisible()) {
@@ -86,6 +91,11 @@ test.describe('Match Recording Flow', () => {
 
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
+
+    // Wait for players to load in modal (either active buttons or inactive toggle)
+    await expect(
+      teamOneSection.locator('.grid.grid-cols-3 button, button:has-text("Inactive Players")').first()
+    ).toBeVisible({ timeout: 15000 });
 
     // Expand inactive players if no active players
     const inactiveToggle = teamOneSection.getByRole('button', { name: /Inactive Players/i });
@@ -168,6 +178,11 @@ test.describe('Match Recording Flow', () => {
 
     const teamOneSection = modal.locator('div.space-y-3').filter({ hasText: 'Team One' });
     const teamTwoSection = modal.locator('div.space-y-3').filter({ hasText: 'Team Two' });
+
+    // Wait for players to load in modal (either active buttons or inactive toggle)
+    await expect(
+      teamOneSection.locator('.grid.grid-cols-3 button, button:has-text("Inactive Players")').first()
+    ).toBeVisible({ timeout: 15000 });
 
     // Expand inactive players if no active players
     const inactiveToggle = teamOneSection.getByRole('button', { name: /Inactive Players/i });

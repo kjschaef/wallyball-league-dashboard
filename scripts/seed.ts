@@ -77,7 +77,7 @@ async function main() {
       teamTwoPlayerTwoId: p('David'),
       teamOneGamesWon: 3,
       teamTwoGamesWon: 0,
-      date: new Date('2024-01-01T18:00:00Z'),
+      date: new Date(Date.now() - 24 * 60 * 60 * 1000),
     },
     {
       teamOnePlayerOneId: p('Alice'),
@@ -86,7 +86,7 @@ async function main() {
       teamTwoPlayerTwoId: p('Eve'),
       teamOneGamesWon: 2,
       teamTwoGamesWon: 1,
-      date: new Date('2024-01-02T18:00:00Z'),
+      date: new Date(),
     },
   ]).returning();
 
