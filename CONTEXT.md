@@ -16,6 +16,14 @@ _Avoid_: Set, round, period
 The point tally recorded for each team in an individual game.
 _Avoid_: Result, line score
 
+**Scored Game**:
+A game where specific point tallies were recorded for both teams, enabling Margin of Victory scaling in Power Ranking calculations.
+_Avoid_: Point-tracked game, full game
+
+**Unscored Game**:
+A game where only the win/loss outcome was recorded without point totals, using the baseline 1.0x multiplier for Power Ranking calculations.
+_Avoid_: Quick game, win-only game, legacy game
+
 **Match Score**:
 The count of games won by each team across a single match.
 _Avoid_: Match points, series score

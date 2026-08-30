@@ -7,6 +7,7 @@ import {
   getSkillTier,
   computeWeeklyMovers,
   computeAllMatchesEloDetails,
+  computePlayerRecentDeltas,
   computePlayerEloTrajectories,
   INITIAL_ELO,
   PROVISIONAL_THRESHOLD
@@ -157,6 +158,30 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(charlie.elo).toBeLessThan(1500);
     });
 
+    it('avoids intra-match rating drift for multi-game unscored matches (5-2 win by favorite)', () => {
+      const players = [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }];
+      // Setup initial matches so Alice has ~1590 Elo and Bob has ~1430 Elo
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 5,
+          team_two_games_won: 2,
+          date: '2025-01-01',
+        },
+      ];
+
+      const ratings = computeChronologicalElo(players, matches);
+      const alice = ratings.get(1)!;
+      const bob = ratings.get(2)!;
+
+      // Alice won 5 games and lost 2 games out of 7 against an equal-start opponent
+      // Alice's rating MUST increase, not decrease
+      expect(alice.elo).toBeGreaterThan(1500);
+      expect(bob.elo).toBeLessThan(1500);
+    });
+
     it('transitions player from provisional to established at 10 games', () => {
       const players = [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }];
       // 5 matches of 2 games each = 10 games total
@@ -259,6 +284,65 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(details.teamTwoDelta).toBeLessThan(0);
       expect(typeof details.isUpset).toBe('boolean');
       expect(details.expectedT1WinRate).toBe(0.5);
+      expect(details.hasScoredGames).toBe(false);
+      expect(details.averageMarginMultiplier).toBe(1.0);
+      expect(details.gameBreakdowns.length).toBe(3);
+    });
+
+    it('populates gameBreakdowns and multipliers for scored matches', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ];
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 2,
+          team_two_games_won: 0,
+          date: '2025-01-01',
+          gameScores: [
+            { gameNumber: 1, teamOneScore: 21, teamTwoScore: 11 },
+            { gameNumber: 2, teamOneScore: 21, teamTwoScore: 19 },
+          ],
+        },
+      ];
+
+      const detailsMap = computeAllMatchesEloDetails(players, matches);
+      const details = detailsMap.get(1)!;
+      expect(details.hasScoredGames).toBe(true);
+      expect(details.averageMarginMultiplier).toBeGreaterThan(1.0);
+      expect(details.gameBreakdowns[0].margin).toBe(10);
+      expect(details.gameBreakdowns[0].multiplier).toBeGreaterThan(1.5);
+      expect(details.gameBreakdowns[1].margin).toBe(2);
+      expect(details.gameBreakdowns[1].multiplier).toBeLessThan(details.gameBreakdowns[0].multiplier);
+    });
+  });
+
+  describe('computePlayerRecentDeltas', () => {
+    it('calculates recent session deltas for active players', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ];
+      const today = new Date().toISOString();
+      const matches = [
+        {
+          id: 1,
+          team_one_player_one_id: 1,
+          team_two_player_one_id: 2,
+          team_one_games_won: 2,
+          team_two_games_won: 0,
+          date: today,
+        },
+      ];
+
+      const deltas = computePlayerRecentDeltas(players, matches);
+      expect(deltas.has(1)).toBe(true);
+      expect(deltas.get(1)).toBeGreaterThan(0);
+      expect(deltas.has(2)).toBe(true);
+      expect(deltas.get(2)).toBeLessThan(0);
     });
   });
 
@@ -284,6 +368,42 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(trajectories[0].date).toBe('2025-01-01');
       expect(trajectories[0]['Alice']).toBeGreaterThan(1500);
       expect(trajectories[0]['Bob']).toBeLessThan(1500);
+    });
+  });
+
+  describe('Match-Winner Floor', () => {
+    it('ensures match winners never lose rating and match losers never gain rating', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+        { id: 4, name: 'David' },
+      ];
+
+      const matches = [
+        { id: 1, team_one_player_one_id: 1, team_two_player_one_id: 3, team_one_games_won: 6, team_two_games_won: 0, date: '2025-01-01' },
+        { id: 2, team_one_player_one_id: 2, team_two_player_one_id: 4, team_one_games_won: 6, team_two_games_won: 0, date: '2025-01-01' },
+        {
+          id: 3,
+          team_one_player_one_id: 1,
+          team_one_player_two_id: 2,
+          team_two_player_one_id: 3,
+          team_two_player_two_id: 4,
+          team_one_games_won: 2,
+          team_two_games_won: 1,
+          date: '2025-01-02',
+        },
+      ];
+
+      const detailsMap = computeAllMatchesEloDetails(players, matches);
+      const match3Details = detailsMap.get(3)!;
+      expect(match3Details.teamOneDelta).toBeGreaterThanOrEqual(0);
+      expect(match3Details.teamTwoDelta).toBeLessThanOrEqual(0);
+
+      const finalRatings = computeChronologicalElo(players, matches);
+      // Team 1 players should not have lost rating on match 3
+      const aliceRatingsBeforeM3 = computeChronologicalElo(players, matches.slice(0, 2)).get(1)!.elo;
+      expect(finalRatings.get(1)!.elo).toBeGreaterThanOrEqual(aliceRatingsBeforeM3);
     });
   });
 });

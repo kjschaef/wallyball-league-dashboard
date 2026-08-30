@@ -350,8 +350,8 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
             <span className="block sm:inline">{error}</span>
           </div>
         ) : (
-          <div className="h-[400px] w-full">
-            <div className="mb-3 flex items-center justify-between gap-3 text-sm text-gray-600">
+          <div className="w-full space-y-3">
+            <div className="flex items-center justify-between gap-3 text-sm text-gray-600">
               <span>Click and drag across the chart to zoom into a date range.</span>
               {zoomRange && (
                 <button
@@ -363,75 +363,78 @@ export function PerformanceTrend({ isExporting: _isExporting = false, season: in
                 </button>
               )}
             </div>
-            <ResponsiveContainer>
-              <LineChart
-                data={visibleChartData}
-                onMouseDown={handleChartMouseDown}
-                onMouseMove={handleChartMouseMove}
-                onMouseUp={handleChartMouseUp}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(date) => {
-                    try {
-                      return format(parseISO(date), "MMM d");
-                    } catch {
-                      return date;
-                    }
-                  }}
-                />
-                <YAxis
-                  domain={yAxisDomain}
-                  tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
-                />
-                <Tooltip
-                  labelFormatter={(date) => {
-                    try {
-                      return format(parseISO(date as string), "MMM d, yyyy");
-                    } catch {
-                      return date;
-                    }
-                  }}
-                  formatter={(value: number, name: string, props: any) =>
-                    formatTooltip(value, name, props, metric, trendsData, playerStats, dateRange)
-                  }
-                  itemSorter={(item) => {
-                    // Sort by value in descending order (highest win% at top)
-                    return -Number(item.value);
-                  }}
-                />
-                <Legend />
-                {dragSelection.start && dragSelection.end && (
-                  <ReferenceArea
-                    x1={dragSelection.start}
-                    x2={dragSelection.end}
-                    strokeOpacity={0.3}
-                    fill="#2563eb"
-                    fillOpacity={0.12}
+            <div className="h-[440px] w-full pb-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={visibleChartData}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 20 }}
+                  onMouseDown={handleChartMouseDown}
+                  onMouseMove={handleChartMouseMove}
+                  onMouseUp={handleChartMouseUp}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(date) => {
+                      try {
+                        return format(parseISO(date), "MMM d");
+                      } catch {
+                        return date;
+                      }
+                    }}
                   />
-                )}
-                {playerStats.map((player, index) => {
-                  const isCompared = compare.length === 0 ? true : compare.includes(player.id);
-                  const strokeOpacity = compare.length === 0 ? 1 : (isCompared ? 1 : 0.18);
-                  const strokeWidth = isCompared ? 3 : 1;
-                  return (
-                    <Line
-                      key={player.id}
-                      type="monotone"
-                      dataKey={player.name}
-                      isAnimationActive={shouldAnimateLines}
-                      stroke={COLORS[index % COLORS.length]}
-                      strokeWidth={strokeWidth}
-                      strokeOpacity={strokeOpacity}
-                      activeDot={{ r: isCompared ? 6 : 0 }}
-                      dot={false}
-                      connectNulls={true}
+                  <YAxis
+                    domain={yAxisDomain}
+                    tickFormatter={(value) => metric === 'winPercentage' ? `${Math.round(value)}%` : `${Math.round(value)}`}
+                  />
+                  <Tooltip
+                    labelFormatter={(date) => {
+                      try {
+                        return format(parseISO(date as string), "MMM d, yyyy");
+                      } catch {
+                        return date;
+                      }
+                    }}
+                    formatter={(value: number, name: string, props: any) =>
+                      formatTooltip(value, name, props, metric, trendsData, playerStats, dateRange)
+                    }
+                    itemSorter={(item) => {
+                      // Sort by value in descending order (highest win% at top)
+                      return -Number(item.value);
+                    }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '16px', paddingBottom: '12px' }} />
+                  {dragSelection.start && dragSelection.end && (
+                    <ReferenceArea
+                      x1={dragSelection.start}
+                      x2={dragSelection.end}
+                      strokeOpacity={0.3}
+                      fill="#2563eb"
+                      fillOpacity={0.12}
                     />
-                  );
-                })}
-              </LineChart>
-            </ResponsiveContainer>
+                  )}
+                  {playerStats.map((player, index) => {
+                    const isCompared = compare.length === 0 ? true : compare.includes(player.id);
+                    const strokeOpacity = compare.length === 0 ? 1 : (isCompared ? 1 : 0.18);
+                    const strokeWidth = isCompared ? 3 : 1;
+                    return (
+                      <Line
+                        key={player.id}
+                        type="monotone"
+                        dataKey={player.name}
+                        isAnimationActive={shouldAnimateLines}
+                        stroke={COLORS[index % COLORS.length]}
+                        strokeWidth={strokeWidth}
+                        strokeOpacity={strokeOpacity}
+                        activeDot={{ r: isCompared ? 6 : 0 }}
+                        dot={false}
+                        connectNulls={true}
+                      />
+                    );
+                  })}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
     </div >
