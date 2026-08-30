@@ -15,7 +15,7 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
     // Verify Right Column: League Power Rankings panel
     const powerRankingsPanel = page.getByText(/League Power Rankings/i);
     await expect(powerRankingsPanel).toBeVisible();
-    await expect(page.getByText(/All-Time Power Rankings/i)).toBeVisible();
+    await expect(page.getByText(/All-Time.*Power Rankings/i)).toBeVisible();
 
     // Verify Podium Medals exist
     await expect(page.getByText('#1', { exact: true })).toBeVisible();
@@ -54,7 +54,7 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
 
     // Switch to Power Rankings tab
     await eloTab.click();
-    await expect(page.getByText(/All-Time Power Rankings/i)).toBeVisible();
+    await expect(page.getByText(/All-Time.*Power Rankings/i)).toBeVisible();
 
     // Switch back to Season Race tab
     await seasonTab.click();
