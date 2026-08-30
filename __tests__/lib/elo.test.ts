@@ -370,5 +370,41 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(trajectories[0]['Bob']).toBeLessThan(1500);
     });
   });
+
+  describe('Match-Winner Floor', () => {
+    it('ensures match winners never lose rating and match losers never gain rating', () => {
+      const players = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+        { id: 4, name: 'David' },
+      ];
+
+      const matches = [
+        { id: 1, team_one_player_one_id: 1, team_two_player_one_id: 3, team_one_games_won: 6, team_two_games_won: 0, date: '2025-01-01' },
+        { id: 2, team_one_player_one_id: 2, team_two_player_one_id: 4, team_one_games_won: 6, team_two_games_won: 0, date: '2025-01-01' },
+        {
+          id: 3,
+          team_one_player_one_id: 1,
+          team_one_player_two_id: 2,
+          team_two_player_one_id: 3,
+          team_two_player_two_id: 4,
+          team_one_games_won: 2,
+          team_two_games_won: 1,
+          date: '2025-01-02',
+        },
+      ];
+
+      const detailsMap = computeAllMatchesEloDetails(players, matches);
+      const match3Details = detailsMap.get(3)!;
+      expect(match3Details.teamOneDelta).toBeGreaterThanOrEqual(0);
+      expect(match3Details.teamTwoDelta).toBeLessThanOrEqual(0);
+
+      const finalRatings = computeChronologicalElo(players, matches);
+      // Team 1 players should not have lost rating on match 3
+      const aliceRatingsBeforeM3 = computeChronologicalElo(players, matches.slice(0, 2)).get(1)!.elo;
+      expect(finalRatings.get(1)!.elo).toBeGreaterThanOrEqual(aliceRatingsBeforeM3);
+    });
+  });
 });
 
