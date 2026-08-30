@@ -93,4 +93,19 @@ describe('PlayerCards', () => {
     expect(inactiveToggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText('Inactive Bob')).not.toBeInTheDocument();
   });
+
+  it('renders experience level badge for players', async () => {
+    await act(async () => {
+      render(
+        <QueryClientProvider client={queryClient}>
+          <AdminProvider>
+            <PlayerCards />
+          </AdminProvider>
+        </QueryClientProvider>
+      );
+    });
+
+    // Alice has 15 total games (< 25) -> Provisional
+    expect(await screen.findByText('Provisional')).toBeInTheDocument();
+  });
 });

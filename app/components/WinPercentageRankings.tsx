@@ -200,7 +200,7 @@ export function WinPercentageRankings({ season, showAllPlayers = false }: WinPer
               style={borderStyle}
               title={
                 rankingMetric === 'elo'
-                  ? (player.isProvisional ? 'Provisional rating (less than 10 career games played)' : undefined)
+                  ? (player.isProvisional ? 'Provisional rating (less than 25 career games played)' : undefined)
                   : (player.matches < 50 ? 'Provisional ranking (less than 50 games played)' : undefined)
               }
             >

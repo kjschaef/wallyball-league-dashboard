@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog';
+import { getExperienceLevel } from '../lib/elo';
 
 interface Player {
   id: number;
@@ -64,8 +65,19 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="p-3">
         <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="text-base font-bold">{player.name}</h3>
+            {(() => {
+              const exp = getExperienceLevel(total);
+              return (
+                <span
+                  title={exp.description}
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${exp.badgeClass} cursor-help`}
+                >
+                  {exp.name}
+                </span>
+              );
+            })()}
             {yearsPlayed !== null && (
               <span className="text-xs text-gray-500">
                 {yearsPlayed}y
@@ -184,7 +196,7 @@ export function PlayerCard({ player, onEdit, onDelete }: PlayerCardProps) {
               </div>
             </div>
 
-            <div className="text-center" title={stats.isProvisional ? "Provisional rating (< 10 career games)" : "Power Ranking"}>
+            <div className="text-center" title={stats.isProvisional ? "< 25 career games" : "Power Ranking"}>
               <div className="flex items-center justify-center gap-1">
                 <span className="text-lg font-bold text-indigo-700">
                   {stats.elo ?? 1500}
