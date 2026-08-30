@@ -83,7 +83,7 @@ The baseline Power Ranking score (1500) assigned to every player prior to loggin
 _Avoid_: Default score, zero-point
 
 **Provisional Rating**:
-The calibration phase during a player's first 10 career games where an elevated K-factor accelerates rating convergence.
+The calibration phase during a player's first 25 career games where an elevated K-factor accelerates rating convergence.
 _Avoid_: Placement matches, unranked phase
 
 **Season Race**:

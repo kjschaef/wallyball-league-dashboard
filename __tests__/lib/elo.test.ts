@@ -15,20 +15,26 @@ import {
 
 describe('Elo Module (app/lib/elo)', () => {
   describe('getKFactor', () => {
-    it('returns 48 for provisional players (< 10 games)', () => {
+    it('returns 48 for provisional players (< 25 games)', () => {
       expect(getKFactor(0)).toBe(48);
-      expect(getKFactor(9)).toBe(48);
+      expect(getKFactor(24)).toBe(48);
     });
 
-    it('returns 32 for established players (10 to 30 games)', () => {
-      expect(getKFactor(10)).toBe(32);
-      expect(getKFactor(20)).toBe(32);
-      expect(getKFactor(30)).toBe(32);
+    it('returns 36 for developing players (25 to 75 games)', () => {
+      expect(getKFactor(25)).toBe(36);
+      expect(getKFactor(50)).toBe(36);
+      expect(getKFactor(75)).toBe(36);
     });
 
-    it('returns 24 for veteran players (> 30 games)', () => {
-      expect(getKFactor(31)).toBe(24);
-      expect(getKFactor(100)).toBe(24);
+    it('returns 28 for established players (76 to 150 games)', () => {
+      expect(getKFactor(76)).toBe(28);
+      expect(getKFactor(100)).toBe(28);
+      expect(getKFactor(150)).toBe(28);
+    });
+
+    it('returns 20 for veteran players (> 150 games)', () => {
+      expect(getKFactor(151)).toBe(20);
+      expect(getKFactor(300)).toBe(20);
     });
   });
 
@@ -182,20 +188,20 @@ describe('Elo Module (app/lib/elo)', () => {
       expect(bob.elo).toBeLessThan(1500);
     });
 
-    it('transitions player from provisional to established at 10 games', () => {
+    it('transitions player from provisional to established at 25 games', () => {
       const players = [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }];
-      // 5 matches of 2 games each = 10 games total
-      const matches = Array.from({ length: 5 }, (_, i) => ({
+      // 13 matches of 2 games each = 26 games total
+      const matches = Array.from({ length: 13 }, (_, i) => ({
         id: i + 1,
         team_one_player_one_id: 1,
         team_two_player_one_id: 2,
         team_one_games_won: 1,
         team_two_games_won: 1,
-        date: `2025-01-0${i + 1}`,
+        date: `2025-01-${String(i + 1).padStart(2, '0')}`,
       }));
 
       const ratings = computeChronologicalElo(players, matches);
-      expect(ratings.get(1)?.careerGames).toBe(10);
+      expect(ratings.get(1)?.careerGames).toBe(26);
       expect(ratings.get(1)?.isProvisional).toBe(false);
     });
   });

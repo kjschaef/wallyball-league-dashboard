@@ -22,6 +22,7 @@ import { Edit, Trash2, TrendingUp, Calendar, ChevronDown, ChevronRight } from "l
 import { useSeasonChampions } from "../hooks/useSeasonChampions";
 import { useAdmin } from "./AdminProvider";
 import { isPlayerActive } from "../lib/playerFiltering";
+import { getExperienceLevel } from "../lib/elo";
 
 interface PlayerStats {
   id: number;
@@ -60,6 +61,7 @@ interface PlayerCardProps {
 
 
 function PlayerCard({ player, onEdit, onDelete, isInactive = false, championshipCount = 0 }: PlayerCardProps) {
+  const expLevel = getExperienceLevel(player.careerGames ?? player.record?.totalGames ?? 0);
 
   return (
     <Card className={`group relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 ${isInactive
@@ -75,9 +77,17 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
       <div className="relative p-3">
         <div className="flex items-start justify-between mb-2">
           <div className="space-y-0.5">
-            <h3 className="text-base font-bold text-gray-900 group-hover:text-gray-800 leading-tight">
-              {player.name}
-            </h3>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h3 className="text-base font-bold text-gray-900 group-hover:text-gray-800 leading-tight">
+                {player.name}
+              </h3>
+              <span
+                title={expLevel.description}
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${expLevel.badgeClass} cursor-help`}
+              >
+                {expLevel.name}
+              </span>
+            </div>
 
             <div className="flex flex-col gap-1 mt-1">
               <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -161,7 +171,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
             </div>
 
             {/* Power Ranking */}
-            <div className="text-center" title={player.isProvisional ? "Provisional rating (< 10 career games)" : "Power Ranking"}>
+            <div className="text-center" title={player.isProvisional ? "< 25 career games" : "Power Ranking"}>
               <div className="flex items-center justify-center gap-1">
                 <span className="text-xl font-bold text-indigo-700 leading-none">
                   {player.elo ?? 1500}

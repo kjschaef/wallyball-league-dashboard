@@ -7,7 +7,7 @@
  */
 
 export const INITIAL_ELO = 1500;
-export const PROVISIONAL_THRESHOLD = 10;
+export const PROVISIONAL_THRESHOLD = 25;
 
 export interface PlayerEloState {
   id: number;
@@ -48,14 +48,16 @@ export interface ReplayMatch {
 
 /**
  * Returns the K-factor based on career games played.
- * - Provisional (< 10 games): 48
- * - Established (10-30 games): 32
- * - Veteran (> 30 games): 24
+ * - Provisional (< 25 games): 48 (responsive calibration)
+ * - Developing (25-75 games): 36 (maturing calibration)
+ * - Established (76-150 games): 28 (steady ratings)
+ * - Veteran (> 150 games): 20 (anchored ratings)
  */
 export function getKFactor(careerGames: number): number {
-  if (careerGames < 10) return 48;
-  if (careerGames <= 30) return 32;
-  return 24;
+  if (careerGames < 25) return 48;
+  if (careerGames <= 75) return 36;
+  if (careerGames <= 150) return 28;
+  return 20;
 }
 
 /**
@@ -305,6 +307,46 @@ export function getSkillTier(elo: number, isProvisional: boolean): SkillTier {
     color: 'text-amber-800',
     badgeBg: 'bg-orange-50',
     borderColor: 'border-orange-200',
+  };
+}
+
+export interface ExperienceLevel {
+  name: 'Provisional' | 'Developing' | 'Established' | 'Veteran';
+  shortName: string;
+  badgeClass: string;
+  description: string;
+}
+
+export function getExperienceLevel(careerGames: number): ExperienceLevel {
+  if (careerGames < 25) {
+    return {
+      name: 'Provisional',
+      shortName: 'PROV',
+      badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+      description: `Provisional (${careerGames}/25 games) — Rapid calibration (K=48)`,
+    };
+  }
+  if (careerGames <= 75) {
+    return {
+      name: 'Developing',
+      shortName: 'DEV',
+      badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
+      description: `Developing (${careerGames}/75 games) — Maturing calibration (K=36)`,
+    };
+  }
+  if (careerGames <= 150) {
+    return {
+      name: 'Established',
+      shortName: 'EST',
+      badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      description: `Established (${careerGames} games) — Steady rating (K=28)`,
+    };
+  }
+  return {
+    name: 'Veteran',
+    shortName: 'VET',
+    badgeClass: 'bg-purple-100 text-purple-800 border-purple-200',
+    description: `Veteran (${careerGames} games) — Anchored rating (K=20)`,
   };
 }
 

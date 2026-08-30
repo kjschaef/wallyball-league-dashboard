@@ -443,11 +443,14 @@
       "tags": [
         "players"
       ],
-      "imports": [],
+      "imports": [
+        "app/lib/elo.ts"
+      ],
       "importedBy": [
         "app/players/page.tsx"
       ],
       "related": [
+        "app/lib/elo.ts",
         "app/players/page.tsx"
       ],
       "overrideNotes": []
@@ -461,6 +464,7 @@
       "imports": [
         "app/components/AdminProvider.tsx",
         "app/hooks/useSeasonChampions.ts",
+        "app/lib/elo.ts",
         "app/lib/playerFiltering.ts"
       ],
       "importedBy": [
@@ -469,6 +473,7 @@
       "related": [
         "app/components/AdminProvider.tsx",
         "app/hooks/useSeasonChampions.ts",
+        "app/lib/elo.ts",
         "app/lib/playerFiltering.ts",
         "app/results/page.tsx"
       ],
@@ -899,12 +904,16 @@
       "importedBy": [
         "app/api/matches/route.ts",
         "app/api/player-trends/route.ts",
+        "app/components/PlayerCard.tsx",
+        "app/components/PlayerCards.tsx",
         "app/components/PowerRankings.tsx",
         "app/lib/stats.ts"
       ],
       "related": [
         "app/api/matches/route.ts",
         "app/api/player-trends/route.ts",
+        "app/components/PlayerCard.tsx",
+        "app/components/PlayerCards.tsx",
         "app/components/PowerRankings.tsx",
         "app/lib/stats.ts"
       ],
