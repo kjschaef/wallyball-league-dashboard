@@ -54,14 +54,12 @@ const TASK_DEFINITIONS: TaskDefinition[] = [
     triggers: ['player', 'players', 'add player', 'edit player', 'delete player'],
     matchers: [
       'app/api/players/**',
-      'app/players/page.tsx',
       'app/components/Player*.tsx',
       'app/page.tsx',
     ],
     startHints: [
       'app/api/players/route.ts',
       'app/api/players/[id]/route.ts',
-      'app/players/page.tsx',
       'app/page.tsx',
       'db/schema.ts',
     ],

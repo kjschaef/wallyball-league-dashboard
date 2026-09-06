@@ -8,7 +8,7 @@
       "agent-context/index.json",
       "agent-context/tasks.json"
     ],
-    "routeCount": 26,
+    "routeCount": 25,
     "taskCount": 5
   },
   "commands": [

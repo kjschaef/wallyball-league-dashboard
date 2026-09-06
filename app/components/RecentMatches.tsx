@@ -88,7 +88,7 @@ export function RecentMatches() {
           href="/games"
           className="block rounded-lg border border-gray-200 bg-white px-4 py-3 text-center font-medium text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
         >
-          View all games
+          View all matches &rarr;
         </Link>
       </div>
     </div>

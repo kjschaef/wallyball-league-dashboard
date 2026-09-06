@@ -50,27 +50,23 @@ export const players = pgTable("players", {
 
 The player management feature utilizes the following components:
 
-- **PlayerCard**: Displays player information, statistics, and achievements
-- **PlayerAchievements**: Shows achievement badges earned by the player
-- **Players Page**: Manages the list of players and provides CRUD operations
+- **PlayerCards**: Displays player cards on the Dashboard with statistics and provides CRUD operations
 - **Player Dialog**: Form for creating and editing player information
-
-
 
 ## User Interaction Flow
 
-1. User navigates to the Players page
+1. User views the Player Cards section on the Dashboard
 2. User can:
-   - View the list of players sorted by win percentage
+   - View active and inactive players with win rates, records, and power rankings
    - Click "Add Player" to create a new player
    - Click "Edit" on a player card to modify player details
    - Click "Delete" on a player card to remove the player
 3. When adding or editing a player, a dialog appears with a form
-4. Upon submission, the player list updates with the changes
+4. Upon submission, the player cards update with the changes
 
-## UI Screenshots
+## UI Layout
 
-The Players page displays player cards in a responsive grid layout. Each player card shows:
+The Dashboard displays player cards in a responsive grid layout. Each player card shows:
 
 - Player name
 - Start year
