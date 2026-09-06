@@ -7,7 +7,7 @@ test('has title and basic dashboard elements', async ({ page }) => {
   await expect(page, 'Page should have Wallyball title').toHaveTitle(/Wallyball/i);
 
   // Check for the navbar
-  await expect(page.locator('nav')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Main Navigation' })).toBeVisible();
 
   // Wait for application content to ensure we are not on a login or error page
   await expect(page.getByRole('heading', { name: /League Dashboard|Win Percentage/i })).toBeVisible({ timeout: 30000 });
