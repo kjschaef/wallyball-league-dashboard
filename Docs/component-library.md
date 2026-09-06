@@ -21,29 +21,13 @@ The application uses a set of base UI components from shadcn/ui, which are built
 
 ## Feature Components
 
-### PlayerCard
+### PlayerCards
 
-Displays player information including stats and achievements.
-
-**Props**:
-```typescript
-interface PlayerCardProps {
-  player: Player & { 
-    matches: Array<{ won: boolean, date: string }>, 
-    stats: { won: number, lost: number } 
-  };
-  onEdit?: (player: Player) => void;
-  onDelete?: (id: number) => void;
-}
-```
+Displays player cards on the dashboard with stats, power rankings, and management actions.
 
 **Usage**:
 ```jsx
-<PlayerCard
-  player={player}
-  onEdit={handleEdit}
-  onDelete={handleDelete}
-/>
+<PlayerCards />
 ```
 
 ### PlayerSelector
