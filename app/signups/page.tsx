@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { useAdmin } from '../components/AdminProvider';
 import { Trash2, Plus, Clock, Copy, Check } from 'lucide-react';
 import {
-  generateWeekDates,
+  getCurrentWeekDates,
   getEasternWallTimeNow,
   getSignupCycleState,
   getNoResponsePlayers,
@@ -201,9 +201,15 @@ export default function SignupsPage() {
     ? unavailableThisWeek.some((player) => player.player_id === parseInt(selectedPlayerId, 10))
     : false;
 
+  const allPlayerMatches = players.flatMap((p) => p.matches ?? []);
+
   // Dates available for signup (next week's play days) — only shown when open
   const upcomingDates: string[] = (settings && isOpen && signupWeekSunday)
-    ? generateWeekDates(signupWeekSunday, settings.availableDays)
+    ? getCurrentWeekDates({
+        weekSunday: signupWeekSunday,
+        availableDays: settings.availableDays,
+        signups,
+      })
     : [];
 
   const noResponseThisWeek = (isOpen && signupWeekStart && upcomingDates.length > 0)
@@ -212,7 +218,12 @@ export default function SignupsPage() {
 
   // Current week dates (shown at bottom as reference)
   const currentWeekDates: string[] = settings
-    ? generateWeekDates(currentWeekSunday, settings.availableDays)
+    ? getCurrentWeekDates({
+        weekSunday: currentWeekSunday,
+        availableDays: settings.availableDays,
+        signups,
+        matches: allPlayerMatches,
+      })
     : [];
 
   // Countdown to next open
@@ -230,10 +241,33 @@ export default function SignupsPage() {
   const handleExport = async (sunday: Date, dates: string[]) => {
     if (!sunday || dates.length === 0) return;
 
+    const exportSignups = [...signups];
+    for (const d of dates) {
+      const hasSignups = exportSignups.some(s => s.date === d && s.status === 'registered');
+      if (!hasSignups) {
+        const matchPlayers = players.filter(p =>
+          p.matches?.some(m => {
+            const mDate = m.date.length >= 10 ? m.date.slice(0, 10) : format(new Date(m.date), 'yyyy-MM-dd');
+            return mDate === d;
+          })
+        );
+        for (const p of matchPlayers) {
+          exportSignups.push({
+            id: p.id,
+            player_id: p.id,
+            name: p.name,
+            date: d,
+            status: 'registered',
+            created_at: '',
+          });
+        }
+      }
+    }
+
     const text = formatSignupExport({
       sunday,
       dates,
-      signups,
+      signups: exportSignups,
       unavailablePlayers,
       players,
     });
@@ -501,10 +535,31 @@ export default function SignupsPage() {
       {/* Current Week (bottom section) */}
       {currentWeekDates.length > 0 && (() => {
         const currentWeekCards = currentWeekDates
-          .map(dateStr => ({
-            dateStr,
-            daySignups: signups.filter(s => s.date === dateStr && s.status === 'registered'),
-          }))
+          .map(dateStr => {
+            let daySignups = signups.filter(s => s.date === dateStr && s.status === 'registered');
+            if (daySignups.length === 0) {
+              const matchPlayers = players.filter(p =>
+                p.matches?.some(m => {
+                  const mDate = m.date.length >= 10 ? m.date.slice(0, 10) : format(new Date(m.date), 'yyyy-MM-dd');
+                  return mDate === dateStr;
+                })
+              );
+              if (matchPlayers.length > 0) {
+                daySignups = matchPlayers.map(p => ({
+                  id: p.id,
+                  player_id: p.id,
+                  name: p.name,
+                  date: dateStr,
+                  status: 'registered' as const,
+                  created_at: '',
+                }));
+              }
+            }
+            return {
+              dateStr,
+              daySignups,
+            };
+          })
           .filter(({ daySignups }) => daySignups.length > 0);
 
         if (currentWeekCards.length === 0) return null;

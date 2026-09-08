@@ -4,6 +4,7 @@ import {
   normalizeTimeInputValue,
   getEasternWallTimeNow,
   generateWeekDates,
+  getCurrentWeekDates,
   getSignupCycleState,
   isDateInSignupWeek,
   getNoResponsePlayers,
@@ -71,10 +72,62 @@ describe('signup cycle utilities', () => {
     ]);
     expect(isDateInSignupWeek('2026-01-19', signupWeekSunday, defaultSettings.availableDays)).toBe(true);
     expect(isDateInSignupWeek('2026-01-21', signupWeekSunday, defaultSettings.availableDays)).toBe(false);
+    expect(isDateInSignupWeek('2026-01-21', signupWeekSunday, defaultSettings.availableDays, ['2026-01-21'])).toBe(true);
   });
 
   it('returns false when signupWeekSunday is null', () => {
     expect(isDateInSignupWeek('2026-01-19', null, defaultSettings.availableDays)).toBe(false);
+  });
+});
+
+describe('getCurrentWeekDates', () => {
+  const weekSunday = new Date(2026, 8, 6); // Sunday Sept 6, 2026
+
+  it('includes only availableDays when there are no extra signups or matches', () => {
+    const dates = getCurrentWeekDates({
+      weekSunday,
+      availableDays: ['Tuesday', 'Thursday'],
+    });
+
+    expect(dates).toEqual(['2026-09-08', '2026-09-10']);
+  });
+
+  it('includes extra game days like Wednesday when signups exist for that day', () => {
+    const dates = getCurrentWeekDates({
+      weekSunday,
+      availableDays: ['Tuesday', 'Thursday'],
+      signups: [
+        { date: '2026-09-08' },
+        { date: '2026-09-09' }, // Wednesday
+      ],
+    });
+
+    expect(dates).toEqual(['2026-09-08', '2026-09-09', '2026-09-10']);
+  });
+
+  it('includes extra game days when matches exist for that day', () => {
+    const dates = getCurrentWeekDates({
+      weekSunday,
+      availableDays: ['Tuesday', 'Thursday'],
+      matches: [
+        { date: '2026-09-09T18:00:00.000Z' }, // Wednesday match
+      ],
+    });
+
+    expect(dates).toEqual(['2026-09-08', '2026-09-09', '2026-09-10']);
+  });
+
+  it('ignores signups and matches outside of the target week', () => {
+    const dates = getCurrentWeekDates({
+      weekSunday,
+      availableDays: ['Tuesday', 'Thursday'],
+      signups: [
+        { date: '2026-09-02' }, // previous week Wednesday
+        { date: '2026-09-16' }, // next week Wednesday
+      ],
+    });
+
+    expect(dates).toEqual(['2026-09-08', '2026-09-10']);
   });
 });
 
