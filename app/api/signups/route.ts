@@ -215,7 +215,16 @@ export async function POST(request: Request) {
     }
 
     if (!isAdmin) {
-      if (!signupState.isOpen || !isDateInSignupWeek(date, signupState.signupWeekSunday, signupSettings.availableDays)) {
+      let isAllowed = isDateInSignupWeek(date, signupState.signupWeekSunday, signupSettings.availableDays);
+      if (!isAllowed) {
+        const existingDateSignups = await sql`
+          SELECT id FROM weekly_signups WHERE date = ${date} LIMIT 1
+        `;
+        if (existingDateSignups.length > 0) {
+          isAllowed = true;
+        }
+      }
+      if (!signupState.isOpen || !isAllowed) {
         return NextResponse.json({ error: 'Signups are closed for this date' }, { status: 403 });
       }
     }

@@ -38,6 +38,10 @@ const createMockSql = () => Object.assign(
       return mockSql('existing-signup');
     }
 
+    if (query.includes('select id from weekly_signups where date =') && !query.includes('waitlisted') && query.includes('limit 1')) {
+      return mockSql('existing-date-signups');
+    }
+
     if (query.includes("select count(*) as total from weekly_signups where date")) {
       return mockSql('signup-count');
     }
@@ -350,6 +354,53 @@ describe('/api/signups', () => {
         success: true,
         signup: { id: 99, player_id: 1, date: '2026-01-19', status: 'registered' },
       });
+      expect(mockSql).toHaveBeenCalledWith('insert-signup');
+    });
+
+    it('accepts non-admin signups during open window for date outside availableDays if it already has signups', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'settings') {
+          return Promise.resolve([{
+            signup_open_day_of_week: 0,
+            signup_open_time: '12:00',
+            signup_close_day_of_week: 0,
+            signup_close_time: '16:00',
+            available_days: '["Monday","Tuesday","Thursday"]',
+          }]);
+        }
+
+        // Wednesday 2026-01-21 is not in available_days, but has existing signups
+        if (queryType === 'existing-date-signups') {
+          return Promise.resolve([{ id: 88 }]);
+        }
+
+        if (queryType === 'existing-signup') {
+          return Promise.resolve([]);
+        }
+
+        if (queryType === 'signup-count') {
+          return Promise.resolve([{ total: '1' }]);
+        }
+
+        if (queryType === 'insert-signup') {
+          return Promise.resolve([{ id: 102, player_id: 2, date: '2026-01-21', status: 'registered' }]);
+        }
+
+        return Promise.resolve([]);
+      });
+
+      const response = await POST({
+        json: async () => ({ playerId: 2, date: '2026-01-21' }),
+      } as Request);
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        success: true,
+        signup: { id: 102, player_id: 2, date: '2026-01-21', status: 'registered' },
+      });
+      expect(mockSql).toHaveBeenCalledWith('existing-date-signups');
       expect(mockSql).toHaveBeenCalledWith('insert-signup');
     });
 

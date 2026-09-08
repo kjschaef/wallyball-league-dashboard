@@ -282,5 +282,110 @@ describe('SignupsPage', () => {
     expect(writeTextMock).toHaveBeenCalledWith(expect.stringContaining('Week of January 19 // 6:30-8:00 am'));
     expect(writeTextMock).toHaveBeenCalledWith(expect.stringContaining('Out: Alice'));
   });
+
+  it('renders Wednesday game card under Current Week when signups exist outside availableDays', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: RequestInfo) => {
+      const requestUrl = String(url);
+      if (requestUrl === '/api/settings') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            signupOpenDayOfWeek: 0,
+            signupOpenTime: '12:00',
+            signupCloseDayOfWeek: 0,
+            signupCloseTime: '16:00',
+            availableDays: ['Tuesday', 'Thursday'],
+          }),
+        } as Response);
+      }
+      if (requestUrl === '/api/players') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 1, name: 'Alice' },
+            { id: 2, name: 'Bob' },
+          ],
+        } as Response);
+      }
+      if (requestUrl === '/api/signups') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 1, player_id: 1, name: 'Alice', date: '2026-01-13', status: 'registered', created_at: '2026-01-10T00:00:00.000Z' }, // Tuesday
+            { id: 2, player_id: 2, name: 'Bob', date: '2026-01-14', status: 'registered', created_at: '2026-01-10T00:00:00.000Z' }, // Wednesday
+            { id: 3, player_id: 1, name: 'Alice', date: '2026-01-15', status: 'registered', created_at: '2026-01-10T00:00:00.000Z' }, // Thursday
+          ],
+        } as Response);
+      }
+      if (requestUrl === '/api/signups?unavailable=1') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [],
+        } as Response);
+      }
+      return Promise.resolve({ ok: false, status: 404, json: async () => ({}) } as Response);
+    });
+
+    await act(async () => {
+      render(<SignupsPage />);
+    });
+
+    expect(await screen.findByText('Current Week')).toBeInTheDocument();
+    expect(screen.getByText('Tuesday, Jan 13th')).toBeInTheDocument();
+    expect(screen.getByText('Wednesday, Jan 14th')).toBeInTheDocument();
+    expect(screen.getByText('Thursday, Jan 15th')).toBeInTheDocument();
+  });
+
+  it('renders Wednesday game card under Current Week from match history fallback', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: RequestInfo) => {
+      const requestUrl = String(url);
+      if (requestUrl === '/api/settings') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            signupOpenDayOfWeek: 0,
+            signupOpenTime: '12:00',
+            signupCloseDayOfWeek: 0,
+            signupCloseTime: '16:00',
+            availableDays: ['Tuesday', 'Thursday'],
+          }),
+        } as Response);
+      }
+      if (requestUrl === '/api/players') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            {
+              id: 1,
+              name: 'Alice',
+              matches: [{ date: '2026-01-14T10:00:00.000Z' }], // Wednesday match
+            },
+          ],
+        } as Response);
+      }
+      if (requestUrl === '/api/signups') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [],
+        } as Response);
+      }
+      if (requestUrl === '/api/signups?unavailable=1') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [],
+        } as Response);
+      }
+      return Promise.resolve({ ok: false, status: 404, json: async () => ({}) } as Response);
+    });
+
+    await act(async () => {
+      render(<SignupsPage />);
+    });
+
+    expect(await screen.findByText('Current Week')).toBeInTheDocument();
+    const wednesdayCard = screen.getByText('Wednesday, Jan 14th').closest('div')!;
+    expect(wednesdayCard).toBeInTheDocument();
+    expect(wednesdayCard).toHaveTextContent('Alice');
+  });
 });
 

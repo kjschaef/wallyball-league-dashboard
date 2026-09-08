@@ -96,6 +96,40 @@ export function generateWeekDates(weekSunday: Date, availableDays: string[]): st
   return dates;
 }
 
+export function getCurrentWeekDates({
+  weekSunday,
+  availableDays,
+  signups = [],
+  matches = [],
+}: {
+  weekSunday: Date;
+  availableDays: string[];
+  signups?: Array<{ date: string }>;
+  matches?: Array<{ date: string }>;
+}): string[] {
+  const weekStart = format(weekSunday, 'yyyy-MM-dd');
+  const weekEnd = format(addDays(weekSunday, 6), 'yyyy-MM-dd');
+
+  const dateSet = new Set<string>(generateWeekDates(weekSunday, availableDays));
+
+  for (const s of signups) {
+    if (s.date && s.date >= weekStart && s.date <= weekEnd) {
+      dateSet.add(s.date);
+    }
+  }
+
+  for (const m of matches) {
+    if (m.date) {
+      const matchDate = m.date.length >= 10 ? m.date.slice(0, 10) : format(new Date(m.date), 'yyyy-MM-dd');
+      if (matchDate >= weekStart && matchDate <= weekEnd) {
+        dateSet.add(matchDate);
+      }
+    }
+  }
+
+  return Array.from(dateSet).sort();
+}
+
 export function getSunday(date: Date): Date {
   const sunday = new Date(date);
   sunday.setDate(date.getDate() - date.getDay());
@@ -183,12 +217,17 @@ export function isDateInSignupWeek(
   date: string,
   signupWeekSunday: Date | null,
   availableDays: string[],
+  additionalAllowedDates: string[] = [],
 ): boolean {
   if (!signupWeekSunday) {
     return false;
   }
 
-  return generateWeekDates(signupWeekSunday, availableDays).includes(date);
+  const allowed = new Set([
+    ...generateWeekDates(signupWeekSunday, availableDays),
+    ...additionalAllowedDates,
+  ]);
+  return allowed.has(date);
 }
 
 export interface PlayerLike {
