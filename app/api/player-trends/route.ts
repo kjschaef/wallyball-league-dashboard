@@ -37,8 +37,8 @@ export async function GET(request: Request) {
       allMatches = await sql`SELECT * FROM matches ORDER BY date ASC`;
     }
 
-    // Fetch all players
-    const allPlayers = await sql`SELECT * FROM players ORDER BY name ASC`;
+    // Fetch all active players
+    const allPlayers = await sql`SELECT * FROM players WHERE deleted_at IS NULL ORDER BY name ASC`;
 
     // Use UTC components to ensure date keys are stable across test environments
     const toDateKeyLocal = (d: Date) => {

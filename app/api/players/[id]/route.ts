@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDatabase } from '../../../../db/config';
-import { players, matches } from '../../../../db/schema';
-import { eq, or } from 'drizzle-orm';
+import { players, matches, weeklySignups, weeklyUnavailable } from '../../../../db/schema';
+import { eq, or, and, isNull } from 'drizzle-orm';
 
 export async function GET(
   request: Request,
@@ -21,7 +21,7 @@ export async function GET(
 
   try {
     // Fetch the specific player
-    const player = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+    const player = await db.select().from(players).where(and(eq(players.id, playerId), isNull(players.deletedAt))).limit(1);
     
     if (player.length === 0) {
       return NextResponse.json(
@@ -127,8 +127,8 @@ export async function PUT(
       );
     }
 
-    // Check if player exists
-    const existingPlayer = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+    // Check if player exists and is active
+    const existingPlayer = await db.select().from(players).where(and(eq(players.id, playerId), isNull(players.deletedAt))).limit(1);
     
     if (existingPlayer.length === 0) {
       return NextResponse.json(
@@ -144,7 +144,7 @@ export async function PUT(
         name: body.name?.trim() || existingPlayer[0].name,
         startYear: body.startYear !== undefined ? body.startYear : existingPlayer[0].startYear
       })
-      .where(eq(players.id, playerId))
+      .where(and(eq(players.id, playerId), isNull(players.deletedAt)))
       .returning();
 
     return NextResponse.json(updatedPlayer[0]);
@@ -179,8 +179,8 @@ export async function DELETE(
   }
 
   try {
-    // Check if player exists
-    const existingPlayer = await db.select().from(players).where(eq(players.id, playerId)).limit(1);
+    // Check if player exists and is active
+    const existingPlayer = await db.select().from(players).where(and(eq(players.id, playerId), isNull(players.deletedAt))).limit(1);
     
     if (existingPlayer.length === 0) {
       return NextResponse.json(
@@ -189,20 +189,16 @@ export async function DELETE(
       );
     }
 
-    // Delete all matches involving this player first (to maintain referential integrity)
-    await db.delete(matches).where(
-      or(
-        eq(matches.teamOnePlayerOneId, playerId),
-        eq(matches.teamOnePlayerTwoId, playerId),
-        eq(matches.teamOnePlayerThreeId, playerId),
-        eq(matches.teamTwoPlayerOneId, playerId),
-        eq(matches.teamTwoPlayerTwoId, playerId),
-        eq(matches.teamTwoPlayerThreeId, playerId)
-      )
-    );
+    // Soft delete the player
+    await db.update(players).set({ deletedAt: new Date() }).where(eq(players.id, playerId));
 
-    // Delete the player
-    await db.delete(players).where(eq(players.id, playerId));
+    // Clean up signups and availability entries for this player
+    try {
+      await db.delete(weeklySignups).where(eq(weeklySignups.playerId, playerId));
+      await db.delete(weeklyUnavailable).where(eq(weeklyUnavailable.playerId, playerId));
+    } catch {
+      // Non-blocking
+    }
 
     // Return 204 No Content as per API documentation
     return new NextResponse(null, { status: 204 });

@@ -131,8 +131,9 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Player</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete {player.name}? This action
-                    cannot be undone.
+                    Are you sure you want to delete {player.name}? They will be
+                    removed from the player roster and rankings, but their match
+                    history will be preserved.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -6,7 +6,10 @@ export const players = pgTable("players", {
   name: text("name").notNull(),
   startYear: integer("start_year"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+  deletedAt: timestamp("deleted_at"),
+}, (table) => ({
+  deletedAtIdx: index("players_deleted_at_idx").on(table.deletedAt),
+}));
 
 export const matches = pgTable("matches", {
   id: serial("id").primaryKey(),

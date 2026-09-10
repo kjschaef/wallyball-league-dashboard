@@ -11,7 +11,7 @@ export async function GET() {
     const sql = neon(process.env.DATABASE_URL);
     
     // Fetch all players from database
-    const allPlayers = await sql`SELECT * FROM players ORDER BY created_at DESC`;
+    const allPlayers = await sql`SELECT * FROM players WHERE deleted_at IS NULL ORDER BY created_at DESC`;
     
     // Fetch all matches to calculate statistics
     const allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
@@ -168,7 +168,7 @@ export async function PUT(request: Request) {
     const updatedPlayers = await sql`
       UPDATE players 
       SET name = ${body.name.trim()}, start_year = ${body.startYear || null}
-      WHERE id = ${body.id}
+      WHERE id = ${body.id} AND deleted_at IS NULL
       RETURNING *
     `;
 
@@ -221,37 +221,27 @@ export async function DELETE(request: Request) {
     
     const sql = neon(process.env.DATABASE_URL);
 
-    // Check if player exists and has any matches
-    const playerMatches = await sql`
-      SELECT COUNT(*) as match_count 
-      FROM matches 
-      WHERE team_one_player_one_id = ${id} 
-         OR team_one_player_two_id = ${id} 
-         OR team_one_player_three_id = ${id}
-         OR team_two_player_one_id = ${id} 
-         OR team_two_player_two_id = ${id} 
-         OR team_two_player_three_id = ${id}
-    `;
-
-    if (playerMatches[0].match_count > 0) {
-      return NextResponse.json(
-        { error: 'Cannot delete player with existing match records' },
-        { status: 400 }
-      );
-    }
-
-    // Delete player from database
-    const deletedPlayers = await sql`
-      DELETE FROM players 
-      WHERE id = ${id}
+    // Soft delete player from database
+    const updatedPlayers = await sql`
+      UPDATE players 
+      SET deleted_at = NOW()
+      WHERE id = ${id} AND deleted_at IS NULL
       RETURNING *
     `;
 
-    if (deletedPlayers.length === 0) {
+    if (updatedPlayers.length === 0) {
       return NextResponse.json(
         { error: 'Player not found' },
         { status: 404 }
       );
+    }
+
+    // Clean up signups and availability entries for this player
+    try {
+      await sql`DELETE FROM weekly_signups WHERE player_id = ${id}`;
+      await sql`DELETE FROM weekly_unavailable WHERE player_id = ${id}`;
+    } catch {
+      // Non-blocking in case tables don't exist in preview/test environments
     }
 
     return NextResponse.json({ message: 'Player deleted successfully' });
