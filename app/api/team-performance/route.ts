@@ -64,10 +64,12 @@ export async function GET(request: Request) {
       allMatches = await fetchAll();
     }
 
-    // Get all players to map IDs to names
-    const allPlayers = await sql`SELECT id, name FROM players`;
+    // Get all players to map IDs to names and identify deleted players
+    const allPlayers = await sql`SELECT id, name, deleted_at FROM players`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerMap = new Map(allPlayers.map((p: any) => [p.id, p.name]));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const deletedPlayerIds = new Set(allPlayers.filter((p: any) => p.deleted_at != null).map((p: any) => p.id));
 
     // Track team combinations and their performance
     const teamStats = new Map<string, TeamStats>();
@@ -148,20 +150,22 @@ export async function GET(request: Request) {
       teamTwoStats.totalGames += (match.team_one_games_won || 0) + (match.team_two_games_won || 0);
     }
 
-    // Convert to array and calculate win percentages
-    const teamPerformanceArray = Array.from(teamStats.entries()).map(([_key, stats], index) => ({
-      id: index + 1,
-      players: stats.players,
-      wins: stats.matchWins,
-      losses: stats.matchLosses,
-      totalGames: stats.totalMatches,
-      winPercentage: stats.totalMatches > 0 ? Number(((stats.matchWins / stats.totalMatches) * 100).toFixed(1)) : 0,
-      // Additional detailed stats
-      gameWins: stats.gameWins,
-      gameLosses: stats.gameLosses,
-      totalIndividualGames: stats.totalGames,
-      gameWinPercentage: stats.totalGames > 0 ? Number(((stats.gameWins / stats.totalGames) * 100).toFixed(1)) : 0
-    }))
+    // Convert to array, filter out teams with soft-deleted players, and calculate win percentages
+    const teamPerformanceArray = Array.from(teamStats.values())
+      .filter(stats => stats.playerIds.every(pid => !deletedPlayerIds.has(pid)))
+      .map((stats, index) => ({
+        id: index + 1,
+        players: stats.players,
+        wins: stats.matchWins,
+        losses: stats.matchLosses,
+        totalGames: stats.totalMatches,
+        winPercentage: stats.totalMatches > 0 ? Number(((stats.matchWins / stats.totalMatches) * 100).toFixed(1)) : 0,
+        // Additional detailed stats
+        gameWins: stats.gameWins,
+        gameLosses: stats.gameLosses,
+        totalIndividualGames: stats.totalGames,
+        gameWinPercentage: stats.totalGames > 0 ? Number(((stats.gameWins / stats.totalGames) * 100).toFixed(1)) : 0
+      }))
       .sort((a, b) => b.winPercentage - a.winPercentage); // Sort by win percentage descending
 
     return NextResponse.json(teamPerformanceArray);

@@ -1,4 +1,4 @@
-import { GET, POST } from '@/app/api/players/route';
+import { GET, POST, DELETE } from '@/app/api/players/route';
 
 const mockSql = jest.fn();
 
@@ -11,15 +11,17 @@ const createMockSql = () => {
     jest.fn().mockImplementation((strings: TemplateStringsArray, ...values: unknown[]) => {
       const query = strings.join('').toLowerCase();
       if (query.includes('select * from players')) {
-        return mockSql('players');
+        return mockSql('players', values, query);
       } else if (query.includes('select * from matches')) {
         return mockSql('matches');
       } else if (query.includes('insert into players')) {
         return mockSql('insert', values);
       } else if (query.includes('update players')) {
-        return mockSql('update', values);
-      } else if (query.includes('select count(*) as match_count')) {
-        return mockSql('check_matches', values);
+        return mockSql('update', values, query);
+      } else if (query.includes('delete from weekly_signups')) {
+        return mockSql('delete_signups', values);
+      } else if (query.includes('delete from weekly_unavailable')) {
+        return mockSql('delete_unavailable', values);
       } else if (query.includes('delete from players')) {
         return mockSql('delete', values);
       }
@@ -180,6 +182,75 @@ describe('/api/players', () => {
 
       const response = await POST(request);
       expect(response.status).toBe(401);
+    });
+  });
+
+  describe('DELETE', () => {
+    it('returns 401 if unauthorized', async () => {
+      mockCookieStore.get.mockReturnValue({ value: 'false' });
+
+      const request = { url: 'http://localhost/api/players?id=1' } as Request;
+      const response = await DELETE(request);
+      expect(response.status).toBe(401);
+    });
+
+    it('returns 400 if player id is missing', async () => {
+      const request = { url: 'http://localhost/api/players' } as Request;
+      const response = await DELETE(request);
+      expect(response.status).toBe(400);
+
+      const data = await response.json();
+      expect(data).toEqual({ error: 'Player ID is required' });
+    });
+
+    it('soft-deletes player by setting deleted_at and cleans up signups/unavailabilities', async () => {
+      let updateExecuted = false;
+      let deleteSignupsExecuted = false;
+      let deleteUnavailableExecuted = false;
+
+      mockSql.mockImplementation((queryType, values, query) => {
+        if (queryType === 'update') {
+          updateExecuted = true;
+          expect(query).toContain('deleted_at = now()');
+          expect(query).toContain('deleted_at is null');
+          return Promise.resolve([{ id: 1, name: 'Alice', deleted_at: new Date() }]);
+        }
+        if (queryType === 'delete_signups') {
+          deleteSignupsExecuted = true;
+          return Promise.resolve([]);
+        }
+        if (queryType === 'delete_unavailable') {
+          deleteUnavailableExecuted = true;
+          return Promise.resolve([]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = { url: 'http://localhost/api/players?id=1' } as Request;
+      const response = await DELETE(request);
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data).toEqual({ message: 'Player deleted successfully' });
+      expect(updateExecuted).toBe(true);
+      expect(deleteSignupsExecuted).toBe(true);
+      expect(deleteUnavailableExecuted).toBe(true);
+    });
+
+    it('returns 404 if player not found or already deleted', async () => {
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'update') {
+          return Promise.resolve([]); // 0 rows updated
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = { url: 'http://localhost/api/players?id=999' } as Request;
+      const response = await DELETE(request);
+      expect(response.status).toBe(404);
+
+      const data = await response.json();
+      expect(data).toEqual({ error: 'Player not found' });
     });
   });
 });

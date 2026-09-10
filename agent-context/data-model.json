@@ -197,6 +197,12 @@
           "kind": "timestamp",
           "column": "created_at",
           "references": null
+        },
+        {
+          "field": "deletedAt",
+          "kind": "timestamp",
+          "column": "deleted_at",
+          "references": null
         }
       ],
       "selectType": "Player",
@@ -207,6 +213,7 @@
         "migrations/004_add_inactivity_exemptions.sql",
         "migrations/007_add_signups.sql",
         "migrations/009_add_weekly_unavailable.sql",
+        "migrations/010_add_player_deleted_at.sql",
         "migrations/relations.ts",
         "migrations/schema.ts"
       ]

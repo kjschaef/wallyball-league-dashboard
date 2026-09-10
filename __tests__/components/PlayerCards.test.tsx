@@ -108,4 +108,27 @@ describe('PlayerCards', () => {
     // Alice has 15 total games (< 25) -> Provisional
     expect(await screen.findByText('Provisional')).toBeInTheDocument();
   });
+
+  it('displays soft-delete confirmation dialog message when delete is clicked', async () => {
+    await act(async () => {
+      render(
+        <QueryClientProvider client={queryClient}>
+          <AdminProvider>
+            <PlayerCards />
+          </AdminProvider>
+        </QueryClientProvider>
+      );
+    });
+
+    expect(await screen.findByText('Active Alice')).toBeInTheDocument();
+
+    const deleteBtn = screen.getByRole('button', { name: /delete player/i });
+    await act(async () => {
+      fireEvent.click(deleteBtn);
+    });
+
+    expect(
+      screen.getByText(/removed from the player roster and rankings, but their match history will be preserved/i)
+    ).toBeInTheDocument();
+  });
 });

@@ -22,6 +22,10 @@ async function main() {
       await sql`DROP TABLE IF EXISTS "player_achievements" CASCADE;`;
       await sql`DROP TABLE IF EXISTS "achievements" CASCADE;`;
 
+      // Ensure players table has deleted_at column
+      await sql`ALTER TABLE "players" ADD COLUMN IF NOT EXISTS "deleted_at" timestamp;`;
+      await sql`CREATE INDEX IF NOT EXISTS "players_deleted_at_idx" ON "players" ("deleted_at");`;
+
       // Ensure match_games table and index exist
       await sql`
         CREATE TABLE IF NOT EXISTS "match_games" (

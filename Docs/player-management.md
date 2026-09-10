@@ -9,7 +9,7 @@ The Player Management feature provides comprehensive capabilities for tracking a
 1. **Player Profile Management**
    - Create new player profiles with name and start year
    - Edit existing player information
-   - Delete players (which also removes associated match records)
+   - Delete players (soft-deletes from rosters and rankings while preserving past match records)
    - View player details including statistics and achievements
 
 2. **Player Performance Tracking**
@@ -35,16 +35,19 @@ export const players = pgTable("players", {
   name: text("name").notNull(),
   startYear: integer("start_year"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+  deletedAt: timestamp("deleted_at"),
+}, (table) => ({
+  deletedAtIdx: index("players_deleted_at_idx").on(table.deletedAt),
+}));
 ```
 
 ### API Endpoints
 
-- `GET /api/players` - Retrieve all players with statistics
+- `GET /api/players` - Retrieve all active players with statistics
 - `POST /api/players` - Create a new player
-- `GET /api/players/:id` - Get a specific player by ID
-- `PUT /api/players/:id` - Update an existing player
-- `DELETE /api/players/:id` - Delete a player and associated matches
+- `GET /api/players/:id` - Get a specific active player by ID
+- `PUT /api/players/:id` - Update an existing active player
+- `DELETE /api/players?id=:id` / `DELETE /api/players/:id` - Soft-delete a player (sets `deleted_at = NOW()`, preserving match history)
 
 ### UI Components
 
@@ -79,7 +82,7 @@ The Dashboard displays player cards in a responsive grid layout. Each player car
 
 1. **Data Integrity**
    - Confirm deletion of players to prevent accidental data loss
-   - Cascade deletion to remove associated match records
+   - Soft-delete players to preserve historical match integrity and past opponents' records
    - Validate input data using form validation
 
 2. **Performance**
