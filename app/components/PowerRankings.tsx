@@ -14,6 +14,7 @@ export interface PowerRankingsPlayer {
   careerGames?: number;
   winPercentage: number;
   lastGameDate?: string | null;
+  isActive?: boolean;
 }
 
 interface WeeklyMoverInfo {
@@ -43,8 +44,8 @@ export function PowerRankings({ className = '' }: PowerRankingsProps) {
         if (!statsRes.ok) throw new Error('Failed to load stats');
         const statsData: PowerRankingsPlayer[] = await statsRes.json();
 
-        // Filter out inactive players (> 6 months since last game or never played)
-        const activePlayers = (statsData || []).filter(p => isPlayerActive(p.lastGameDate));
+        // Filter out inactive players (> 6 months since last game or manually inactive)
+        const activePlayers = (statsData || []).filter(p => isPlayerActive(p.lastGameDate, new Date(), p.isActive));
 
         // Sort active players by Elo descending
         const sorted = activePlayers.map(p => ({

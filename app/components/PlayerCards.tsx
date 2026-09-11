@@ -18,7 +18,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Edit, Trash2, TrendingUp, Calendar, ChevronDown, ChevronRight } from "lucide-react";
+import { Edit, Trash2, TrendingUp, Calendar, ChevronDown, ChevronRight, UserCheck } from "lucide-react";
 import { useSeasonChampions } from "../hooks/useSeasonChampions";
 import { useAdmin } from "./AdminProvider";
 import { isPlayerActive } from "../lib/playerFiltering";
@@ -38,6 +38,8 @@ interface PlayerStats {
 
   actualWinPercentage?: number;
   lastGameDate?: string | null;
+  isActive?: boolean;
+  deletedAt?: string | null;
 
   elo?: number;
   isProvisional?: boolean;
@@ -53,6 +55,7 @@ const getWinPercentageGradient = (percentage: number): string => {
 interface PlayerCardProps {
   player: PlayerStats;
   onEdit: (player: PlayerStats) => void;
+  onToggleActive?: (playerId: number, isActive: boolean) => void;
   onDelete: (playerId: number) => void;
   isInactive?: boolean;
   championshipCount?: number;
@@ -60,7 +63,7 @@ interface PlayerCardProps {
 
 
 
-function PlayerCard({ player, onEdit, onDelete, isInactive = false, championshipCount = 0 }: PlayerCardProps) {
+function PlayerCard({ player, onEdit, onToggleActive, onDelete, isInactive = false, championshipCount = 0 }: PlayerCardProps) {
   const expLevel = getExperienceLevel(player.careerGames ?? player.record?.totalGames ?? 0);
 
   return (
@@ -87,6 +90,17 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
               >
                 {expLevel.name}
               </span>
+              {isInactive && (
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                    player.isActive === false
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200'
+                  }`}
+                >
+                  {player.isActive === false ? 'Manually Inactive' : 'Inactive > 6 mos'}
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col gap-1 mt-1">
@@ -109,6 +123,16 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
           </div>
 
           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {isInactive && onToggleActive && (
+              <button
+                className="p-1 hover:bg-emerald-50 rounded transition-colors shadow-sm text-emerald-600 hover:text-emerald-700"
+                onClick={() => onToggleActive(player.id, true)}
+                title="Mark player active"
+                aria-label="Mark player active"
+              >
+                <UserCheck className="h-3.5 w-3.5" />
+              </button>
+            )}
             <button
               className="p-1 hover:bg-white/80 rounded transition-colors shadow-sm"
               onClick={() => onEdit(player)}
@@ -250,6 +274,7 @@ function PlayerCard({ player, onEdit, onDelete, isInactive = false, championship
 
 export function PlayerCards() {
   const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
+  const [editIsActive, setEditIsActive] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isInactiveOpen, setIsInactiveOpen] = useState(false);
   const { requireAdmin } = useAdmin();
@@ -280,8 +305,9 @@ export function PlayerCards() {
 
   const sendUpdatePlayerRequest = async (updatedPlayer: {
     id: number;
-    name: string;
+    name?: string;
     startYear?: number | null;
+    isActive?: boolean;
   }) => {
     const response = await fetch("/api/players", {
       method: "PUT",
@@ -338,7 +364,21 @@ export function PlayerCards() {
 
   const handleEditPlayer = (player: PlayerStats) => {
     setEditingPlayer(player);
+    setEditIsActive(player.isActive !== false);
     setIsEditDialogOpen(true);
+  };
+
+  const handleToggleActive = async (playerId: number, isActive: boolean) => {
+    const submit = async () => await updatePlayerMutation.mutateAsync({ id: playerId, isActive });
+    try {
+      await submit();
+    } catch (error: any) {
+      if (error.message === authRequiredError) {
+        await requireAdmin(submit);
+        return;
+      }
+      alert(`Error: ${error.message}`);
+    }
   };
 
   const handleDeletePlayer = async (playerId: number) => {
@@ -366,6 +406,7 @@ export function PlayerCards() {
       id: editingPlayer.id,
       name: name.trim(),
       startYear: startYear ? parseInt(startYear) : null,
+      isActive: editIsActive,
     };
 
     const submit = async () => await updatePlayerMutation.mutateAsync(payload);
@@ -434,9 +475,9 @@ export function PlayerCards() {
     );
   }
 
-  // Split players into active and inactive (> 6 months since last game)
-  const mainPlayers = playerStats.filter((player) => isPlayerActive(player.lastGameDate));
-  const inactivePlayers = playerStats.filter((player) => !isPlayerActive(player.lastGameDate));
+  // Split players into active and inactive (> 6 months since last game or manually inactive)
+  const mainPlayers = playerStats.filter((player) => isPlayerActive(player.lastGameDate, new Date(), player.isActive));
+  const inactivePlayers = playerStats.filter((player) => !isPlayerActive(player.lastGameDate, new Date(), player.isActive));
 
   return (
     <div className="space-y-8">
@@ -450,6 +491,7 @@ export function PlayerCards() {
                 <PlayerCard
                   player={player}
                   onEdit={handleEditPlayer}
+                  onToggleActive={handleToggleActive}
                   onDelete={handleDeletePlayer}
                   championshipCount={championshipCounts.get(player.id) || 0}
                 />
@@ -484,7 +526,7 @@ export function PlayerCards() {
               {inactivePlayers.length}
             </span>
             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-              Inactive &gt; 6 mos
+              Inactive &gt; 6 mos or manual
             </span>
           </button>
           {isInactiveOpen && (
@@ -494,6 +536,7 @@ export function PlayerCards() {
                   <PlayerCard
                     player={player}
                     onEdit={handleEditPlayer}
+                    onToggleActive={handleToggleActive}
                     onDelete={handleDeletePlayer}
                     isInactive={true}
                     championshipCount={championshipCounts.get(player.id) || 0}
@@ -552,6 +595,19 @@ export function PlayerCards() {
                   }
                   className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                 />
+              </div>
+              <div className="flex items-center space-x-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  name="isActive"
+                  checked={editIsActive}
+                  onChange={(e) => setEditIsActive(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <Label htmlFor="isActive" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Active Player (uncheck to mark inactive)
+                </Label>
               </div>
             </div>
             <div className="flex gap-3 pt-2">

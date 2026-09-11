@@ -79,4 +79,52 @@ describe('RecordMatchModal', () => {
     expect(toggle).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByText('Game Scores')).toBeInTheDocument();
   });
+
+  it('places manually marked inactive players (isActive: false) in the inactive subsection even if played recently', async () => {
+    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
+      const requestUrl = String(url);
+      if (requestUrl === '/api/players') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 1, name: 'Active Alice', lastGameDate: new Date().toISOString(), isActive: true },
+            { id: 2, name: 'Active Bob', lastGameDate: new Date().toISOString(), isActive: true },
+            { id: 4, name: 'Manual Inactive Dave', lastGameDate: new Date().toISOString(), isActive: false },
+          ],
+        } as Response);
+      }
+      return Promise.resolve({ ok: false, status: 404, json: async () => ({}) } as Response);
+    });
+
+    await act(async () => {
+      render(
+        <RecordMatchModal
+          isOpen={true}
+          onClose={mockClose}
+          onSubmit={mockSubmit}
+        />
+      );
+    });
+
+    // Dave should be under inactive players toggle, not in main active buttons
+    expect(screen.queryByRole('button', { name: 'Manual Inactive Dave' })).not.toBeInTheDocument();
+
+    const inactiveToggles = screen.getAllByRole('button', { name: /Inactive Players \(1\)/i });
+    expect(inactiveToggles).toHaveLength(2);
+
+    // Expand Inactive Players in Team One
+    await act(async () => {
+      fireEvent.click(inactiveToggles[0]);
+    });
+
+    const daveBtn = screen.getByRole('button', { name: 'Manual Inactive Dave' });
+    expect(daveBtn).toBeInTheDocument();
+
+    // Select Dave
+    await act(async () => {
+      fireEvent.click(daveBtn);
+    });
+
+    expect(daveBtn).toHaveAttribute('aria-pressed', 'true');
+  });
 });

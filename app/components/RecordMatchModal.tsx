@@ -8,6 +8,8 @@ interface Player {
   id: number;
   name: string;
   lastGameDate?: string | null;
+  isActive?: boolean;
+  deletedAt?: string | null;
   matches?: Array<{ won: boolean; date: string }>;
 }
 
@@ -61,33 +63,25 @@ function PlayerGrid({ players, selectedPlayers, onPlayerToggle, maxPlayers, titl
     }
   };
 
-  const activePlayers = players.filter((player) => {
+  const isCandidateActive = (player: Player) => {
+    if (player.isActive === false || player.deletedAt) {
+      return false;
+    }
     if (player.lastGameDate !== undefined) {
-      return isPlayerActive(player.lastGameDate);
+      return isPlayerActive(player.lastGameDate, undefined, player.isActive);
     }
     if (player.matches && player.matches.length > 0) {
       const latest = new Date(Math.max(...player.matches.map((m) => new Date(m.date).getTime()))).toISOString();
-      return isPlayerActive(latest);
+      return isPlayerActive(latest, undefined, player.isActive);
     }
     if (player.matches && player.matches.length === 0) {
       return false;
     }
     return true;
-  });
+  };
 
-  const inactivePlayers = players.filter((player) => {
-    if (player.lastGameDate !== undefined) {
-      return !isPlayerActive(player.lastGameDate);
-    }
-    if (player.matches && player.matches.length > 0) {
-      const latest = new Date(Math.max(...player.matches.map((m) => new Date(m.date).getTime()))).toISOString();
-      return !isPlayerActive(latest);
-    }
-    if (player.matches && player.matches.length === 0) {
-      return true;
-    }
-    return false;
-  });
+  const activePlayers = players.filter(isCandidateActive);
+  const inactivePlayers = players.filter((p) => !isCandidateActive(p));
 
   const renderPlayerButton = (player: Player) => {
     const isSelected = selectedPlayers.includes(player.id);

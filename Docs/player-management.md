@@ -9,7 +9,8 @@ The Player Management feature provides comprehensive capabilities for tracking a
 1. **Player Profile Management**
    - Create new player profiles with name and start year
    - Edit existing player information
-   - Delete players (soft-deletes from rosters and rankings while preserving past match records)
+   - Manage player activity status (Active vs. Inactive) with symmetric reactivation
+   - Mark players inactive or delete (safely marks inactive to preserve past match history; true delete for 0-match entries)
    - View player details including statistics and achievements
 
 2. **Player Performance Tracking**
@@ -36,18 +37,19 @@ export const players = pgTable("players", {
   startYear: integer("start_year"),
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
+  isActive: boolean("is_active").default(true).notNull(),
 }, (table) => ({
   deletedAtIdx: index("players_deleted_at_idx").on(table.deletedAt),
+  isActiveIdx: index("players_is_active_idx").on(table.isActive),
 }));
 ```
 
 ### API Endpoints
 
-- `GET /api/players` - Retrieve all active players with statistics
-- `POST /api/players` - Create a new player
-- `GET /api/players/:id` - Get a specific active player by ID
-- `PUT /api/players/:id` - Update an existing active player
-- `DELETE /api/players?id=:id` / `DELETE /api/players/:id` - Soft-delete a player (sets `deleted_at = NOW()`, preserving match history)
+- `GET /api/players` - Retrieve all players with statistics, active status, and match history
+- `POST /api/players` - Create a new active player
+- `PUT /api/players` - Update player details or toggle active status (`isActive: boolean`)
+- `DELETE /api/players?id=:id` - Deletes players without match history, or marks players with matches as inactive (`is_active = false`)
 
 ### UI Components
 

@@ -11,7 +11,7 @@ module.exports = {
   transform: {
     '^.+\\.[tj]sx?$': 'babel-jest'
   },
-  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/tests/e2e/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/tests/e2e/', '<rootDir>/\\.worktree'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
 };

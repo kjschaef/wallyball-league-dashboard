@@ -66,5 +66,15 @@ describe('isPlayerActive', () => {
         const oldDate = new Date('2026-01-10T12:00:00.000Z').toISOString();
         expect(isPlayerActive(oldDate, referenceDate)).toBe(false);
     });
+
+    it('returns false when isActive is explicitly false, even if lastGameDate is recent', () => {
+        const recentDate = new Date('2026-07-24T12:00:00.000Z').toISOString();
+        expect(isPlayerActive(recentDate, referenceDate, false)).toBe(false);
+    });
+
+    it('returns true when isActive is true and lastGameDate is recent', () => {
+        const recentDate = new Date('2026-07-24T12:00:00.000Z').toISOString();
+        expect(isPlayerActive(recentDate, referenceDate, true)).toBe(true);
+    });
 });
 
