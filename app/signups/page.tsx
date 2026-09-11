@@ -96,6 +96,8 @@ export default function SignupsPage() {
         throw new Error('UNAUTHORIZED');
       }
       if (res.ok) {
+        const playerIdNum = parseInt(selectedPlayerId, 10);
+        setUnavailablePlayers((prev) => prev.filter((p) => p.player_id !== playerIdNum));
         await fetchData();
       } else {
         const data = await res.json();

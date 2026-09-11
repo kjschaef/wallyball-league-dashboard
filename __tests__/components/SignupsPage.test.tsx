@@ -434,5 +434,104 @@ describe('SignupsPage', () => {
     expect(wednesdayCard).toBeInTheDocument();
     expect(wednesdayCard).toHaveTextContent('Alice');
   });
+
+  it('auto removes player from unavailable category when they sign up for a game', async () => {
+    let isAliceUnavailable = true;
+    let aliceSignedUp = false;
+
+    (global.fetch as jest.Mock).mockImplementation((url: RequestInfo, options?: RequestInit) => {
+      const requestUrl = String(url);
+
+      if (requestUrl === '/api/settings') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            signupOpenDayOfWeek: 0,
+            signupOpenTime: '12:00',
+            signupCloseDayOfWeek: 0,
+            signupCloseTime: '16:00',
+            availableDays: ['Monday'],
+          }),
+        } as Response);
+      }
+
+      if (requestUrl === '/api/players') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            { id: 1, name: 'Alice' },
+            { id: 2, name: 'Bob' },
+          ],
+        } as Response);
+      }
+
+      if (requestUrl === '/api/signups' && (!options || !options.method)) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            ...(aliceSignedUp
+              ? [{ id: 99, player_id: 1, name: 'Alice', date: '2026-01-19', status: 'registered', created_at: '2026-01-11T18:30:00.000Z' }]
+              : []),
+          ],
+        } as Response);
+      }
+
+      if (requestUrl === '/api/signups?unavailable=1') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => (isAliceUnavailable
+            ? [{ id: 11, player_id: 1, name: 'Alice', week_start: '2026-01-18', created_at: '2026-01-10T00:00:00.000Z' }]
+            : []),
+        } as Response);
+      }
+
+      if (requestUrl === '/api/signups' && options?.method === 'POST') {
+        // Backend auto-removes Alice from unavailable on game signup
+        isAliceUnavailable = false;
+        aliceSignedUp = true;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ success: true }),
+        } as Response);
+      }
+
+      return Promise.resolve({ ok: false, status: 404, json: async () => ({}) } as Response);
+    });
+
+    await act(async () => {
+      render(<SignupsPage />);
+    });
+
+    // Alice is initially unavailable
+    const unavailableHeading = await screen.findByText('Unavailable This Week (1)');
+    expect(unavailableHeading).toBeInTheDocument();
+    const unavailableSection = unavailableHeading.closest('div')!;
+    expect(unavailableSection).toHaveTextContent('Alice');
+
+    // Select Alice
+    const combobox = await screen.findByRole('combobox');
+    await act(async () => {
+      fireEvent.change(combobox, { target: { value: '1' } });
+    });
+
+    // Since Alice is unavailable, button says "I'm Back In"
+    expect(await screen.findByRole('button', { name: "I'm Back In" })).toBeInTheDocument();
+
+    // Click "Sign Up"
+    const signUpButton = await screen.findByRole('button', { name: 'Sign Up' });
+    await act(async () => {
+      fireEvent.click(signUpButton);
+    });
+
+    // Alice should now be removed from Unavailable This Week
+    await waitFor(() => {
+      expect(screen.getByText('Unavailable This Week (0)')).toBeInTheDocument();
+      expect(screen.getByText('No one has marked themselves out yet.')).toBeInTheDocument();
+    });
+
+    // Button should revert to "Out This Week"
+    expect(screen.getByRole('button', { name: 'Out This Week' })).toBeInTheDocument();
+  });
 });
 
