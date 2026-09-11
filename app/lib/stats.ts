@@ -14,7 +14,7 @@ export interface PlayerStats {
 
     actualWinPercentage?: number;
     lastGameDate?: string | null;
-    isActive?: boolean;
+    isActive?: boolean | null;
     deletedAt?: string | null;
 
     // Supplemental point metrics from scored games
@@ -180,7 +180,9 @@ export async function calculatePlayerStats(
 
                 actualWinPercentage: winPercentage,
                 lastGameDate,
-                isActive: player.is_active !== false && player.isActive !== false && player.deleted_at == null && player.deletedAt == null,
+                isActive: (player.deleted_at || player.deletedAt) != null || (player.is_active !== undefined ? player.is_active : player.isActive) === false
+                    ? false
+                    : ((player.is_active !== undefined ? player.is_active : player.isActive) === true ? true : null),
                 deletedAt: player.deleted_at ? new Date(player.deleted_at).toISOString() : (player.deletedAt ? new Date(player.deletedAt).toISOString() : null),
 
                 pointDifferential,
@@ -207,7 +209,9 @@ export async function calculatePlayerStats(
 
                 actualWinPercentage: 0,
                 lastGameDate: null,
-                isActive: player.is_active !== false && player.isActive !== false && player.deleted_at == null && player.deletedAt == null,
+                isActive: (player.deleted_at || player.deletedAt) != null || (player.is_active !== undefined ? player.is_active : player.isActive) === false
+                    ? false
+                    : ((player.is_active !== undefined ? player.is_active : player.isActive) === true ? true : null),
                 deletedAt: player.deleted_at ? new Date(player.deleted_at).toISOString() : (player.deletedAt ? new Date(player.deletedAt).toISOString() : null),
 
                 pointDifferential: 0,

@@ -37,7 +37,7 @@ export const players = pgTable("players", {
   startYear: integer("start_year"),
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
-  isActive: boolean("is_active").default(true).notNull(),
+  isActive: boolean("is_active"),
 }, (table) => ({
   deletedAtIdx: index("players_deleted_at_idx").on(table.deletedAt),
   isActiveIdx: index("players_is_active_idx").on(table.isActive),
@@ -48,7 +48,7 @@ export const players = pgTable("players", {
 
 - `GET /api/players` - Retrieve all players with statistics, active status, and match history
 - `POST /api/players` - Create a new active player
-- `PUT /api/players` - Update player details or toggle active status (`isActive: boolean`)
+- `PUT /api/players` - Update player details or toggle active status (`isActive: boolean | null`)
 - `DELETE /api/players?id=:id` - Deletes players without match history, or marks players with matches as inactive (`is_active = false`)
 
 ### UI Components
@@ -64,8 +64,10 @@ The player management feature utilizes the following components:
 2. User can:
    - View active and inactive players with win rates, records, and power rankings
    - Click "Add Player" to create a new player
+   - Click "Mark Inactive" on an active player card to move them to Inactive Players
+   - Click "Mark Active" on an inactive player card to move them to Active Players
    - Click "Edit" on a player card to modify player details
-   - Click "Delete" on a player card to remove the player
+   - Click "Delete" on players with 0 matches to permanently remove accidental records
 3. When adding or editing a player, a dialog appears with a form
 4. Upon submission, the player cards update with the changes
 

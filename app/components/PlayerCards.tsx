@@ -18,7 +18,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Edit, Trash2, TrendingUp, Calendar, ChevronDown, ChevronRight, UserCheck } from "lucide-react";
+import { Edit, Trash2, TrendingUp, Calendar, ChevronDown, ChevronRight, UserCheck, UserX } from "lucide-react";
 import { useSeasonChampions } from "../hooks/useSeasonChampions";
 import { useAdmin } from "./AdminProvider";
 import { isPlayerActive } from "../lib/playerFiltering";
@@ -38,7 +38,7 @@ interface PlayerStats {
 
   actualWinPercentage?: number;
   lastGameDate?: string | null;
-  isActive?: boolean;
+  isActive?: boolean | null;
   deletedAt?: string | null;
 
   elo?: number;
@@ -123,15 +123,28 @@ function PlayerCard({ player, onEdit, onToggleActive, onDelete, isInactive = fal
           </div>
 
           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {isInactive && onToggleActive && (
-              <button
-                className="p-1 hover:bg-emerald-50 rounded transition-colors shadow-sm text-emerald-600 hover:text-emerald-700"
-                onClick={() => onToggleActive(player.id, true)}
-                title="Mark player active"
-                aria-label="Mark player active"
-              >
-                <UserCheck className="h-3.5 w-3.5" />
-              </button>
+            {isInactive ? (
+              onToggleActive && (
+                <button
+                  className="p-1 hover:bg-emerald-50 rounded transition-colors shadow-sm text-emerald-600 hover:text-emerald-700"
+                  onClick={() => onToggleActive(player.id, true)}
+                  title="Mark player active"
+                  aria-label="Mark player active"
+                >
+                  <UserCheck className="h-3.5 w-3.5" />
+                </button>
+              )
+            ) : (
+              onToggleActive && (
+                <button
+                  className="p-1 hover:bg-amber-50 rounded transition-colors shadow-sm text-amber-600 hover:text-amber-700"
+                  onClick={() => onToggleActive(player.id, false)}
+                  title="Mark player inactive"
+                  aria-label="Mark player inactive"
+                >
+                  <UserX className="h-3.5 w-3.5" />
+                </button>
+              )
             )}
             <button
               className="p-1 hover:bg-white/80 rounded transition-colors shadow-sm"
@@ -141,36 +154,36 @@ function PlayerCard({ player, onEdit, onToggleActive, onDelete, isInactive = fal
             >
               <Edit className="h-3.5 w-3.5 text-gray-600" />
             </button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button
-                  className="p-1 hover:bg-red-50 rounded transition-colors shadow-sm"
-                  title="Delete player"
-                  aria-label="Delete player"
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-gray-600 hover:text-red-600" />
-                </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Player</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete {player.name}? They will be
-                    removed from the player roster and rankings, but their match
-                    history will be preserved.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onDelete(player.id)}
-                    className="bg-red-600 hover:bg-red-700"
+            {(player.record?.totalGames ?? 0) === 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="p-1 hover:bg-red-50 rounded transition-colors shadow-sm"
+                    title="Delete player"
+                    aria-label="Delete player"
                   >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    <Trash2 className="h-3.5 w-3.5 text-gray-600 hover:text-red-600" />
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Player</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete {player.name}? This player has no match history and will be permanently removed.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDelete(player.id)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
 
@@ -279,7 +292,7 @@ export function PlayerCards() {
   const [isInactiveOpen, setIsInactiveOpen] = useState(false);
   const { requireAdmin } = useAdmin();
   const queryClient = useQueryClient();
-  const authRequiredError = "AUTH_REQUIRED";
+  const authRequiredError = "UNAUTHORIZED";
 
   const {
     data: playerStats,
@@ -307,7 +320,7 @@ export function PlayerCards() {
     id: number;
     name?: string;
     startYear?: number | null;
-    isActive?: boolean;
+    isActive?: boolean | null;
   }) => {
     const response = await fetch("/api/players", {
       method: "PUT",
@@ -374,7 +387,11 @@ export function PlayerCards() {
       await submit();
     } catch (error: any) {
       if (error.message === authRequiredError) {
-        await requireAdmin(submit);
+        try {
+          await requireAdmin(submit);
+        } catch {
+          // Admin modal canceled or rejected
+        }
         return;
       }
       alert(`Error: ${error.message}`);
@@ -387,7 +404,11 @@ export function PlayerCards() {
       await submit();
     } catch (error: any) {
       if (error.message === authRequiredError) {
-        await requireAdmin(submit);
+        try {
+          await requireAdmin(submit);
+        } catch {
+          // Admin modal canceled or rejected
+        }
         return;
       }
       alert(`Error: ${error.message}`);
@@ -415,7 +436,11 @@ export function PlayerCards() {
       await submit();
     } catch (error: any) {
       if (error.message === authRequiredError) {
-        await requireAdmin(submit);
+        try {
+          await requireAdmin(submit);
+        } catch {
+          // Admin modal canceled or rejected
+        }
         return;
       }
       alert(`Error: ${error.message}`);

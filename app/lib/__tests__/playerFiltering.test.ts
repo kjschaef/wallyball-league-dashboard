@@ -72,9 +72,27 @@ describe('isPlayerActive', () => {
         expect(isPlayerActive(recentDate, referenceDate, false)).toBe(false);
     });
 
+    it('returns true when isActive is true, even if lastGameDate is more than 6 months ago (admin override)', () => {
+        const oldDate = new Date('2025-01-01T12:00:00.000Z').toISOString();
+        expect(isPlayerActive(oldDate, referenceDate, true)).toBe(true);
+    });
+
+    it('returns true when isActive is true, even if lastGameDate is null (admin override for 0-game player)', () => {
+        expect(isPlayerActive(null, referenceDate, true)).toBe(true);
+        expect(isPlayerActive(undefined, referenceDate, true)).toBe(true);
+    });
+
     it('returns true when isActive is true and lastGameDate is recent', () => {
         const recentDate = new Date('2026-07-24T12:00:00.000Z').toISOString();
         expect(isPlayerActive(recentDate, referenceDate, true)).toBe(true);
+    });
+
+    it('falls back to 6-month check when isActive is null or undefined', () => {
+        const recentDate = new Date('2026-07-24T12:00:00.000Z').toISOString();
+        const oldDate = new Date('2025-01-01T12:00:00.000Z').toISOString();
+        expect(isPlayerActive(recentDate, referenceDate, null)).toBe(true);
+        expect(isPlayerActive(oldDate, referenceDate, null)).toBe(false);
+        expect(isPlayerActive(null, referenceDate, null)).toBe(false);
     });
 });
 

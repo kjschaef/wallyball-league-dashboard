@@ -7,7 +7,7 @@ export const players = pgTable("players", {
   startYear: integer("start_year"),
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
-  isActive: boolean("is_active").default(true).notNull(),
+  isActive: boolean("is_active"),
 }, (table) => ({
   deletedAtIdx: index("players_deleted_at_idx").on(table.deletedAt),
   isActiveIdx: index("players_is_active_idx").on(table.isActive),

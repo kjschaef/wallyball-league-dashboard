@@ -63,7 +63,9 @@ export async function GET() {
         name: player.name,
         startYear: player.start_year,
         createdAt: player.created_at ? new Date(player.created_at).toISOString() : null,
-        isActive: player.is_active !== false && player.deleted_at == null,
+        isActive: player.deleted_at != null || player.is_active === false
+          ? false
+          : (player.is_active === true ? true : null),
         deletedAt: player.deleted_at ? new Date(player.deleted_at).toISOString() : null,
         matches: processedMatches,
         lastGameDate,
@@ -181,12 +183,12 @@ export async function PUT(request: Request) {
     const newName = body.name !== undefined ? body.name.trim() : current.name;
     const newStartYear = body.startYear !== undefined ? body.startYear : current.start_year;
 
-    let newIsActive = current.is_active !== false && current.deleted_at == null;
+    let newIsActive = current.is_active;
     let newDeletedAt = current.deleted_at;
 
     if (body.isActive !== undefined) {
-      newIsActive = Boolean(body.isActive);
-      newDeletedAt = newIsActive ? null : (current.deleted_at || new Date());
+      newIsActive = body.isActive === null ? null : Boolean(body.isActive);
+      newDeletedAt = newIsActive === true ? null : (newIsActive === false ? (current.deleted_at || new Date()) : current.deleted_at);
     }
 
     // Update player in database
@@ -205,7 +207,9 @@ export async function PUT(request: Request) {
       name: updatedPlayer.name,
       startYear: updatedPlayer.start_year,
       createdAt: new Date(updatedPlayer.created_at).toISOString(),
-      isActive: updatedPlayer.is_active !== false && updatedPlayer.deleted_at == null,
+      isActive: updatedPlayer.deleted_at != null || updatedPlayer.is_active === false
+        ? false
+        : (updatedPlayer.is_active === true ? true : null),
       deletedAt: updatedPlayer.deleted_at ? new Date(updatedPlayer.deleted_at).toISOString() : null,
     };
     

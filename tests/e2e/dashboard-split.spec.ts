@@ -79,4 +79,18 @@ test.describe('Dashboard Two-Column Split & Power Rankings', () => {
 
     await expect(page.getByRole('heading', { name: /How League Power Rankings Work/i })).not.toBeVisible();
   });
+
+  test('renders player cards with active and collapsible inactive sections', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    await expect(page.getByRole('heading', { name: /Lifetime Player Statistics/i })).toBeVisible({ timeout: 30000 });
+
+    // Inactive Players collapsible section if present
+    const inactiveSection = page.getByRole('button', { name: /Inactive Players/i });
+    if (await inactiveSection.isVisible()) {
+      await inactiveSection.click();
+      await expect(inactiveSection).toHaveAttribute('aria-expanded', 'true');
+    }
+  });
 });
