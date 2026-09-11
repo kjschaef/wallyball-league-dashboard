@@ -1,4 +1,4 @@
-import { GET, POST, DELETE } from '@/app/api/players/route';
+import { GET, POST, PUT, DELETE } from '@/app/api/players/route';
 
 const mockSql = jest.fn();
 
@@ -12,6 +12,8 @@ const createMockSql = () => {
       const query = strings.join('').toLowerCase();
       if (query.includes('select * from players')) {
         return mockSql('players', values, query);
+      } else if (query.includes('select id from matches')) {
+        return mockSql('player_matches', values, query);
       } else if (query.includes('select * from matches')) {
         return mockSql('matches');
       } else if (query.includes('insert into players')) {
@@ -63,8 +65,8 @@ describe('/api/players', () => {
       mockSql.mockImplementation((queryType) => {
         if (queryType === 'players') {
           return Promise.resolve([
-            { id: 1, name: 'Alice', start_year: 2024, created_at: '2024-01-01T00:00:00Z' },
-            { id: 2, name: 'Bob', start_year: 2024, created_at: '2024-01-01T00:00:00Z' }
+            { id: 1, name: 'Alice', start_year: 2024, created_at: '2024-01-01T00:00:00Z', is_active: true, deleted_at: null },
+            { id: 2, name: 'Bob', start_year: 2024, created_at: '2024-01-01T00:00:00Z', is_active: false, deleted_at: '2024-01-02T00:00:00Z' }
           ]);
         }
         if (queryType === 'matches') {
@@ -94,6 +96,7 @@ describe('/api/players', () => {
 
       const alice = data.find((p: any) => p.name === 'Alice');
       expect(alice.lastGameDate).toBe('2024-01-02T00:00:00.000Z');
+      expect(alice.isActive).toBe(true);
       expect(alice.stats).toEqual({
         won: 1,
         lost: 0,
@@ -102,6 +105,7 @@ describe('/api/players', () => {
 
       const bob = data.find((p: any) => p.name === 'Bob');
       expect(bob.lastGameDate).toBe('2024-01-02T00:00:00.000Z');
+      expect(bob.isActive).toBe(false);
       expect(bob.stats).toEqual({
         won: 0,
         lost: 1,
@@ -133,7 +137,7 @@ describe('/api/players', () => {
 
   describe('POST', () => {
     it('creates a new player', async () => {
-      const mockPlayer = { id: 3, name: 'Charlie', start_year: 2024, created_at: '2024-02-01T00:00:00Z' };
+      const mockPlayer = { id: 3, name: 'Charlie', start_year: 2024, created_at: '2024-02-01T00:00:00Z', is_active: true };
 
       mockSql.mockImplementation((queryType, values) => {
         if (queryType === 'insert') {
@@ -155,6 +159,8 @@ describe('/api/players', () => {
         name: 'Charlie',
         startYear: 2024,
         createdAt: '2024-02-01T00:00:00.000Z',
+        isActive: true,
+        deletedAt: null,
         matches: [],
         lastGameDate: null,
         stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
@@ -185,6 +191,94 @@ describe('/api/players', () => {
     });
   });
 
+  describe('PUT', () => {
+    it('updates player name, startYear, and isActive status', async () => {
+      let updateQuery = '';
+      let updateValues: unknown[] = [];
+      mockSql.mockImplementation((queryType, values, query) => {
+        if (queryType === 'players') {
+          return Promise.resolve([{ id: 1, name: 'Alice', start_year: 2024, is_active: true, created_at: '2024-01-01' }]);
+        }
+        if (queryType === 'update') {
+          updateQuery = query;
+          updateValues = values;
+          return Promise.resolve([{
+            id: 1,
+            name: 'Alice Updated',
+            start_year: 2025,
+            is_active: false,
+            deleted_at: new Date('2026-01-01'),
+            created_at: '2024-01-01'
+          }]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = {
+        json: async () => ({ id: 1, name: 'Alice Updated', startYear: 2025, isActive: false }),
+      } as Request;
+
+      const response = await PUT(request);
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.name).toBe('Alice Updated');
+      expect(data.isActive).toBe(false);
+      expect(updateQuery).toContain('is_active =');
+      expect(updateValues).toContain(false);
+    });
+
+    it('reactivates an inactive player by setting is_active = true and deleted_at = null', async () => {
+      let updateValues: unknown[] = [];
+      mockSql.mockImplementation((queryType, values) => {
+        if (queryType === 'players') {
+          return Promise.resolve([{ id: 2, name: 'Bob', start_year: 2024, is_active: false, deleted_at: '2024-01-02T00:00:00Z', created_at: '2024-01-01' }]);
+        }
+        if (queryType === 'update') {
+          updateValues = values;
+          return Promise.resolve([{
+            id: 2,
+            name: 'Bob',
+            start_year: 2024,
+            is_active: true,
+            deleted_at: null,
+            created_at: '2024-01-01'
+          }]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = {
+        json: async () => ({ id: 2, isActive: true }),
+      } as Request;
+
+      const response = await PUT(request);
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.isActive).toBe(true);
+      expect(data.deletedAt).toBeNull();
+      expect(updateValues).toContain(true);
+      expect(updateValues).toContain(null);
+    });
+
+    it('returns 404 if player not found', async () => {
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = {
+        json: async () => ({ id: 999, name: 'Nonexistent' }),
+      } as Request;
+
+      const response = await PUT(request);
+      expect(response.status).toBe(404);
+    });
+  });
+
   describe('DELETE', () => {
     it('returns 401 if unauthorized', async () => {
       mockCookieStore.get.mockReturnValue({ value: 'false' });
@@ -203,17 +297,23 @@ describe('/api/players', () => {
       expect(data).toEqual({ error: 'Player ID is required' });
     });
 
-    it('soft-deletes player by setting deleted_at and cleans up signups/unavailabilities', async () => {
+    it('marks player inactive when player has match history and cleans up signups/unavailabilities', async () => {
       let updateExecuted = false;
       let deleteSignupsExecuted = false;
       let deleteUnavailableExecuted = false;
 
       mockSql.mockImplementation((queryType, values, query) => {
+        if (queryType === 'players') {
+          return Promise.resolve([{ id: 1, name: 'Alice', is_active: true }]);
+        }
+        if (queryType === 'player_matches') {
+          return Promise.resolve([{ id: 10 }]);
+        }
         if (queryType === 'update') {
           updateExecuted = true;
+          expect(query).toContain('is_active = false');
           expect(query).toContain('deleted_at = now()');
-          expect(query).toContain('deleted_at is null');
-          return Promise.resolve([{ id: 1, name: 'Alice', deleted_at: new Date() }]);
+          return Promise.resolve([{ id: 1, name: 'Alice', is_active: false, deleted_at: new Date() }]);
         }
         if (queryType === 'delete_signups') {
           deleteSignupsExecuted = true;
@@ -237,10 +337,33 @@ describe('/api/players', () => {
       expect(deleteUnavailableExecuted).toBe(true);
     });
 
-    it('returns 404 if player not found or already deleted', async () => {
+    it('hard-deletes player when player has 0 matches', async () => {
+      let deleteExecuted = false;
+
       mockSql.mockImplementation((queryType) => {
-        if (queryType === 'update') {
-          return Promise.resolve([]); // 0 rows updated
+        if (queryType === 'players') {
+          return Promise.resolve([{ id: 2, name: 'Bob' }]);
+        }
+        if (queryType === 'player_matches') {
+          return Promise.resolve([]); // 0 matches
+        }
+        if (queryType === 'delete') {
+          deleteExecuted = true;
+          return Promise.resolve([]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const request = { url: 'http://localhost/api/players?id=2' } as Request;
+      const response = await DELETE(request);
+      expect(response.status).toBe(200);
+      expect(deleteExecuted).toBe(true);
+    });
+
+    it('returns 404 if player not found', async () => {
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'players') {
+          return Promise.resolve([]); // player not found
         }
         return Promise.resolve([]);
       });

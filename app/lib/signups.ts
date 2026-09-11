@@ -234,6 +234,8 @@ export interface PlayerLike {
   id: number;
   name: string;
   lastGameDate?: string | null;
+  isActive?: boolean;
+  deletedAt?: string | null;
   matches?: Array<{ date: string }>;
 }
 
@@ -277,13 +279,14 @@ export function getNoResponsePlayers<T extends PlayerLike>(
 
   return players
     .filter((p) => {
+      if (p.isActive === false || p.deletedAt) return false;
       if (respondedPlayerIds.has(p.id)) return false;
       if (p.lastGameDate !== undefined) {
-        return isPlayerActive(p.lastGameDate, referenceDate);
+        return isPlayerActive(p.lastGameDate, referenceDate, p.isActive);
       }
       if (p.matches && p.matches.length > 0) {
         const latest = new Date(Math.max(...p.matches.map((m) => new Date(m.date).getTime()))).toISOString();
-        return isPlayerActive(latest, referenceDate);
+        return isPlayerActive(latest, referenceDate, p.isActive);
       }
       if (p.matches && p.matches.length === 0) {
         return false;

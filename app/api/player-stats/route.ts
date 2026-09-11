@@ -15,8 +15,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const seasonParam = searchParams.get('season');
 
-    // Fetch all active players
-    const allPlayers = await sql`SELECT * FROM players WHERE deleted_at IS NULL ORDER BY created_at DESC`;
+    // Fetch all players
+    const allPlayers = await sql`SELECT * FROM players ORDER BY created_at DESC`;
 
     // Handle season filtering
     let seasonData: unknown = null;

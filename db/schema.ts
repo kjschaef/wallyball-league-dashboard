@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const players = pgTable("players", {
@@ -7,8 +7,10 @@ export const players = pgTable("players", {
   startYear: integer("start_year"),
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
+  isActive: boolean("is_active"),
 }, (table) => ({
   deletedAtIdx: index("players_deleted_at_idx").on(table.deletedAt),
+  isActiveIdx: index("players_is_active_idx").on(table.isActive),
 }));
 
 export const matches = pgTable("matches", {

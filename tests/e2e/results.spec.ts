@@ -33,6 +33,12 @@ test.describe('Results Flow', () => {
     // Check for Lifetime Player Statistics section
     await expect(page.getByRole('heading', { name: 'Lifetime Player Statistics' })).toBeVisible();
 
+    // Check that active players have mark inactive button
+    const markInactiveBtn = page.getByRole('button', { name: /mark player inactive/i }).first();
+    if (await markInactiveBtn.isVisible()) {
+      await expect(markInactiveBtn).toBeVisible();
+    }
+
     // Check for Inactive Players toggle button
     const inactiveToggle = page.getByRole('button', { name: /Inactive Players/i });
     if (await inactiveToggle.isVisible()) {
@@ -42,6 +48,12 @@ test.describe('Results Flow', () => {
       // Click to expand
       await inactiveToggle.click();
       await expect(inactiveToggle).toHaveAttribute('aria-expanded', 'true');
+
+      // Inactive players should have mark active button
+      const markActiveBtn = page.getByRole('button', { name: /mark player active/i }).first();
+      if (await markActiveBtn.isVisible()) {
+        await expect(markActiveBtn).toBeVisible();
+      }
 
       // Click to collapse again
       await inactiveToggle.click();

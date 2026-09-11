@@ -11,7 +11,7 @@ export async function GET() {
     const sql = neon(process.env.DATABASE_URL);
     
     // Fetch all players from database
-    const allPlayers = await sql`SELECT * FROM players WHERE deleted_at IS NULL ORDER BY created_at DESC`;
+    const allPlayers = await sql`SELECT * FROM players ORDER BY created_at DESC`;
     
     // Fetch all matches to calculate statistics
     const allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
@@ -63,6 +63,10 @@ export async function GET() {
         name: player.name,
         startYear: player.start_year,
         createdAt: player.created_at ? new Date(player.created_at).toISOString() : null,
+        isActive: player.deleted_at != null || player.is_active === false
+          ? false
+          : (player.is_active === true ? true : null),
+        deletedAt: player.deleted_at ? new Date(player.deleted_at).toISOString() : null,
         matches: processedMatches,
         lastGameDate,
         stats: {
@@ -107,8 +111,8 @@ export async function POST(request: Request) {
 
     // Create new player in database
     const newPlayers = await sql`
-      INSERT INTO players (name, start_year, created_at)
-      VALUES (${body.name.trim()}, ${body.startYear || new Date().getFullYear()}, NOW())
+      INSERT INTO players (name, start_year, is_active, created_at)
+      VALUES (${body.name.trim()}, ${body.startYear || new Date().getFullYear()}, true, NOW())
       RETURNING *
     `;
 
@@ -120,6 +124,8 @@ export async function POST(request: Request) {
       name: newPlayer.name,
       startYear: newPlayer.start_year,
       createdAt: new Date(newPlayer.created_at).toISOString(),
+      isActive: true,
+      deletedAt: null,
       matches: [],
       lastGameDate: null,
       stats: { won: 0, lost: 0, totalGames: 0, totalMatchTime: 0 }
@@ -151,9 +157,9 @@ export async function PUT(request: Request) {
       );
     }
     
-    if (!body.name || body.name.trim() === '') {
+    if (body.name !== undefined && body.name.trim() === '') {
       return NextResponse.json(
-        { error: 'Player name is required' },
+        { error: 'Player name cannot be empty' },
         { status: 400 }
       );
     }
@@ -164,20 +170,34 @@ export async function PUT(request: Request) {
     
     const sql = neon(process.env.DATABASE_URL);
 
-    // Update player in database
-    const updatedPlayers = await sql`
-      UPDATE players 
-      SET name = ${body.name.trim()}, start_year = ${body.startYear || null}
-      WHERE id = ${body.id} AND deleted_at IS NULL
-      RETURNING *
-    `;
-
-    if (updatedPlayers.length === 0) {
+    // Find existing player
+    const existingPlayers = await sql`SELECT * FROM players WHERE id = ${body.id}`;
+    if (existingPlayers.length === 0) {
       return NextResponse.json(
         { error: 'Player not found' },
         { status: 404 }
       );
     }
+
+    const current = existingPlayers[0];
+    const newName = body.name !== undefined ? body.name.trim() : current.name;
+    const newStartYear = body.startYear !== undefined ? body.startYear : current.start_year;
+
+    let newIsActive = current.is_active;
+    let newDeletedAt = current.deleted_at;
+
+    if (body.isActive !== undefined) {
+      newIsActive = body.isActive === null ? null : Boolean(body.isActive);
+      newDeletedAt = newIsActive === true ? null : (newIsActive === false ? (current.deleted_at || new Date()) : current.deleted_at);
+    }
+
+    // Update player in database
+    const updatedPlayers = await sql`
+      UPDATE players 
+      SET name = ${newName}, start_year = ${newStartYear || null}, is_active = ${newIsActive}, deleted_at = ${newDeletedAt}
+      WHERE id = ${body.id}
+      RETURNING *
+    `;
 
     const updatedPlayer = updatedPlayers[0];
 
@@ -187,6 +207,10 @@ export async function PUT(request: Request) {
       name: updatedPlayer.name,
       startYear: updatedPlayer.start_year,
       createdAt: new Date(updatedPlayer.created_at).toISOString(),
+      isActive: updatedPlayer.deleted_at != null || updatedPlayer.is_active === false
+        ? false
+        : (updatedPlayer.is_active === true ? true : null),
+      deletedAt: updatedPlayer.deleted_at ? new Date(updatedPlayer.deleted_at).toISOString() : null,
     };
     
     return NextResponse.json(playerWithStats);
@@ -221,19 +245,37 @@ export async function DELETE(request: Request) {
     
     const sql = neon(process.env.DATABASE_URL);
 
-    // Soft delete player from database
-    const updatedPlayers = await sql`
-      UPDATE players 
-      SET deleted_at = NOW()
-      WHERE id = ${id} AND deleted_at IS NULL
-      RETURNING *
-    `;
-
-    if (updatedPlayers.length === 0) {
+    // Verify player exists
+    const existingPlayers = await sql`SELECT * FROM players WHERE id = ${id}`;
+    if (existingPlayers.length === 0) {
       return NextResponse.json(
         { error: 'Player not found' },
         { status: 404 }
       );
+    }
+
+    // Check if player has match history
+    const playerMatches = await sql`
+      SELECT id FROM matches 
+      WHERE team_one_player_one_id = ${id} OR
+            team_one_player_two_id = ${id} OR
+            team_one_player_three_id = ${id} OR
+            team_two_player_one_id = ${id} OR
+            team_two_player_two_id = ${id} OR
+            team_two_player_three_id = ${id}
+      LIMIT 1
+    `;
+
+    if (playerMatches.length > 0) {
+      // Mark inactive to preserve match integrity
+      await sql`
+        UPDATE players 
+        SET is_active = false, deleted_at = NOW()
+        WHERE id = ${id}
+      `;
+    } else {
+      // Safely delete unused player
+      await sql`DELETE FROM players WHERE id = ${id}`;
     }
 
     // Clean up signups and availability entries for this player
