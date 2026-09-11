@@ -6,6 +6,7 @@ import {
   DEFAULT_SIGNUP_SETTINGS,
   getEasternWallTimeNow,
   getSignupCycleState,
+  getSunday,
   isDateInSignupWeek,
   parseAvailableDays,
   type SignupSettings,
@@ -243,6 +244,29 @@ export async function POST(request: Request) {
       VALUES (${playerId}, ${date}, ${status})
       RETURNING *
     `;
+
+    const targetWeekStart = format(getSunday(new Date(`${date}T12:00:00`)), 'yyyy-MM-dd');
+    const signupWeekStart = signupState.signupWeekSunday
+      ? format(signupState.signupWeekSunday, 'yyyy-MM-dd')
+      : targetWeekStart;
+
+    try {
+      if (targetWeekStart === signupWeekStart) {
+        await sql`
+          DELETE FROM weekly_unavailable
+          WHERE player_id = ${playerId} AND week_start = ${targetWeekStart}
+        `;
+      } else {
+        await sql`
+          DELETE FROM weekly_unavailable
+          WHERE player_id = ${playerId} AND (week_start = ${targetWeekStart} OR week_start = ${signupWeekStart})
+        `;
+      }
+    } catch (cleanupError) {
+      if (!isMissingWeeklyUnavailableTable(cleanupError)) {
+        console.warn('Failed to auto-remove player from weekly_unavailable on signup:', cleanupError);
+      }
+    }
 
     return NextResponse.json({ success: true, signup: newSignup[0] });
   } catch (error) {
