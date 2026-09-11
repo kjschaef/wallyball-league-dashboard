@@ -262,6 +262,53 @@ describe('SignupsPage', () => {
     expect(noResponseSection).not.toHaveTextContent('Inactive Dave');
   });
 
+  it('displays an error message in No Response section and banner when player loading fails', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: RequestInfo) => {
+      const requestUrl = String(url);
+      if (requestUrl === '/api/settings') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            signupOpenDayOfWeek: 0,
+            signupOpenTime: '12:00',
+            signupCloseDayOfWeek: 0,
+            signupCloseTime: '16:00',
+            availableDays: ['Monday'],
+          }),
+        } as Response);
+      }
+      if (requestUrl === '/api/players') {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          json: async () => ({ error: 'Database error' }),
+        } as Response);
+      }
+      if (requestUrl === '/api/signups') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [],
+        } as Response);
+      }
+      if (requestUrl === '/api/signups?unavailable=1') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [],
+        } as Response);
+      }
+      return Promise.resolve({ ok: false, status: 404, json: async () => ({}) } as Response);
+    });
+
+    await act(async () => {
+      render(<SignupsPage />);
+    });
+
+    expect(await screen.findByText('Failed to load players. Please refresh the page to try again.')).toBeInTheDocument();
+    const noResponseSection = (await screen.findByText('No Response (0)')).closest('div')!;
+    expect(noResponseSection).toHaveTextContent('Failed to load players.');
+    expect(noResponseSection).not.toHaveTextContent('Everyone has responded!');
+  });
+
   it('exports signup details including Out and No Response to clipboard', async () => {
     const writeTextMock = jest.fn().mockResolvedValue(undefined);
     Object.assign(navigator, {
