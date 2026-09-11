@@ -46,6 +46,7 @@ export default function SignupsPage() {
   const [signups, setSignups] = useState<Signup[]>([]);
   const [unavailablePlayers, setUnavailablePlayers] = useState<UnavailablePlayer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasPlayerLoadError, setHasPlayerLoadError] = useState(false);
   
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
   const { requireAdmin } = useAdmin();
@@ -67,11 +68,17 @@ export default function SignupsPage() {
         fetch('/api/signups?unavailable=1', { cache: 'no-store' }),
       ]);
       if (settingsRes.ok) setSettings(await settingsRes.json());
-      if (playersRes.ok) setPlayers(await playersRes.json());
+      if (playersRes.ok) {
+        setPlayers(await playersRes.json());
+        setHasPlayerLoadError(false);
+      } else {
+        setHasPlayerLoadError(true);
+      }
       if (signupsRes.ok) setSignups(await signupsRes.json());
       if (unavailableRes.ok) setUnavailablePlayers(await unavailableRes.json());
     } catch (error) {
       console.error('Failed to load data:', error);
+      setHasPlayerLoadError(true);
     } finally {
       setIsLoading(false);
     }
@@ -313,7 +320,7 @@ export default function SignupsPage() {
               onChange={(e) => setSelectedPlayerId(e.target.value)}
               className="p-2 border rounded-md focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
             >
-              <option value="">-- Who are you? --</option>
+              <option value="">{hasPlayerLoadError ? 'Error loading players' : '-- Who are you? --'}</option>
               {[...players].sort((a, b) => a.name.localeCompare(b.name)).map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -330,6 +337,12 @@ export default function SignupsPage() {
           </div>
         )}
       </div>
+
+      {hasPlayerLoadError && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          Failed to load players. Please refresh the page to try again.
+        </div>
+      )}
 
       {/* Main body */}
       {isOpen ? (
@@ -383,7 +396,9 @@ export default function SignupsPage() {
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
                 No Response ({noResponseThisWeek.length})
               </h2>
-              {noResponseThisWeek.length === 0 ? (
+              {hasPlayerLoadError ? (
+                <p className="mt-1 text-sm text-rose-600">Failed to load players.</p>
+              ) : noResponseThisWeek.length === 0 ? (
                 <p className="mt-1 text-sm font-medium text-emerald-700">Everyone has responded!</p>
               ) : (
                 <ul className="mt-2 flex flex-wrap gap-2">

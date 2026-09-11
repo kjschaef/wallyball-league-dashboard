@@ -11,7 +11,16 @@ export async function GET() {
     const sql = neon(process.env.DATABASE_URL);
     
     // Fetch all players from database
-    const allPlayers = await sql`SELECT * FROM players WHERE deleted_at IS NULL ORDER BY created_at DESC`;
+    let allPlayers;
+    try {
+      allPlayers = await sql`SELECT * FROM players WHERE deleted_at IS NULL ORDER BY created_at DESC`;
+    } catch (err: any) {
+      if (err?.code === '42703') {
+        allPlayers = await sql`SELECT * FROM players ORDER BY created_at DESC`;
+      } else {
+        throw err;
+      }
+    }
     
     // Fetch all matches to calculate statistics
     const allMatches = await sql`SELECT * FROM matches ORDER BY date DESC`;
