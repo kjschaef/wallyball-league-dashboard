@@ -210,10 +210,10 @@
       "migrationTouchpoints": [
         "migrations/0000_light_toro.sql",
         "migrations/0007_blue_edwin_jarvis.sql",
+        "migrations/0010_add_player_deleted_at.sql",
         "migrations/004_add_inactivity_exemptions.sql",
         "migrations/007_add_signups.sql",
         "migrations/009_add_weekly_unavailable.sql",
-        "migrations/010_add_player_deleted_at.sql",
         "migrations/relations.ts",
         "migrations/schema.ts"
       ]

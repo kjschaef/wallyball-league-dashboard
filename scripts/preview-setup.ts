@@ -2,7 +2,25 @@ import { execSync } from 'child_process';
 import { neon } from '@neondatabase/serverless';
 
 async function main() {
-  // Prevent running on main branch in case of accidental preview evaluations
+  // Production environment: apply database migrations
+  if (process.env.VERCEL_ENV === 'production') {
+    if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('dummy') || process.env.DATABASE_URL.includes('localhost')) {
+      console.log('⏭️ Skipping database migrations: DATABASE_URL is not configured for production build.');
+      return;
+    }
+
+    console.log('🚀 Production environment detected: Applying pending database migrations...');
+    try {
+      execSync('pnpm run db:migrate', { stdio: 'inherit' });
+      console.log('✅ Production database migrations applied successfully.');
+      return;
+    } catch (error) {
+      console.error('❌ Failed to apply migrations to production database:', error);
+      process.exit(1);
+    }
+  }
+
+  // Prevent running preview setup on main branch in case of accidental preview evaluations
   if (process.env.VERCEL_GIT_COMMIT_REF === 'main') {
     console.log('⏭️ Skipping database setup: Cannot run on main branch.');
     return;
@@ -22,24 +40,8 @@ async function main() {
       await sql`DROP TABLE IF EXISTS "player_achievements" CASCADE;`;
       await sql`DROP TABLE IF EXISTS "achievements" CASCADE;`;
 
-      // Ensure players table has deleted_at column
-      await sql`ALTER TABLE "players" ADD COLUMN IF NOT EXISTS "deleted_at" timestamp;`;
-      await sql`CREATE INDEX IF NOT EXISTS "players_deleted_at_idx" ON "players" ("deleted_at");`;
-
-      // Ensure match_games table and index exist
-      await sql`
-        CREATE TABLE IF NOT EXISTS "match_games" (
-          "id" serial PRIMARY KEY NOT NULL,
-          "match_id" integer NOT NULL REFERENCES "matches"("id") ON DELETE CASCADE,
-          "game_number" integer NOT NULL,
-          "team_one_score" integer NOT NULL,
-          "team_two_score" integer NOT NULL,
-          "created_at" timestamp DEFAULT now()
-        );
-      `;
-      await sql`
-        CREATE INDEX IF NOT EXISTS "match_games_match_id_idx" ON "match_games" ("match_id");
-      `;
+      // Apply pending migrations to preview database branch
+      execSync('pnpm run db:migrate', { stdio: 'inherit' });
 
       // Execute seed
       execSync('pnpm run db:seed', { stdio: 'inherit' });
@@ -50,7 +52,7 @@ async function main() {
       process.exit(1);
     }
   } else {
-    console.log(`⏭️ Skipping preview database setup (VERCEL_ENV=${process.env.VERCEL_ENV || 'undefined'})`);
+    console.log(`⏭️ Skipping database setup (VERCEL_ENV=${process.env.VERCEL_ENV || 'undefined'})`);
   }
 }
 
