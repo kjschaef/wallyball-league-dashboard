@@ -347,7 +347,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    let targetSignup = await (id
+    const targetSignup = await (id
       ? sql`SELECT * FROM weekly_signups WHERE id = ${id}`
       : sql`SELECT * FROM weekly_signups WHERE player_id = ${playerId} AND date = ${date}`);
 
