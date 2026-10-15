@@ -148,7 +148,7 @@ export default function SignupsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: signupId })
       });
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 403) {
         throw new Error('UNAUTHORIZED');
       }
       if (res.ok) {
@@ -172,19 +172,31 @@ export default function SignupsPage() {
   const handleRemoveUnavailable = async (entryId: number) => {
     if (!confirm('Are you sure you want to remove this unavailable player?')) return;
 
-    const res = await fetch('/api/signups', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: entryId, unavailable: true }),
-    });
-
-    if (res.ok) {
-      await fetchData();
-      return;
+    const submit = async () => {
+      const res = await fetch('/api/signups', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: entryId, unavailable: true }),
+      });
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('UNAUTHORIZED');
+      }
+      if (res.ok) {
+        await fetchData();
+      } else {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to remove unavailable player');
+      }
+    };
+    try {
+      await submit();
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        await requireAdmin(submit);
+        return;
+      }
+      alert(error.message);
     }
-
-    const data = await res.json();
-    alert(data.error || 'Failed to remove unavailable player');
   };
 
 

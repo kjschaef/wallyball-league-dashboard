@@ -284,47 +284,92 @@ export async function DELETE(request: Request) {
       if (!id && !(playerId && weekStart)) {
         return NextResponse.json({ error: 'id or (playerId and weekStart) required for unavailable removal' }, { status: 400 });
       }
+    } else {
+      if (!id && !(playerId && date)) {
+        return NextResponse.json({ error: 'id or (playerId and date) required' }, { status: 400 });
+      }
+    }
 
-      if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
-      const sql = neon(process.env.DATABASE_URL);
+    if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
+    const sql = neon(process.env.DATABASE_URL);
 
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.get('admin_token')?.value === 'true';
+
+    const settings = await sql`
+      SELECT signup_open_day_of_week, signup_open_time, signup_close_day_of_week, signup_close_time, available_days
+      FROM site_settings
+      LIMIT 1
+    ` as SignupSettingsRow[];
+    const signupSettings = buildSignupSettings(settings);
+    const signupState = getSignupCycleState(getEasternWallTimeNow(), signupSettings);
+
+    if (unavailable) {
+      let targetUnavailable;
       try {
         if (id) {
-          await sql`DELETE FROM weekly_unavailable WHERE id = ${id}`;
+          targetUnavailable = await sql`SELECT * FROM weekly_unavailable WHERE id = ${id}`;
         } else {
-          await sql`DELETE FROM weekly_unavailable WHERE player_id = ${playerId} AND week_start = ${weekStart}`;
+          targetUnavailable = await sql`SELECT * FROM weekly_unavailable WHERE player_id = ${playerId} AND week_start = ${weekStart}`;
         }
       } catch (error) {
         if (isMissingWeeklyUnavailableTable(error)) {
           console.error(WEEKLY_UNAVAILABLE_MIGRATION_ERROR, error);
           return NextResponse.json({ error: WEEKLY_UNAVAILABLE_MIGRATION_ERROR }, { status: 503 });
         }
+        throw error;
+      }
 
+      if (targetUnavailable.length === 0) {
+        return NextResponse.json({ error: 'Unavailable record not found' }, { status: 404 });
+      }
+
+      if (!isAdmin) {
+        const currentWeekStart = signupState.signupWeekSunday
+          ? format(signupState.signupWeekSunday, 'yyyy-MM-dd')
+          : null;
+        const targetWeekStart = targetUnavailable[0].week_start;
+        if (!signupState.isOpen || !currentWeekStart || targetWeekStart !== currentWeekStart) {
+          return NextResponse.json({ error: 'Signups are closed for this week' }, { status: 403 });
+        }
+      }
+
+      try {
+        await sql`DELETE FROM weekly_unavailable WHERE id = ${targetUnavailable[0].id}`;
+      } catch (error) {
+        if (isMissingWeeklyUnavailableTable(error)) {
+          console.error(WEEKLY_UNAVAILABLE_MIGRATION_ERROR, error);
+          return NextResponse.json({ error: WEEKLY_UNAVAILABLE_MIGRATION_ERROR }, { status: 503 });
+        }
         throw error;
       }
 
       return NextResponse.json({ success: true });
     }
 
-    if (!id && !(playerId && date)) {
-      return NextResponse.json({ error: 'id or (playerId and date) required' }, { status: 400 });
-    }
-
-    if (!process.env.DATABASE_URL) throw new Error('Database URL not configured');
-    const sql = neon(process.env.DATABASE_URL);
-
-    let targetSignup;
-    if (id) {
-      targetSignup = await sql`SELECT * FROM weekly_signups WHERE id = ${id}`;
-    } else {
-      targetSignup = await sql`SELECT * FROM weekly_signups WHERE player_id = ${playerId} AND date = ${date}`;
-    }
+    let targetSignup = await (id
+      ? sql`SELECT * FROM weekly_signups WHERE id = ${id}`
+      : sql`SELECT * FROM weekly_signups WHERE player_id = ${playerId} AND date = ${date}`);
 
     if (targetSignup.length === 0) {
       return NextResponse.json({ error: 'Signup not found' }, { status: 404 });
     }
 
     const { id: signupId, date: signupDate, status } = targetSignup[0];
+
+    if (!isAdmin) {
+      let isAllowed = isDateInSignupWeek(signupDate, signupState.signupWeekSunday, signupSettings.availableDays);
+      if (!isAllowed && signupState.signupWeekSunday) {
+        const targetWeekStart = format(getSunday(new Date(`${signupDate}T12:00:00`)), 'yyyy-MM-dd');
+        const signupWeekStart = format(signupState.signupWeekSunday, 'yyyy-MM-dd');
+        if (targetWeekStart === signupWeekStart) {
+          isAllowed = true;
+        }
+      }
+      if (!signupState.isOpen || !isAllowed) {
+        return NextResponse.json({ error: 'Signups are closed for this date' }, { status: 403 });
+      }
+    }
 
     await sql`DELETE FROM weekly_signups WHERE id = ${signupId}`;
 
