@@ -66,6 +66,14 @@ const createMockSql = () => Object.assign(
       return mockSql('lookup-by-player-date');
     }
 
+    if (query.includes('select * from weekly_unavailable where id =')) {
+      return mockSql('lookup-unavailable-by-id');
+    }
+
+    if (query.includes('select * from weekly_unavailable where player_id =') && query.includes('and week_start =')) {
+      return mockSql('lookup-unavailable-by-player-week');
+    }
+
     if (query.includes('delete from weekly_unavailable where id =')) {
       return mockSql('delete-unavailable-by-id');
     }
@@ -694,8 +702,20 @@ describe('/api/signups', () => {
       await expect(response.json()).resolves.toEqual({ error: 'Signup not found' });
     });
 
-    it('promotes the first waitlisted signup after deleting a registered player', async () => {
+    it('promotes the first waitlisted signup after deleting a registered player during open window', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
+
       mockSql.mockImplementation((queryType) => {
+        if (queryType === 'settings') {
+          return Promise.resolve([{
+            signup_open_day_of_week: 0,
+            signup_open_time: '12:00',
+            signup_close_day_of_week: 0,
+            signup_close_time: '16:00',
+            available_days: '["Monday","Tuesday","Thursday"]',
+          }]);
+        }
+
         if (queryType === 'lookup-by-id') {
           return Promise.resolve([{ id: 5, date: '2026-01-19', status: 'registered' }]);
         }
@@ -725,8 +745,24 @@ describe('/api/signups', () => {
     });
 
 
-    it('removes an unavailable RSVP by id', async () => {
+    it('removes an unavailable RSVP by id during open window for the current signup week', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
+
       mockSql.mockImplementation((queryType) => {
+        if (queryType === 'settings') {
+          return Promise.resolve([{
+            signup_open_day_of_week: 0,
+            signup_open_time: '12:00',
+            signup_close_day_of_week: 0,
+            signup_close_time: '16:00',
+            available_days: '["Monday","Tuesday","Thursday"]',
+          }]);
+        }
+
+        if (queryType === 'lookup-unavailable-by-id') {
+          return Promise.resolve([{ id: 31, player_id: 3, week_start: '2026-01-18' }]);
+        }
+
         if (queryType === 'delete-unavailable-by-id') {
           return Promise.resolve([]);
         }
@@ -743,9 +779,86 @@ describe('/api/signups', () => {
       expect(mockSql).toHaveBeenCalledWith('delete-unavailable-by-id');
     });
 
-    it('returns a migration error when deleting unavailable RSVPs without the table', async () => {
+    it('rejects non-admin DELETE when signups are closed', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-12T00:30:00.000Z').getTime());
+
       mockSql.mockImplementation((queryType) => {
-        if (queryType === 'delete-unavailable-by-id') {
+        if (queryType === 'settings') {
+          return Promise.resolve([{
+            signup_open_day_of_week: 0,
+            signup_open_time: '12:00',
+            signup_close_day_of_week: 0,
+            signup_close_time: '16:00',
+            available_days: '["Monday","Tuesday","Thursday"]',
+          }]);
+        }
+
+        if (queryType === 'lookup-by-id') {
+          return Promise.resolve([{ id: 5, date: '2026-01-19', status: 'registered' }]);
+        }
+
+        return Promise.resolve([]);
+      });
+
+      const response = await DELETE({
+        json: async () => ({ id: 5 }),
+      } as Request);
+
+      expect(response.status).toBe(403);
+      await expect(response.json()).resolves.toEqual({ error: 'Signups are closed for this date' });
+      expect(mockSql).not.toHaveBeenCalledWith('delete-signup');
+    });
+
+    it('allows admin DELETE even when signups are closed', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-12T00:30:00.000Z').getTime());
+      mockCookies.get.mockReturnValue({ value: 'true' });
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'settings') {
+          return Promise.resolve([{
+            signup_open_day_of_week: 0,
+            signup_open_time: '12:00',
+            signup_close_day_of_week: 0,
+            signup_close_time: '16:00',
+            available_days: '["Monday","Tuesday","Thursday"]',
+          }]);
+        }
+
+        if (queryType === 'lookup-by-id') {
+          return Promise.resolve([{ id: 5, date: '2026-01-19', status: 'registered' }]);
+        }
+
+        if (queryType === 'delete-signup') {
+          return Promise.resolve([]);
+        }
+
+        return Promise.resolve([]);
+      });
+
+      const response = await DELETE({
+        json: async () => ({ id: 5 }),
+      } as Request);
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ success: true });
+      expect(mockSql).toHaveBeenCalledWith('delete-signup');
+    });
+
+    it('returns a migration error when deleting unavailable RSVPs without the table', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
+
+      mockSql.mockImplementation((queryType) => {
+        if (queryType === 'settings') {
+          return Promise.resolve([{
+            signup_open_day_of_week: 0,
+            signup_open_time: '12:00',
+            signup_close_day_of_week: 0,
+            signup_close_time: '16:00',
+            available_days: '["Monday","Tuesday","Thursday"]',
+          }]);
+        }
+
+        if (queryType === 'lookup-unavailable-by-id') {
           return Promise.reject(missingWeeklyUnavailableError);
         }
 
@@ -762,8 +875,20 @@ describe('/api/signups', () => {
       });
     });
 
-    it('deletes a waitlisted signup by player/date without promoting anyone', async () => {
+    it('deletes a waitlisted signup by player/date during open signup window without promoting anyone', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-01-11T18:30:00.000Z').getTime());
+
       mockSql.mockImplementation((queryType) => {
+        if (queryType === 'settings') {
+          return Promise.resolve([{
+            signup_open_day_of_week: 0,
+            signup_open_time: '12:00',
+            signup_close_day_of_week: 0,
+            signup_close_time: '16:00',
+            available_days: '["Monday","Tuesday","Thursday"]',
+          }]);
+        }
+
         if (queryType === 'lookup-by-player-date') {
           return Promise.resolve([{ id: 7, date: '2026-01-19', status: 'waitlisted' }]);
         }
