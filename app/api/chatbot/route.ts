@@ -9,6 +9,7 @@ import {
   detectIntent
 } from '../../lib/openai';
 import { PlayerStats } from '../../lib/types';
+import { isAdminRequest, checkChatbotRateLimit, getClientIp } from '../../lib/chatbotGuard';
 
 interface ChatRequest {
   message: string;
@@ -60,6 +61,22 @@ async function fetchPlayerStats(season?: string): Promise<PlayerStats[]> {
 }
 
 export async function POST(request: NextRequest) {
+  if (!(await isAdminRequest())) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const limit = checkChatbotRateLimit(getClientIp(request));
+  if (!limit.ok) {
+    return Response.json(
+      { error: 'Too many requests' },
+      {
+        status: 429,
+        headers:
+          limit.retryAfterMs != null
+            ? { 'Retry-After': String(Math.ceil(limit.retryAfterMs / 1000)) }
+            : undefined,
+      }
+    );
+  }
   try {
     const { message, context }: ChatRequest = await request.json();
 

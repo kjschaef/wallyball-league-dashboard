@@ -1,7 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeMatchResultsImage, findPlayersInImage, analyzeMatchesWithConfirmedPlayers } from '../../../lib/openai';
+import { isAdminRequest, checkChatbotRateLimit, getClientIp } from '../../../lib/chatbotGuard';
 
 export async function POST(request: NextRequest) {
+  if (!(await isAdminRequest())) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const limit = checkChatbotRateLimit(getClientIp(request));
+  if (!limit.ok) {
+    return Response.json(
+      { error: 'Too many requests' },
+      {
+        status: 429,
+        headers:
+          limit.retryAfterMs != null
+            ? { 'Retry-After': String(Math.ceil(limit.retryAfterMs / 1000)) }
+            : undefined,
+      }
+    );
+  }
   try {
     // image analysis request received
     const formData = await request.formData();
