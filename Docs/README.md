@@ -5,7 +5,7 @@
 
 This documentation provides a comprehensive guide to the Wallyball League Management Platform. The platform is designed to offer advanced performance tracking and team management capabilities for players and coaches, with enhanced data visualization and trend analysis.
 
-Agent-first repo context now lives in `AGENTS.md` and `agent-context/`. Treat this `Docs/` directory as secondary human-oriented documentation.
+Agent guidelines live in `AGENTS.md`. Treat this `Docs/` directory as secondary human-oriented documentation.
 
 ## Technical Documentation
 

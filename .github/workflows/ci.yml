@@ -28,9 +28,6 @@ jobs:
       - name: Run Lint
         run: pnpm lint
 
-      - name: Check Agent Context
-        run: pnpm run context:check
-
       - name: Run Jest Tests
         run: pnpm test
 
