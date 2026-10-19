@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+#
+# Comprehensive test suite for .githooks/pre-commit
+# Tests all requirements:
+# 1. Blocks staged files > 5,000 tokens (bytes > 20,000)
+# 2. Allows staged files <= 5,000 tokens (bytes <= 20,000)
+# 3. Runs ONLY on staged files (unstaged large files are ignored)
+# 4. Ignores files not authored by agents (lockfiles, codegen, binaries, @generated, .tokenignore)
+# 5. Provides explicit instructions on how to split files in error output
+#
+
+set -e
+
+# Setup isolated temp git repository
+TEST_DIR="$(mktemp -d -t token-hook-test.XXXXXX)"
+HOOK_SRC="$(pwd)/.githooks/pre-commit"
+
+cleanup() {
+  rm -rf "$TEST_DIR"
+}
+trap cleanup EXIT
+
+echo "Setting up test git repo in $TEST_DIR..."
+cd "$TEST_DIR"
+git init -q
+git config commit.gpgsign false
+git config user.name "Test"
+git config user.email "test@example.com"
+mkdir -p .githooks
+cp "$HOOK_SRC" .githooks/pre-commit
+chmod +x .githooks/pre-commit
+git config core.hooksPath .githooks
+
+# Helper to generate text of exact byte size
+generate_bytes() {
+  local count="$1"
+  local target_file="$2"
+  head -c "$count" /dev/zero | tr '\0' 'A' > "$target_file"
+}
+
+# Initial dummy commit so HEAD exists
+echo "initial" > init.txt
+git add init.txt
+git commit -qm "initial commit"
+
+assert_pass() {
+  local desc="$1"
+  if .githooks/pre-commit >/dev/null 2>&1; then
+    echo "  ✅ PASS: $desc"
+  else
+    echo "  ❌ FAIL: $desc (expected hook to pass, but failed)"
+    exit 1
+  fi
+}
+
+assert_fail_with_instructions() {
+  local desc="$1"
+  local output
+  output=$(.githooks/pre-commit 2>&1 || true)
+  if .githooks/pre-commit >/dev/null 2>&1; then
+    echo "  ❌ FAIL: $desc (expected hook to fail, but passed)"
+    exit 1
+  fi
+
+  # Verify explicit split instructions are present in output
+  local missing=0
+  for phrase in "COMMIT BLOCKED" "Tokens = bytes / 4" "5,000 tokens" "EXPLICIT INSTRUCTIONS: HOW TO SPLIT FILES" "Decompose UI Elements" "Extract Custom Hooks" "HOW TO PROCEED"; do
+    if ! echo "$output" | grep -F "$phrase" >/dev/null 2>&1; then
+      echo "  ❌ Missing instruction phrase: '$phrase'"
+      missing=1
+    fi
+  done
+
+  if [ $missing -eq 0 ]; then
+    echo "  ✅ PASS: $desc (failed as expected with explicit split instructions)"
+  else
+    echo "  ❌ FAIL: Output lacked required instructions."
+    echo "$output"
+    exit 1
+  fi
+}
+
+echo ""
+echo "=== Test Suite: Pre-Commit Token Limit Hook ==="
+echo ""
+
+# Test 1: Empty stage passes
+assert_pass "Empty stage passes"
+
+# Test 2: Small staged file (under 20,000 bytes / 5,000 tokens) passes
+generate_bytes 15000 small_component.tsx
+git add small_component.tsx
+assert_pass "Small staged file (15,000 bytes = 3,750 tokens) passes"
+git rm -f small_component.tsx -q
+
+# Test 3: Exactly 20,000 bytes (5,000 tokens) passes
+generate_bytes 20000 exact_limit.ts
+git add exact_limit.ts
+assert_pass "File with exactly 20,000 bytes (5,000 tokens) passes"
+git rm -f exact_limit.ts -q
+
+# Test 4: File exceeding 5,000 tokens (> 20,000 bytes) fails and gives explicit instructions
+mkdir -p app/components
+generate_bytes 25000 app/components/LargeWidget.tsx
+git add app/components/LargeWidget.tsx
+assert_fail_with_instructions "Staged LargeWidget.tsx (25,000 bytes = 6,250 tokens) is blocked with split instructions"
+git reset HEAD app/components/LargeWidget.tsx -q
+rm -f app/components/LargeWidget.tsx
+
+# Test 5: Unstaged large file does NOT block commit (Run ONLY on staged files)
+mkdir -p app/components
+generate_bytes 30000 app/components/UnstagedLarge.tsx
+echo "small staged change" > small.ts
+git add small.ts
+assert_pass "Unstaged large file is ignored; only staged small.ts is evaluated"
+git rm -f small.ts -q
+rm -f app/components/UnstagedLarge.tsx
+
+# Test 6: Lockfiles > 5,000 tokens are ignored
+generate_bytes 25000 pnpm-lock.yaml
+git add pnpm-lock.yaml
+assert_pass "Large pnpm-lock.yaml (> 20KB) is ignored as a lockfile"
+git rm -f pnpm-lock.yaml -q
+
+# Test 7: Codegen / agent-context artifacts > 5,000 tokens are ignored
+mkdir -p agent-context
+generate_bytes 25000 agent-context/graph.json
+git add agent-context/graph.json
+assert_pass "Large agent-context/graph.json (> 20KB) is ignored as codegen"
+git rm -f agent-context/graph.json -q
+
+# Test 8: Drizzle migrations > 5,000 tokens are ignored
+mkdir -p migrations
+generate_bytes 25000 migrations/0001_large.sql
+git add migrations/0001_large.sql
+assert_pass "Large migrations/0001_large.sql (> 20KB) is ignored as codegen/migration"
+git rm -f migrations/0001_large.sql -q
+
+# Test 9: Binary/media files > 5,000 tokens are ignored
+mkdir -p public/assets
+head -c 30000 /dev/urandom > public/assets/sample.png
+git add public/assets/sample.png
+assert_pass "Large image sample.png (> 20KB) is ignored as media asset"
+git rm -f public/assets/sample.png -q
+
+# Test 10: File containing @generated header comment > 5,000 tokens is ignored
+cat << 'EOF' > generated_service.ts
+// @generated
+// This file was automatically generated by openapi-generator.
+// DO NOT EDIT MANUALLY.
+EOF
+generate_bytes 25000 tmp_gen.txt
+cat tmp_gen.txt >> generated_service.ts
+rm -f tmp_gen.txt
+git add generated_service.ts
+assert_pass "File with @generated comment (> 20KB) is ignored"
+git rm -f generated_service.ts -q
+
+# Test 11: File pattern in .tokenignore is ignored
+cat << 'EOF' > .tokenignore
+# Ignore external third-party bundle
+external-bundle.js
+vendor/
+EOF
+generate_bytes 25000 external-bundle.js
+mkdir -p vendor
+generate_bytes 25000 vendor/library.js
+git add .tokenignore external-bundle.js vendor/library.js
+assert_pass "Files listed in .tokenignore (> 20KB) are ignored"
+git rm -f external-bundle.js vendor/library.js .tokenignore -q
+
+echo ""
+echo "🎉 All 11 tests passed successfully!"
