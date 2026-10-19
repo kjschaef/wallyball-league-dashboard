@@ -23,6 +23,8 @@ const createMockSql = () => {
         return mockSql('matches');
       } else if (query.includes('SELECT * FROM players')) {
         return mockSql('players');
+      } else if (query.includes('SELECT id FROM players WHERE name = ANY')) {
+        return mockSql('player-ids');
       } else if (query.includes('INSERT INTO match_games')) {
         return mockSql('insert_match_games');
       } else if (query.includes('INSERT INTO matches')) {

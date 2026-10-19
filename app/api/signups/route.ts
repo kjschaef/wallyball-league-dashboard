@@ -35,6 +35,26 @@ function isMissingWeeklyUnavailableTable(error: unknown) {
   return pgError.code === '42P01' && (pgError.message ?? '').includes('weekly_unavailable');
 }
 
+function parsePositiveInteger(value: unknown): number | null {
+  if (value === undefined || value === null) return null;
+  const num = typeof value === 'number' ? value : Number(value);
+  return Number.isInteger(num) && num > 0 ? num : null;
+}
+
+function sanitizeIsoDate(value: unknown): string | null {
+  if (!value) return null;
+  let str: string;
+  if (value instanceof Date) {
+    str = value.toISOString().slice(0, 10);
+  } else if (typeof value === 'string') {
+    str = value.slice(0, 10);
+  } else {
+    return null;
+  }
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
+}
+
 function buildSignupSettings(settingsRows: SignupSettingsRow[]): SignupSettings {
   return settingsRows.length > 0
     ? {
@@ -280,12 +300,17 @@ export async function DELETE(request: Request) {
     const body = await request.json();
     const { id, playerId, date, unavailable, weekStart } = body;
 
+    const parsedId = parsePositiveInteger(id);
+    const parsedPlayerId = parsePositiveInteger(playerId);
+    const sanitizedDate = sanitizeIsoDate(date);
+    const sanitizedWeekStart = sanitizeIsoDate(weekStart);
+
     if (unavailable) {
-      if (!id && !(playerId && weekStart)) {
+      if (!parsedId && !(parsedPlayerId && sanitizedWeekStart)) {
         return NextResponse.json({ error: 'id or (playerId and weekStart) required for unavailable removal' }, { status: 400 });
       }
     } else {
-      if (!id && !(playerId && date)) {
+      if (!parsedId && !(parsedPlayerId && sanitizedDate)) {
         return NextResponse.json({ error: 'id or (playerId and date) required' }, { status: 400 });
       }
     }
@@ -307,10 +332,10 @@ export async function DELETE(request: Request) {
     if (unavailable) {
       let targetUnavailable;
       try {
-        if (id) {
-          targetUnavailable = await sql`SELECT * FROM weekly_unavailable WHERE id = ${id}`;
+        if (parsedId) {
+          targetUnavailable = await sql`SELECT * FROM weekly_unavailable WHERE id = ${parsedId}`;
         } else {
-          targetUnavailable = await sql`SELECT * FROM weekly_unavailable WHERE player_id = ${playerId} AND week_start = ${weekStart}`;
+          targetUnavailable = await sql`SELECT * FROM weekly_unavailable WHERE player_id = ${parsedPlayerId} AND week_start = ${sanitizedWeekStart}`;
         }
       } catch (error) {
         if (isMissingWeeklyUnavailableTable(error)) {
@@ -347,15 +372,19 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    const targetSignup = await (id
-      ? sql`SELECT * FROM weekly_signups WHERE id = ${id}`
-      : sql`SELECT * FROM weekly_signups WHERE player_id = ${playerId} AND date = ${date}`);
+    let targetSignup;
+    if (parsedId) {
+      targetSignup = await sql`SELECT * FROM weekly_signups WHERE id = ${parsedId}`;
+    } else {
+      targetSignup = await sql`SELECT * FROM weekly_signups WHERE player_id = ${parsedPlayerId} AND date = ${sanitizedDate}`;
+    }
 
     if (targetSignup.length === 0) {
       return NextResponse.json({ error: 'Signup not found' }, { status: 404 });
     }
 
-    const { id: signupId, date: signupDate, status } = targetSignup[0];
+    const { id: signupId, status } = targetSignup[0];
+    const signupDate = sanitizeIsoDate(targetSignup[0].date) ?? String(targetSignup[0].date);
 
     if (!isAdmin) {
       let isAllowed = isDateInSignupWeek(signupDate, signupState.signupWeekSunday, signupSettings.availableDays);
