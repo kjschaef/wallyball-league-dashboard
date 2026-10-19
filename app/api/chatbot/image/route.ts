@@ -3,13 +3,24 @@ import { analyzeMatchResultsImage, findPlayersInImage, analyzeMatchesWithConfirm
 import { isAdminRequest, checkChatbotRateLimit, getClientIp } from '../../../lib/chatbotGuard';
 
 export async function POST(request: NextRequest) {
-  if (!(await isAdminRequest())) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!(await isAdminRequest(request))) {
+    return NextResponse.json(
+      {
+        error: 'Unauthorized',
+        response: 'You must be signed in as an admin to use image analysis.',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 401 }
+    );
   }
   const limit = checkChatbotRateLimit(getClientIp(request));
   if (!limit.ok) {
-    return Response.json(
-      { error: 'Too many requests' },
+    return NextResponse.json(
+      {
+        error: 'Too many requests',
+        response: 'Rate limit exceeded. Please wait a moment before uploading another image.',
+        timestamp: new Date().toISOString(),
+      },
       {
         status: 429,
         headers:
@@ -98,6 +109,7 @@ export async function POST(request: NextRequest) {
         error: 'Failed to process image',
         response: 'I apologize, but I encountered an error processing your image. Please try again.',
         type: 'error',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

@@ -61,13 +61,24 @@ async function fetchPlayerStats(season?: string): Promise<PlayerStats[]> {
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await isAdminRequest())) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!(await isAdminRequest(request))) {
+    return NextResponse.json(
+      {
+        error: 'Unauthorized',
+        response: 'You must be signed in as an admin to use the chatbot.',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 401 }
+    );
   }
   const limit = checkChatbotRateLimit(getClientIp(request));
   if (!limit.ok) {
-    return Response.json(
-      { error: 'Too many requests' },
+    return NextResponse.json(
+      {
+        error: 'Too many requests',
+        response: 'Rate limit exceeded. Please wait a moment before sending another message.',
+        timestamp: new Date().toISOString(),
+      },
       {
         status: 429,
         headers:
@@ -165,7 +176,8 @@ export async function POST(request: NextRequest) {
       {
         error: 'Failed to process chat message',
         response: 'I apologize, but I encountered an error processing your request. Please try again.',
-        type: 'error'
+        type: 'error',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

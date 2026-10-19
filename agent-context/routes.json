@@ -46,6 +46,7 @@
       "file": "app/api/chatbot/route.ts",
       "params": [],
       "likelySourceFiles": [
+        "app/lib/chatbotGuard.ts",
         "app/lib/openai.ts",
         "app/lib/types.ts"
       ]
@@ -56,6 +57,7 @@
       "file": "app/api/chatbot/image/route.ts",
       "params": [],
       "likelySourceFiles": [
+        "app/lib/chatbotGuard.ts",
         "app/lib/openai.ts"
       ]
     },

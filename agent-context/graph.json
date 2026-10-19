@@ -39,10 +39,12 @@
         "ai"
       ],
       "imports": [
+        "app/lib/chatbotGuard.ts",
         "app/lib/openai.ts"
       ],
       "importedBy": [],
       "related": [
+        "app/lib/chatbotGuard.ts",
         "app/lib/openai.ts"
       ],
       "overrideNotes": []
@@ -54,6 +56,7 @@
         "ai"
       ],
       "imports": [
+        "app/lib/chatbotGuard.ts",
         "app/lib/openai.ts",
         "app/lib/types.ts"
       ],
@@ -61,6 +64,7 @@
       "related": [
         "app/components/ChatBot.tsx",
         "app/components/TeamSuggestionModal.tsx",
+        "app/lib/chatbotGuard.ts",
         "app/lib/openai.ts",
         "app/lib/prompts.ts",
         "app/lib/types.ts"
@@ -302,6 +306,7 @@
         "app/components/AdminLoginModal.tsx"
       ],
       "importedBy": [
+        "app/components/ChatBot.tsx",
         "app/components/Navbar.tsx",
         "app/components/PlayerCards.tsx",
         "app/games/page.tsx",
@@ -312,6 +317,7 @@
       ],
       "related": [
         "app/components/AdminLoginModal.tsx",
+        "app/components/ChatBot.tsx",
         "app/components/Navbar.tsx",
         "app/components/PlayerCards.tsx",
         "app/games/page.tsx",
@@ -344,13 +350,17 @@
         "ai"
       ],
       "imports": [
-        "app/components/PlayerSelectorDialog.tsx"
+        "app/components/AdminProvider.tsx",
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/lib/types.ts"
       ],
       "importedBy": [
         "app/page.tsx"
       ],
       "related": [
+        "app/components/AdminProvider.tsx",
         "app/components/PlayerSelectorDialog.tsx",
+        "app/lib/types.ts",
         "app/page.tsx"
       ],
       "overrideNotes": []
@@ -859,6 +869,23 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/chatbotGuard.ts",
+      "type": "app-lib",
+      "tags": [
+        "ai"
+      ],
+      "imports": [],
+      "importedBy": [
+        "app/api/chatbot/image/route.ts",
+        "app/api/chatbot/route.ts"
+      ],
+      "related": [
+        "app/api/chatbot/image/route.ts",
+        "app/api/chatbot/route.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/constants.ts",
       "type": "app-lib",
       "tags": [],
@@ -1068,11 +1095,13 @@
       "imports": [],
       "importedBy": [
         "app/api/chatbot/route.ts",
+        "app/components/ChatBot.tsx",
         "app/lib/openai.ts",
         "app/lib/team-balancer.ts"
       ],
       "related": [
         "app/api/chatbot/route.ts",
+        "app/components/ChatBot.tsx",
         "app/lib/openai.ts",
         "app/lib/team-balancer.ts"
       ],
@@ -1089,7 +1118,9 @@
         "app/components/ui/card.tsx",
         "app/components/ui/dialog.tsx",
         "app/components/ui/input.tsx",
-        "app/components/ui/label.tsx"
+        "app/components/ui/label.tsx",
+        "app/components/ui/progress.tsx",
+        "app/components/ui/textarea.tsx"
       ],
       "related": [
         "app/components/ui/alert-dialog.tsx",
@@ -1097,7 +1128,9 @@
         "app/components/ui/card.tsx",
         "app/components/ui/dialog.tsx",
         "app/components/ui/input.tsx",
-        "app/components/ui/label.tsx"
+        "app/components/ui/label.tsx",
+        "app/components/ui/progress.tsx",
+        "app/components/ui/textarea.tsx"
       ],
       "overrideNotes": []
     },
