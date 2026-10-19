@@ -1,0 +1,12 @@
+# .tokenignore
+# Patterns of files to ignore for the pre-commit 5,000 token limit check.
+# (Tokens = bytes / 4, so the limit is 20,000 bytes)
+#
+# Default ignore patterns (lockfiles, media, migrations, agent-context artifacts,
+# and files with @generated / DO NOT EDIT headers) are already built-in.
+# Add any additional project-specific generated or third-party files below.
+
+# Example patterns:
+# vendor/
+# *.generated.ts
+# path/to/large-data.json
