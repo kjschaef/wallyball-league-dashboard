@@ -1,13 +1,4 @@
-# Agent Router
-
-Read in this order unless the task is trivial:
-
-1. `agent-context/index.json`
-2. `agent-context/tasks.json`
-3. `agent-context/routes.json` or `agent-context/data-model.json` as needed
-4. `agent-context/graph.json` when you need coupling or blast radius
-
-Use `Docs/` as secondary human-oriented documentation. Do not default to it for repo navigation.
+# Agent Instructions
 
 ## Repo Summary
 
@@ -23,8 +14,6 @@ Use `Docs/` as secondary human-oriented documentation. Do not default to it for 
 - `pnpm build`
 - `pnpm test`
 - `pnpm lint`
-- `pnpm run context:generate`
-- `pnpm run context:check`
 - `bin/pr-list`
 - `bin/pr-audit-status`
 - `bin/pr-audit-reviews`
@@ -55,9 +44,8 @@ Before pushing any PR or concluding that a coding task is complete, you MUST run
 1. Run `pnpm build` to catch TypeScript signature mismatches and deployment-blocking errors.
 2. Run `pnpm test` to ensure tests are passing and no side-effects break mocked environments.
 3. Run `pnpm lint` to catch syntax or unused variable errors.
-4. Run `pnpm run context:check` to ensure structural changes haven't made agent context artifacts stale.
-5. **Component & Integration Test Coverage (Mandatory for Visual/UI Features)**: Whenever any new visual feature, indicator, badge, modal, status pill, or UI element is added or modified (e.g. experience badges on the results page, rating pills, modal breakdown sections), you MUST check for and add or update component integration tests under `__tests__/components/` (or page tests) asserting that the visual elements render correctly with expected content and attributes.
-6. **E2E Playwright Coverage (Mandatory for Major Feature Changes)**: Whenever major user-facing functionality or primary page layouts are added or changed (such as new dashboard columns, tab switchers, rating systems, or workflows), you MUST add or update Playwright tests under `tests/e2e/` to cover at least the core interactions and verify they pass.
+4. **Component & Integration Test Coverage (Mandatory for Visual/UI Features)**: Whenever any new visual feature, indicator, badge, modal, status pill, or UI element is added or modified (e.g. experience badges on the results page, rating pills, modal breakdown sections), you MUST check for and add or update component integration tests under `__tests__/components/` (or page tests) asserting that the visual elements render correctly with expected content and attributes.
+5. **E2E Playwright Coverage (Mandatory for Major Feature Changes)**: Whenever major user-facing functionality or primary page layouts are added or changed (such as new dashboard columns, tab switchers, rating systems, or workflows), you MUST add or update Playwright tests under `tests/e2e/` to cover at least the core interactions and verify they pass.
 Never skip this validation step.
 
 ## High-Value Invariants
@@ -66,12 +54,5 @@ Never skip this validation step.
 - Season IDs and date windows are computed from `lib/seasons.ts`; do not assume an active `seasons` table is the runtime source of truth.
 - Some API routes return enriched shapes, not raw table rows. Check current response contracts before changing UI consumers.
 - Ranking logic uses game-level semantics from `app/lib/stats.ts`; confirm whether a task needs games, matches, or both.
-- If code changes alter routes, schema, key task entrypoints, or coupling, regenerate the agent context bundle and commit it.
 - Always add component integration tests under `__tests__/components/` for new visual UI elements (badges, indicators, cards, modals).
 - Always maintain end-to-end Playwright tests in `tests/e2e/` for any new major UI features or core dashboard layout flows.
-
-## Context Maintenance
-
-- Generated files live in `agent-context/*.json`.
-- Manual context lives in `agent-context/overrides.yaml` and `agent-context/notes.md`.
-- CI runs `pnpm run context:check` on PRs to prevent stale context from merging.
