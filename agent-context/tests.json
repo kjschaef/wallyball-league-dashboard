@@ -198,6 +198,11 @@
       ]
     },
     {
+      "path": "__tests__/scripts/pre-commit-tokens.test.ts",
+      "kind": "test",
+      "covers": []
+    },
+    {
       "path": "app/components/__tests__/PerformanceControls.test.tsx",
       "kind": "component",
       "covers": [

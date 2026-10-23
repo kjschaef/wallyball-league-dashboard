@@ -5,6 +5,7 @@ import {
   rulesSystemPrompt,
   imageLettersSystemPrompt,
   imageAnalysisSystemPrompt,
+  whiteboardAnalysisSystemPrompt,
   dailySummarySystemPrompt
 } from './prompts';
 
@@ -670,5 +671,115 @@ REMEMBER: Only put letters in ambiguousLetters if 2+ players share that first le
   } catch (error) {
     console.error('Error analyzing team groupings image:', error);
     return { error: "I'm having trouble analyzing the image right now. Please try again." };
+  }
+}
+
+/**
+ * Whiteboard photo parsing for the NEW board format.
+ *
+ * This is intentionally separate from the legacy initials + tally-marks
+ * prompts (findPlayersInImage / analyzeMatchesWithConfirmedPlayers). The
+ * boards players actually photograph now list full first names with
+ * per-game numeric scores, and the circled score marks that game's winner.
+ * Pointing the old prompts at this format misreads it, so this function
+ * has its own prompt tuned to what is on the board.
+ *
+ * The model returns raw readings only. Roster matching, flagging, and
+ * validation all happen in app/lib/whiteboard.ts, and nothing is logged
+ * until the user confirms the parsed matches in the chat UI.
+ */
+export async function analyzeWhiteboardScores(imageBuffer: Buffer): Promise<any> {
+  try {
+    const promptText = `Analyze the attached photo of a whiteboard with wallyball match results.
+
+THE BOARD FORMAT (read this carefully — it is NOT initials and tally marks):
+- Each match is TWO lines of handwritten FIRST NAMES (teams of 3 players),
+  separated by "/" or ",". Example: "Nate / Ben / Keith" or "Nate, Vamsi, Seth".
+- Matches are separated by horizontal lines drawn across the board.
+- To the right of each team line are that team's per-game scores,
+  comma-separated. Example: "5, 11, 11".
+- A CIRCLED number is the winning score of that game. The circle marks the
+  winner — it is not decoration.
+- Pair scores by position: the 1st score on team one's line vs the 1st score
+  on team two's line is game 1, the 2nd vs the 2nd is game 2, and so on.
+- A team pairing with NO scores next to it has NOT been played yet. Report
+  it with played: false and games: [] — NEVER invent scores for it.
+- Ignore printed flyers, posters, and headers taped above the board. Only
+  read the handwriting on the whiteboard itself.
+- Player names are first names only. Transcribe them exactly as written,
+  including unusual spellings; do not "correct" a name into a different name.
+
+Return in this JSON format:
+{
+  "matches": [
+    {
+      "matchNumber": 1,
+      "teamOne": { "players": ["Nate", "Ben", "Keith"] },
+      "teamTwo": { "players": ["Hal", "Mark", "Vamsi"] },
+      "games": [
+        { "teamOneScore": 5, "teamTwoScore": 11 },
+        { "teamOneScore": 11, "teamTwoScore": 6 },
+        { "teamOneScore": 11, "teamTwoScore": 7 }
+      ],
+      "played": true
+    },
+    {
+      "matchNumber": 2,
+      "teamOne": { "players": ["Nate", "Keith", "Seth"] },
+      "teamTwo": { "players": ["Hal", "Vamsi", "Zach"] },
+      "games": [],
+      "played": false
+    }
+  ]
+}
+
+VALIDATION CHECKLIST (re-read the photo until all of these hold):
+- Every game has exactly one winner (the two scores differ). If a pair
+  looks tied, you misread a digit — look again.
+- In every pair, the circled score is the larger score. If it is not,
+  you misread the pair — look again.
+- played: false entries always have games: [].
+- Do not drop a match because its scores are hard to read: include it with
+  your best reading and let the user correct it — but never invent a score
+  for a team pairing that has no scores at all.`;
+
+    const response = await createChatCompletion({
+      model: 'gpt-5-mini',
+      messages: [
+        {
+          role: 'system',
+          content: whiteboardAnalysisSystemPrompt()
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: promptText },
+            {
+              type: 'image_url',
+              image_url: {
+                "url": `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
+              },
+            },
+          ],
+        },
+      ],
+      max_completion_tokens: 3000,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0].message.content;
+    if (content) {
+      try {
+        return JSON.parse(content);
+      } catch (parseError) {
+        console.error('JSON Parse Error in analyzeWhiteboardScores:', parseError);
+        return { error: "Could not parse match results from the whiteboard photo." };
+      }
+    } else {
+      return { error: "Could not extract match results from the whiteboard photo." };
+    }
+  } catch (error) {
+    console.error('Error analyzing whiteboard photo:', error);
+    return { error: "I'm having trouble reading the whiteboard photo right now." };
   }
 }

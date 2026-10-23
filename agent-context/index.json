@@ -8,7 +8,7 @@
       "agent-context/index.json",
       "agent-context/tasks.json"
     ],
-    "routeCount": 25,
+    "routeCount": 27,
     "taskCount": 5
   },
   "commands": [
@@ -54,9 +54,9 @@
         "app/api/auth/logout/route.ts",
         "app/api/chatbot/route.ts",
         "app/api/chatbot/image/route.ts",
-        "app/api/daily-summary/route.ts",
-        "app/api/feedback/route.ts",
-        "app/api/matches/route.ts"
+        "app/api/chatbot/whiteboard/route.ts",
+        "app/api/chatbot/whiteboard/log/route.ts",
+        "app/api/daily-summary/route.ts"
       ]
     },
     {
