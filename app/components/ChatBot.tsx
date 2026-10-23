@@ -1,16 +1,25 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { MessageCircle, Send, Bot, User, Users, TrendingUp, ThumbsUp, ThumbsDown, Gavel, Flame, Upload, FileText } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Users, TrendingUp, ThumbsUp, ThumbsDown, Gavel, Flame, Upload, FileText, ClipboardList } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Textarea } from '@/components/ui/textarea';
+import { Textarea } from './ui/textarea';
 import { PlayerSelectorDialog } from './PlayerSelectorDialog';
-import { TeamSuggestion, MatchResult, MatchResultsResponse, TeamGrouping } from '@/lib/types';
-import { Progress } from '@/components/ui/progress';
+import { TeamSuggestion, MatchResult, MatchResultsResponse, TeamGrouping } from '../lib/types';
+import { WhiteboardResultsCard } from './WhiteboardResultsCard';
+import { WhiteboardMatch } from '@/lib/whiteboard';
+import { Progress } from './ui/progress';
+import { useAdmin } from './AdminProvider';
+
+function formatMessageTime(timestamp?: string): string {
+  if (!timestamp) return new Date().toLocaleTimeString();
+  const date = new Date(timestamp);
+  return isNaN(date.getTime()) ? new Date().toLocaleTimeString() : date.toLocaleTimeString();
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -59,6 +68,7 @@ function isTeamGrouping(data: any): data is TeamGrouping {
 }
 
 export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen, onOpenChange: setControlledIsOpen, initialMessage }: ChatBotProps) {
+  const { isAdmin, login } = useAdmin();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen ?? internalIsOpen;
   const setIsOpen = setControlledIsOpen ?? setInternalIsOpen;
@@ -86,6 +96,10 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [playerChoices, setPlayerChoices] = useState<{ [key: string]: string }>({});
   const [lastUploadedImage, setLastUploadedImage] = useState<File | null>(null);
+  // When true, the next file picked is a whiteboard photo for match logging
+  // (new format: full names + per-game scores) rather than the legacy
+  // initials + tally-marks image flow.
+  const [whiteboardUpload, setWhiteboardUpload] = useState(false);
 
   const logMatch = async (result: MatchResult) => {
     try {
@@ -155,10 +169,24 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
 
         const data = await response.json();
 
+        if (!response.ok) {
+          const isUnauthorized = response.status === 401;
+          const errorMsg = data.response || (isUnauthorized
+            ? 'You must be signed in as an admin to upload match result images.'
+            : (data.error || 'Sorry, I encountered an error processing your image. Please try again.'));
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: errorMsg,
+            timestamp: data.timestamp || new Date().toISOString(),
+            type: isUnauthorized ? 'unauthorized' : 'error'
+          }]);
+          return;
+        }
+
         const assistantMessage: ChatMessage = {
           role: 'assistant',
-          content: data.response,
-          timestamp: data.timestamp,
+          content: data.response || 'Image processed successfully.',
+          timestamp: data.timestamp || new Date().toISOString(),
           type: data.type,
           additionalData: data.additionalData
         };
@@ -180,8 +208,68 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
     reader.readAsDataURL(file);
   };
 
+  const handleWhiteboardUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    setWhiteboardUpload(false);
+    if (!file) {
+      return;
+    }
+
+    setLastUploadedImage(file);
+
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+      const imageDataUrl = reader.result as string;
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: 'Here is a photo of today\'s whiteboard — please log these matches.',
+        timestamp: new Date().toISOString(),
+        imagePreview: imageDataUrl,
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      setIsLoading(true);
+
+      try {
+        const response = await fetch('/api/chatbot/whiteboard', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: data.response || data.error || 'Sorry, I could not read the whiteboard photo.',
+          timestamp: data.timestamp || new Date().toISOString(),
+          type: data.type || 'error',
+          additionalData: data.additionalData
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+      } catch (error) {
+        console.error('Failed to upload whiteboard photo:', error);
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: 'Sorry, I encountered an error processing your whiteboard photo. Please try again.',
+          timestamp: new Date().toISOString(),
+          type: 'error'
+        }]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -198,7 +286,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
     if (isOpen && chatStatus?.status === 'ready' && !initialMessage && defaultMessages.length === 0) {
       setDefaultMessages([{
         role: 'assistant',
-        content: `Hi! I'm your volleyball team assistant. I have access to data for ${chatStatus.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n- Player performance analysis\n- Team matchup suggestions\n- Answering questions about wallyball rules\n\nFor example, try asking:\n- "Who are the top players?"\n- "Suggest balanced teams for today"\n- "What are the rules around hitting the backwall in regular play?"`,
+        content: `Hi! I'm your volleyball team assistant. I have access to data for ${chatStatus.playerCount} players and the official wallyball rulebook.\n\nI can help you with:\n- Player performance analysis\n- Team matchup suggestions\n- Answering questions about wallyball rules\n- Logging today's matches from a whiteboard photo (tap “Log today's matches” below)\n\nFor example, try asking:\n- "Who are the top players?"\n- "Suggest balanced teams for today"\n- "What are the rules around hitting the backwall in regular play?"`,
         timestamp: new Date().toISOString(),
         type: 'welcome'
       }]);
@@ -261,14 +349,28 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
 
       const data = await response.json();
 
+      if (!response.ok) {
+        const isUnauthorized = response.status === 401;
+        const errorMsg = data.response || (isUnauthorized
+          ? 'You must be signed in as an admin to use the chatbot.'
+          : (data.error || 'Sorry, I encountered an error processing your request. Please try again.'));
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: errorMsg,
+          timestamp: data.timestamp || new Date().toISOString(),
+          type: isUnauthorized ? 'unauthorized' : 'error'
+        }]);
+        return;
+      }
+
       // Explicitly check for usedRules in additionalData
       const hasUsedRules = data.additionalData && typeof data.additionalData === 'object' && 'usedRules' in data.additionalData;
       const usedRulesValue = hasUsedRules ? (data.additionalData as any).usedRules : false;
 
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: data.response,
-        timestamp: data.timestamp,
+        content: data.response || 'No response received.',
+        timestamp: data.timestamp || new Date().toISOString(),
         type: data.type,
         additionalData: data.additionalData,
         usedRules: usedRulesValue
@@ -341,10 +443,24 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
 
       const data = await response.json();
 
+      if (!response.ok) {
+        const isUnauthorized = response.status === 401;
+        const errorMsg = data.response || (isUnauthorized
+          ? 'You must be signed in as an admin to use team suggestions.'
+          : (data.error || 'Sorry, I encountered an error generating team suggestions. Please try again.'));
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: errorMsg,
+          timestamp: data.timestamp || new Date().toISOString(),
+          type: isUnauthorized ? 'unauthorized' : 'error'
+        }]);
+        return;
+      }
+
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: data.response,
-        timestamp: data.timestamp,
+        content: data.response || 'No team suggestion returned.',
+        timestamp: data.timestamp || new Date().toISOString(),
         type: data.type,
         additionalData: data.additionalData
       };
@@ -441,10 +557,24 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
 
       const data = await response.json();
 
+      if (!response.ok) {
+        const isUnauthorized = response.status === 401;
+        const errorMsg = data.response || (isUnauthorized
+          ? 'You must be signed in as an admin to use the chatbot.'
+          : (data.error || 'Sorry, I encountered an error processing your request. Please try again.'));
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: errorMsg,
+          timestamp: data.timestamp || new Date().toISOString(),
+          type: isUnauthorized ? 'unauthorized' : 'error'
+        }]);
+        return;
+      }
+
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: data.response,
-        timestamp: data.timestamp,
+        content: data.response || 'No response received.',
+        timestamp: data.timestamp || new Date().toISOString(),
         type: data.type,
         additionalData: data.additionalData
       };
@@ -484,6 +614,21 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
       >
         <Users className="w-3 h-3 mr-1" />
         Team Suggestions
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          if (isLoading) return;
+          setWhiteboardUpload(true);
+          fileInputRef.current?.click();
+        }}
+        disabled={isLoading}
+        className="text-xs"
+      >
+        <ClipboardList className="w-3 h-3 mr-1" />
+        Log today&apos;s matches
       </Button>
 
       <Button
@@ -905,9 +1050,21 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
         </DialogTrigger>
         <DialogContent className="max-w-2xl h-[600px] flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              Volleyball Team Assistant
+            <DialogTitle className="flex items-center justify-between pr-6">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                Volleyball Team Assistant
+              </div>
+              {!isAdmin && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs h-7 px-2 border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100"
+                  onClick={login}
+                >
+                  Admin Login
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
 
@@ -961,6 +1118,21 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                           ) : (
                             isMatchResult(message.additionalData) && <MatchResultsCard result={message.additionalData} />
                           )
+                        )}
+                        {message.type === 'whiteboard_results' && message.additionalData && (
+                          (() => {
+                            const data = message.additionalData as any;
+                            if (data.matches && Array.isArray(data.matches)) {
+                              return (
+                                <WhiteboardResultsCard
+                                  matches={data.matches as WhiteboardMatch[]}
+                                  initialDate={data.date || new Date().toISOString().split('T')[0]}
+                                  roster={Array.isArray(data.roster) ? data.roster : []}
+                                />
+                              );
+                            }
+                            return null;
+                          })()
                         )}
                         {message.type === 'player_disambiguation' && message.additionalData && (
                           (() => {
@@ -1019,11 +1191,23 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
                             </Button>
                           </div>
                         )}
+                        {message.type === 'unauthorized' && !isAdmin && (
+                          <div className="mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs bg-white text-gray-800 hover:bg-gray-50 border-gray-300"
+                              onClick={login}
+                            >
+                              Log In as Admin
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <div className={`text-xs ${message.role === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-                        {new Date(message.timestamp).toLocaleTimeString()}
+                        {formatMessageTime(message.timestamp)}
                       </div>
                       {message.role === 'assistant' && (
                         <div className="flex gap-1">
@@ -1101,7 +1285,7 @@ export function ChatBot({ onUseMatchup, onRecordMatch, isOpen: controlledIsOpen,
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={handleImageUpload}
+                onChange={whiteboardUpload ? handleWhiteboardUpload : handleImageUpload}
                 className="hidden"
                 accept="image/*"
               />
