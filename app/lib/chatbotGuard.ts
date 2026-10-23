@@ -1,40 +1,9 @@
-import { cookies } from 'next/headers';
-
 /**
- * Returns true when the request carries the admin_token cookie set by /api/auth
- * (admin sign-in). Same convention as the other admin-protected API routes
- * (e.g. the signups DELETE handler).
- *
- * Accepts an optional request object to inspect incoming cookies/headers directly,
- * with fallback to Next.js `cookies()` within request contexts.
- */
-export async function isAdminRequest(request?: Request): Promise<boolean> {
-  if (request) {
-    const nextReq = request as Request & { cookies?: { get?: (name: string) => { value?: string } | undefined } };
-    if (nextReq.cookies && typeof nextReq.cookies.get === 'function') {
-      const cookieVal = nextReq.cookies.get('admin_token')?.value;
-      if (cookieVal === 'true') return true;
-    }
-    const cookieHeader = request.headers?.get?.('cookie');
-    if (cookieHeader) {
-      const matches = cookieHeader.match(/(?:^|;\s*)admin_token=([^;]+)/);
-      if (matches && matches[1] === 'true') return true;
-    }
-  }
-
-  try {
-    const cookieStore = await cookies();
-    return cookieStore.get('admin_token')?.value === 'true';
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Light in-memory per-IP rate limiter (defense in depth).
- * Bounds OpenAI spend if an admin session ever leaks; not a replacement for
- * the admin check above. Kept dependency-free and deliberately simple — a
- * single Vercel serverless instance holds its own bucket.
+ * Light in-memory per-IP rate limiter for the chatbot endpoints.
+ * The chatbot is open to all visitors (no admin gate, per 2026-10-22 decision),
+ * so this is the abuse control that bounds OpenAI spend: 20 requests per minute
+ * per IP, with a Retry-After hint on 429. Kept dependency-free and deliberately
+ * simple — a single Vercel serverless instance holds its own bucket.
  */
 const RATE_LIMIT_MAX_REQUESTS = 20;
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute

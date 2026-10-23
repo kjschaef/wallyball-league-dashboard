@@ -225,17 +225,41 @@ describe('POST /api/chatbot/image', () => {
     expect(mockConsoleError).toHaveBeenCalled();
   });
 
-  it('returns 401 Unauthorized when not an admin', async () => {
+  it('allows non-admin visitors to upload images (no admin gate)', async () => {
     mockCookieStore.get.mockReturnValue(undefined);
 
-    const request = createMockRequest({});
+    const findings = {
+      lettersFound: ['A', 'B'],
+      playerAssignments: { 'A': 'Alice', 'B': 'Bob' },
+      ambiguousLetters: [],
+      unknownLetters: []
+    };
+
+    const matchesResult = {
+      matches: [
+        {
+          matchNumber: 1,
+          teamOne: { players: ['Alice'], letters: ['A'], wins: 3, needsClarification: false },
+          teamTwo: { players: ['Bob'], letters: ['B'], wins: 1, needsClarification: false }
+        }
+      ]
+    };
+
+    mockFindPlayersInImage.mockResolvedValue(findings);
+    mockAnalyzeMatchesWithConfirmedPlayers.mockResolvedValue(matchesResult);
+
+    const request = createMockRequest({
+      image: mockImageFile,
+      playerNames: '["Alice", "Bob"]',
+      step: '1'
+    });
+
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(401);
-    expect(data.error).toBe('Unauthorized');
-    expect(data.response).toContain('admin');
-    expect(data.timestamp).toBeDefined();
+    expect(response.status).toBe(200);
+    expect(data.type).toBe('match_results');
+    expect(data.additionalData).toEqual(matchesResult);
   });
 
   it('returns 429 Too Many Requests when rate limit is exceeded', async () => {

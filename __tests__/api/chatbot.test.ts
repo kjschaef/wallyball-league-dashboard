@@ -247,17 +247,21 @@ describe('POST /api/chatbot', () => {
     expect(mockConsoleError).toHaveBeenCalled();
   });
 
-  it('returns 401 Unauthorized when not an admin', async () => {
+  it('allows non-admin visitors to use the chatbot (no admin gate)', async () => {
     mockCookieStore.get.mockReturnValue(undefined);
+    mockDetectIntent.mockResolvedValue('rules_query');
+    mockQueryWallyballRules.mockResolvedValue({
+      response: 'The serving rules of wallyball state...',
+      usedRules: true
+    });
 
-    const request = createMockRequest({ message: 'Hello' });
+    const request = createMockRequest({ message: 'What are the rules of serving?' });
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(401);
-    expect(data.error).toBe('Unauthorized');
-    expect(data.response).toContain('admin');
-    expect(data.timestamp).toBeDefined();
+    expect(response.status).toBe(200);
+    expect(data.type).toBe('rules_query');
+    expect(data.response).toBe('The serving rules of wallyball state...');
   });
 
   it('returns 429 Too Many Requests when rate limit is exceeded', async () => {

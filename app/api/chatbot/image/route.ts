@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeMatchResultsImage, findPlayersInImage, analyzeMatchesWithConfirmedPlayers } from '../../../lib/openai';
-import { isAdminRequest, checkChatbotRateLimit, getClientIp } from '../../../lib/chatbotGuard';
+import { checkChatbotRateLimit, getClientIp } from '../../../lib/chatbotGuard';
 
 export async function POST(request: NextRequest) {
-  if (!(await isAdminRequest(request))) {
-    return NextResponse.json(
-      {
-        error: 'Unauthorized',
-        response: 'You must be signed in as an admin to use image analysis.',
-        timestamp: new Date().toISOString(),
-      },
-      { status: 401 }
-    );
-  }
   const limit = checkChatbotRateLimit(getClientIp(request));
   if (!limit.ok) {
     return NextResponse.json(

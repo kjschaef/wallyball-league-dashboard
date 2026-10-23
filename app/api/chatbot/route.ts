@@ -9,7 +9,7 @@ import {
   detectIntent
 } from '../../lib/openai';
 import { PlayerStats } from '../../lib/types';
-import { isAdminRequest, checkChatbotRateLimit, getClientIp } from '../../lib/chatbotGuard';
+import { checkChatbotRateLimit, getClientIp } from '../../lib/chatbotGuard';
 
 interface ChatRequest {
   message: string;
@@ -61,16 +61,6 @@ async function fetchPlayerStats(season?: string): Promise<PlayerStats[]> {
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await isAdminRequest(request))) {
-    return NextResponse.json(
-      {
-        error: 'Unauthorized',
-        response: 'You must be signed in as an admin to use the chatbot.',
-        timestamp: new Date().toISOString(),
-      },
-      { status: 401 }
-    );
-  }
   const limit = checkChatbotRateLimit(getClientIp(request));
   if (!limit.ok) {
     return NextResponse.json(
