@@ -61,6 +61,27 @@
     },
     {
       "kind": "api",
+      "route": "/api/chatbot/whiteboard",
+      "file": "app/api/chatbot/whiteboard/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "app/lib/openai.ts",
+        "app/lib/rateLimit.ts",
+        "app/lib/whiteboard.ts"
+      ]
+    },
+    {
+      "kind": "api",
+      "route": "/api/chatbot/whiteboard/log",
+      "file": "app/api/chatbot/whiteboard/log/route.ts",
+      "params": [],
+      "likelySourceFiles": [
+        "app/lib/rateLimit.ts",
+        "app/lib/whiteboard.ts"
+      ]
+    },
+    {
+      "kind": "api",
       "route": "/api/daily-summary",
       "file": "app/api/daily-summary/route.ts",
       "params": [],

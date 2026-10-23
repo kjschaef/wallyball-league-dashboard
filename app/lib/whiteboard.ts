@@ -72,7 +72,7 @@ export function levenshtein(a: string, b: string): number {
   if (n === 0) return m;
   let prev = Array.from({ length: n + 1 }, (_, j) => j);
   for (let i = 1; i <= m; i++) {
-    let curr = [i];
+    const curr = [i];
     for (let j = 1; j <= n; j++) {
       curr.push(
         Math.min(

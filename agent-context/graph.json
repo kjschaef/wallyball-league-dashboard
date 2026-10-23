@@ -70,6 +70,42 @@
       ]
     },
     {
+      "file": "app/api/chatbot/whiteboard/log/route.ts",
+      "type": "api-route",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/lib/rateLimit.ts",
+        "app/lib/whiteboard.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/rateLimit.ts",
+        "app/lib/whiteboard.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/api/chatbot/whiteboard/route.ts",
+      "type": "api-route",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/lib/openai.ts",
+        "app/lib/rateLimit.ts",
+        "app/lib/whiteboard.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/openai.ts",
+        "app/lib/rateLimit.ts",
+        "app/lib/whiteboard.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/api/daily-summary/route.ts",
       "type": "api-route",
       "tags": [
@@ -302,6 +338,7 @@
         "app/components/AdminLoginModal.tsx"
       ],
       "importedBy": [
+        "app/components/ChatBot.tsx",
         "app/components/Navbar.tsx",
         "app/components/PlayerCards.tsx",
         "app/games/page.tsx",
@@ -312,6 +349,7 @@
       ],
       "related": [
         "app/components/AdminLoginModal.tsx",
+        "app/components/ChatBot.tsx",
         "app/components/Navbar.tsx",
         "app/components/PlayerCards.tsx",
         "app/games/page.tsx",
@@ -344,13 +382,19 @@
         "ai"
       ],
       "imports": [
-        "app/components/PlayerSelectorDialog.tsx"
+        "app/components/AdminProvider.tsx",
+        "app/components/PlayerSelectorDialog.tsx",
+        "app/components/WhiteboardResultsCard.tsx",
+        "app/lib/types.ts"
       ],
       "importedBy": [
         "app/page.tsx"
       ],
       "related": [
+        "app/components/AdminProvider.tsx",
         "app/components/PlayerSelectorDialog.tsx",
+        "app/components/WhiteboardResultsCard.tsx",
+        "app/lib/types.ts",
         "app/page.tsx"
       ],
       "overrideNotes": []
@@ -672,6 +716,19 @@
       "overrideNotes": []
     },
     {
+      "file": "app/components/WhiteboardResultsCard.tsx",
+      "type": "component",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/components/ChatBot.tsx"
+      ],
+      "related": [
+        "app/components/ChatBot.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/components/WinPercentageRankings.tsx",
       "type": "component",
       "tags": [],
@@ -925,11 +982,13 @@
       "importedBy": [
         "app/api/chatbot/image/route.ts",
         "app/api/chatbot/route.ts",
+        "app/api/chatbot/whiteboard/route.ts",
         "app/api/daily-summary/route.ts"
       ],
       "related": [
         "app/api/chatbot/image/route.ts",
         "app/api/chatbot/route.ts",
+        "app/api/chatbot/whiteboard/route.ts",
         "app/api/daily-summary/route.ts",
         "app/lib/modelClient.ts",
         "app/lib/prompts.ts",
@@ -983,6 +1042,21 @@
       ],
       "related": [
         "app/lib/openai.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/rateLimit.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/api/chatbot/whiteboard/log/route.ts",
+        "app/api/chatbot/whiteboard/route.ts"
+      ],
+      "related": [
+        "app/api/chatbot/whiteboard/log/route.ts",
+        "app/api/chatbot/whiteboard/route.ts"
       ],
       "overrideNotes": []
     },
@@ -1068,11 +1142,13 @@
       "imports": [],
       "importedBy": [
         "app/api/chatbot/route.ts",
+        "app/components/ChatBot.tsx",
         "app/lib/openai.ts",
         "app/lib/team-balancer.ts"
       ],
       "related": [
         "app/api/chatbot/route.ts",
+        "app/components/ChatBot.tsx",
         "app/lib/openai.ts",
         "app/lib/team-balancer.ts"
       ],
@@ -1098,6 +1174,21 @@
         "app/components/ui/dialog.tsx",
         "app/components/ui/input.tsx",
         "app/components/ui/label.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/whiteboard.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [],
+      "importedBy": [
+        "app/api/chatbot/whiteboard/log/route.ts",
+        "app/api/chatbot/whiteboard/route.ts"
+      ],
+      "related": [
+        "app/api/chatbot/whiteboard/log/route.ts",
+        "app/api/chatbot/whiteboard/route.ts"
       ],
       "overrideNotes": []
     },

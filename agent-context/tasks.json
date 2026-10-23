@@ -220,6 +220,7 @@
       ],
       "secondaryFiles": [
         "app/api/chatbot/image/route.ts",
+        "app/api/chatbot/whiteboard/route.ts",
         "app/api/daily-summary/route.ts",
         "app/api/player-stats/route.ts",
         "app/api/seasons/current/route.ts",
@@ -229,8 +230,7 @@
         "app/components/AdminProvider.tsx",
         "app/components/FloatingActionButton.tsx",
         "app/components/PerformanceTrend.tsx",
-        "app/components/PlayerGrid.tsx",
-        "app/components/PlayerSelectorDialog.tsx"
+        "app/components/PlayerGrid.tsx"
       ],
       "testCommands": [
         "pnpm test -- __tests__/components/AISummaryPanel.test.tsx __tests__/components/DashboardPage.test.tsx app/lib/__tests__/modelClient.test.ts lib/__tests__/rag.test.ts"
