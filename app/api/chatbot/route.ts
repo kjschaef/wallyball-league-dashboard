@@ -10,6 +10,7 @@ import {
 } from '../../lib/openai';
 import { PlayerStats } from '../../lib/types';
 import { checkChatbotRateLimit, getClientIp } from '../../lib/chatbotGuard';
+import { isAbusiveOrSpam } from '../../lib/decisions';
 
 interface ChatRequest {
   message: string;
@@ -86,6 +87,17 @@ export async function POST(request: NextRequest) {
         { error: 'Message is required' },
         { status: 400 }
       );
+    }
+
+    // Spam/abuse pre-filter (Decisions API predicate). Runs before any LLM
+    // call so junk never spends model budget. Fail-open: on any Decisions
+    // failure the helper returns false and the message proceeds normally.
+    if (await isAbusiveOrSpam(message)) {
+      return NextResponse.json({
+        response: "I'm not able to help with that message.",
+        type: 'error',
+        timestamp: new Date().toISOString(),
+      });
     }
 
     // Fetch current player statistics (Lifetime and Current Season)
