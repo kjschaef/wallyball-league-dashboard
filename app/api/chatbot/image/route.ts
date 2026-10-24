@@ -1,6 +1,91 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeMatchResultsImage, findPlayersInImage, analyzeMatchesWithConfirmedPlayers } from '../../../lib/openai';
 import { checkChatbotRateLimit, getClientIp } from '../../../lib/chatbotGuard';
+import { resolveAmbiguousInitial } from '../../../lib/decisions';
+
+/**
+ * Players signed up for today's games (America/New_York date), or null when
+ * the signup list cannot be fetched. Used only as disambiguation evidence;
+ * a null result means auto-resolution is skipped, not that the upload fails.
+ */
+async function fetchSignedUpToday(): Promise<Set<string> | null> {
+  try {
+    let baseUrl: string;
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+      baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    } else if (process.env.NODE_ENV === 'production') {
+      baseUrl = 'https://wallyball-league-dashboard.vercel.app';
+    } else if (process.env.VERCEL_URL) {
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    } else {
+      baseUrl = 'http://localhost:5000';
+    }
+    const today = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'America/New_York',
+    });
+    const response = await fetch(`${baseUrl}/api/signups?date=${today}`, {
+      cache: 'no-store',
+    });
+    if (!response.ok) return null;
+    const rows = await response.json();
+    if (!Array.isArray(rows)) return null;
+    return new Set(
+      rows
+        .map((r: { name?: string }) => r.name)
+        .filter((name): name is string => typeof name === 'string')
+    );
+  } catch (error) {
+    console.error('Error fetching today\'s signups for disambiguation:', error);
+    return null;
+  }
+}
+
+/**
+ * Tries to auto-resolve ambiguous whiteboard initials via the Decisions API
+ * (see resolveAmbiguousInitial for the conservative rule: only when exactly
+ * one candidate signed up today, the model picks that candidate, and its
+ * confidence clears the floor). Resolved letters are fixed in
+ * playerAssignments and removed from ambiguousLetters, so the user is only
+ * asked about the letters that are still genuinely uncertain. On any
+ * failure the findings are left untouched and the existing ask-the-user
+ * flow runs exactly as before.
+ */
+async function tryResolveAmbiguousLetters(findings: {
+  playerAssignments?: Record<string, string>;
+  ambiguousLetters?: { letter: string; possiblePlayers: string[] }[];
+}): Promise<void> {
+  if (!findings.ambiguousLetters || findings.ambiguousLetters.length === 0) {
+    return;
+  }
+  const signedUp = await fetchSignedUpToday();
+  if (!signedUp) return;
+
+  const assignments = findings.playerAssignments ?? {};
+  const otherPlayers = Object.values(assignments).filter(
+    (name): name is string =>
+      typeof name === 'string' && !!name && !name.startsWith('?')
+  );
+  const remaining: { letter: string; possiblePlayers: string[] }[] = [];
+  for (const amb of findings.ambiguousLetters) {
+    const candidates = (amb.possiblePlayers ?? []).map((name) => ({
+      name,
+      signedUpToday: signedUp.has(name),
+    }));
+    const resolved = await resolveAmbiguousInitial(
+      amb.letter,
+      candidates,
+      otherPlayers
+    );
+    if (resolved) {
+      assignments[amb.letter] = resolved.name;
+      otherPlayers.push(resolved.name);
+    } else {
+      remaining.push(amb);
+    }
+  }
+  findings.playerAssignments = assignments;
+  findings.ambiguousLetters = remaining;
+}
 
 export async function POST(request: NextRequest) {
   const limit = checkChatbotRateLimit(getClientIp(request));
@@ -49,6 +134,13 @@ export async function POST(request: NextRequest) {
       // Step 1: Find players and handle ambiguity
       // step 1: find players in image
       const playerFindings = await findPlayersInImage(imageBuffer, playerNames);
+
+      // Try to auto-resolve ambiguous initials (Decisions API + today's
+      // signups) before asking the user. Letters that resolve are removed
+      // from ambiguousLetters; the rest follow the existing flow.
+      if (playerFindings.ambiguousLetters && playerFindings.ambiguousLetters.length > 0) {
+        await tryResolveAmbiguousLetters(playerFindings);
+      }
 
       if (playerFindings.ambiguousLetters && playerFindings.ambiguousLetters.length > 0) {
         return NextResponse.json({
