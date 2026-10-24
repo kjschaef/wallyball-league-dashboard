@@ -1,6 +1,10 @@
 import { WallyballRulesRAG } from '../../lib/rag';
 import { createChatCompletion } from './modelClient';
 import {
+  classifyChatIntent,
+  queryReferencesRules as decisionsQueryReferencesRules,
+} from './decisions';
+import {
   playerPerformanceSystemPrompt,
   rulesSystemPrompt,
   imageLettersSystemPrompt,
@@ -82,59 +86,19 @@ export type { PlayerStats }; // Re-export for use in other modules
 export const suggestTeamMatchups = generateBalancedTeams;
 
 export async function detectIntent(query: string): Promise<'rules_query' | 'performance_analysis' | 'general_chat'> {
-  try {
-    const response = await createChatCompletion({
-      model: "gpt-5-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are a classifier for a Wallyball league chatbot. Classify the user's query into one of the following categories:
-          
-          1. 'rules_query': The user is asking about the rules, regulations, court dimensions, scoring, legal plays, or how the game is played.
-          2. 'performance_analysis': The user is asking about player stats, team suggestions, matchups, win rates, or who is the best player.
-          3. 'general_chat': The user is saying hello, asking how you are, or making small talk that doesn't require specific data.
-          
-          Return ONLY the category name.`
-        },
-        {
-          role: "user",
-          content: query
-        }
-      ],
-      max_completion_tokens: 1000
-    });
-
-    const content = response.choices[0].message.content?.trim().toLowerCase() || 'general_chat';
-
-    if (content.includes('rules')) return 'rules_query';
-    if (content.includes('performance') || content.includes('analysis')) return 'performance_analysis';
-    return 'general_chat';
-  } catch (error) {
-    console.error('Error detecting intent:', error);
-    // Fallback to performance analysis as it's the main feature
-    return 'performance_analysis';
-  }
+  // Classification now runs through the OpenAI Decisions API (one fixed-shape
+  // choice question) instead of a full gpt-5-mini chat completion. The
+  // Decisions helper falls back to 'performance_analysis' on failure or
+  // low confidence, matching the previous error fallback. Route behavior is
+  // unchanged: only 'rules_query' takes the rules path; everything else
+  // takes the performance-analysis path.
+  return classifyChatIntent(query);
 }
 
 async function shouldConsultRules(query: string): Promise<boolean> {
-  try {
-    const response = await createChatCompletion({
-      model: "gpt-5-mini",
-      messages: [
-        {
-          role: "system",
-          content: "Analyze the user's query and determine if it references any rules, regulations, or legalities of Wallyball. Return 'YES' if it does, and 'NO' otherwise."
-        },
-        { role: "user", content: query }
-      ],
-      max_completion_tokens: 1000
-    });
-    const content = response.choices[0].message.content?.trim().toUpperCase() || '';
-    return content.includes('YES');
-  } catch (error) {
-    console.error('Error checking for rules:', error);
-    return false;
-  }
+  // Previously a gpt-5-mini YES/NO chat completion; now a Decisions
+  // predicate. Returns false on failure, matching the previous fallback.
+  return decisionsQueryReferencesRules(query);
 }
 
 export async function analyzePlayerPerformance(
