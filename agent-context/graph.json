@@ -384,7 +384,8 @@
       "imports": [
         "app/components/AdminProvider.tsx",
         "app/components/PlayerSelectorDialog.tsx",
-        "app/components/WhiteboardResultsCard.tsx",
+        "app/components/chatbot/ChatBotCards.tsx",
+        "app/components/chatbot/ChatBotMessageList.tsx",
         "app/lib/types.ts"
       ],
       "importedBy": [
@@ -393,9 +394,56 @@
       "related": [
         "app/components/AdminProvider.tsx",
         "app/components/PlayerSelectorDialog.tsx",
-        "app/components/WhiteboardResultsCard.tsx",
+        "app/components/chatbot/ChatBotCards.tsx",
+        "app/components/chatbot/ChatBotMessageList.tsx",
         "app/lib/types.ts",
         "app/page.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/chatbot/ChatBotCards.tsx",
+      "type": "component",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/lib/types.ts"
+      ],
+      "importedBy": [
+        "app/components/ChatBot.tsx",
+        "app/components/chatbot/ChatBotMessageList.tsx",
+        "app/components/chatbot/whiteboardUpload.ts"
+      ],
+      "related": [
+        "app/components/ChatBot.tsx",
+        "app/components/chatbot/ChatBotMessageList.tsx",
+        "app/components/chatbot/whiteboardUpload.ts",
+        "app/lib/types.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/components/chatbot/ChatBotMessageList.tsx",
+      "type": "component",
+      "tags": [
+        "ai"
+      ],
+      "imports": [
+        "app/components/WhiteboardResultsCard.tsx",
+        "app/components/chatbot/ChatBotCards.tsx",
+        "app/lib/types.ts",
+        "app/lib/whiteboard.ts"
+      ],
+      "importedBy": [
+        "app/components/ChatBot.tsx"
+      ],
+      "related": [
+        "app/components/ChatBot.tsx",
+        "app/components/WhiteboardResultsCard.tsx",
+        "app/components/chatbot/ChatBotCards.tsx",
+        "app/lib/types.ts",
+        "app/lib/whiteboard.ts"
       ],
       "overrideNotes": []
     },
@@ -719,12 +767,15 @@
       "file": "app/components/WhiteboardResultsCard.tsx",
       "type": "component",
       "tags": [],
-      "imports": [],
+      "imports": [
+        "app/lib/whiteboard.ts"
+      ],
       "importedBy": [
-        "app/components/ChatBot.tsx"
+        "app/components/chatbot/ChatBotMessageList.tsx"
       ],
       "related": [
-        "app/components/ChatBot.tsx"
+        "app/components/chatbot/ChatBotMessageList.tsx",
+        "app/lib/whiteboard.ts"
       ],
       "overrideNotes": []
     },
@@ -901,6 +952,19 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/__tests__/whiteboard.test.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/whiteboard.ts"
+      ],
+      "importedBy": [],
+      "related": [
+        "app/lib/whiteboard.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/auth.ts",
       "type": "app-lib",
       "tags": [],
@@ -954,15 +1018,37 @@
       "overrideNotes": []
     },
     {
+      "file": "app/lib/legacyVision.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/modelClient.ts",
+        "app/lib/prompts.ts"
+      ],
+      "importedBy": [
+        "app/lib/openai.ts"
+      ],
+      "related": [
+        "app/lib/modelClient.ts",
+        "app/lib/openai.ts",
+        "app/lib/prompts.ts"
+      ],
+      "overrideNotes": []
+    },
+    {
       "file": "app/lib/modelClient.ts",
       "type": "app-lib",
       "tags": [],
       "imports": [],
       "importedBy": [
-        "app/lib/openai.ts"
+        "app/lib/legacyVision.ts",
+        "app/lib/openai.ts",
+        "app/lib/whiteboardVision.ts"
       ],
       "related": [
-        "app/lib/openai.ts"
+        "app/lib/legacyVision.ts",
+        "app/lib/openai.ts",
+        "app/lib/whiteboardVision.ts"
       ],
       "overrideNotes": []
     },
@@ -973,10 +1059,12 @@
         "ai"
       ],
       "imports": [
+        "app/lib/legacyVision.ts",
         "app/lib/modelClient.ts",
         "app/lib/prompts.ts",
         "app/lib/team-balancer.ts",
         "app/lib/types.ts",
+        "app/lib/whiteboardVision.ts",
         "lib/rag.ts"
       ],
       "importedBy": [
@@ -990,10 +1078,12 @@
         "app/api/chatbot/route.ts",
         "app/api/chatbot/whiteboard/route.ts",
         "app/api/daily-summary/route.ts",
+        "app/lib/legacyVision.ts",
         "app/lib/modelClient.ts",
         "app/lib/prompts.ts",
         "app/lib/team-balancer.ts",
         "app/lib/types.ts",
+        "app/lib/whiteboardVision.ts",
         "lib/rag.ts"
       ],
       "overrideNotes": []
@@ -1038,10 +1128,14 @@
       ],
       "imports": [],
       "importedBy": [
-        "app/lib/openai.ts"
+        "app/lib/legacyVision.ts",
+        "app/lib/openai.ts",
+        "app/lib/whiteboardVision.ts"
       ],
       "related": [
-        "app/lib/openai.ts"
+        "app/lib/legacyVision.ts",
+        "app/lib/openai.ts",
+        "app/lib/whiteboardVision.ts"
       ],
       "overrideNotes": []
     },
@@ -1143,12 +1237,16 @@
       "importedBy": [
         "app/api/chatbot/route.ts",
         "app/components/ChatBot.tsx",
+        "app/components/chatbot/ChatBotCards.tsx",
+        "app/components/chatbot/ChatBotMessageList.tsx",
         "app/lib/openai.ts",
         "app/lib/team-balancer.ts"
       ],
       "related": [
         "app/api/chatbot/route.ts",
         "app/components/ChatBot.tsx",
+        "app/components/chatbot/ChatBotCards.tsx",
+        "app/components/chatbot/ChatBotMessageList.tsx",
         "app/lib/openai.ts",
         "app/lib/team-balancer.ts"
       ],
@@ -1184,11 +1282,33 @@
       "imports": [],
       "importedBy": [
         "app/api/chatbot/whiteboard/log/route.ts",
-        "app/api/chatbot/whiteboard/route.ts"
+        "app/api/chatbot/whiteboard/route.ts",
+        "app/components/WhiteboardResultsCard.tsx",
+        "app/components/chatbot/ChatBotMessageList.tsx"
       ],
       "related": [
         "app/api/chatbot/whiteboard/log/route.ts",
-        "app/api/chatbot/whiteboard/route.ts"
+        "app/api/chatbot/whiteboard/route.ts",
+        "app/components/WhiteboardResultsCard.tsx",
+        "app/components/chatbot/ChatBotMessageList.tsx"
+      ],
+      "overrideNotes": []
+    },
+    {
+      "file": "app/lib/whiteboardVision.ts",
+      "type": "app-lib",
+      "tags": [],
+      "imports": [
+        "app/lib/modelClient.ts",
+        "app/lib/prompts.ts"
+      ],
+      "importedBy": [
+        "app/lib/openai.ts"
+      ],
+      "related": [
+        "app/lib/modelClient.ts",
+        "app/lib/openai.ts",
+        "app/lib/prompts.ts"
       ],
       "overrideNotes": []
     },

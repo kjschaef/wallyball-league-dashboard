@@ -116,6 +116,18 @@ export function matchRosterName(raw: string, roster: string[]): MatchedPlayer {
     return { raw, matched: exact, confidence: 'exact', candidates: [] };
   }
 
+  const dist1 = roster.filter((r) => {
+    const full = normalizeName(r);
+    const first = firstToken(r);
+    return levenshtein(norm, full) === 1 || levenshtein(norm, first) === 1;
+  });
+  if (dist1.length === 1) {
+    return { raw, matched: dist1[0], confidence: 'fuzzy', candidates: [] };
+  }
+  if (dist1.length > 1) {
+    return { raw, matched: null, confidence: 'ambiguous', candidates: dist1 };
+  }
+
   const close = roster.filter((r) => {
     const full = normalizeName(r);
     const first = firstToken(r);

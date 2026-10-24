@@ -17,6 +17,15 @@
       ]
     },
     {
+      "path": "__tests__/api/chatbot-whiteboard.test.ts",
+      "kind": "test",
+      "covers": [
+        "app/api/chatbot/whiteboard/log/route.ts",
+        "app/api/chatbot/whiteboard/route.ts",
+        "app/lib/rateLimit.ts"
+      ]
+    },
+    {
       "path": "__tests__/api/chatbot.test.ts",
       "kind": "test",
       "covers": [
@@ -191,6 +200,15 @@
       ]
     },
     {
+      "path": "__tests__/components/WhiteboardResultsCard.test.tsx",
+      "kind": "test",
+      "covers": [
+        "app/components/ChatBot.tsx",
+        "app/components/WhiteboardResultsCard.tsx",
+        "app/lib/whiteboard.ts"
+      ]
+    },
+    {
       "path": "__tests__/lib/elo.test.ts",
       "kind": "test",
       "covers": [
@@ -268,6 +286,13 @@
       ]
     },
     {
+      "path": "app/lib/__tests__/whiteboard.test.ts",
+      "kind": "app-lib",
+      "covers": [
+        "app/lib/whiteboard.ts"
+      ]
+    },
+    {
       "path": "lib/__tests__/rag.test.ts",
       "kind": "lib",
       "covers": [
@@ -291,6 +316,12 @@
     ],
     "app/api/chatbot/route.ts": [
       "__tests__/api/chatbot.test.ts"
+    ],
+    "app/api/chatbot/whiteboard/log/route.ts": [
+      "__tests__/api/chatbot-whiteboard.test.ts"
+    ],
+    "app/api/chatbot/whiteboard/route.ts": [
+      "__tests__/api/chatbot-whiteboard.test.ts"
     ],
     "app/api/daily-summary/route.ts": [
       "__tests__/api/daily-summary.test.ts"
@@ -338,6 +369,9 @@
     "app/components/AISummaryPanel.tsx": [
       "__tests__/components/AISummaryPanel.test.tsx"
     ],
+    "app/components/ChatBot.tsx": [
+      "__tests__/components/WhiteboardResultsCard.test.tsx"
+    ],
     "app/components/Navbar.tsx": [
       "__tests__/components/Navbar.test.tsx"
     ],
@@ -362,6 +396,9 @@
     "app/components/SeasonSelector.tsx": [
       "__tests__/components/SeasonSelector.test.tsx"
     ],
+    "app/components/WhiteboardResultsCard.tsx": [
+      "__tests__/components/WhiteboardResultsCard.test.tsx"
+    ],
     "app/games/page.tsx": [
       "__tests__/components/GamesPage.test.tsx"
     ],
@@ -380,6 +417,9 @@
     "app/lib/playerFiltering.ts": [
       "app/lib/__tests__/playerFiltering.test.ts"
     ],
+    "app/lib/rateLimit.ts": [
+      "__tests__/api/chatbot-whiteboard.test.ts"
+    ],
     "app/lib/signups.ts": [
       "app/lib/__tests__/signups.test.ts"
     ],
@@ -397,6 +437,10 @@
     ],
     "app/lib/utils.ts": [
       "app/lib/__tests__/utils.test.ts"
+    ],
+    "app/lib/whiteboard.ts": [
+      "__tests__/components/WhiteboardResultsCard.test.tsx",
+      "app/lib/__tests__/whiteboard.test.ts"
     ],
     "app/page.tsx": [
       "__tests__/components/DashboardPage.test.tsx"
@@ -471,11 +515,11 @@
       "tests": [
         "__tests__/components/AISummaryPanel.test.tsx",
         "__tests__/components/DashboardPage.test.tsx",
+        "__tests__/components/WhiteboardResultsCard.test.tsx",
         "app/lib/__tests__/modelClient.test.ts",
         "lib/__tests__/rag.test.ts"
       ],
       "gaps": [
-        "app/components/ChatBot.tsx",
         "app/lib/openai.ts",
         "app/lib/prompts.ts"
       ]

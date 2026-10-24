@@ -18,12 +18,14 @@ interface ChatRequest {
   };
 }
 
-async function fetchPlayerStats(season?: string): Promise<PlayerStats[]> {
+async function fetchPlayerStats(season?: string, requestOrigin?: string): Promise<PlayerStats[]> {
   try {
     // Construct the base URL properly for different environments
     let baseUrl: string;
 
-    if (process.env.NEXT_PUBLIC_APP_URL) {
+    if (requestOrigin) {
+      baseUrl = requestOrigin;
+    } else if (process.env.NEXT_PUBLIC_APP_URL) {
       baseUrl = process.env.NEXT_PUBLIC_APP_URL;
     } else if (process.env.NODE_ENV === 'production') {
       // For production deployments, use the actual deployment URL
@@ -70,10 +72,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const requestOrigin = request.nextUrl?.origin;
     // Fetch current player statistics (Lifetime and Current Season)
     const [lifetimeStats, currentSeasonStats] = await Promise.all([
-      fetchPlayerStats(), // Default is lifetime
-      fetchPlayerStats('current') // Explicitly ask for current season
+      fetchPlayerStats(undefined, requestOrigin), // Default is lifetime
+      fetchPlayerStats('current', requestOrigin) // Explicitly ask for current season
     ]);
 
     if (lifetimeStats.length === 0) {
@@ -155,9 +158,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request?: NextRequest) {
   try {
-    const playerStats = await fetchPlayerStats();
+    const playerStats = await fetchPlayerStats(undefined, request?.nextUrl?.origin);
 
     return NextResponse.json({
       status: 'ready',

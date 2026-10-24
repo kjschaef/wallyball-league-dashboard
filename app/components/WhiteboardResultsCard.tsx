@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { Card, CardContent } from './ui/card';
 import {
   matchRosterName,
   computeGamesWon,
   type WhiteboardMatch,
-} from '@/lib/whiteboard';
+} from '../lib/whiteboard';
 
 interface EditableGame {
   teamOneScore: string;

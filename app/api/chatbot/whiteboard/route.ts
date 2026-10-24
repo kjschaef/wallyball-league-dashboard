@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     const imageBuffer = Buffer.from(await image.arrayBuffer());
-    const parsed = await analyzeWhiteboardScores(imageBuffer);
+    const parsed = await analyzeWhiteboardScores(imageBuffer, roster);
 
     if (parsed?.error) {
       return NextResponse.json(

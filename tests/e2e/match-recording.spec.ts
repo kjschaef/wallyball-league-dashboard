@@ -224,4 +224,74 @@ test.describe('Match Recording Flow', () => {
     // 7. Error message should be visible
     await expect(page.getByText('Invalid password')).toBeVisible({ timeout: 10000 });
   });
+
+  test('should open ChatBot and upload a whiteboard photo to review and confirm matches', async ({ page }) => {
+    await page.route('**/api/chatbot/whiteboard', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          response: 'Here are the matches I read from the whiteboard. Please check them before I log anything:',
+          type: 'whiteboard_results',
+          timestamp: new Date().toISOString(),
+          date: '2026-10-23',
+          additionalData: {
+            date: '2026-10-23',
+            roster: ['Alice', 'Bob', 'Charlie', 'David'],
+            matches: [
+              {
+                matchNumber: 1,
+                teamOne: {
+                  players: [
+                    { raw: 'Alice', matched: 'Alice', confidence: 'exact', candidates: [] },
+                    { raw: 'Bob', matched: 'Bob', confidence: 'exact', candidates: [] },
+                  ],
+                },
+                teamTwo: {
+                  players: [
+                    { raw: 'Charlie', matched: 'Charlie', confidence: 'exact', candidates: [] },
+                    { raw: 'David', matched: 'David', confidence: 'exact', candidates: [] },
+                  ],
+                },
+                games: [
+                  { teamOneScore: 11, teamTwoScore: 7 },
+                  { teamOneScore: 11, teamTwoScore: 9 },
+                ],
+                played: true,
+                needsReview: false,
+                reviewReasons: [],
+              },
+            ],
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/chatbot/whiteboard/log', async (route) => {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          logged: [{ id: 999, teamOneGamesWon: 2, teamTwoGamesWon: 0, gameCount: 2 }],
+          date: '2026-10-23',
+        }),
+      });
+    });
+
+    await page.getByRole('button', { name: 'Chat Assistant' }).click();
+    await expect(page.getByRole('button', { name: /Log today's matches/i })).toBeVisible();
+
+    const fileInput = page.getByTestId('whiteboard-file-input');
+    await fileInput.setInputFiles({
+      name: 'whiteboard.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
+    });
+
+    await expect(page.getByText('Whiteboard matches — please check before logging')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Confirm & log 1 match for 2026-10-23/i })).toBeVisible();
+
+    await page.getByRole('button', { name: /Confirm & log 1 match for 2026-10-23/i }).click();
+    await expect(page.getByText(/Logged 1 match for 2026-10-23/i)).toBeVisible();
+  });
 });
