@@ -75,11 +75,23 @@ async function searchWallyballRules(query: string): Promise<{ text: string; used
   }
 }
 
-import { PlayerStats } from './types';
+import { PlayerStats, TeamSuggestion } from './types';
 import { generateBalancedTeams } from './team-balancer';
+import { pickBestTeamScenario, applyDecisionPick } from './decisions';
 
 export type { PlayerStats }; // Re-export for use in other modules
-export const suggestTeamMatchups = generateBalancedTeams;
+export async function suggestTeamMatchups(
+  availablePlayers: PlayerStats[]
+): Promise<TeamSuggestion[]> {
+  const scenarios = generateBalancedTeams(availablePlayers);
+  if (scenarios.length === 0) return scenarios;
+  // Let the Decisions API pick the most competitive matchup from the
+  // deterministic candidates. Any failure falls back to the deterministic
+  // ordering (e.g. no API key in dev/CI, API error, refusal).
+  const pick = await pickBestTeamScenario(scenarios);
+  if (!pick) return scenarios;
+  return applyDecisionPick(scenarios, pick);
+}
 
 export async function detectIntent(query: string): Promise<'rules_query' | 'performance_analysis' | 'general_chat'> {
   try {
