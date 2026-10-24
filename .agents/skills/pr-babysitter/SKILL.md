@@ -22,7 +22,7 @@ Audits open Pull Requests for CI/CD failures and review approvals, and automatic
      - Check out the PR branch: `gh pr checkout <pr-number>`
      - Investigate the logs and run tests locally (`pnpm test`, `pnpm lint`, etc.) to find the failure.
      - Fix the broken code or tests.
-     - Run validation commands to verify the fix (`pnpm build`, `pnpm test`, `pnpm lint`, `pnpm run context:check`).
+     - Run validation commands to verify the fix (`pnpm build`, `pnpm test`, `pnpm lint`).
      - Commit and push the fixes directly to the PR branch.
      - Notify the user of the fix.
    - **If Reviews Check fails (exits 1 or 2)**:

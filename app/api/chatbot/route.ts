@@ -9,6 +9,7 @@ import {
   detectIntent
 } from '../../lib/openai';
 import { PlayerStats } from '../../lib/types';
+import { checkChatbotRateLimit, getClientIp } from '../../lib/chatbotGuard';
 
 interface ChatRequest {
   message: string;
@@ -60,6 +61,23 @@ async function fetchPlayerStats(season?: string): Promise<PlayerStats[]> {
 }
 
 export async function POST(request: NextRequest) {
+  const limit = checkChatbotRateLimit(getClientIp(request));
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        error: 'Too many requests',
+        response: 'Rate limit exceeded. Please wait a moment before sending another message.',
+        timestamp: new Date().toISOString(),
+      },
+      {
+        status: 429,
+        headers:
+          limit.retryAfterMs != null
+            ? { 'Retry-After': String(Math.ceil(limit.retryAfterMs / 1000)) }
+            : undefined,
+      }
+    );
+  }
   try {
     const { message, context }: ChatRequest = await request.json();
 
@@ -148,7 +166,8 @@ export async function POST(request: NextRequest) {
       {
         error: 'Failed to process chat message',
         response: 'I apologize, but I encountered an error processing your request. Please try again.',
-        type: 'error'
+        type: 'error',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

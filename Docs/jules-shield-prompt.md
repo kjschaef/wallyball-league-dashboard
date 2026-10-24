@@ -17,7 +17,7 @@ This is a **Next.js app-router** project using:
 - **TypeScript strict mode**
 - **Drizzle ORM** with Neon Postgres
 
-Always read `AGENTS.md` and `agent-context/index.json` before starting to understand the current project structure and invariants.
+Always read `AGENTS.md` before starting to understand the current project structure and invariants.
 
 ---
 
@@ -60,13 +60,7 @@ Run each command in sequence. **Do not open or propose a PR if any step fails.**
 pnpm build          # Must complete with no TypeScript errors
 pnpm test           # Must pass: zero failing tests
 pnpm lint           # Must pass: zero ESLint errors or warnings
-pnpm run context:check  # Must pass: agent context must not be stale
 npx snyk code test  # Security scan — fix any HIGH or CRITICAL issues before proceeding
-```
-
-If `pnpm run context:check` fails and your changes touched routes, schema, or key module entrypoints, also run:
-```bash
-pnpm run context:generate  # Regenerate agent context and commit the updated files
 ```
 
 ---
@@ -88,6 +82,5 @@ When opening a PR, use this format:
 - [ ] pnpm build ✅
 - [ ] pnpm test ✅
 - [ ] pnpm lint ✅
-- [ ] pnpm run context:check ✅
 - [ ] npx snyk code test ✅ (or: no new first-party code introduced)
 ```

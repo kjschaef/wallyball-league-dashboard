@@ -1,5 +1,14 @@
 import { NextRequest } from 'next/server';
 import { POST, GET } from '../../app/api/chatbot/route';
+import { resetChatbotRateLimit } from '@/app/lib/chatbotGuard';
+
+const mockCookieStore = {
+  get: jest.fn(),
+};
+
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(() => mockCookieStore),
+}));
 
 const mockAnalyzePlayerPerformance = jest.fn();
 const mockSuggestTeamMatchups = jest.fn();
@@ -28,8 +37,11 @@ const mockCurrentPlayerStats = [
 ];
 
 // Helper to create a NextRequest mock
-const createMockRequest = (body: any, rejectJson = false) => {
+const createMockRequest = (body: any, rejectJson = false, headers: Record<string, string> = {}) => {
   return {
+    headers: {
+      get: (header: string) => headers[header.toLowerCase()] ?? null,
+    },
     json: jest.fn().mockImplementation(() => {
       if (rejectJson) {
         return Promise.reject(new Error('Invalid JSON'));
@@ -46,6 +58,8 @@ describe('POST /api/chatbot', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetChatbotRateLimit();
+    mockCookieStore.get.mockReturnValue({ value: 'true' });
     mockConsoleError = jest.fn();
     console.error = mockConsoleError;
 
@@ -231,6 +245,42 @@ describe('POST /api/chatbot', () => {
     expect(response.status).toBe(500);
     expect(data.error).toBe('Failed to process chat message');
     expect(mockConsoleError).toHaveBeenCalled();
+  });
+
+  it('allows non-admin visitors to use the chatbot (no admin gate)', async () => {
+    mockCookieStore.get.mockReturnValue(undefined);
+    mockDetectIntent.mockResolvedValue('rules_query');
+    mockQueryWallyballRules.mockResolvedValue({
+      response: 'The serving rules of wallyball state...',
+      usedRules: true
+    });
+
+    const request = createMockRequest({ message: 'What are the rules of serving?' });
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.type).toBe('rules_query');
+    expect(data.response).toBe('The serving rules of wallyball state...');
+  });
+
+  it('returns 429 Too Many Requests when rate limit is exceeded', async () => {
+    const request = createMockRequest(
+      { message: 'Hello' },
+      false,
+      { 'x-forwarded-for': '127.0.0.1' }
+    );
+
+    for (let i = 0; i < 20; i++) {
+      const res = await POST(request);
+      expect(res.status).not.toBe(429);
+    }
+
+    const rateLimitedRes = await POST(request);
+    expect(rateLimitedRes.status).toBe(429);
+    const data = await rateLimitedRes.json();
+    expect(data.error).toBe('Too many requests');
+    expect(data.timestamp).toBeDefined();
   });
 });
 
