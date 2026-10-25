@@ -55,18 +55,53 @@ export async function POST(request: NextRequest) {
     }
 
     const sql = neon(process.env.DATABASE_URL);
-    const allPlayers = await sql`SELECT id, name FROM players`;
-    const rosterNames = allPlayers.map((p: any) => p.name as string);
+    const allPlayers: Array<{ id: number; name: string; is_active?: boolean | null; deleted_at?: string | null }> =
+      (await sql`SELECT id, name, is_active, deleted_at FROM players`) as any[];
 
-    // Resolve every confirmed name to a roster id. Rejects anything the
-    // confirmation UI should already have blocked.
+    const activePlayers = () =>
+      allPlayers.filter((p) => p.is_active !== false && p.deleted_at == null);
+
+    // Create any user-confirmed new players that do not already exist on the roster
+    if (Array.isArray(body.newPlayers) && body.newPlayers.length > 0) {
+      const currentYear = new Date().getFullYear();
+      for (const rawNewName of body.newPlayers) {
+        const trimmed = rawNewName.trim();
+        if (!trimmed) continue;
+        const activeNames = activePlayers().map((p) => p.name);
+        const allNames = allPlayers.map((p) => p.name);
+        const existing =
+          matchRosterName(trimmed, activeNames).matched ??
+          matchRosterName(trimmed, allNames).matched;
+        if (!existing) {
+          const insertedPlayer = await sql`
+            INSERT INTO players (name, start_year, is_active, created_at)
+            VALUES (${trimmed}, ${currentYear}, true, NOW())
+            RETURNING id, name, is_active, deleted_at
+          `;
+          if (insertedPlayer[0]) {
+            allPlayers.push(insertedPlayer[0] as any);
+          }
+        }
+      }
+    }
+
+    const activeRosterNames = activePlayers().map((p) => p.name);
+    const allRosterNames = allPlayers.map((p) => p.name);
+
+    // Resolve every confirmed name to a roster id, preferring active players
+    // so inactive historical players with the same first name don't collide.
     const resolveIds = (names: string[]): { ids: (number | null)[]; unresolved: string[] } => {
       const ids: (number | null)[] = [null, null, null];
       const unresolved: string[] = [];
       names.forEach((name, i) => {
-        const m = matchRosterName(name, rosterNames);
+        let m = matchRosterName(name, activeRosterNames);
+        if (!m.matched && m.confidence === 'unknown') {
+          m = matchRosterName(name, allRosterNames);
+        }
         if (m.matched) {
-          const row = allPlayers.find((p: any) => p.name === m.matched);
+          const row =
+            activePlayers().find((p) => p.name === m.matched) ??
+            allPlayers.find((p) => p.name === m.matched);
           ids[i] = row ? row.id : null;
           if (!row) unresolved.push(name);
         } else {

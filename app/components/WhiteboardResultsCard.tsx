@@ -21,8 +21,7 @@ interface EditableMatch {
   teamTwoPlayers: string;
   games: EditableGame[];
   played: boolean;
-  needsReview: boolean;
-  reviewReasons: string[];
+  fuzzyNotes: string[];
 }
 
 interface WhiteboardResultsCardProps {
@@ -35,6 +34,12 @@ interface WhiteboardResultsCardProps {
 function toEditable(m: WhiteboardMatch): EditableMatch {
   const names = (team: WhiteboardMatch['teamOne']) =>
     team.players.map((p) => p.matched ?? p.raw).join(', ');
+  const fuzzyNotes = [
+    ...m.teamOne.players,
+    ...m.teamTwo.players,
+  ]
+    .filter((p) => p.confidence === 'fuzzy' && p.matched)
+    .map((p) => `"${p.raw}" read as "${p.matched}" — please confirm`);
   return {
     matchNumber: m.matchNumber,
     teamOnePlayers: names(m.teamOne),
@@ -44,8 +49,7 @@ function toEditable(m: WhiteboardMatch): EditableMatch {
       teamTwoScore: String(g.teamTwoScore),
     })),
     played: m.played,
-    needsReview: m.needsReview,
-    reviewReasons: m.reviewReasons,
+    fuzzyNotes,
   };
 }
 
@@ -53,17 +57,30 @@ function splitNames(input: string): string[] {
   return input.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+interface MatchIssue {
+  message: string;
+  unknownName?: string;
+  ambiguous?: {
+    raw: string;
+    teamKey: 'teamOnePlayers' | 'teamTwoPlayers';
+    candidates: string[];
+  };
+}
+
 /**
  * Confirmation + editing card for whiteboard matches.
  *
  * Nothing is logged until the user presses "Confirm & log matches", and a
  * match can only be logged when it is marked played, every player resolves
- * to the roster, and every game has a decisive score. Unplayed matchups
- * (teams with no scores on the board) are shown but never logged.
+ * to the roster (or is added as a new player), and every game has a decisive
+ * score. Unplayed matchups (teams with no scores on the board) are shown
+ * clearly as skipped and never logged unless ticked as played.
  */
 export function WhiteboardResultsCard({ matches, initialDate, roster }: WhiteboardResultsCardProps) {
   const [date, setDate] = useState(initialDate);
   const [editable, setEditable] = useState<EditableMatch[]>(() => matches.map(toEditable));
+  const [activeRoster, setActiveRoster] = useState<string[]>(() => roster);
+  const [newPlayers, setNewPlayers] = useState<string[]>([]);
   const [isLogging, setIsLogging] = useState(false);
   const [loggedCount, setLoggedCount] = useState<number | null>(null);
   const [logError, setLogError] = useState<string | null>(null);
@@ -85,33 +102,67 @@ export function WhiteboardResultsCard({ matches, initialDate, roster }: Whiteboa
     );
   };
 
+  const addNewPlayerToRoster = (rawName: string) => {
+    const trimmed = rawName.trim();
+    if (!trimmed) return;
+    setActiveRoster((prev) =>
+      prev.some((r) => r.toLowerCase() === trimmed.toLowerCase()) ? prev : [...prev, trimmed]
+    );
+    setNewPlayers((prev) =>
+      prev.some((r) => r.toLowerCase() === trimmed.toLowerCase()) ? prev : [...prev, trimmed]
+    );
+  };
+
+  const replacePlayerNameInTeam = (
+    matchIndex: number,
+    teamKey: 'teamOnePlayers' | 'teamTwoPlayers',
+    rawName: string,
+    replacement: string
+  ) => {
+    setEditable((prev) =>
+      prev.map((m, i) => {
+        if (i !== matchIndex) return m;
+        const currentNames = splitNames(m[teamKey]);
+        const updated = currentNames.map((n) =>
+          n.toLowerCase() === rawName.toLowerCase() ? replacement : n
+        );
+        return { ...m, [teamKey]: updated.join(', ') };
+      })
+    );
+  };
+
   /** Client-side mirror of the server rules; the server re-checks everything. */
-  const matchProblems = (m: EditableMatch): string[] => {
-    const problems: string[] = [];
+  const getMatchIssues = (m: EditableMatch): MatchIssue[] => {
+    const issues: MatchIssue[] = [];
     if (!m.played) {
-      problems.push('Not played yet');
-      return problems;
+      return [{ message: 'Not played yet' }];
     }
-    for (const [label, raw] of [
-      ['Team 1', m.teamOnePlayers],
-      ['Team 2', m.teamTwoPlayers],
+    for (const [label, teamKey, raw] of [
+      ['Team 1', 'teamOnePlayers', m.teamOnePlayers],
+      ['Team 2', 'teamTwoPlayers', m.teamTwoPlayers],
     ] as const) {
       const names = splitNames(raw);
-      if (names.length === 0) problems.push(`${label} needs at least one player`);
-      if (names.length > 3) problems.push(`${label} has more than 3 players`);
+      if (names.length === 0) issues.push({ message: `${label} needs at least one player` });
+      if (names.length > 3) issues.push({ message: `${label} has more than 3 players` });
       for (const name of names) {
-        const resolved = matchRosterName(name, roster);
+        const resolved = matchRosterName(name, activeRoster);
         if (!resolved.matched) {
-          problems.push(
-            resolved.confidence === 'ambiguous'
-              ? `"${name}" could be ${resolved.candidates.join(' or ')}`
-              : `"${name}" is not on the roster`
-          );
+          if (resolved.confidence === 'ambiguous') {
+            issues.push({
+              message: `"${name}" could be ${resolved.candidates.join(' or ')} — please pick one`,
+              ambiguous: { raw: name, teamKey, candidates: resolved.candidates },
+            });
+          } else {
+            issues.push({
+              message: `"${name}" is not on the roster — fix the spelling or add as a new player`,
+              unknownName: name,
+            });
+          }
         }
       }
     }
     if (m.games.length === 0) {
-      problems.push('At least one game score is required');
+      issues.push({ message: 'At least one game score is required' });
     }
     m.games.forEach((g, gi) => {
       const one = Number(g.teamOneScore);
@@ -124,22 +175,46 @@ export function WhiteboardResultsCard({ matches, initialDate, roster }: Whiteboa
         one < 0 ||
         two < 0
       ) {
-        problems.push(`Game ${gi + 1}: scores must be non-negative whole numbers`);
+        issues.push({ message: `Game ${gi + 1}: scores must be non-negative whole numbers` });
       } else if (one === two) {
-        problems.push(`Game ${gi + 1}: a game cannot end in a tie`);
+        issues.push({ message: `Game ${gi + 1}: a game cannot end in a tie` });
       }
     });
-    return problems;
+    return issues;
   };
 
-  const loggable = editable.filter((m) => m.played && matchProblems(m).length === 0);
+  const allUnknownNames = Array.from(
+    new Set(
+      editable
+        .filter((m) => m.played)
+        .flatMap((m) => getMatchIssues(m))
+        .map((issue) => issue.unknownName)
+        .filter((n): n is string => Boolean(n))
+    )
+  );
+
+  const addAllUnknownPlayers = () => {
+    for (const name of allUnknownNames) {
+      addNewPlayerToRoster(name);
+    }
+  };
+
+  const loggable = editable.filter((m) => m.played && getMatchIssues(m).length === 0);
 
   const handleConfirm = async () => {
     if (loggable.length === 0 || isLogging) return;
     setIsLogging(true);
     setLogError(null);
     try {
-      const payload = {
+      const payload: {
+        date: string;
+        matches: Array<{
+          teamOnePlayers: string[];
+          teamTwoPlayers: string[];
+          games: Array<{ teamOneScore: number; teamTwoScore: number }>;
+        }>;
+        newPlayers?: string[];
+      } = {
         date,
         matches: loggable.map((m) => ({
           teamOnePlayers: splitNames(m.teamOnePlayers),
@@ -150,6 +225,9 @@ export function WhiteboardResultsCard({ matches, initialDate, roster }: Whiteboa
           })),
         })),
       };
+      if (newPlayers.length > 0) {
+        payload.newPlayers = newPlayers;
+      }
       const response = await fetch('/api/chatbot/whiteboard/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -201,10 +279,26 @@ export function WhiteboardResultsCard({ matches, initialDate, roster }: Whiteboa
             onChange={(e) => setDate(e.target.value)}
             className="bg-white"
           />
+          {allUnknownNames.length > 1 && (
+            <div className="mt-3 flex items-center justify-between gap-2 bg-amber-50 border border-amber-200 rounded p-2 text-xs text-amber-900">
+              <span>
+                {allUnknownNames.length} players ({allUnknownNames.join(', ')}) are not on the roster yet.
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs bg-white border-amber-300 text-amber-900 hover:bg-amber-100"
+                onClick={addAllUnknownPlayers}
+              >
+                + Add all {allUnknownNames.length} to roster
+              </Button>
+            </div>
+          )}
         </div>
 
         {editable.map((m, mi) => {
-          const problems = matchProblems(m);
+          const issues = m.played ? getMatchIssues(m) : [];
           const wins = m.played
             ? computeGamesWon(
                 m.games
@@ -216,7 +310,9 @@ export function WhiteboardResultsCard({ matches, initialDate, roster }: Whiteboa
           return (
             <div key={mi} className="bg-white/70 rounded-lg p-3 space-y-2 border border-green-100">
               <div className="flex items-center justify-between">
-                <h5 className="font-semibold text-green-900 text-sm">Match {m.matchNumber}</h5>
+                <h5 className="font-semibold text-green-900 text-sm">
+                  Match {m.matchNumber} {!m.played && <span className="text-xs font-normal text-gray-500">(Unplayed — skipped)</span>}
+                </h5>
                 {wins && (
                   <span className="text-sm font-bold text-green-900">
                     {wins.teamOne} - {wins.teamTwo}
@@ -224,16 +320,50 @@ export function WhiteboardResultsCard({ matches, initialDate, roster }: Whiteboa
                 )}
               </div>
 
-              {(m.needsReview || problems.length > 0) && (
-                <div className="bg-amber-50 border border-amber-200 rounded p-2 text-xs text-amber-800 space-y-1">
-                  {m.reviewReasons.map((r, i) => (
-                    <p key={i}>⚠️ {r}</p>
+              {m.played && (m.fuzzyNotes.length > 0 || issues.length > 0) && (
+                <div className="bg-amber-50 border border-amber-200 rounded p-2 text-xs text-amber-800 space-y-1.5">
+                  {m.fuzzyNotes.map((r, i) => (
+                    <p key={`f${i}`}>⚠️ {r}</p>
                   ))}
-                  {problems
-                    .filter((p) => p !== 'Not played yet')
-                    .map((p, i) => (
-                      <p key={`p${i}`}>⚠️ {p}</p>
-                    ))}
+                  {issues.map((issue, i) => (
+                    <div key={`p${i}`} className="flex flex-wrap items-center justify-between gap-2">
+                      <span>⚠️ {issue.message}</span>
+                      {issue.unknownName && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs bg-white border-amber-300 text-amber-900 hover:bg-amber-100"
+                          onClick={() => addNewPlayerToRoster(issue.unknownName!)}
+                        >
+                          + Add &quot;{issue.unknownName}&quot; as new player
+                        </Button>
+                      )}
+                      {issue.ambiguous && (
+                        <div className="flex flex-wrap gap-1">
+                          {issue.ambiguous.candidates.map((cand) => (
+                            <Button
+                              key={cand}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-6 px-2 text-xs bg-white border-amber-300 text-amber-900 hover:bg-amber-100"
+                              onClick={() =>
+                                replacePlayerNameInTeam(
+                                  mi,
+                                  issue.ambiguous!.teamKey,
+                                  issue.ambiguous!.raw,
+                                  cand
+                                )
+                              }
+                            >
+                              Use &quot;{cand}&quot;
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
 

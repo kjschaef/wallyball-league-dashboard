@@ -51,6 +51,14 @@ async function main() {
     { name: 'David', startYear: 2023 },
     { name: 'Eve', startYear: 2024 },
     { name: 'Frank', startYear: 2024 },
+    { name: 'Nate King', startYear: 2022 },
+    { name: 'Ben Tenzer', startYear: 2022 },
+    { name: 'Keith Schaefer', startYear: 2021 },
+    { name: 'Hal', startYear: 2024 },
+    { name: 'Mark Cathy', startYear: 2020 },
+    { name: 'Vamsi Muktevi', startYear: 2023 },
+    { name: 'Seth Johnston', startYear: 2024 },
+    { name: 'Zach Collins', startYear: 2023 },
   ]).returning();
 
   const p = (name: string) => insertedPlayers.find(player => player.name === name)!.id;

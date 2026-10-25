@@ -66,7 +66,8 @@ describe('WhiteboardResultsCard & ChatBot whiteboard upload', () => {
 
     expect(screen.getByText('Match 1')).toBeInTheDocument();
     expect(screen.getByText('2 - 1')).toBeInTheDocument();
-    expect(screen.getByText('Match 2')).toBeInTheDocument();
+    expect(screen.getByText(/Match 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/\(Unplayed — skipped\)/i)).toBeInTheDocument();
 
     const confirmBtn = screen.getByRole('button', {
       name: /Confirm & log 1 match for 2026-10-23/i,
@@ -83,6 +84,61 @@ describe('WhiteboardResultsCard & ChatBot whiteboard upload', () => {
       '/api/chatbot/whiteboard/log',
       expect.objectContaining({
         method: 'POST',
+      })
+    );
+  });
+
+  it('allows adding an unknown player to the roster with one click and submits newPlayers', async () => {
+    const partialRoster = ['Nate', 'Ben', 'Keith', 'Mark', 'Vamsi'];
+    const normalized = normalizeWhiteboardMatches(
+      [
+        {
+          matchNumber: 1,
+          teamOne: { players: ['Nate', 'Ben', 'Keith'] },
+          teamTwo: { players: ['Hal', 'Mark', 'Vamsi'] },
+          games: [{ teamOneScore: 11, teamTwoScore: 7 }],
+          played: true,
+        },
+      ],
+      partialRoster
+    );
+
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ logged: [{ id: 99 }] }),
+    } as Response);
+
+    render(
+      <WhiteboardResultsCard
+        matches={normalized.matches}
+        initialDate="2026-10-23"
+        roster={partialRoster}
+      />
+    );
+
+    const addHalBtn = screen.getByRole('button', {
+      name: /\+ Add "Hal" as new player/i,
+    });
+    expect(addHalBtn).toBeInTheDocument();
+
+    fireEvent.click(addHalBtn);
+
+    const confirmBtn = screen.getByRole('button', {
+      name: /Confirm & log 1 match for 2026-10-23/i,
+    });
+    expect(confirmBtn).toBeEnabled();
+
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Logged 1 match for 2026-10-23/i)).toBeInTheDocument();
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/chatbot/whiteboard/log',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('"newPlayers":["Hal"]'),
       })
     );
   });

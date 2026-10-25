@@ -239,6 +239,8 @@ export interface LogPayload {
   /** YYYY-MM-DD, the day the matches were played. */
   date: string;
   matches: ConfirmedWhiteboardMatch[];
+  /** Optional new player names confirmed by the user to be added to the roster before logging. */
+  newPlayers?: string[];
 }
 
 /**
@@ -262,6 +264,19 @@ export function validateLogPayload(payload: LogPayload): string[] {
   }
   if (payload.matches.length > 10) {
     errors.push('At most 10 matches can be logged in one request');
+  }
+  if (payload.newPlayers !== undefined) {
+    if (!Array.isArray(payload.newPlayers)) {
+      errors.push('newPlayers must be an array of strings');
+    } else if (payload.newPlayers.length > 12) {
+      errors.push('At most 12 new players can be added in one request');
+    } else if (
+      payload.newPlayers.some(
+        (n) => typeof n !== 'string' || n.trim() === '' || n.trim().length > 60
+      )
+    ) {
+      errors.push('Each new player name must be a non-empty string up to 60 characters');
+    }
   }
 
   payload.matches.forEach((m, i) => {

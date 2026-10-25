@@ -132,5 +132,45 @@ describe('Whiteboard API routes', () => {
         { id: 101, teamOneGamesWon: 2, teamTwoGamesWon: 1, gameCount: 3 },
       ]);
     });
+
+    it('creates confirmed newPlayers and ignores inactive duplicates when resolving names', async () => {
+      mockSql
+        .mockResolvedValueOnce([
+          { id: 1, name: 'Nate King', is_active: null, deleted_at: null },
+          { id: 2, name: 'Ben Tenzer', is_active: null, deleted_at: null },
+          { id: 18, name: 'Ben H.', is_active: false, deleted_at: null },
+          { id: 3, name: 'Keith Schaefer', is_active: null, deleted_at: null },
+          { id: 5, name: 'Mark Cathy', is_active: null, deleted_at: null },
+          { id: 6, name: 'Vamsi Muktevi', is_active: null, deleted_at: null },
+        ])
+        .mockResolvedValueOnce([
+          { id: 77, name: 'Hal', is_active: true, deleted_at: null },
+        ])
+        .mockResolvedValueOnce([{ id: 102 }])
+        .mockResolvedValue([]);
+
+      const req = {
+        headers: new Headers(),
+        json: async () => ({
+          date: '2026-10-23',
+          newPlayers: ['Hal'],
+          matches: [
+            {
+              teamOnePlayers: ['Nate', 'Ben', 'Keith'],
+              teamTwoPlayers: ['Hal', 'Mark', 'Vamsi'],
+              games: [{ teamOneScore: 11, teamTwoScore: 7 }],
+            },
+          ],
+        }),
+      } as unknown as NextRequest;
+
+      const res = await logPOST(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(201);
+      expect(data.logged).toEqual([
+        { id: 102, teamOneGamesWon: 1, teamTwoGamesWon: 0, gameCount: 1 },
+      ]);
+    });
   });
 });

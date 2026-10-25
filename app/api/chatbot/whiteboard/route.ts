@@ -44,24 +44,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Roster from the database when available (server-side, so a client
-    // cannot spoof the roster to mis-map names). Fall back to the names
-    // the client sends, then to an empty roster (names still returned raw
-    // and flagged for the user to fix).
+    // Roster from the database when available (active players only so inactive
+    // historical players do not cause false first-name ambiguity). Merge any
+    // client-supplied names that are not already present.
     let roster: string[] = [];
     try {
       if (process.env.DATABASE_URL) {
         const sql = neon(process.env.DATABASE_URL);
-        const rows = await sql`SELECT name FROM players`;
+        const rows = await sql`
+          SELECT name FROM players
+          WHERE is_active IS DISTINCT FROM false AND deleted_at IS NULL
+        `;
         roster = rows.map((r: any) => r.name).filter(Boolean);
       }
     } catch (error) {
       console.error('Failed to load roster for whiteboard parse:', error);
     }
-    if (roster.length === 0 && playerNamesStr) {
+    if (playerNamesStr) {
       try {
         const parsed = JSON.parse(playerNamesStr);
-        if (Array.isArray(parsed)) roster = parsed.filter((n) => typeof n === 'string');
+        if (Array.isArray(parsed)) {
+          const existingLower = new Set(roster.map((r) => r.toLowerCase()));
+          for (const n of parsed) {
+            if (typeof n === 'string' && n.trim() && !existingLower.has(n.trim().toLowerCase())) {
+              roster.push(n.trim());
+              existingLower.add(n.trim().toLowerCase());
+            }
+          }
+        }
       } catch {
         // Ignore malformed client names; the model result is still usable.
       }
