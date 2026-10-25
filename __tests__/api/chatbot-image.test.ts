@@ -1,5 +1,14 @@
 import { NextRequest } from 'next/server';
 import { POST } from '../../app/api/chatbot/image/route';
+import { resetChatbotRateLimit } from '@/app/lib/chatbotGuard';
+
+const mockCookieStore = {
+  get: jest.fn(),
+};
+
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(() => mockCookieStore),
+}));
 
 const mockFindPlayersInImage = jest.fn();
 const mockAnalyzeMatchesWithConfirmedPlayers = jest.fn();
@@ -15,8 +24,15 @@ const mockImageFile = {
   arrayBuffer: async () => new Uint8Array([1, 2, 3, 4]).buffer,
 } as unknown as File;
 
-const createMockRequest = (formDataValues: Record<string, any>, rejectFormData = false) => {
+const createMockRequest = (
+  formDataValues: Record<string, any>,
+  rejectFormData = false,
+  headers: Record<string, string> = {}
+) => {
   return {
+    headers: {
+      get: (header: string) => headers[header.toLowerCase()] ?? null,
+    },
     formData: jest.fn().mockImplementation(() => {
       if (rejectFormData) {
         return Promise.reject(new Error('Form data parsing failed'));
@@ -34,6 +50,8 @@ describe('POST /api/chatbot/image', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetChatbotRateLimit();
+    mockCookieStore.get.mockReturnValue({ value: 'true' });
     mockConsoleError = jest.fn();
     console.error = mockConsoleError;
   });
@@ -205,5 +223,61 @@ describe('POST /api/chatbot/image', () => {
     expect(data.error).toBe('Failed to process image');
     expect(data.response).toContain('I apologize, but I encountered an error');
     expect(mockConsoleError).toHaveBeenCalled();
+  });
+
+  it('allows non-admin visitors to upload images (no admin gate)', async () => {
+    mockCookieStore.get.mockReturnValue(undefined);
+
+    const findings = {
+      lettersFound: ['A', 'B'],
+      playerAssignments: { 'A': 'Alice', 'B': 'Bob' },
+      ambiguousLetters: [],
+      unknownLetters: []
+    };
+
+    const matchesResult = {
+      matches: [
+        {
+          matchNumber: 1,
+          teamOne: { players: ['Alice'], letters: ['A'], wins: 3, needsClarification: false },
+          teamTwo: { players: ['Bob'], letters: ['B'], wins: 1, needsClarification: false }
+        }
+      ]
+    };
+
+    mockFindPlayersInImage.mockResolvedValue(findings);
+    mockAnalyzeMatchesWithConfirmedPlayers.mockResolvedValue(matchesResult);
+
+    const request = createMockRequest({
+      image: mockImageFile,
+      playerNames: '["Alice", "Bob"]',
+      step: '1'
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.type).toBe('match_results');
+    expect(data.additionalData).toEqual(matchesResult);
+  });
+
+  it('returns 429 Too Many Requests when rate limit is exceeded', async () => {
+    const request = createMockRequest(
+      {},
+      false,
+      { 'x-forwarded-for': '127.0.0.1' }
+    );
+
+    for (let i = 0; i < 20; i++) {
+      const res = await POST(request);
+      expect(res.status).not.toBe(429);
+    }
+
+    const rateLimitedRes = await POST(request);
+    expect(rateLimitedRes.status).toBe(429);
+    const data = await rateLimitedRes.json();
+    expect(data.error).toBe('Too many requests');
+    expect(data.timestamp).toBeDefined();
   });
 });

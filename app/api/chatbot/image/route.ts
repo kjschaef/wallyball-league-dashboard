@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeMatchResultsImage, findPlayersInImage, analyzeMatchesWithConfirmedPlayers } from '../../../lib/openai';
+import { checkChatbotRateLimit, getClientIp } from '../../../lib/chatbotGuard';
 
 export async function POST(request: NextRequest) {
+  const limit = checkChatbotRateLimit(getClientIp(request));
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        error: 'Too many requests',
+        response: 'Rate limit exceeded. Please wait a moment before uploading another image.',
+        timestamp: new Date().toISOString(),
+      },
+      {
+        status: 429,
+        headers:
+          limit.retryAfterMs != null
+            ? { 'Retry-After': String(Math.ceil(limit.retryAfterMs / 1000)) }
+            : undefined,
+      }
+    );
+  }
   try {
     // image analysis request received
     const formData = await request.formData();
@@ -81,6 +99,7 @@ export async function POST(request: NextRequest) {
         error: 'Failed to process image',
         response: 'I apologize, but I encountered an error processing your image. Please try again.',
         type: 'error',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
