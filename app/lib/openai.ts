@@ -39,7 +39,7 @@ export async function generateDailySummary(
 ): Promise<string> {
   try {
     const response = await createChatCompletion({
-      model: "gpt-5-mini",
+      model: "gpt-6-luna",
       messages: [
         {
           role: "system",
@@ -85,7 +85,7 @@ export const suggestTeamMatchups = generateBalancedTeams;
 
 export async function detectIntent(query: string): Promise<'rules_query' | 'performance_analysis' | 'general_chat'> {
   // Classification now runs through the OpenAI Decisions API (one fixed-shape
-  // choice question) instead of a full gpt-5-mini chat completion. The
+  // choice question) instead of a full chat completion. The
   // Decisions helper falls back to 'performance_analysis' on failure or
   // low confidence, matching the previous error fallback. Route behavior is
   // unchanged: only 'rules_query' takes the rules path; everything else
@@ -94,7 +94,7 @@ export async function detectIntent(query: string): Promise<'rules_query' | 'perf
 }
 
 async function shouldConsultRules(query: string): Promise<boolean> {
-  // Previously a gpt-5-mini YES/NO chat completion; now a Decisions
+  // Previously a YES/NO chat completion; now a Decisions
   // predicate. Returns false on failure, matching the previous fallback.
   return decisionsQueryReferencesRules(query);
 }
@@ -128,7 +128,7 @@ export async function analyzePlayerPerformance(
     }
 
     const response = await createChatCompletion({
-      model: "gpt-5-mini",
+      model: "gpt-6-luna",
       max_completion_tokens: 5000,
       messages: [
         {
@@ -160,7 +160,7 @@ export async function queryWallyballRules(query: string): Promise<{ response: st
     const rulesResult = await searchWallyballRules(query);
 
     const response = await createChatCompletion({
-      model: "gpt-5-mini",
+      model: "gpt-6-luna",
       messages: [
         {
           role: "system",

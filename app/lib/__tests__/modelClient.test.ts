@@ -41,7 +41,7 @@ describe('modelClient - createChatCompletion', () => {
     jest.restoreAllMocks();
   });
 
-  it('uses default gpt-5-mini if no model provided and no env var', async () => {
+  it('uses default gpt-6-luna if no model provided and no env var', async () => {
     delete process.env.OPENAI_MODEL;
 
     await createChatCompletion({
@@ -49,7 +49,7 @@ describe('modelClient - createChatCompletion', () => {
     });
 
     expect(mockCreate).toHaveBeenCalledWith({
-      model: 'gpt-5-mini',
+      model: 'gpt-6-luna',
       messages: [{ role: 'user', content: 'hello' }]
     });
   });
@@ -90,7 +90,7 @@ describe('modelClient - createChatCompletion', () => {
     });
 
     expect(mockCreate).toHaveBeenCalledWith({
-      model: 'gpt-5-mini',
+      model: 'gpt-6-luna',
       messages: [{ role: 'user', content: 'hello' }],
       temperature: 0.7,
       max_completion_tokens: 100,
@@ -107,7 +107,7 @@ describe('modelClient - createChatCompletion', () => {
     });
 
     expect(mockCreate).toHaveBeenCalledWith({
-      model: 'gpt-5-mini',
+      model: 'gpt-6-luna',
       messages: [{ role: 'user', content: 'hello' }],
       top_p: 0.9,
       frequency_penalty: 0.5,

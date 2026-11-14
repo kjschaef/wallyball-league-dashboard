@@ -61,7 +61,7 @@ VALIDATION CHECKLIST:
 CRITICAL: Only focus on finding letters - do NOT try to identify teams or count tally marks yet.`;
 
     const response = await createChatCompletion({
-      model: 'gpt-5-mini',
+      model: 'gpt-6-luna',
       messages: [
         {
           role: 'system',
@@ -173,7 +173,7 @@ IMPORTANT: For each team, include:
 CRITICAL: Focus on accuracy over completeness for tally marks. If unsure about tallies, use 0.`;
 
     const response = await createChatCompletion({
-      model: 'gpt-5-mini',
+      model: 'gpt-6-luna',
       messages: [
         {
           role: 'system',
@@ -303,7 +303,7 @@ Return in this JSON format:
       : 'Analyze the attached image of a whiteboard with wallyball match results. Extract the player names, teams, and game wins for each match. Return the data in a JSON format.';
 
     const response = await createChatCompletion({
-      model: 'gpt-5-mini',
+      model: 'gpt-6-luna',
       messages: [
         {
           role: 'system',
