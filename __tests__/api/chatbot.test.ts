@@ -282,6 +282,56 @@ describe('POST /api/chatbot', () => {
     expect(data.error).toBe('Too many requests');
     expect(data.timestamp).toBeDefined();
   });
+
+  it('refuses a message the Decisions spam filter flags, before any LLM call', async () => {
+    const originalKey = process.env.OPENAI_API_KEY;
+    process.env.OPENAI_API_KEY = 'test-key';
+    global.fetch = jest.fn().mockImplementation((url: string) => {
+      if (url.includes('api.openai.com')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            answers: [{ type: 'predicate', probability: 0.95 }],
+          }),
+        });
+      }
+      if (url.includes('/api/player-stats')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockLifetimePlayerStats,
+        });
+      }
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => 'Not Found',
+      });
+    });
+    try {
+      const request = createMockRequest({
+        message: 'Buy cheap watches now!!!',
+      });
+      const response = await POST(request);
+      const data = await response.json();
+      expect(response.status).toBe(200);
+      expect(data.type).toBe('error');
+      expect(data.response).toMatch(/not able to help/);
+      // Filter short-circuits before stats fetch and any LLM call.
+      expect(global.fetch).not.toHaveBeenCalledWith(
+        expect.stringContaining('/api/player-stats'),
+        expect.anything()
+      );
+      expect(mockDetectIntent).not.toHaveBeenCalled();
+      expect(mockAnalyzePlayerPerformance).not.toHaveBeenCalled();
+    } finally {
+      if (originalKey === undefined) {
+        delete process.env.OPENAI_API_KEY;
+      } else {
+        process.env.OPENAI_API_KEY = originalKey;
+      }
+    }
+  });
 });
 
 describe('GET /api/chatbot', () => {

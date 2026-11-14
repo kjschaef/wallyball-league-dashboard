@@ -124,13 +124,21 @@ export default function DashboardPage() {
     });
   };
 
-  const completeMatchRecording = (_newMatch: unknown) => {
+  const completeMatchRecording = (newMatch: unknown) => {
     setShowRecordMatchModal(false);
     resetMatchFlow();
     setRefreshKey(prev => prev + 1);
+    // Surface match-logging sanity-check warnings (e.g. an anomalous
+    // result) in the existing success status line; the match is saved.
+    const warnings = (newMatch as { warnings?: unknown } | null)?.warnings;
+    const warningText = Array.isArray(warnings)
+      ? warnings.filter((w): w is string => typeof w === 'string').join(' ')
+      : '';
     setMatchSubmissionStatus({
       tone: 'success',
-      message: 'Match recorded successfully.',
+      message: warningText
+        ? `Match recorded successfully. ${warningText}`
+        : 'Match recorded successfully.',
     });
   };
 

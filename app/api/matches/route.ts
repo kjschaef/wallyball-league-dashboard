@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
+import {
+  checkMatchDuplicate,
+  checkMatchAnomaly,
+  type MatchCheckEntry,
+} from '../../lib/decisions';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -218,6 +223,105 @@ export async function POST(request: Request) {
       teamTwoPlayerIds[2] = body.teamTwoPlayerThreeId || null;
     }
 
+    // Match date: noon local on the given day, or now when no date is given.
+    // Noon local is always the same UTC calendar day, so the YYYY-MM-DD
+    // derived below matches the stored date's day.
+    const matchDate = body.date ? new Date(body.date + 'T12:00:00') : new Date();
+    const matchDateStr = matchDate.toISOString().slice(0, 10);
+
+    // Player names for the response and for the sanity checks below.
+    const allPlayers = await sql`SELECT * FROM players`;
+    const playerMap = new Map(allPlayers.map((p) => [p.id, p.name]));
+    const namesFor = (ids: (number | null)[]) =>
+      ids
+        .map((id) => (id ? playerMap.get(id) : undefined))
+        .filter((name): name is string => typeof name === 'string');
+    const mappedGameScores = gameScores.map((g) => ({
+      teamOneScore: g.teamOneScore,
+      teamTwoScore: g.teamTwoScore,
+    }));
+    const newMatchEntry: MatchCheckEntry = {
+      teamOne: namesFor(teamOnePlayerIds),
+      teamTwo: namesFor(teamTwoPlayerIds),
+      teamOneGamesWon,
+      teamTwoGamesWon,
+      date: matchDateStr,
+      ...(mappedGameScores.length > 0 ? { gameScores: mappedGameScores } : {}),
+    };
+
+    // Decisions API sanity checks (duplicate + anomaly). Fail-open: both
+    // helpers return null when the API is unavailable, so a Decisions
+    // outage never blocks match recording.
+    const recentRows = await sql`
+      SELECT * FROM matches
+      WHERE date::date = ${matchDateStr}
+      ORDER BY id DESC
+      LIMIT 20
+    `;
+    const recentIds = recentRows.map((row) => row.id);
+    const recentGameRows =
+      recentIds.length > 0
+        ? await sql`
+            SELECT match_id, game_number, team_one_score, team_two_score
+            FROM match_games
+            WHERE match_id = ANY(${recentIds})
+            ORDER BY game_number ASC
+          `
+        : [];
+    const gamesByMatchId = new Map<
+      number,
+      Array<{ teamOneScore: number; teamTwoScore: number }>
+    >();
+    for (const g of recentGameRows) {
+      const list = gamesByMatchId.get(g.match_id) ?? [];
+      list.push({
+        teamOneScore: g.team_one_score,
+        teamTwoScore: g.team_two_score,
+      });
+      gamesByMatchId.set(g.match_id, list);
+    }
+    const recentEntries: MatchCheckEntry[] = recentRows.map((row) => {
+      const scores = gamesByMatchId.get(row.id) ?? [];
+      return {
+        id: row.id,
+        teamOne: namesFor([
+          row.team_one_player_one_id,
+          row.team_one_player_two_id,
+          row.team_one_player_three_id,
+        ]),
+        teamTwo: namesFor([
+          row.team_two_player_one_id,
+          row.team_two_player_two_id,
+          row.team_two_player_three_id,
+        ]),
+        teamOneGamesWon: row.team_one_games_won,
+        teamTwoGamesWon: row.team_two_games_won,
+        date: new Date(row.date).toISOString().slice(0, 10),
+        ...(scores.length > 0 ? { gameScores: scores } : {}),
+      };
+    });
+    const [duplicate, anomaly] = await Promise.all([
+      checkMatchDuplicate(newMatchEntry, recentEntries),
+      checkMatchAnomaly(newMatchEntry),
+    ]);
+    if (duplicate) {
+      return NextResponse.json(
+        {
+          error:
+            `This looks like a duplicate of match #${duplicate.duplicateId} ` +
+            `already logged today (same teams and result). If this is a ` +
+            `different match, change the details and try again.`,
+        },
+        { status: 409 }
+      );
+    }
+    const warnings: string[] = [];
+    if (anomaly) {
+      warnings.push(
+        'This result looks unusual — please double-check the teams and scores.'
+      );
+    }
+
     // Create new match in database
     const newMatches = await sql`
       INSERT INTO matches (
@@ -228,7 +332,7 @@ export async function POST(request: Request) {
       VALUES (
         ${teamOnePlayerIds[0]}, ${teamOnePlayerIds[1]}, ${teamOnePlayerIds[2]},
         ${teamTwoPlayerIds[0]}, ${teamTwoPlayerIds[1]}, ${teamTwoPlayerIds[2]},
-        ${teamOneGamesWon}, ${teamTwoGamesWon}, ${body.date ? new Date(body.date + 'T12:00:00') : new Date()}
+        ${teamOneGamesWon}, ${teamTwoGamesWon}, ${matchDate}
       )
       RETURNING *
     `;
@@ -246,10 +350,6 @@ export async function POST(request: Request) {
         `;
       }
     }
-
-    // Get player names for the response
-    const allPlayers = await sql`SELECT * FROM players`;
-    const playerMap = new Map(allPlayers.map(p => [p.id, p.name]));
 
     const teamOnePlayers = [
       match.team_one_player_one_id && playerMap.get(match.team_one_player_one_id),
@@ -280,7 +380,8 @@ export async function POST(request: Request) {
         gameNumber: g.gameNumber || (idx + 1),
         teamOneScore: g.teamOneScore,
         teamTwoScore: g.teamTwoScore
-      }))
+      })),
+      ...(warnings.length > 0 ? { warnings } : {}),
     };
 
     return NextResponse.json(responseMatch, { status: 201 });
