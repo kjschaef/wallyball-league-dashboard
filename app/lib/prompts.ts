@@ -83,3 +83,7 @@ Things worth calling out:
 Keep it punchy and fun. Skip players with 0 season games. Don't mention player IDs. Aim for 3-5 bullets per section. Always bold player names using **Name** markdown syntax.
 `;
 }
+
+export function whiteboardAnalysisSystemPrompt() {
+  return 'You are a precise image analysis expert reading a handwritten whiteboard. Always respond with valid JSON only. Do not include any text before or after the JSON object. Never invent scores or player names — if a team pairing has no scores, report it as unplayed, never with guessed scores.';
+}
