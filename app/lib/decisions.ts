@@ -135,7 +135,7 @@ export async function askPredicate(
 export type ChatIntent = 'rules_query' | 'performance_analysis' | 'general_chat';
 
 /**
- * Replaces the previous gpt-5-mini chat-completion intent classifier with a
+ * Replaces the previous legacy chat-completion intent classifier with a
  * single Decisions choice question. Falls back to 'performance_analysis'
  * (the route's catch-all branch) on any failure or low-confidence answer,
  * matching the previous error fallback.
@@ -169,7 +169,7 @@ export async function classifyChatIntent(message: string): Promise<ChatIntent> {
 }
 
 /**
- * Replaces the previous gpt-5-mini YES/NO rules check with a Decisions
+ * Replaces the previous legacy YES/NO rules check with a Decisions
  * predicate. Returns false on any failure, matching the previous fallback.
  */
 export async function queryReferencesRules(message: string): Promise<boolean> {
