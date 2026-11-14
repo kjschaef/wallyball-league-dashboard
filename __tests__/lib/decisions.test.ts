@@ -321,6 +321,72 @@ describe('checkMatchDuplicate', () => {
       )
     ).resolves.toBeNull();
   });
+
+  it('preserves same-day rematches with identical win totals but different point-by-point scores', async () => {
+    mockDecisionsAnswer({ type: 'predicate', probability: 0.95 });
+    const recentWithScores = [
+      {
+        ...recent[0],
+        gameScores: [
+          { teamOneScore: 21, teamTwoScore: 15 },
+          { teamOneScore: 18, teamTwoScore: 21 },
+          { teamOneScore: 21, teamTwoScore: 12 },
+        ],
+      },
+    ];
+    await expect(
+      checkMatchDuplicate(
+        {
+          teamOne: ['Alice', 'Bob'],
+          teamTwo: ['Carol', 'Dan'],
+          teamOneGamesWon: 2,
+          teamTwoGamesWon: 1,
+          date: '2026-10-24',
+          gameScores: [
+            { teamOneScore: 21, teamTwoScore: 19 },
+            { teamOneScore: 14, teamTwoScore: 21 },
+            { teamOneScore: 25, teamTwoScore: 23 },
+          ],
+        },
+        recentWithScores
+      )
+    ).resolves.toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('flags a duplicate when point-by-point scores also match', async () => {
+    mockDecisionsAnswer({ type: 'predicate', probability: 0.95 });
+    const scores = [
+      { teamOneScore: 21, teamTwoScore: 15 },
+      { teamOneScore: 18, teamTwoScore: 21 },
+      { teamOneScore: 21, teamTwoScore: 12 },
+    ];
+    const recentWithScores = [
+      { ...recent[0], gameScores: scores },
+      {
+        ...recent[0],
+        id: 9,
+        gameScores: [
+          { teamOneScore: 21, teamTwoScore: 19 },
+          { teamOneScore: 14, teamTwoScore: 21 },
+          { teamOneScore: 25, teamTwoScore: 23 },
+        ],
+      },
+    ];
+    await expect(
+      checkMatchDuplicate(
+        {
+          teamOne: ['Alice', 'Bob'],
+          teamTwo: ['Carol', 'Dan'],
+          teamOneGamesWon: 2,
+          teamTwoGamesWon: 1,
+          date: '2026-10-24',
+          gameScores: scores,
+        },
+        recentWithScores
+      )
+    ).resolves.toEqual({ duplicateId: 7, probability: 0.95 });
+  });
 });
 
 describe('checkMatchAnomaly', () => {

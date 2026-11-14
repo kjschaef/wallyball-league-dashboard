@@ -240,6 +240,11 @@ export async function resolveAmbiguousInitial(
   return { name: answer.choice, confidence: answer.confidence };
 }
 
+export interface MatchGameScore {
+  teamOneScore: number;
+  teamTwoScore: number;
+}
+
 export interface MatchCheckEntry {
   id?: number;
   teamOne: string[];
@@ -247,12 +252,34 @@ export interface MatchCheckEntry {
   teamOneGamesWon: number;
   teamTwoGamesWon: number;
   date: string;
+  gameScores?: MatchGameScore[];
+}
+
+function formatGameScores(scores?: MatchGameScore[]): string {
+  if (!scores || scores.length === 0) return '';
+  return scores.map((g) => `${g.teamOneScore}-${g.teamTwoScore}`).join(', ');
 }
 
 function matchEntrySummary(entry: MatchCheckEntry): string {
+  const scoresText = formatGameScores(entry.gameScores);
   return (
     `Teams ${entry.teamOne.join(', ')} vs ${entry.teamTwo.join(', ')}, ` +
-    `games won ${entry.teamOneGamesWon}-${entry.teamTwoGamesWon}, date ${entry.date}`
+    `games won ${entry.teamOneGamesWon}-${entry.teamTwoGamesWon}` +
+    (scoresText ? `, scores ${scoresText}` : '') +
+    `, date ${entry.date}`
+  );
+}
+
+function sameTeamsAndResult(
+  a: MatchCheckEntry,
+  b: MatchCheckEntry
+): boolean {
+  return (
+    a.teamOne.slice().sort().join('|') === b.teamOne.slice().sort().join('|') &&
+    a.teamTwo.slice().sort().join('|') === b.teamTwo.slice().sort().join('|') &&
+    a.teamOneGamesWon === b.teamOneGamesWon &&
+    a.teamTwoGamesWon === b.teamTwoGamesWon &&
+    a.date === b.date
   );
 }
 
@@ -270,18 +297,37 @@ export async function checkMatchDuplicate(
   );
   if (withIds.length === 0) return null;
 
+  // If the new match has point-by-point scores and all recent matches with
+  // the same teams, date, and games-won totals also have point-by-point
+  // scores that differ from the new match, it is a rematch rather than a
+  // duplicate.
+  const newScoresKey = formatGameScores(newMatch.gameScores);
+  if (newScoresKey) {
+    const matchingLine = withIds.filter((m) => sameTeamsAndResult(m, newMatch));
+    if (
+      matchingLine.length > 0 &&
+      matchingLine.every((m) => {
+        const recentScoresKey = formatGameScores(m.gameScores);
+        return recentScoresKey !== '' && recentScoresKey !== newScoresKey;
+      })
+    ) {
+      return null;
+    }
+  }
+
   const answer = await askPredicate(
     `New match: ${matchEntrySummary(newMatch)}. Recently logged matches:\n${withIds
       .map((m) => `Match ${m.id}: ${matchEntrySummary(m)}`)
       .join('\n')}`,
     'is_duplicate_match',
-    'Is the new match a duplicate of one of the recently logged matches — the same teams playing the same result on the same day, logged twice?'
+    'Is the new match a duplicate of one of the recently logged matches — the same teams playing the same result (including point-by-point scores when provided) on the same day, logged twice? Different point-by-point scores indicate a rematch, not a duplicate.'
   );
   if (!answer || answer.probability < DUPLICATE_PROBABILITY_THRESHOLD) {
     return null;
   }
   // The predicate answers the set-level question; report the most similar
-  // recent match (same teams, same games-won line) as the suspected source.
+  // recent match (same teams, same games-won line, and matching scores when
+  // available) as the suspected source.
   const sameTeams = withIds.filter(
     (m) =>
       m.teamOne.slice().sort().join('|') ===
@@ -291,12 +337,15 @@ export async function checkMatchDuplicate(
   );
   const pool = sameTeams.length > 0 ? sameTeams : withIds;
   const suspected =
-    pool.find(
-      (m) =>
-        m.teamOneGamesWon === newMatch.teamOneGamesWon &&
-        m.teamTwoGamesWon === newMatch.teamTwoGamesWon &&
-        m.date === newMatch.date
-    ) ?? pool[0];
+    (newScoresKey
+      ? pool.find(
+          (m) =>
+            sameTeamsAndResult(m, newMatch) &&
+            formatGameScores(m.gameScores) === newScoresKey
+        )
+      : undefined) ??
+    pool.find((m) => sameTeamsAndResult(m, newMatch)) ??
+    pool[0];
   return { duplicateId: suspected.id, probability: answer.probability };
 }
 

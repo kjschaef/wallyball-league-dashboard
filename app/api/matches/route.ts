@@ -236,12 +236,17 @@ export async function POST(request: Request) {
       ids
         .map((id) => (id ? playerMap.get(id) : undefined))
         .filter((name): name is string => typeof name === 'string');
+    const mappedGameScores = gameScores.map((g) => ({
+      teamOneScore: g.teamOneScore,
+      teamTwoScore: g.teamTwoScore,
+    }));
     const newMatchEntry: MatchCheckEntry = {
       teamOne: namesFor(teamOnePlayerIds),
       teamTwo: namesFor(teamTwoPlayerIds),
       teamOneGamesWon,
       teamTwoGamesWon,
       date: matchDateStr,
+      ...(mappedGameScores.length > 0 ? { gameScores: mappedGameScores } : {}),
     };
 
     // Decisions API sanity checks (duplicate + anomaly). Fail-open: both
@@ -253,22 +258,48 @@ export async function POST(request: Request) {
       ORDER BY id DESC
       LIMIT 20
     `;
-    const recentEntries: MatchCheckEntry[] = recentRows.map((row) => ({
-      id: row.id,
-      teamOne: namesFor([
-        row.team_one_player_one_id,
-        row.team_one_player_two_id,
-        row.team_one_player_three_id,
-      ]),
-      teamTwo: namesFor([
-        row.team_two_player_one_id,
-        row.team_two_player_two_id,
-        row.team_two_player_three_id,
-      ]),
-      teamOneGamesWon: row.team_one_games_won,
-      teamTwoGamesWon: row.team_two_games_won,
-      date: new Date(row.date).toISOString().slice(0, 10),
-    }));
+    const recentIds = recentRows.map((row) => row.id);
+    const recentGameRows =
+      recentIds.length > 0
+        ? await sql`
+            SELECT match_id, game_number, team_one_score, team_two_score
+            FROM match_games
+            WHERE match_id = ANY(${recentIds})
+            ORDER BY game_number ASC
+          `
+        : [];
+    const gamesByMatchId = new Map<
+      number,
+      Array<{ teamOneScore: number; teamTwoScore: number }>
+    >();
+    for (const g of recentGameRows) {
+      const list = gamesByMatchId.get(g.match_id) ?? [];
+      list.push({
+        teamOneScore: g.team_one_score,
+        teamTwoScore: g.team_two_score,
+      });
+      gamesByMatchId.set(g.match_id, list);
+    }
+    const recentEntries: MatchCheckEntry[] = recentRows.map((row) => {
+      const scores = gamesByMatchId.get(row.id) ?? [];
+      return {
+        id: row.id,
+        teamOne: namesFor([
+          row.team_one_player_one_id,
+          row.team_one_player_two_id,
+          row.team_one_player_three_id,
+        ]),
+        teamTwo: namesFor([
+          row.team_two_player_one_id,
+          row.team_two_player_two_id,
+          row.team_two_player_three_id,
+        ]),
+        teamOneGamesWon: row.team_one_games_won,
+        teamTwoGamesWon: row.team_two_games_won,
+        date: new Date(row.date).toISOString().slice(0, 10),
+        ...(scores.length > 0 ? { gameScores: scores } : {}),
+      };
+    });
     const [duplicate, anomaly] = await Promise.all([
       checkMatchDuplicate(newMatchEntry, recentEntries),
       checkMatchAnomaly(newMatchEntry),
